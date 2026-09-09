@@ -2831,3 +2831,176 @@ body.dangan-body {
     color: #000 !important;
   }
 }
+
+/* ============================================== */
+/* KAHOOT-STYLE 6-DIGIT SESSIONS & HUB ROOM LIST  */
+/* ============================================== */
+.hub-active-rooms-box {
+  width: 100%;
+  max-width: 850px;
+  background: rgba(18, 18, 30, 0.95);
+  border: 2px solid var(--court-gold);
+  box-shadow: 0 0 20px rgba(212, 155, 24, 0.25);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+
+.active-rooms-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  color: var(--court-gold);
+  font-weight: 900;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.room-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #00ff88;
+  box-shadow: 0 0 10px #00ff88;
+  display: inline-block;
+  animation: pulse-dot 1.4s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.4); opacity: 1; }
+}
+
+.active-rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.active-room-card {
+  background: #141424;
+  border: 2px solid #33334d;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.active-room-card:hover {
+  border-color: var(--mono-pink);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(230, 0, 103, 0.2);
+}
+
+.arc-pin-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.arc-pin {
+  font-family: 'Courier New', monospace;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--mono-yellow);
+  letter-spacing: 2px;
+}
+
+.arc-meta {
+  font-size: 0.82rem;
+  color: #888;
+}
+
+.arc-btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Court Splash & Big Kahoot PIN */
+.court-splash-banner {
+  background: linear-gradient(135deg, rgba(230, 0, 103, 0.2), rgba(0, 0, 0, 0.8));
+  border: 2px solid var(--mono-pink);
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  box-shadow: 0 0 25px rgba(230, 0, 103, 0.3);
+}
+
+.court-splash-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px var(--mono-pink);
+  margin: 4px 0;
+}
+
+.kahoot-pin-box {
+  background: #0d0d18;
+  border: 3px solid var(--court-gold);
+  border-radius: 12px;
+  padding: 14px 20px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 0 20px rgba(212, 155, 24, 0.35);
+  margin: 10px 0;
+}
+
+.kahoot-pin-label {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #aaa;
+  letter-spacing: 2px;
+}
+
+.kahoot-pin-num {
+  font-family: 'Courier New', monospace;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: var(--mono-yellow);
+  letter-spacing: 6px;
+  text-shadow: 0 0 15px rgba(255, 230, 0, 0.6);
+  user-select: all;
+}
+
+.court-lobby-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+/* Player Voluntary Exit Button */
+.player-exit-btn {
+  background: #3d1419;
+  border: 2px solid #ff2244;
+  color: #ff99aa;
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: auto;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.player-exit-btn:hover {
+  background: #ff2244;
+  color: #fff;
+  box-shadow: 0 0 8px #ff2244;
+}
+
+/* Claimed Option / Role in Player Select */
+select option:disabled {
+  color: #555 !important;
+  background: #222 !important;
+}
+

@@ -4,7 +4,11 @@
 // ==========================================================
 
 // Global Game State
-let roomCode = 'DESPAIR';
+function generate6DigitRoomCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+let roomCode = '';
 let myPeer = null;
 let hostPeer = null;
 let peerConnections = []; // If this client is Host, stores all player connections
@@ -16,6 +20,111 @@ let currentUserHash = '';
 let enteredPin = '';
 const ADMIN_CORRECT_PIN = '295437';
 let myPlayer = null;
+let hubRoomsPollingInterval = null;
+let courtHeartbeatInterval = null;
+
+// ==========================================================
+// ACTIVE ROOM REGISTRY (API & LOCAL FALLBACK)
+// ==========================================================
+async function registerActiveRoom(code) {
+  if (!code) return;
+  const count = gameState && gameState.players ? Object.keys(gameState.players).length : 0;
+  try {
+    await fetch('/api/rooms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomCode: code, playersCount: count, stage: gameState ? gameState.stage : 'lobby' })
+    });
+  } catch(e) {}
+  try {
+    localStorage.setItem('dangan_local_active_room', JSON.stringify({ roomCode: code, updatedAt: Date.now(), playersCount: count }));
+  } catch(e) {}
+}
+
+async function deleteActiveRoom(code) {
+  if (!code) return;
+  try {
+    await fetch('/api/rooms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomCode: code, action: 'delete' })
+    });
+  } catch(e) {}
+  try {
+    localStorage.removeItem('dangan_local_active_room');
+  } catch(e) {}
+}
+
+async function fetchActiveRooms() {
+  const container = document.getElementById('hubActiveRoomsSection');
+  const listEl = document.getElementById('activeRoomsList');
+  if (!container || !listEl) return;
+
+  let rooms = [];
+  try {
+    const res = await fetch('/api/rooms');
+    if (res.ok) {
+      const data = await res.json();
+      rooms = data.rooms || [];
+    }
+  } catch(e) {}
+
+  // Local device fallback
+  try {
+    const localRaw = localStorage.getItem('dangan_local_active_room');
+    if (localRaw) {
+      const localObj = JSON.parse(localRaw);
+      if (Date.now() - localObj.updatedAt < 45000) {
+        if (!rooms.find(r => r.roomCode === localObj.roomCode)) {
+          rooms.push({ roomCode: localObj.roomCode, createdAt: localObj.updatedAt, playersCount: localObj.playersCount || 0 });
+        }
+      }
+    }
+  } catch(e) {}
+
+  if (!rooms || rooms.length === 0) {
+    container.classList.add('hidden');
+    listEl.innerHTML = '';
+    return;
+  }
+
+  container.classList.remove('hidden');
+  listEl.innerHTML = '';
+  rooms.forEach(r => {
+    const elapsedMins = Math.max(0, Math.floor((Date.now() - r.createdAt) / 60000));
+    const timeStr = elapsedMins === 0 ? 'เพิ่งเปิดเมื่อสักครู่' : `เปิดเมื่อ ${elapsedMins} นาทีที่แล้ว`;
+
+    const card = document.createElement('div');
+    card.className = 'active-room-card';
+    card.innerHTML = `
+      <div class="arc-pin-row">
+        <span class="arc-pin">PIN: ${r.roomCode}</span>
+        <span class="arc-meta">👤 ${r.playersCount || 0} คน</span>
+      </div>
+      <div class="arc-meta">⏱️ ${timeStr}</div>
+      <div class="arc-btn-row">
+        <button class="small-btn yellow" style="flex:1; padding:6px 10px; font-size:0.8rem; font-weight:900;" onclick="joinRoomAsAdmin('${r.roomCode}')">
+          🎛️ DM เข้าคุม
+        </button>
+        <button class="small-btn pink" style="flex:1; padding:6px 10px; font-size:0.8rem; font-weight:900;" onclick="joinRoomAsPlayer('${r.roomCode}')">
+          📱 เข้าเล่น
+        </button>
+      </div>
+    `;
+    listEl.appendChild(card);
+  });
+}
+
+function joinRoomAsAdmin(code) {
+  sessionStorage.setItem('dangan_target_room', code);
+  roomCode = code;
+  showPinModal();
+}
+
+function joinRoomAsPlayer(code) {
+  roomCode = code;
+  navigate('/play?room=' + code);
+}
 
 let gameState = {
   stage: 'lobby', // lobby, investigation, stage1..stage7, verdict
@@ -235,24 +344,52 @@ function playSfx(type) {
 // REAL-TIME NETWORKING (PEERJS + SOCKET.IO DUAL-STACK)
 // ==========================================================
 function initRealtime() {
-  // Check URL params for room
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('room')) {
-    roomCode = urlParams.get('room').toUpperCase();
+  const paramRoom = urlParams.get('room');
+
+  if (paramRoom) {
+    roomCode = paramRoom.trim().toUpperCase();
+  } else if (currentView === 'court') {
+    // Check if court already has an active 6-digit room in this tab/session
+    const savedCourtRoom = sessionStorage.getItem('dangan_court_room_code');
+    if (savedCourtRoom) {
+      roomCode = savedCourtRoom;
+    } else {
+      roomCode = generate6DigitRoomCode();
+      sessionStorage.setItem('dangan_court_room_code', roomCode);
+    }
+  } else if (currentView === 'admin') {
+    const target = sessionStorage.getItem('dangan_target_room');
+    if (target) roomCode = target.toUpperCase();
+  } else if (currentView === 'player') {
+    const savedPlayerRoom = localStorage.getItem('dangan_current_room');
+    if (savedPlayerRoom) {
+      roomCode = savedPlayerRoom;
+    }
   }
 
   const dispRoom = document.getElementById('displayRoomCode');
-  if (dispRoom) dispRoom.innerText = roomCode;
+  if (dispRoom) dispRoom.innerText = roomCode || '------';
   const courtRoom = document.getElementById('courtLobbyRoomCode');
-  if (courtRoom) courtRoom.innerText = roomCode;
+  if (courtRoom) courtRoom.innerText = roomCode || '------';
   const mobRoom = document.getElementById('mobileRoomInput');
-  if (mobRoom) mobRoom.value = roomCode;
+  if (mobRoom && roomCode) mobRoom.value = roomCode;
   const joinUrl = document.getElementById('courtJoinUrl');
-  const directJoin = window.location.origin + '/play?room=' + roomCode;
+  const directJoin = roomCode ? (window.location.origin + '/play?room=' + roomCode) : window.location.origin + '/play';
   if (joinUrl) joinUrl.innerText = directJoin;
   const qrImg = document.getElementById('courtQrImg');
-  if (qrImg) {
+  if (qrImg && roomCode) {
     qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(directJoin);
+  }
+
+  // If court, register room and start heartbeat
+  if (currentView === 'court' && roomCode) {
+    registerActiveRoom(roomCode);
+    if (!courtHeartbeatInterval) {
+      courtHeartbeatInterval = setInterval(() => {
+        if (currentView === 'court' && roomCode) registerActiveRoom(roomCode);
+      }, 18000);
+    }
   }
 
   // Try connecting to local Socket.io first
@@ -274,6 +411,7 @@ function initRealtime() {
 
 function setupPeerJS() {
   if (currentView === 'hub') return;
+  if (!roomCode) return;
   if (myPeer && !myPeer.destroyed) return;
 
   const hostPeerId = `dangan-court-${roomCode.toLowerCase()}`;
@@ -295,7 +433,7 @@ function setupPeerJS() {
       conn.on('data', (data) => {
         handleIncomingMessage(data, conn);
         // STAR-RELAY: Forward message to all other connected peers immediately!
-        if (isHost) {
+        if (isHost && data.type !== 'request_claim_character') {
           peerConnections.forEach(c => {
             if (c !== conn && c.open) {
               try { c.send(data); } catch(e) {}
@@ -308,10 +446,20 @@ function setupPeerJS() {
         peerConnections = peerConnections.filter(c => c !== conn);
       });
 
-      // Send initial state to newly joined player
+      // Send initial state & claimed roles to newly joined player
       setTimeout(() => {
         conn.send({ type: 'sync_state', state: gameState });
-      }, 400);
+        if (gameState && gameState.players) {
+          Object.values(gameState.players).forEach(p => {
+            conn.send({
+              type: 'character_claimed',
+              role: p.role,
+              playerName: p.name,
+              peerId: p.id
+            });
+          });
+        }
+      }, 350);
     });
 
     myPeer.on('error', (err) => {
@@ -328,12 +476,21 @@ function setupPeerJS() {
   }
 }
 
-function connectToHostPeer(hostId) {
-  myPeer = new Peer();
+function connectToHostPeer(hostId, onConnected) {
+  if (myPeer && !myPeer.destroyed) {
+    if (hostPeer && hostPeer.open) {
+      if (onConnected) onConnected();
+      return;
+    }
+  } else {
+    myPeer = new Peer();
+  }
+
   myPeer.on('open', () => {
     hostPeer = myPeer.connect(hostId, { reliable: true });
     hostPeer.on('open', () => {
       console.log('[WEBRTC] Connected to Host:', hostId);
+      if (onConnected) onConnected();
     });
     hostPeer.on('data', (data) => {
       handleIncomingMessage(data, hostPeer);
@@ -354,8 +511,10 @@ function broadcast(msg) {
     hostPeer.send(msg);
   }
 
-  // Also broadcast locally to this browser tab
-  handleIncomingMessage(msg, null);
+  // Also broadcast locally to this browser tab ONLY if host, or if it's not a claim request / leave
+  if (isHost || (msg.type !== 'request_claim_character' && msg.type !== 'player_leave')) {
+    handleIncomingMessage(msg, null);
+  }
 
   // Sync to socket if available
   if (socket && socket.connected) {
@@ -368,12 +527,142 @@ function handleIncomingMessage(msg, senderConn) {
 
   if (msg.type === 'sync_state') {
     applyState(msg.state);
+  } else if (msg.type === 'request_claim_character') {
+    if (!isHost) return;
+    const reqRole = msg.role;
+    const reqName = msg.playerName;
+    const senderId = senderConn ? senderConn.peer : (currentUserHash || 'host_p');
+
+    // Check if role is already claimed by someone else
+    const existing = Object.values(gameState.players).find(p => p.role === reqRole && p.id !== senderId);
+    if (existing) {
+      if (senderConn && senderConn.open) {
+        senderConn.send({
+          type: 'claim_rejected',
+          role: reqRole,
+          reason: `บทบาท "${reqRole}" ถูกเลือกโดย "${existing.name}" ไปแล้ว กรุณาเลือกบทอื่น!`
+        });
+      }
+      return;
+    }
+
+    // Role is free!
+    const isKiller = (reqRole === 'นักมายากล');
+    const playerObj = {
+      id: senderId,
+      name: reqName,
+      role: reqRole,
+      isKiller: isKiller,
+      roomCode: roomCode,
+      userHash: msg.userHash || senderId
+    };
+    gameState.players[senderId] = playerObj;
+    updatePlayerDisplays();
+
+    // Send approval back
+    if (senderConn && senderConn.open) {
+      senderConn.send({
+        type: 'claim_approved',
+        player: playerObj,
+        state: gameState
+      });
+    }
+
+    // Broadcast to all other peers so they disable this role card
+    peerConnections.forEach(c => {
+      if (c.open) {
+        try {
+          c.send({
+            type: 'character_claimed',
+            role: reqRole,
+            playerName: reqName,
+            peerId: senderId
+          });
+        } catch(e) {}
+      }
+    });
+
+    logCourt(`👤 [PODIUM]: ${reqName} ยืนประจำแท่น [${reqRole}]`);
+  } else if (msg.type === 'claim_approved') {
+    myPlayer = msg.player;
+    localStorage.setItem('dangan_player_' + roomCode, JSON.stringify(myPlayer));
+    localStorage.setItem('dangan_current_room', roomCode);
+    if (currentUserHash) localStorage.setItem('dangan_current_user_hash', currentUserHash);
+
+    const btnJoin = document.querySelector('#mobileJoinScreen .dangan-action-btn');
+    if (btnJoin) {
+      btnJoin.disabled = false;
+      btnJoin.innerText = 'เข้าสู่ศาลชั้นเรียน';
+    }
+
+    document.getElementById('mobileJoinScreen').classList.add('hidden');
+    document.getElementById('mobileGameScreen').classList.remove('hidden');
+
+    document.getElementById('pMyName').innerText = myPlayer.name;
+    document.getElementById('pMyRole').innerText = `[${myPlayer.role}]`;
+    const pHash = document.getElementById('pMyHash');
+    if (pHash) pHash.innerText = '#' + (currentUserHash || 'USER');
+
+    if (myPlayer.isKiller) {
+      document.getElementById('pMyStatus').innerText = '☠️ ผู้วางแผน (Blackened)';
+      document.getElementById('pMyStatus').className = 'p-status killer';
+      document.getElementById('mobileSaboteurPanel').classList.remove('hidden');
+    } else {
+      document.getElementById('pMyStatus').innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
+      document.getElementById('pMyStatus').className = 'p-status normal';
+      document.getElementById('mobileSaboteurPanel').classList.add('hidden');
+    }
+
+    showToast(`✨ คุณได้สวมบทบาท [${myPlayer.role}] เข้าสู่ศาลแล้ว!`);
+    playSfx('correct');
+  } else if (msg.type === 'claim_rejected') {
+    const btnJoin = document.querySelector('#mobileJoinScreen .dangan-action-btn');
+    if (btnJoin) {
+      btnJoin.disabled = false;
+      btnJoin.innerText = 'เข้าสู่ศาลชั้นเรียน';
+    }
+    alert(msg.reason);
+    const opt = document.getElementById('optRole_' + msg.role);
+    if (opt) {
+      opt.disabled = true;
+      opt.innerText = `[❌ ถูกเลือกแล้ว] ${msg.role}`;
+    }
+    const notice = document.getElementById('roleClaimNotice');
+    if (notice) notice.innerText = `⚠️ บท ${msg.role} ถูกเลือกแล้ว โปรดเลือกบทอื่น`;
+    playSfx('wrong');
+  } else if (msg.type === 'character_claimed') {
+    const opt = document.getElementById('optRole_' + msg.role);
+    if (opt) {
+      opt.disabled = true;
+      opt.innerText = `[❌ ถูกเลือกแล้ว] ${msg.role} (${msg.playerName})`;
+    }
+  } else if (msg.type === 'character_freed') {
+    const opt = document.getElementById('optRole_' + msg.role);
+    if (opt) {
+      opt.disabled = false;
+      opt.innerText = `PC: สุดยอด${msg.role}`;
+    }
+  } else if (msg.type === 'player_leave') {
+    if (gameState.players[msg.peerId]) {
+      const leavingRole = gameState.players[msg.peerId].role;
+      const leavingName = gameState.players[msg.peerId].name;
+      delete gameState.players[msg.peerId];
+      updatePlayerDisplays();
+      logCourt(`🚪 [LEAVE]: ${leavingName} (${leavingRole}) ออกจากห้องศาล`);
+      if (isHost) {
+        broadcast({ type: 'character_freed', role: leavingRole });
+      }
+    }
+  } else if (msg.type === 'session_terminated') {
+    alert('🚪 เซสชันศาลชั้นเรียนนี้จบลงแล้ว ทุกคนจะถูกนำกลับไปหน้าเลือกตัวละครใหม่เหมือน Kahoot!');
+    clearPlayerLocalData();
+    window.location.href = '/';
   } else if (msg.type === 'player_joined') {
     gameState.players[msg.player.id] = msg.player;
     updatePlayerDisplays();
     logCourt(`👤 [JOIN]: ${msg.player.name} (${msg.player.role}) ยืนประจำโพเดียม`);
     if (isHost) broadcast({ type: 'sync_state', state: gameState });
-  } else if (msg.type === 'admin_reset_session') {
+  } else if (msg.type === 'admin_reset_session' || msg.type === 'reset_session') {
     handleResetSession();
   } else if (msg.type === 'kick_player') {
     handleKickPlayer(msg.playerId);
@@ -416,6 +705,15 @@ function applyState(st) {
   updateTimerDisplay();
   updatePlayerDisplays();
   renderStage(gameState.stage);
+  if (gameState.players) {
+    Object.values(gameState.players).forEach(p => {
+      const opt = document.getElementById('optRole_' + p.role);
+      if (opt) {
+        opt.disabled = true;
+        opt.innerText = `[❌ ถูกเลือกแล้ว] ${p.role} (${p.name})`;
+      }
+    });
+  }
 }
 
 // ==========================================================
@@ -545,32 +843,22 @@ function switchView(v) {
 }
 
 function updateHubDisplay() {
-  const hash = localStorage.getItem('dangan_current_user_hash');
-  const box = document.getElementById('hubResumeBox');
-  const info = document.getElementById('hubResumeInfo');
-  if (!box || !info) return;
-
-  if (hash) {
-    const saved = localStorage.getItem('dangan_player_' + hash);
-    if (saved) {
-      try {
-        const p = JSON.parse(saved);
-        info.innerHTML = `ตัวละคร: <strong style="color:var(--mono-pink);">${p.name}</strong> [${p.role}] | ลิงก์ของคุณ: <code style="color:var(--mono-cyan);">/${hash}</code>`;
-        box.classList.remove('hidden');
-        return;
-      } catch(e) {}
-    }
-  }
-  box.classList.add('hidden');
+  fetchActiveRooms();
+  if (hubRoomsPollingInterval) clearInterval(hubRoomsPollingInterval);
+  hubRoomsPollingInterval = setInterval(fetchActiveRooms, 5000);
 }
 
-function resumePlayerSession() {
-  const hash = localStorage.getItem('dangan_current_user_hash');
-  if (hash) {
-    navigate('/' + hash);
-  } else {
-    navigate('/play');
+function clearPlayerLocalData() {
+  myPlayer = null;
+  currentUserHash = '';
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('dangan_')) {
+      keysToRemove.push(k);
+    }
   }
+  keysToRemove.forEach(k => localStorage.removeItem(k));
 }
 
 function copyRoomLink() {
@@ -693,7 +981,13 @@ function initPlayerSession(hash) {
   const pHash = document.getElementById('pMyHash');
   if (pHash) pHash.innerText = '#' + hash;
 
-  const savedData = localStorage.getItem('dangan_player_' + hash);
+  // Check if room changed from previous session
+  const savedRoom = localStorage.getItem('dangan_current_room');
+  if (roomCode && savedRoom && savedRoom.toUpperCase() !== roomCode.toUpperCase()) {
+    clearPlayerLocalData();
+  }
+
+  const savedData = roomCode ? localStorage.getItem('dangan_player_' + roomCode) : null;
   if (savedData) {
     try {
       const p = JSON.parse(savedData);
@@ -728,13 +1022,13 @@ function initPlayerSession(hash) {
         }
         if (sabPanel) sabPanel.classList.add('hidden');
       }
-
-      broadcast({ type: 'player_joined', player: myPlayer });
       return;
-    } catch(e) {}
+    } catch(e) {
+      clearPlayerLocalData();
+    }
   }
 
-  // If no saved player, show join form
+  // If no saved player for this active room, show join form
   const joinScr = document.getElementById('mobileJoinScreen');
   if (joinScr) joinScr.classList.remove('hidden');
   const gameScr = document.getElementById('mobileGameScreen');
@@ -1564,46 +1858,41 @@ function showVerdict(isVictory) {
 function playerJoin() {
   getAudio();
   const name = document.getElementById('mobileNameInput').value.trim();
-  const role = document.getElementById('mobileRoleSelect').value;
-  const room = document.getElementById('mobileRoomInput').value.trim().toUpperCase();
+  const roleSelect = document.getElementById('mobileRoleSelect');
+  const role = roleSelect ? roleSelect.value : '';
+  const room = (document.getElementById('mobileRoomInput').value || '').trim().toUpperCase();
 
-  if (!name) { alert('กรุณากรอกชื่อตัวละคร'); return; }
+  if (!name) { alert('กรุณากรอกชื่อของคุณ'); return; }
+  if (!room) { alert('กรุณากรอกรหัสห้อง 6 หลัก'); return; }
+
+  const selectedOpt = roleSelect.options[roleSelect.selectedIndex];
+  if (selectedOpt && selectedOpt.disabled) {
+    alert(`บทบาท "${role}" ถูกผู้เล่นอื่นเลือกไปแล้ว กรุณาเลือกบทอื่น!`);
+    return;
+  }
+
   roomCode = room;
+  const btnJoin = document.querySelector('#mobileJoinScreen .dangan-action-btn');
+  if (btnJoin) {
+    btnJoin.disabled = true;
+    btnJoin.innerText = '⏳ กำลังขอบทบาทจากศาลชั้นเรียน...';
+  }
 
-  const isKiller = (role === 'นักมายากล');
-  const playerId = currentUserHash || ('p_' + Math.random().toString(36).substr(2, 9));
-  myPlayer = {
-    id: playerId,
-    name: name,
+  const claimPacket = {
+    type: 'request_claim_character',
     role: role,
-    isKiller: isKiller
+    playerName: name,
+    userHash: currentUserHash || ('u-' + Math.random().toString(36).substr(2, 7))
   };
 
-  // Save session to localStorage
-  if (currentUserHash) {
-    localStorage.setItem('dangan_player_' + currentUserHash, JSON.stringify(myPlayer));
-    localStorage.setItem('dangan_current_user_hash', currentUserHash);
-  }
-
-  document.getElementById('mobileJoinScreen').classList.add('hidden');
-  document.getElementById('mobileGameScreen').classList.remove('hidden');
-
-  document.getElementById('pMyName').innerText = name;
-  document.getElementById('pMyRole').innerText = `[${role}]`;
-  const pHash = document.getElementById('pMyHash');
-  if (pHash) pHash.innerText = '#' + (currentUserHash || 'USER');
-
-  if (isKiller) {
-    document.getElementById('pMyStatus').innerText = '☠️ ผู้วางแผน (Blackened)';
-    document.getElementById('pMyStatus').className = 'p-status killer';
-    document.getElementById('mobileSaboteurPanel').classList.remove('hidden');
+  const hostPeerId = `dangan-court-${roomCode.toLowerCase()}`;
+  if (!hostPeer || !hostPeer.open) {
+    connectToHostPeer(hostPeerId, () => {
+      broadcast(claimPacket);
+    });
   } else {
-    document.getElementById('pMyStatus').innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
-    document.getElementById('pMyStatus').className = 'p-status normal';
-    document.getElementById('mobileSaboteurPanel').classList.add('hidden');
+    broadcast(claimPacket);
   }
-
-  broadcast({ type: 'player_joined', player: myPlayer });
 }
 
 function renderMobileTask(stage) {
@@ -1896,11 +2185,15 @@ function adminKickPlayer(peerId) {
   if (!peerId) return;
   const target = gameState.players[peerId];
   const name = target ? target.name : peerId;
+  const role = target ? target.role : null;
   if (!confirm(`คุณต้องการเตะผู้เล่น "${name}" ออกจากห้องใช่หรือไม่?`)) return;
 
   delete gameState.players[peerId];
   updatePlayerDisplays();
   broadcast({ type: 'kick_player', playerId: peerId });
+  if (role) {
+    broadcast({ type: 'character_freed', role: role });
+  }
   logCourt(`🚫 [KICK]: ผู้ดูแลระบบได้เตะ "${name}" ออกจากห้องแล้ว`);
 }
 
@@ -1910,6 +2203,69 @@ function adminResetSession() {
   handleResetSession();
   broadcast({ type: 'reset_session' });
   logCourt(`🔄 [RESET]: ผู้ดูแลระบบได้ทำการรีเซ็ตเซสชันศาลชั้นเรียนแล้ว`);
+}
+
+function playerLeaveGame() {
+  if (!confirm('คุณต้องการออกจากห้องศาลชั้นเรียนนี้ใช่หรือไม่? ข้อมูลในรอบนี้ของคุณจะถูกล้าง')) return;
+
+  if (myPlayer) {
+    broadcast({
+      type: 'player_leave',
+      peerId: myPeer ? myPeer.id : null,
+      role: myPlayer.role
+    });
+  }
+
+  clearPlayerLocalData();
+  const targetRoom = roomCode || '';
+  window.location.href = targetRoom ? `/play?room=${targetRoom}` : '/';
+}
+
+function courtTerminateSession() {
+  if (!confirm('⚠️ ยืนยันการจบ Session ศาลชั้นเรียนนี้หรือไม่?\nผู้เล่นทุกคนในห้องจะถูกเตะออกเหมือน Kahoot และห้องนี้จะถูกรีเซ็ตใหม่ทั้งหมด')) return;
+
+  broadcast({ type: 'session_terminated' });
+  deleteActiveRoom(roomCode);
+  sessionStorage.removeItem('dangan_court_room_code');
+
+  // Reset state
+  gameState.players = {};
+  gameState.discoveredClues = [];
+  gameState.discoveredCluesCount = 0;
+  gameState.votes = {};
+  gameState.influence = 100;
+  gameState.stage = 'lobby';
+
+  // Generate new 6-digit room code
+  roomCode = generate6DigitRoomCode();
+  sessionStorage.setItem('dangan_court_room_code', roomCode);
+
+  // Re-register new room
+  registerActiveRoom(roomCode);
+
+  // Update UI & restart Host Peer
+  const courtRoom = document.getElementById('courtLobbyRoomCode');
+  if (courtRoom) courtRoom.innerText = roomCode;
+  const directJoin = window.location.origin + '/play?room=' + roomCode;
+  const joinUrl = document.getElementById('courtJoinUrl');
+  if (joinUrl) joinUrl.innerText = directJoin;
+  const qrImg = document.getElementById('courtQrImg');
+  if (qrImg) {
+    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(directJoin);
+  }
+
+  updatePlayerDisplays();
+  renderStage('lobby');
+
+  // Rebuild host peer with new room ID
+  if (myPeer && !myPeer.destroyed) {
+    myPeer.destroy();
+  }
+  myPeer = null;
+  setupPeerJS();
+
+  logCourt(`🔄 [SESSION RESET]: เริ่มต้นเซสชันใหม่ รหัสห้อง: ${roomCode}`);
+  playSfx('gavel');
 }
 
 // ==========================================================

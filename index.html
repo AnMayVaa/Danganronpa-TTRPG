@@ -84,17 +84,14 @@
         </p>
       </div>
 
-      <!-- Quick Resume Previous Session if Available -->
-      <div id="hubResumeBox" class="hidden" style="margin-top: -10px; margin-bottom: 5px; width: 100%; max-width: 850px;">
-        <div style="background: rgba(255, 20, 147, 0.12); border: 2px dashed var(--mono-pink); border-radius: 12px; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-          <div style="text-align: left;">
-            <div style="color: var(--mono-pink); font-weight: 900; font-size: 1.1rem;">📱 พบเซสชันตัวละครของคุณที่เคยเล่นไว้!</div>
-            <div id="hubResumeInfo" style="color: #ccc; font-size: 0.95rem; margin-top: 4px;">ตัวละคร: - | Hash: -</div>
-          </div>
-          <button class="dangan-action-btn pink hub-resume-btn" onclick="resumePlayerSession()">
-            <span class="btn-txt-full">▶️ เข้าสู่หน้าจอตัวละครของคุณ</span>
-            <span class="btn-txt-short">▶️ เข้าเล่นต่อ</span>
-          </button>
+      <!-- Active Rooms Live Discovery for Admin & Players -->
+      <div id="hubActiveRoomsSection" class="hub-active-rooms-box hidden">
+        <div class="active-rooms-header">
+          <span class="room-pulse-dot"></span>
+          <span>ห้องศาลชั้นเรียนที่เปิดอยู่ขณะนี้ (Active Sessions):</span>
+        </div>
+        <div id="activeRoomsList" class="active-rooms-grid">
+          <!-- Populated dynamically -->
         </div>
       </div>
 
@@ -102,8 +99,8 @@
         <!-- Card 1: Courtroom -->
         <div class="hub-card court" onclick="navigate('/court')">
           <div class="hub-card-icon">🏛️</div>
-          <h2 class="hub-card-title">จอหลักศาลชั้นเรียน</h2>
-          <p class="hub-card-desc">สำหรับเปิดขึ้นโปรเจกเตอร์หรือทีวีหน้าห้อง แสดงเกจพลังชีวิต เวลาถอยหลัง แท่นโพเดียม และมินิเกมขนาดใหญ่</p>
+          <h2 class="hub-card-title">จอหลักศาลชั้นเรียน (Host)</h2>
+          <p class="hub-card-desc">สำหรับเปิดขึ้นโปรเจกเตอร์หรือทีวีหน้าห้อง สุ่ม Room Code 6 หลัก แสดงเกจ เวลาถอยหลัง แท่นโพเดียม และเริ่ม/จบ Session</p>
           <div class="hub-action-tag">เปิดจอโปรเจกเตอร์ →</div>
         </div>
 
@@ -111,7 +108,7 @@
         <div class="hub-card player" onclick="navigate('/play')">
           <div class="hub-card-icon">📱</div>
           <h2 class="hub-card-title">เข้าร่วมเป็นผู้เล่น (Player)</h2>
-          <p class="hub-card-desc">สำหรับเปิดบนมือถือของนักเรียนทุกคน เลือกตัวละคร ป้อนการ์ดหลักฐาน ดันตรรกะดีเบต และแอบก่อกวนหากเป็นคนร้าย</p>
+          <p class="hub-card-desc">สำหรับเปิดบนมือถือของนักเรียนทุกคน สแกน QR หรือใส่เลข 6 หลัก เลือกตัวละคร และเริ่มดีเบต</p>
           <div class="hub-action-tag">เข้าเล่นบนมือถือ →</div>
         </div>
 
@@ -119,7 +116,7 @@
         <div class="hub-card admin" onclick="navigate('/admin')">
           <div class="hub-card-icon">🎛️</div>
           <h2 class="hub-card-title">ผู้ดูแลศาล (DM Admin)</h2>
-          <p class="hub-card-desc">สำหรับ DM ควบคุมศาลชั้นเรียน เลือกเปิดมินิเกมทั้ง 7 ด่าน ควบคุมเวลา สั่งประหารชีวิต และเปิด Soundboard (ต้องใส่ PIN)</p>
+          <p class="hub-card-desc">สำหรับ DM ควบคุมศาลชั้นเรียน เลือกมินิเกม ควบคุมเวลา สั่งประหารชีวิต และเปิด Soundboard (ต้องใส่ PIN)</p>
           <div class="hub-action-tag">เข้าสู่แผงควบคุม (PIN) →</div>
         </div>
       </div>
@@ -156,27 +153,45 @@
 
       <!-- STAGE 0: LOBBY & PODIUMS -->
       <div id="courtLobby" class="court-box">
-        <div class="slanted-banner pink">CLASS TRIAL IN SESSION</div>
-        <h1 class="court-heading">เตรียมความพร้อมเข้าสู่บัลลังก์ศาลชั้นเรียน</h1>
+        <!-- Splash Cover Banner -->
+        <div class="court-splash-banner">
+          <div class="slanted-banner pink" style="position:static !important; display:inline-block; margin-bottom:6px;">DANGANRONPA TRPG</div>
+          <h1 class="court-splash-title">CLASS TRIAL SESSION LOBBY</h1>
+          <p style="color:#ccc; font-size:0.95rem; margin:0;">ระบบพิจารณาคดีความสิ้นหวัง & มินิเกมเรียลไทม์</p>
+        </div>
         
         <div class="join-callout-grid">
           <!-- QR Code Box for PC Mobile Scan -->
           <div class="court-qr-card">
             <div class="qr-frame">
-              <img id="courtQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://danganronpa-ttrpg.vercel.app/play?room=DESPAIR" alt="QR Code เข้าร่วมศาล" class="qr-img">
+              <img id="courtQrImg" src="" alt="QR Code เข้าร่วมศาล" class="qr-img">
             </div>
             <div class="qr-caption">📷 สแกน QR Code ด้วยมือถือเพื่อเข้าเล่น</div>
           </div>
 
-          <!-- Join URL & Room Code Info -->
+          <!-- Join URL & 6-Digit PIN Info -->
           <div class="join-details-card">
-            <p class="join-label">📲 หรือเปิดเว็บเบราว์เซอร์บนอุปกรณ์ของคุณ:</p>
+            <p class="join-label">📲 สแกน QR ด้านซ้าย หรือเปิดเว็บแล้วกรอกรหัสห้อง:</p>
             <div id="courtJoinUrl" class="url-badge">กำลังโหลด URL...</div>
-            <div class="room-code-panel">
-              <span class="room-code-tag">ROOM CODE:</span>
-              <strong id="courtLobbyRoomCode" class="court-gold-text">DESPAIR</strong>
+            
+            <div class="kahoot-pin-box">
+              <span class="kahoot-pin-label">GAME PIN / ROOM CODE</span>
+              <span id="courtLobbyRoomCode" class="kahoot-pin-num">------</span>
             </div>
-            <p class="sub-guide">เลือกตัวละครของคุณ แล้วรอประธาน Monokuma สั่งเริ่มการพิจารณาคดี!</p>
+            <p class="sub-guide">เมื่อผู้เล่นสแกนเข้าห้องแล้ว กรุณาเลือกตัวละครประจำตำแหน่งโพเดียม</p>
+            
+            <!-- Court Control Action Buttons -->
+            <div class="court-lobby-actions">
+              <button class="small-btn green" onclick="setStage('stage1')" style="font-weight:900; padding:8px 16px;">
+                🚀 เริ่มศาลชั้นเรียน (Start Trial)
+              </button>
+              <button class="small-btn cyan" onclick="window.open('/admin?room=' + roomCode, '_blank')" style="font-weight:900; padding:8px 16px;">
+                🎛️ เปิดจอควบคุม Admin
+              </button>
+              <button class="small-btn red" onclick="courtTerminateSession()" style="font-weight:900; padding:8px 16px;">
+                🚪 จบ Session & เตะทุกคนออก
+              </button>
+            </div>
           </div>
         </div>
 
@@ -543,8 +558,8 @@
       </div>
       
       <div class="mobile-input-group">
-        <label>Room Code ของห้อง:</label>
-        <input type="text" id="mobileRoomInput" value="DESPAIR">
+        <label>Room Code (เลข 6 หลัก):</label>
+        <input type="text" id="mobileRoomInput" placeholder="เช่น 849201" maxlength="10">
       </div>
       <div class="mobile-input-group">
         <label>ชื่อตัวละคร / ชื่อของคุณ:</label>
@@ -553,13 +568,14 @@
       <div class="mobile-input-group">
         <label>เลือกอาชีพสุดยอดนักเรียน (Ultimate):</label>
         <select id="mobileRoleSelect">
-          <option value="นักแต่งนิยาย">PC 1: สุดยอดนักแต่งนิยาย</option>
-          <option value="นักกีฬา">PC 2: สุดยอดนักกีฬา</option>
-          <option value="นักมายากล">PC 3: สุดยอดนักมายากล (A)</option>
-          <option value="นักชิม">PC 4: สุดยอดนักชิม</option>
-          <option value="นักแสดงผาดโผน">PC 5: สุดยอดนักแสดงผาดโผน</option>
-          <option value="ช่างกล">PC 6: สุดยอดช่างกล</option>
+          <option value="นักแต่งนิยาย" id="optRole_นักแต่งนิยาย">PC 1: สุดยอดนักแต่งนิยาย</option>
+          <option value="นักกีฬา" id="optRole_นักกีฬา">PC 2: สุดยอดนักกีฬา</option>
+          <option value="นักมายากล" id="optRole_นักมายากล">PC 3: สุดยอดนักมายากล (A)</option>
+          <option value="นักชิม" id="optRole_นักชิม">PC 4: สุดยอดนักชิม</option>
+          <option value="นักแสดงผาดโผน" id="optRole_นักแสดงผาดโผน">PC 5: สุดยอดนักแสดงผาดโผน</option>
+          <option value="ช่างกล" id="optRole_ช่างกล">PC 6: สุดยอดช่างกล</option>
         </select>
+        <div id="roleClaimNotice" style="font-size:0.8rem; color:#ffd700; margin-top:4px;"></div>
       </div>
       
       <button class="dangan-action-btn pink" onclick="playerJoin()">เข้าสู่ศาลชั้นเรียน</button>
@@ -575,9 +591,12 @@
           <span id="pMyHash" style="font-size:0.75rem; color:#888; margin-left:4px; font-family:monospace;">#USER</span>
           <button class="icon-btn" onclick="copyPersonalLink()" title="คัดลอกลิงก์ส่วนตัว" style="font-size:0.8rem; padding:2px 6px; margin-left:4px;">📋</button>
         </div>
-        <div id="pMyStatus" class="p-status normal">
-          <span class="status-full">🛡️ นักเรียนผู้บริสุทธิ์</span>
-          <span class="status-short">🛡️ บริสุทธิ์</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div id="pMyStatus" class="p-status normal">
+            <span class="status-full">🛡️ นักเรียนผู้บริสุทธิ์</span>
+            <span class="status-short">🛡️ บริสุทธิ์</span>
+          </div>
+          <button class="player-exit-btn" onclick="playerLeaveGame()" title="ออกจากห้องศาลนี้">🚪 ออก</button>
         </div>
       </div>
 
