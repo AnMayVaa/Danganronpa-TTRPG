@@ -4,7 +4,8 @@
   "description": "Danganronpa TTRPG Web Mini-Game with Secret Saboteur Mechanic",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo 'Build complete'"
   },
   "dependencies": {
     "express": "^4.21.2",

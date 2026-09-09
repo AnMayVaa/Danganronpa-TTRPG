@@ -1,0 +1,13 @@
+{
+  "name": "danganronpa-ttrpg",
+  "version": "1.0.0",
+  "description": "Danganronpa TRPG Class Trial System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'Build complete'"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

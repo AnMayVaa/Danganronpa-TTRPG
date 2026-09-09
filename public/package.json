@@ -1,0 +1,7 @@
+{
+  "name": "danganronpa-public",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'Public build complete'"
+  }
+}
