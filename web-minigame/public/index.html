@@ -184,6 +184,67 @@
         <div id="courtPodiumList" class="podium-grid"></div>
       </div>
 
+      <!-- INVESTIGATION PHASE: EXPLORATION & CLUE HUNT -->
+      <div id="courtInvestigation" class="court-box hidden">
+        <div class="slanted-banner cyan">INVESTIGATION IN PROGRESS</div>
+        <h1 class="court-heading">🔍 ช่วงเวลาสืบสวนหาหลักฐาน (Investigation Phase)</h1>
+        <p class="sub-guide">นักเรียนทุกคนโปรดใช้ Monopad บนมือถือ สแกน QR Code หรือกรอกรหัสจากบัตรหลักฐานตามจุดเกิดเหตุ!</p>
+        
+        <!-- Discovered Clues Tally & Progress -->
+        <div class="discovery-tracker-panel">
+          <div class="discovery-tracker-top">
+            <span class="discovery-title">🔎 ความคืบหน้าการรวบรวมหลักฐานของชั้นเรียน (Class Progress):</span>
+            <span class="discovery-count-badge">ค้นพบแล้ว: <strong id="courtDiscoveredCount" class="court-gold-text">0</strong> / 16 ชิ้น</span>
+          </div>
+          <div class="discovery-progress-bar">
+            <div id="courtDiscoveryFill" class="discovery-progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- School Exploration Map -->
+        <div class="investigation-map-grid">
+          <div class="investigation-loc-card kitchen">
+            <div class="investigation-loc-title">🍳 ห้องครัว (Kitchen)</div>
+            <div class="investigation-loc-desc">กลิ่นสตูว์เนื้ออบอวล มีหม้อต้มสตูว์ขนาดใหญ่ และถังขยะเปียก</div>
+            <div class="investigation-clues-clue-list" id="kitchenClueList">
+              <div class="clue-stub">📍 จุดต้องสงสัย: ก้นหม้อสตูว์เนื้อ</div>
+              <div class="clue-stub">📍 จุดต้องสงสัย: ถังขยะเปียกมุมครัว</div>
+              <div class="clue-stub">📍 จุดต้องสงสัย: ชั้นวางวัตถุดิบและเครื่องปรุง</div>
+            </div>
+          </div>
+
+          <div class="investigation-loc-card courtyard">
+            <div class="investigation-loc-title">🌿 ลานปูนนอกหน้าต่าง (Courtyard)</div>
+            <div class="investigation-loc-desc">พื้นปูนเปียกชื้น มีรอกคู่ติดอยู่ตรงกรอบหน้าต่างห้องพัก B</div>
+            <div class="investigation-clues-clue-list" id="courtyardClueList">
+              <div class="clue-stub">📍 จุดต้องสงสัย: รอกคู่และลูกตุ้มเหล็กถ่วงน้ำหนัก</div>
+              <div class="clue-stub">📍 จุดต้องสงสัย: ถังพลาสติกเจาะรูระบายน้ำ</div>
+              <div class="clue-stub">📍 จุดต้องสงสัย: คราบน้ำและรอยเท้าบนลานปูน</div>
+            </div>
+          </div>
+
+          <div class="investigation-loc-card laundry">
+            <div class="investigation-loc-title">🧺 ห้องซักรีดใต้ดิน (Laundry Room)</div>
+            <div class="investigation-loc-desc">เครื่องซักผ้าและเครื่องอบผ้าเรียงราย ท่อระบายน้ำเชื่อมโยงทั้งอาคาร</div>
+            <div class="investigation-clues-clue-list" id="laundryClueList">
+              <div class="clue-stub">📍 จุดต้องสงสัย: แผงควบคุมวงจรเวลาเครื่องอบผ้า</div>
+              <div class="clue-stub">📍 จุดต้องสงสัย: ราวตากเสื้อกันฝนและอุปกรณ์ยิม</div>
+              <div class="clue-stub">📍 จุดต้องสงสัย: ท่อน้ำระบายน้ำทิ้งใต้ดิน</div>
+            </div>
+          </div>
+
+          <div class="investigation-loc-card hallway">
+            <div class="investigation-loc-title">🏛️ ทางเดินโถงกลาง & ร่างเหยื่อ (Hallway & Body)</div>
+            <div class="investigation-loc-desc">จุดพบศพ B แขวนคอกับขอบหน้าต่าง และตู้เมนบอร์ดควบคุมไฟฟ้า</div>
+            <div class="investigation-clues-clue-list" id="hallwayClueList">
+              <div class="clue-stub">📍 จุดต้องสงสัย: สภาพศพของ B, เสื้อผ้า และสิ่งของในกระเป๋า</div>
+              <div class="clue-stub">📍 จุดต้องสงสัย: เงื่อนเชือกไนลอนและสายรัดลำตัว</div>
+              <div class="clue-stub">📍 จุดต้องสงสัย: ตู้ควบคุมระบบไฟและสวิตช์ตัดไฟ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- STAGE 1: EVIDENCE LINKER (NON-STOP DEBATE) -->
       <div id="courtStage1" class="court-box hidden">
         <div class="slanted-banner yellow">MINI-GAME 1: EVIDENCE LINKER</div>
@@ -337,8 +398,17 @@
       <!-- Left Column: Master Controls -->
       <div class="admin-col master-col">
         <div class="admin-card">
-          <h2 class="admin-card-title">🎛️ เลือกเปิดมินิเกม (Mini-Game Selector)</h2>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <h2 class="admin-card-title" style="margin-bottom:0;">🎛️ เลือกเปิดมินิเกม (Mini-Game Selector)</h2>
+            <button class="small-btn yellow" onclick="openAdminMinigameModal('stage1')" style="font-weight:900; padding:6px 14px;">
+              ⚙️ ปรับแต่งคำถาม & พรีเซ็ตทั้งหมด
+            </button>
+          </div>
           <div class="minigame-btn-grid">
+            <button class="dm-act-btn cyan" onclick="adminSetGame('investigation')" style="grid-column: 1 / -1;">
+              <strong>🔍 0. Investigation Phase (ช่วงเวลาสืบสวนหาหลักฐาน)</strong>
+              <span>เปิดระบบสำรวจ รวบรวมเบาะแส และให้ผู้เล่นใช้มือถือสแกน QR Code</span>
+            </button>
             <button class="dm-act-btn pink" onclick="adminSetGame('stage1')">
               <strong>1. Evidence Linker</strong>
               <span>ทลายข้ออ้างอาวุธสตูว์</span>
@@ -412,30 +482,43 @@
       <div class="admin-col side-col">
         <!-- Connected Players Table -->
         <div class="admin-card">
-          <h2 class="admin-card-title">👥 ผู้เล่นในระบบ (<span id="adminPlayerCount">0</span>)</h2>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h2 class="admin-card-title" style="margin-bottom:0;">👥 ผู้เล่นในระบบ (<span id="adminPlayerCount">0</span>)</h2>
+            <span style="font-size:0.75rem; color:#888;">กด ❌ เตะ เพื่อไล่ session ผี</span>
+          </div>
           <div id="adminPlayerTable" class="admin-player-list"></div>
         </div>
 
         <!-- Monokuma Soundboard & Visual Triggers -->
         <div class="admin-card">
-          <h2 class="admin-card-title">📢 Monokuma Soundboard & FX</h2>
+          <h2 class="admin-card-title">📢 Monokuma Soundboard & SFX</h2>
           <div class="soundboard-grid">
             <button class="sound-btn" onclick="triggerFx('gavel')">🔨 เคาะค้อนศาล</button>
-            <button class="sound-btn" onclick="triggerFx('laugh')">🐻 เสียงหัวเราะ Monokuma</button>
-            <button class="sound-btn" onclick="triggerFx('glitch')">⚡ สัญญาณรบกวน (Glitch)</button>
+            <button class="sound-btn" onclick="triggerFx('laugh')">🐻 เสียงหัวเราะ Upupupu</button>
+            <button class="sound-btn" onclick="triggerFx('blade')">🗡️ ดาบความจริง</button>
+            <button class="sound-btn" onclick="triggerFx('break')">💥 ทลายคำให้การ</button>
             <button class="sound-btn" onclick="triggerFx('correct')">✨ ตรรกะถูกต้อง</button>
             <button class="sound-btn" onclick="triggerFx('wrong')">💀 เสียงลงทัณฑ์</button>
             <button class="sound-btn" onclick="triggerFx('siren')">🚨 ไซเรนเตือนภัย</button>
+            <button class="sound-btn" onclick="triggerFx('glitch')">⚡ สัญญาณรบกวน</button>
           </div>
         </div>
 
-        <!-- Room Configuration -->
+        <!-- Room Configuration & Session Management -->
         <div class="admin-card">
-          <h2 class="admin-card-title">⚙️ ตั้งค่าห้องพิจารณาคดี</h2>
+          <h2 class="admin-card-title">⚙️ จัดการห้อง & รีเซ็ตรอบ (Kahoot-Style)</h2>
           <div class="form-row">
             <label>เปลี่ยน Room Code:</label>
             <input type="text" id="inputNewRoomCode" value="DESPAIR" maxlength="10">
             <button class="small-btn" onclick="adminChangeRoomCode()">บันทึก</button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
+            <button class="small-btn cyan" onclick="adminOpenPrintCluesModal()" style="padding:10px; font-size:0.92rem; font-weight:900;">
+              🖨️ บัตรหลักฐาน QR 16 ใบ (Print Clue Cards)
+            </button>
+            <button class="small-btn red" onclick="adminResetSession()" style="padding:10px; font-size:0.92rem; font-weight:900;">
+              🔄 ล้างห้อง & เริ่มรอบใหม่ (Reset All Players)
+            </button>
           </div>
         </div>
       </div>
@@ -535,20 +618,30 @@
         </div>
       </div>
 
-      <!-- TAB 3: Truth Bullets & Investigation Clues (16 Clues) -->
+      <!-- TAB 3: Truth Bullets & Investigation Clues (Monopad) -->
       <div id="playerSectionClues" class="player-tab-pane hidden">
+        <!-- Monopad Clue Scan Action Bar -->
+        <div class="clue-action-bar">
+          <button class="clue-scan-btn" onclick="openClueScannerModal()">
+            📷 สแกน QR / กรอกรหัส
+          </button>
+          <div style="font-size:0.88rem; color:#bbb; font-weight:700;">
+            กระสุนที่บันทึกแล้ว: <strong id="pUnlockedClueCount" style="color:var(--court-gold); font-size:1.1rem;">0</strong> / 16
+          </div>
+        </div>
+
         <div class="clues-search-bar">
-          <input type="text" id="clueSearchInput" placeholder="🔎 ค้นหาการ์ดหลักฐาน..." onkeyup="filterPlayerClues()">
+          <input type="text" id="clueSearchInput" placeholder="🔎 ค้นหาหรือกรองกระสุนความจริง..." onkeyup="filterPlayerClues()">
           <div class="clue-filter-tags">
-            <button class="clue-tag-btn active" onclick="filterClueType('ALL')">ทั้งหมด (16)</button>
-            <button class="clue-tag-btn red" onclick="filterClueType('CORE')">🔴 หลัก (4)</button>
-            <button class="clue-tag-btn blue" onclick="filterClueType('SUPP')">🔵 เสริม (4)</button>
-            <button class="clue-tag-btn yellow" onclick="filterClueType('HERR')">🟡 หลอก (4)</button>
-            <button class="clue-tag-btn grey" onclick="filterClueType('TRASH')">⚫ ขยะ (4)</button>
+            <button class="clue-tag-btn active" onclick="filterUserClueTag('ALL')">ทั้งหมด</button>
+            <button class="clue-tag-btn yellow" onclick="filterUserClueTag('IMPORTANT')">⭐ สำคัญ</button>
+            <button class="clue-tag-btn blue" onclick="filterUserClueTag('DOUBT')">❓ สงสัย</button>
+            <button class="clue-tag-btn red" onclick="filterUserClueTag('TRASH')">❌ หลอก/ขยะ</button>
+            <button class="clue-tag-btn grey" onclick="filterUserClueTag('LOCKED')">🔒 ยังไม่พบ</button>
           </div>
         </div>
         <div id="pCluesListContent" class="p-clues-grid">
-          <!-- Populated dynamically from 03_Investigation_Clues_Cards.md -->
+          <!-- Populated dynamically -->
         </div>
       </div>
 
@@ -643,6 +736,223 @@
       <div class="glitch-icon">⚡⚡⚡</div>
       <div class="glitch-title">WARNING: SYSTEM JAMMED</div>
       <div class="glitch-sub">ตรวจพบคีย์สัญญาณรบกวนผิดปกติ!</div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL 1: CLUE SCANNER & MANUAL CODE (MONOPAD)  -->
+  <!-- ============================================== -->
+  <div id="clueScanModal" class="modal-backdrop hidden">
+    <div class="modal-dialog">
+      <div class="modal-title-bar">
+        <h3 class="modal-title">📷 สแกน QR / กรอกรหัสหลักฐาน</h3>
+        <button class="modal-close-btn" onclick="closeClueScannerModal()">✕</button>
+      </div>
+      <div class="qr-scanner-body">
+        <p style="font-size:0.88rem; color:#bbb; line-height:1.4;">
+          นำรหัสจากบัตรหลักฐานที่พบมากรอก หรือเปิดกล้องเพื่อสแกน QR Code เข้า Monopad:
+        </p>
+
+        <!-- Manual Code Entry -->
+        <div class="manual-code-form">
+          <input type="text" id="manualClueInput" class="manual-code-input" placeholder="เช่น EVD-01 หรือ C01" maxlength="15">
+          <button class="small-btn pink" onclick="submitManualClue()" style="padding:10px 18px; font-weight:900;">ปลดล็อก</button>
+        </div>
+
+        <div style="text-align:center; color:#666; font-size:0.8rem; margin:4px 0;">— หรือ —</div>
+
+        <!-- Camera Scanner -->
+        <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+          <video id="cameraVideoFeed" style="display:none;" playsinline></video>
+          <canvas id="qrScanCanvas" style="display:none;"></canvas>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; width:100%;">
+            <button id="btnToggleCamera" class="small-btn cyan" onclick="toggleCameraScanner()" style="padding:10px 16px; font-weight:700;">
+              📷 เปิดกล้องสแกนทันที
+            </button>
+            <label class="small-btn grey" style="padding:10px 16px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+              📁 อัปโหลดรูป QR
+              <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleQrFileUpload(event)">
+            </label>
+          </div>
+          <div id="cameraStatusText" style="font-size:0.8rem; color:#aaa;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL 2: ADMIN MINIGAME CONFIG & PRESETS       -->
+  <!-- ============================================== -->
+  <div id="adminMinigameModal" class="modal-backdrop hidden">
+    <div class="modal-dialog admin-config-modal-dialog">
+      <div class="modal-title-bar">
+        <h3 class="modal-title">⚙️ ปรับแต่งมินิเกมก่อนเริ่ม & พรีเซ็ต</h3>
+        <button class="modal-close-btn" onclick="closeAdminMinigameModal()">✕</button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <!-- Game Selector Tabs -->
+        <div class="config-stage-selector">
+          <button id="cfgTabStage1" class="stage-tab-btn active" onclick="selectConfigTab('stage1')">1. Evidence Linker</button>
+          <button id="cfgTabStage2" class="stage-tab-btn" onclick="selectConfigTab('stage2')">2. Hangman</button>
+          <button id="cfgTabStage3" class="stage-tab-btn" onclick="selectConfigTab('stage3')">3. Rebuttal</button>
+          <button id="cfgTabStage4" class="stage-tab-btn" onclick="selectConfigTab('stage4')">4. Logic Dive</button>
+          <button id="cfgTabStage5" class="stage-tab-btn" onclick="selectConfigTab('stage5')">5. Debate Scrum</button>
+          <button id="cfgTabStage6" class="stage-tab-btn" onclick="selectConfigTab('stage6')">6. Argument</button>
+        </div>
+
+        <!-- Stage 1 Config -->
+        <div id="cfgPaneStage1" class="cfg-pane">
+          <div class="preset-group">
+            <span class="preset-title">⚡ 1-Click Presets:</span>
+            <div class="preset-btn-row">
+              <button class="preset-chip" onclick="applyPresetStage1('bone')">อาวุธหม้อสตูว์ (EVD-01)</button>
+              <button class="preset-chip" onclick="applyPresetStage1('knife')">การตัดเชือกของ B (EVD-02)</button>
+              <button class="preset-chip" onclick="applyPresetStage1('timer')">กลไกตัดไฟ (EVD-04)</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label style="font-size:0.85rem; color:#ccc;">คำถาม/ข้อโต้แย้งของ Monokuma บนจอใหญ่:</label>
+            <input type="text" id="cfgStg1Prompt" class="manual-code-input" style="width:100%; margin-top:4px;" value="อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?">
+          </div>
+          <div style="margin-top:8px;">
+            <label style="font-size:0.85rem; color:#ccc;">รหัสหลักฐานที่ถูกต้องที่ต้องยิง:</label>
+            <select id="cfgStg1TargetClue" class="manual-code-input" style="width:100%; margin-top:4px;">
+              <option value="EVD-01">EVD-01: ท่อนกระดูกหมูต้มเปื้อนเลือด</option>
+              <option value="EVD-02">EVD-02: มีดพกเปื้อนใยเชือกในกระเป๋าเสื้อ B</option>
+              <option value="EVD-03">EVD-03: ลูกตุ้มเหล็ก 68 กก.</option>
+              <option value="EVD-04">EVD-04: แผงตั้งเวลาเครื่องอบผ้า</option>
+              <option value="EVD-05">EVD-05: ถังน้ำเจาะรูและคราบน้ำบนลานปูน</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Stage 2 Config (Hangman) -->
+        <div id="cfgPaneStage2" class="cfg-pane hidden">
+          <div class="preset-group">
+            <span class="preset-title">⚡ 1-Click Presets (Hangman):</span>
+            <div class="preset-btn-row">
+              <button class="preset-chip" onclick="applyPresetStage2('นาฬิกาน้ำ', 'ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!')">นาฬิกาน้ำ</button>
+              <button class="preset-chip" onclick="applyPresetStage2('BLOODY BONE', 'DECODE THE HIDDEN BLUNT WEAPON IN THE STEW POT!')">BLOODY BONE</button>
+              <button class="preset-chip" onclick="applyPresetStage2('WATER CLOCK', 'DECODE THE GRAVITY WATER TIMER DEVICE!')">WATER CLOCK</button>
+              <button class="preset-chip" onclick="applyPresetStage2('ท่อนกระดูกหมู', 'ถอดรหัสอาวุธสังหารที่ซ่อนอยู่ในหม้อสตูว์!')">ท่อนกระดูกหมู</button>
+              <button class="preset-chip" onclick="applyPresetStage2('สายรัดปีนเขา', 'ถอดรหัสอุปกรณ์บนตัวเหยื่อที่กลายเป็นบ่วงมรณะ!')">สายรัดปีนเขา</button>
+              <button class="preset-chip" onclick="applyPresetStage2('CYANIDE', 'DECODE THE FAKE POISON LABELED IN THE TRASH!')">CYANIDE</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label style="font-size:0.85rem; color:#ccc;">คำใบ้ / ปริศนา (Riddle):</label>
+            <input type="text" id="cfgStg2Prompt" class="manual-code-input" style="width:100%; margin-top:4px;" value="ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!">
+          </div>
+          <div style="margin-top:8px;">
+            <label style="font-size:0.85rem; color:#ccc;">คำศัพท์เป้าหมาย (Target Word):</label>
+            <input type="text" id="cfgStg2Word" class="manual-code-input" style="width:100%; margin-top:4px;" value="นาฬิกาน้ำ">
+          </div>
+        </div>
+
+        <!-- Stage 3 Config (Rebuttal Showdown) -->
+        <div id="cfgPaneStage3" class="cfg-pane hidden">
+          <div class="preset-group">
+            <span class="preset-title">⚡ 1-Click Presets:</span>
+            <div class="preset-btn-row">
+              <button class="preset-chip" onclick="applyPresetStage3('นักมายากล (A)', 'ฉันอยู่แต่ในครัวตลอดเวลา จะไปเอาเวลาที่ไหนไปทำร้ายหมอนั่นได้!?')">ข้ออ้างครัว</button>
+              <button class="preset-chip" onclick="applyPresetStage3('นักมายากล (A)', 'ตอนไฟดับ 20:30 น. ฉันอยู่กับนักดนตรีตลอดเวลา ไม่มีทางไปชักรอกได้!')">ข้ออ้างเวลาไฟดับ</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label style="font-size:0.85rem; color:#ccc;">ชื่อฝ่ายตรงข้าม:</label>
+            <input type="text" id="cfgStg3Opponent" class="manual-code-input" style="width:100%; margin-top:4px;" value="นักมายากล (A)">
+          </div>
+          <div style="margin-top:8px;">
+            <label style="font-size:0.85rem; color:#ccc;">คำพูดค้าน (Argument Statement):</label>
+            <input type="text" id="cfgStg3Arg" class="manual-code-input" style="width:100%; margin-top:4px;" value="ฉันอยู่แต่ในครัวตลอดเวลา จะไปเอาเวลาที่ไหนไปทำร้ายหมอนั่นได้!?">
+          </div>
+        </div>
+
+        <!-- Stage 4 Config (Logic Dive) -->
+        <div id="cfgPaneStage4" class="cfg-pane hidden">
+          <div class="preset-group">
+            <span class="preset-title">⚡ 1-Click Presets:</span>
+            <div class="preset-btn-row">
+              <button class="preset-chip" onclick="applyPresetStage4('standard')">เส้นทางตรรกะมาตรฐาน (มีดพก -> สายรัด -> Shock Load)</button>
+            </div>
+          </div>
+          <div style="margin-top:8px; font-size:0.85rem; color:#aaa;">
+            ประกอบด้วย 3 สเตจ: วิเคราะห์มีดพกเปื้อนเชือก, วิเคราะห์เงื่อนโบว์ไลน์, และคลี่คลายกลไก Shock Load มวลน้ำ
+          </div>
+        </div>
+
+        <!-- Stage 5 Config (Debate Scrum) -->
+        <div id="cfgPaneStage5" class="cfg-pane hidden">
+          <div class="preset-group">
+            <span class="preset-title">⚡ 1-Click Presets:</span>
+            <div class="preset-btn-row">
+              <button class="preset-chip" onclick="applyPresetStage5('ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?', '🔴 โหวต A (นักมายากล)', '🟢 โหวต B (ตัวเหยื่อเอง)')">A จัดฉาก vs B ฆ่าตัวตาย</button>
+              <button class="preset-chip" onclick="applyPresetStage5('เวลาเสียชีวิตที่แท้จริงของเหยื่อ B?', '🔴 ก่อนเวลาไฟดับ (20:30)', '🟢 หลังเวลาไฟดับ (20:45)')">เวลาตาย ก่อน vs หลัง 20:30</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label style="font-size:0.85rem; color:#ccc;">หัวข้อการโต้เถียง (Scrum Topic):</label>
+            <input type="text" id="cfgStg5Topic" class="manual-code-input" style="width:100%; margin-top:4px;" value="ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?">
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <div style="flex:1;">
+              <label style="font-size:0.85rem; color:#ccc;">ฝ่ายซ้าย:</label>
+              <input type="text" id="cfgStg5Left" class="manual-code-input" style="width:100%; margin-top:4px;" value="🔴 โหวต A (นักมายากล)">
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:0.85rem; color:#ccc;">ฝ่ายขวา:</label>
+              <input type="text" id="cfgStg5Right" class="manual-code-input" style="width:100%; margin-top:4px;" value="🟢 โหวต B (ตัวเหยื่อเอง)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 6 Config (Argument Armament) -->
+        <div id="cfgPaneStage6" class="cfg-pane hidden">
+          <div class="preset-group">
+            <span class="preset-title">⚡ 1-Click Presets:</span>
+            <div class="preset-btn-row">
+              <button class="preset-chip" onclick="applyPresetStage6('นักมายากล (A)', 'ไม่มีทาง! แผนการมายากลอันสมบูรณ์แบบของฉันไม่มีวันล้มเหลวเด็ดขาด!!')">ปฏิเสธแผนมายากล</button>
+              <button class="preset-chip" onclick="applyPresetStage6('นักมายากล (A)', 'พวกแกคิดว่าตัวเองฉลาดนักเหรอ!? ไม่มีหลักฐานมัดตัวฉันได้หรอก!')">ท้าทายหลักฐาน</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label style="font-size:0.85rem; color:#ccc;">คำพูดดิ้นรนของคนร้าย:</label>
+            <input type="text" id="cfgStg6Scream" class="manual-code-input" style="width:100%; margin-top:4px;" value="ไม่มีทาง! แผนการมายากลอันสมบูรณ์แบบของฉันไม่มีวันล้มเหลวเด็ดขาด!!">
+          </div>
+        </div>
+
+        <!-- Launch Button -->
+        <div style="display:flex; gap:10px; margin-top:12px; justify-content:flex-end;">
+          <button class="small-btn grey" onclick="closeAdminMinigameModal()">ยกเลิก</button>
+          <button class="small-btn pink" onclick="adminLaunchSelectedConfigGame()" style="padding:10px 22px; font-weight:900; font-size:0.95rem;">
+            🚀 ยืนยัน & เปิดมินิเกมนี้บนจอศาลทันที
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL 3: ADMIN PRINTABLE CLUE CARDS           -->
+  <!-- ============================================== -->
+  <div id="adminPrintCluesModal" class="modal-backdrop hidden">
+    <div class="modal-dialog" style="max-width:960px;">
+      <div class="modal-title-bar">
+        <h3 class="modal-title">🖨️ บัตรหลักฐาน QR 16 ใบ (Print Clue Cards)</h3>
+        <button class="modal-close-btn" onclick="closeAdminPrintCluesModal()">✕</button>
+      </div>
+      <div class="print-hide" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; background:#141420; padding:12px; border-radius:8px; border:1px solid #333348;">
+        <span style="font-size:0.88rem; color:#bbb;">
+          💡 คุณสามารถสั่งพิมพ์หน้านี้ (A4) ตัดเป็นการ์ด 16 ใบ เพื่อนำไปวางซ่อนตามจุดเกิดเหตุในช่วงสืบสวน!
+        </span>
+        <button class="small-btn pink" onclick="window.print()" style="font-weight:900; padding:8px 18px;">
+          🖨️ สั่งพิมพ์การ์ดทั้งหมด (Print)
+        </button>
+      </div>
+
+      <div id="printableCluesSheet" class="print-clues-sheet">
+        <!-- Populated dynamically -->
+      </div>
     </div>
   </div>
 

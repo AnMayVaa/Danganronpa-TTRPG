@@ -18,21 +18,31 @@ const ADMIN_CORRECT_PIN = '295437';
 let myPlayer = null;
 
 let gameState = {
-  stage: 'lobby', // lobby, stage1..stage7, verdict
+  stage: 'lobby', // lobby, investigation, stage1..stage7, verdict
   influence: 100,
   timeRemaining: 60,
   timerRunning: false,
   players: {}, // id -> { name, role, isKiller, votedFor }
   
+  // Investigation Phase & Clues
+  discoveredClues: [],
+  discoveredCluesCount: 0,
+
   // Stage 1: Evidence Linker
   stg1Submissions: 0,
   stg1Required: 3,
+  stg1TargetClue: 'EVD-01',
+  stg1Prompt: "อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?",
 
   // Stage 2: Hangman's Gambit
+  stg2Word: "นาฬิกาน้ำ",
+  stg2Prompt: "ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!",
   stg2Target: ["น", "า", "ฬิ", "ก", "า", "น้", "ำ"],
   stg2Board: ["_", "_", "_", "_", "_", "_", "_"],
 
   // Stage 3: Rebuttal Showdown
+  stg3Opponent: "นักมายากล (A)",
+  stg3Argument: "ฉันอยู่แต่ในครัวตลอดเวลา จะไปเอาเวลาที่ไหนไปทำร้ายหมอนั่นได้!?",
   stg3AccuserScore: 0,
   stg3SuspectScore: 0,
   stg3ClashRound: 1,
@@ -41,9 +51,14 @@ let gameState = {
   stg4Step: 1, // 1 to 3
 
   // Stage 5: Debate Scrum
+  stg5Topic: "ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?",
+  stg5LeftTeam: "🔴 โหวต A (นักมายากล)",
+  stg5RightTeam: "🟢 โหวต B (ตัวเหยื่อเอง)",
   stg5Meter: 50, // 0 to 100
 
   // Stage 6: Argument Armament
+  stg6Opponent: "นักมายากล (A)",
+  stg6Statement: "ไม่มีทาง! แผนการมายากลอันสมบูรณ์แบบของฉันไม่มีวันล้มเหลวเด็ดขาด!!",
   stg6Shield: 100,
 
   // Stage 7: Voting Time
@@ -68,64 +83,150 @@ function playSfx(type) {
   try {
     const ctx = getAudio();
     const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
 
     if (type === 'gavel') {
-      // Deep heavy courtroom gavel slam
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(140, now);
-      osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
-      gain.gain.setValueAtTime(0.4, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-      osc.start(now); osc.stop(now + 0.35);
-    } else if (type === 'correct') {
-      // High chime
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, now); // D5
-      osc.frequency.setValueAtTime(880, now + 0.1); // A5
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-      osc.start(now); osc.stop(now + 0.3);
-    } else if (type === 'wrong') {
-      // Harsh buzz
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(180, now);
-      osc.frequency.setValueAtTime(110, now + 0.15);
-      gain.gain.setValueAtTime(0.25, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-      osc.start(now); osc.stop(now + 0.35);
-    } else if (type === 'glitch') {
-      // Cyber static jam
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(90, now);
-      osc.frequency.setValueAtTime(900, now + 0.05);
-      osc.frequency.setValueAtTime(220, now + 0.12);
-      gain.gain.setValueAtTime(0.25, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-      osc.start(now); osc.stop(now + 0.3);
-    } else if (type === 'laugh') {
-      // Monokuma laughter synth
-      [300, 360, 420, 320].forEach((freq, idx) => {
+      // 1. Heavy courtroom sub-bass strike
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'triangle';
+      osc1.frequency.setValueAtTime(190, now);
+      osc1.frequency.exponentialRampToValueAtTime(32, now + 0.38);
+      gain1.gain.setValueAtTime(0.7, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+      osc1.connect(gain1); gain1.connect(ctx.destination);
+      osc1.start(now); osc1.stop(now + 0.38);
+
+      // 2. High wood strike transient
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'square';
+      osc2.frequency.setValueAtTime(520, now);
+      osc2.frequency.exponentialRampToValueAtTime(90, now + 0.08);
+      gain2.gain.setValueAtTime(0.4, now);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc2.connect(gain2); gain2.connect(ctx.destination);
+      osc2.start(now); osc2.stop(now + 0.08);
+
+    } else if (type === 'point_break' || type === 'break') {
+      // Glass shatter / Argument Break!
+      [1900, 2400, 3100, 1400].forEach((f, idx) => {
         const o = ctx.createOscillator();
         const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f, now + idx * 0.02);
+        o.frequency.exponentialRampToValueAtTime(300, now + idx * 0.02 + 0.28);
+        g.gain.setValueAtTime(0.25, now + idx * 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.02 + 0.28);
         o.connect(g); g.connect(ctx.destination);
-        o.type = 'sawtooth';
-        o.frequency.setValueAtTime(freq, now + idx * 0.08);
-        g.gain.setValueAtTime(0.12, now + idx * 0.08);
-        g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.07);
-        o.start(now + idx * 0.08); o.stop(now + idx * 0.08 + 0.07);
+        o.start(now + idx * 0.02); o.stop(now + idx * 0.02 + 0.28);
       });
+
+      // White noise explosion
+      const bufferSize = Math.floor(ctx.sampleRate * 0.25);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1);
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const nFilter = ctx.createBiquadFilter();
+      nFilter.type = 'highpass';
+      nFilter.frequency.setValueAtTime(1600, now);
+      const nGain = ctx.createGain();
+      nGain.gain.setValueAtTime(0.35, now);
+      nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      noise.connect(nFilter); nFilter.connect(nGain); nGain.connect(ctx.destination);
+      noise.start(now);
+
+    } else if (type === 'blade' || type === 'slash') {
+      // Truth blade whoosh & slice
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(3500, now);
+      osc.frequency.exponentialRampToValueAtTime(600, now + 0.22);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 0.22);
+
+      // Metallic blade ping
+      const ring = ctx.createOscillator();
+      const ringGain = ctx.createGain();
+      ring.type = 'sine';
+      ring.frequency.setValueAtTime(1580, now + 0.05);
+      ringGain.gain.setValueAtTime(0.3, now + 0.05);
+      ringGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      ring.connect(ringGain); ringGain.connect(ctx.destination);
+      ring.start(now + 0.05); ring.stop(now + 0.35);
+
+    } else if (type === 'laugh') {
+      // Monokuma "Upupupu" sinister laughter with vibrato
+      [360, 410, 470, 400].forEach((freq, idx) => {
+        const start = now + idx * 0.09;
+        const dur = 0.08;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(freq, start);
+        o.frequency.linearRampToValueAtTime(freq * 1.15, start + dur * 0.5);
+        o.frequency.linearRampToValueAtTime(freq, start + dur);
+        g.gain.setValueAtTime(0.22, start);
+        g.gain.exponentialRampToValueAtTime(0.01, start + dur);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(start); o.stop(start + dur);
+      });
+
+    } else if (type === 'correct') {
+      // Sparkling C-major chime chord
+      [1046.5, 1318.5, 1567.98].forEach((freq, idx) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(freq, now + idx * 0.06);
+        g.gain.setValueAtTime(0.22, now + idx * 0.06);
+        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.4);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(now + idx * 0.06); o.stop(now + idx * 0.06 + 0.4);
+      });
+
+    } else if (type === 'wrong') {
+      // Dissonant dual-buzz beating
+      [115, 123].forEach(freq => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(freq, now);
+        g.gain.setValueAtTime(0.3, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(now); o.stop(now + 0.4);
+      });
+
+    } else if (type === 'glitch') {
+      // Cyber static jam
+      [140, 1100, 480, 90, 820].forEach((freq, idx) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'square';
+        o.frequency.setValueAtTime(freq, now + idx * 0.04);
+        g.gain.setValueAtTime(0.2, now + idx * 0.04);
+        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.07);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(now + idx * 0.04); o.stop(now + idx * 0.04 + 0.07);
+      });
+
     } else if (type === 'siren') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(600, now);
-      osc.frequency.linearRampToValueAtTime(900, now + 0.25);
-      osc.frequency.linearRampToValueAtTime(600, now + 0.5);
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-      osc.start(now); osc.stop(now + 0.5);
+      // Klaxon alarm
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(750, now);
+      o.frequency.linearRampToValueAtTime(980, now + 0.25);
+      o.frequency.linearRampToValueAtTime(750, now + 0.5);
+      g.gain.setValueAtTime(0.25, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(now); o.stop(now + 0.5);
     }
   } catch (e) {}
 }
@@ -193,6 +294,14 @@ function setupPeerJS() {
       
       conn.on('data', (data) => {
         handleIncomingMessage(data, conn);
+        // STAR-RELAY: Forward message to all other connected peers immediately!
+        if (isHost) {
+          peerConnections.forEach(c => {
+            if (c !== conn && c.open) {
+              try { c.send(data); } catch(e) {}
+            }
+          });
+        }
       });
 
       conn.on('close', () => {
@@ -202,7 +311,7 @@ function setupPeerJS() {
       // Send initial state to newly joined player
       setTimeout(() => {
         conn.send({ type: 'sync_state', state: gameState });
-      }, 500);
+      }, 400);
     });
 
     myPeer.on('error', (err) => {
@@ -236,7 +345,9 @@ function broadcast(msg) {
   // If host, send to all connected peers
   if (isHost) {
     peerConnections.forEach(conn => {
-      try { conn.send(msg); } catch(e) {}
+      if (conn.open) {
+        try { conn.send(msg); } catch(e) {}
+      }
     });
   } else if (hostPeer && hostPeer.open) {
     // If client, send to host
@@ -262,8 +373,14 @@ function handleIncomingMessage(msg, senderConn) {
     updatePlayerDisplays();
     logCourt(`👤 [JOIN]: ${msg.player.name} (${msg.player.role}) ยืนประจำโพเดียม`);
     if (isHost) broadcast({ type: 'sync_state', state: gameState });
+  } else if (msg.type === 'admin_reset_session') {
+    handleResetSession();
+  } else if (msg.type === 'kick_player') {
+    handleKickPlayer(msg.playerId);
+  } else if (msg.type === 'clue_discovered') {
+    handleClueDiscovered(msg.clueId, msg.clueName, msg.playerName);
   } else if (msg.type === 'set_stage') {
-    setStage(msg.stage);
+    setStage(msg.stage, msg.config);
   } else if (msg.type === 'timer_tick') {
     gameState.timeRemaining = msg.time;
     updateTimerDisplay();
@@ -276,7 +393,7 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'stg1_submit') {
     handleStg1Submit(msg.clueId, msg.playerName);
   } else if (msg.type === 'stg2_char') {
-    handleStg2Char(msg.index, msg.char);
+    handleStg2Char(msg.char);
   } else if (msg.type === 'stg5_scrum') {
     gameState.stg5Meter = Math.max(0, Math.min(100, gameState.stg5Meter + msg.delta));
     updateScrumDisplay();
@@ -331,6 +448,13 @@ function handleRoute() {
     roomCode = urlParams.get('room').toUpperCase();
     const disp = document.getElementById('displayRoomCode');
     if (disp) disp.innerText = roomCode;
+  }
+
+  const autoClue = urlParams.get('clue') || urlParams.get('unlock');
+  if (autoClue) {
+    setTimeout(() => {
+      unlockClue(autoClue);
+    }, 600);
   }
 
   hidePinModal();
@@ -737,158 +861,303 @@ const CHARACTER_DATA = {
 };
 
 const ALL_CLUES_DATA = [
-  { id: 'CORE-01', name: 'ท่อนกระดูกหมูต้มเปื้อนเลือดสดมนุษย์', type: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องครัว (ก้นหม้อสตูว์)', desc: 'ท่อนกระดูกหมูขนาดใหญ่สับสองท่อน ผิวกระดูกมีรอยร้าวจากการฟาดอย่างแรง มีกลิ่นคาวสนิมเหล็กเข้มข้นของเลือดสดมนุษย์ซึมลึกในเนื้อกระดูกชัดเจน' },
-  { id: 'CORE-02', name: 'มีดพกเปื้อนใยเชือกในกระเป๋าเสื้อ B', type: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ร่างเหยื่อ B', desc: 'มีดพกพับเดินป่า ใบมีดมีคราบใยเชือกไนลอนติดอยู่ แสดงว่าเหยื่อใช้มีดตัดเชือกที่มัดมือตนเองจนขาดออกมาก่อนเสียชีวิต!' },
-  { id: 'CORE-03', name: 'ลูกตุ้มเหล็ก 68 กก. และรอกคู่หน้าต่าง', type: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ลานปูนนอกหน้าต่าง', desc: 'ลูกตุ้มเหล็กถ่วงน้ำหนัก 68 กก. ถูกผูกปลายเชือกโยงผ่านรอกหน้าต่าง ใช้เป็นน้ำหนักถ่วงดึงร่างเหยื่อขึ้นแขวนคอ' },
-  { id: 'CORE-04', name: 'แผงตั้งเวลาเครื่องอบผ้าและระบบประปา', type: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องซักรีดใต้ดิน', desc: 'แผงวงจรตั้งเวลาของเครื่องอบผ้าถูกดัดแปลงให้ตัดไฟและปล่อยน้ำออกจากท่อระบายในเวลาที่กำหนดเพื่อเริ่มกลไกสังหาร' },
+  { id: 'EVD-01', aliases: ['C01', 'CORE-01', '1', 'E1'], name: 'ท่อนกระดูกหมูต้มเปื้อนเลือดสดมนุษย์', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องครัว (ก้นหม้อสตูว์)', desc: 'ท่อนกระดูกหมูขนาดใหญ่สับสองท่อน ผิวกระดูกมีรอยร้าวจากการฟาดอย่างแรง มีกลิ่นคาวสนิมเหล็กเข้มข้นของเลือดสดมนุษย์ซึมลึกในเนื้อกระดูกชัดเจน' },
+  { id: 'EVD-02', aliases: ['C02', 'CORE-02', '2', 'E2'], name: 'มีดพกเปื้อนใยเชือกในกระเป๋าเสื้อ B', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ร่างเหยื่อ B', desc: 'มีดพกพับเดินป่า ใบมีดมีคราบใยเชือกไนลอนติดอยู่ แสดงว่าเหยื่อใช้มีดตัดเชือกที่มัดมือตนเองจนขาดออกมาก่อนเสียชีวิต!' },
+  { id: 'EVD-03', aliases: ['C03', 'CORE-03', '3', 'E3'], name: 'ลูกตุ้มเหล็ก 68 กก. และรอกคู่หน้าต่าง', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ลานปูนนอกหน้าต่าง', desc: 'ลูกตุ้มเหล็กถ่วงน้ำหนัก 68 กก. ถูกผูกปลายเชือกโยงผ่านรอกหน้าต่าง ใช้เป็นน้ำหนักถ่วงดึงร่างเหยื่อขึ้นแขวนคอ' },
+  { id: 'EVD-04', aliases: ['C04', 'CORE-04', '4', 'E4'], name: 'แผงตั้งเวลาเครื่องอบผ้าและระบบประปา', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องซักรีดใต้ดิน', desc: 'แผงวงจรตั้งเวลาของเครื่องอบผ้าถูกดัดแปลงให้ตัดไฟและปล่อยน้ำออกจากท่อระบายในเวลาที่กำหนดเพื่อเริ่มกลไกสังหาร' },
 
-  { id: 'SUPP-01', name: 'ถังน้ำเจาะรูและคราบน้ำบนลานปูน', type: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ลานปูนนอกหน้าต่าง', desc: 'ถังพลาสติกขนาดใหญ่ถูกเจาะรูที่ก้น น้ำค่อยๆ ไหลซึมออกช้าๆ ทำหน้าที่เป็น "นาฬิกาน้ำ" ถ่วงเวลาให้น้ำหนักลดลงจนลูกตุ้มตกลงมา' },
-  { id: 'SUPP-02', name: 'สายรัดลำตัวปีนเขาแบบมีห่วงนิรภัย', type: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ร่างเหยื่อ B', desc: 'B สวมสายรัดลำตัวไว้ใต้เสื้อแจ็กเก็ต แต่แรงกระชาก (Shock Load) มหาศาลทำให้เงื่อนหลุดเลื่อนขึ้นมารัดคอจนกระดูกคอหัก' },
-  { id: 'SUPP-03', name: 'หม้อสตูว์เค็มจัดใส่ไวน์แดงดับคาวเข้มข้น', type: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ห้องครัว', desc: 'สตูว์เนื้อถูกปรุงรสเค็มจัดและใส่ไวน์แดงเข้มข้น เพื่อกลบกลิ่นคาวเลือดสดของ B ที่คนร้ายต้มท่อนกระดูกหมูลงไปอำพราง' },
-  { id: 'SUPP-04', name: 'เศษใยเชือกไนลอนไหม้เกรียมในตู้ควบคุมไฟ', type: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ทางเดินโถงกลาง', desc: 'เศษเชือกไนลอนถูกผูกโยงระหว่างสวิตช์ไฟกับตัวตั้งเวลา ทำให้เกิดไฟดับชั่วขณะตอน 20:30 น.' },
+  { id: 'EVD-05', aliases: ['S01', 'SUPP-01', '5', 'E5'], name: 'ถังน้ำเจาะรูและคราบน้ำบนลานปูน', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ลานปูนนอกหน้าต่าง', desc: 'ถังพลาสติกขนาดใหญ่ถูกเจาะรูที่ก้น น้ำค่อยๆ ไหลซึมออกช้าๆ ทำหน้าที่เป็น "นาฬิกาน้ำ" ถ่วงเวลาให้น้ำหนักลดลงจนลูกตุ้มตกลงมา' },
+  { id: 'EVD-06', aliases: ['S02', 'SUPP-02', '6', 'E6'], name: 'สายรัดลำตัวปีนเขาแบบมีห่วงนิรภัย', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ร่างเหยื่อ B', desc: 'B สวมสายรัดลำตัวไว้ใต้เสื้อแจ็กเก็ต แต่แรงกระชาก (Shock Load) มหาศาลทำให้เงื่อนหลุดเลื่อนขึ้นมารัดคอจนกระดูกคอหัก' },
+  { id: 'EVD-07', aliases: ['S03', 'SUPP-03', '7', 'E7'], name: 'หม้อสตูว์เค็มจัดใส่ไวน์แดงดับคาวเข้มข้น', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ห้องครัว', desc: 'สตูว์เนื้อถูกปรุงรสเค็มจัดและใส่ไวน์แดงเข้มข้น เพื่อกลบกลิ่นคาวเลือดสดของ B ที่คนร้ายต้มท่อนกระดูกหมูลงไปอำพราง' },
+  { id: 'EVD-08', aliases: ['S04', 'SUPP-04', '8', 'E8'], name: 'เศษใยเชือกไนลอนไหม้เกรียมในตู้ควบคุมไฟ', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ทางเดินโถงกลาง', desc: 'เศษเชือกไนลอนถูกผูกโยงระหว่างสวิตช์ไฟกับตัวตั้งเวลา ทำให้เกิดไฟดับชั่วขณะตอน 20:30 น.' },
 
-  { id: 'HERR-01', name: 'หลอดแก้วสารพิษไซยาไนด์เปล่า', type: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ห้องครัว (ถังขยะ)', desc: 'หลอดแก้วติดฉลากกะโหลกไขว้ แต่ข้างในเป็นเพียงแป้งมันสำปะหลังผสมเกลือที่คนร้ายจงใจวางทิ้งไว้ลวงการสืบสวน' },
-  { id: 'HERR-02', name: 'จดหมายข่มขู่ลายมือปลอมของ B', type: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ร่างเหยื่อ B', desc: 'กระดาษโน้ตเขียนข้อความตัดพ้อและข่มขู่ แต่หมึกยังไม่แห้งสนิทและไม่ใช่ลายมือที่แท้จริงของ B' },
-  { id: 'HERR-03', name: 'เสื้อกันฝนเปื้อนคราบโคลนสีแดง', type: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ห้องซักรีด', desc: 'เสื้อกันฝนเปื้อนคราบสีแดงเข้ม แต่ผลการตรวจสอบพบว่าเป็นเพียงคราบสนิมผสมสีน้ำมัน' },
-  { id: 'HERR-04', name: 'รอยเท้าลึกลับมุ่งหน้าไปสระว่ายน้ำ', type: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ลานปูน', desc: 'รอยรองเท้าผ้าใบเปียกน้ำมุ่งตรงไปทางสระว่ายน้ำ แต่เป็นรอยเก่าตั้งแต่ตอนเที่ยงวัน' },
+  { id: 'EVD-09', aliases: ['H01', 'HERR-01', '9', 'E9'], name: 'หลอดแก้วสารพิษไซยาไนด์เปล่า', secretType: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ห้องครัว (ถังขยะ)', desc: 'หลอดแก้วติดฉลากกะโหลกไขว้ แต่ข้างในเป็นเพียงแป้งมันสำปะหลังผสมเกลือที่คนร้ายจงใจวางทิ้งไว้ลวงการสืบสวน' },
+  { id: 'EVD-10', aliases: ['H02', 'HERR-02', '10', 'E10'], name: 'จดหมายข่มขู่ลายมือปลอมของ B', secretType: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ร่างเหยื่อ B', desc: 'กระดาษโน้ตเขียนข้อความตัดพ้อและข่มขู่ แต่หมึกยังไม่แห้งสนิทและไม่ใช่ลายมือที่แท้จริงของ B' },
+  { id: 'EVD-11', aliases: ['H03', 'HERR-03', '11', 'E11'], name: 'เสื้อกันฝนเปื้อนคราบโคลนสีแดง', secretType: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ห้องซักรีด', desc: 'เสื้อกันฝนเปื้อนคราบสีแดงเข้ม แต่ผลการตรวจสอบพบว่าเป็นเพียงคราบสนิมผสมสีน้ำมัน' },
+  { id: 'EVD-12', aliases: ['H04', 'HERR-04', '12', 'E12'], name: 'รอยเท้าลึกลับมุ่งหน้าไปสระว่ายน้ำ', secretType: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ลานปูน', desc: 'รอยรองเท้าผ้าใบเปียกน้ำมุ่งตรงไปทางสระว่ายน้ำ แต่เป็นรอยเก่าตั้งแต่ตอนเที่ยงวัน' },
 
-  { id: 'TRASH-01', name: 'ห่อบะหมี่กึ่งสำเร็จรูปหมดอายุ 2 ปี', type: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ห้องครัว', desc: 'บะหมี่ซองรสหมูสับหมดอายุตั้งแต่ปีก่อน เส้นเหนียวแข็งกินไม่ได้ ไม่มีส่วนเกี่ยวข้องกับคดี' },
-  { id: 'TRASH-02', name: 'ดัมเบลเปื้อนซอสมะเขือเทศแห้งกรัง', type: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ห้องซักรีด', desc: 'ดัมเบลขนาด 5 กก. มีคราบสีแดงติดอยู่ แต่ดมดูแล้วเป็นซอสมะเขือเทศจากมื้อเที่ยงชัดเจน' },
-  { id: 'TRASH-03', name: 'เหรียญโมโนคุมะขึ้นสนิม 10 เหรียญ', type: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ร่างเหยื่อ B', desc: 'เหรียญตราโมโนคุมะเก่าๆ 10 เหรียญในกระเป๋ากางเกง ใช้หยอดตู้กาชาปองในห้องเรียน' },
-  { id: 'TRASH-04', name: 'หนังสือการ์ตูนยอดนักสืบเล่ม 13 ขาดครึ่ง', type: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ทางเดินโถงกลาง', desc: 'การ์ตูนสืบสวนหน้าเฉลยคนร้ายถูกฉีกหายไป มีแต่รอยขีดเขียนเล่นของนักเรียน' }
+  { id: 'EVD-13', aliases: ['T01', 'TRASH-01', '13', 'E13'], name: 'ห่อบะหมี่กึ่งสำเร็จรูปหมดอายุ 2 ปี', secretType: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ห้องครัว', desc: 'บะหมี่ซองรสหมูสับหมดอายุตั้งแต่ปีก่อน เส้นเหนียวแข็งกินไม่ได้ ไม่มีส่วนเกี่ยวข้องกับคดี' },
+  { id: 'EVD-14', aliases: ['T02', 'TRASH-02', '14', 'E14'], name: 'ดัมเบลเปื้อนซอสมะเขือเทศแห้งกรัง', secretType: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ห้องซักรีด', desc: 'ดัมเบลขนาด 5 กก. มีคราบสีแดงติดอยู่ แต่ดมดูแล้วเป็นซอสมะเขือเทศจากมื้อเที่ยงชัดเจน' },
+  { id: 'EVD-15', aliases: ['T03', 'TRASH-03', '15', 'E15'], name: 'เหรียญโมโนคุมะขึ้นสนิม 10 เหรียญ', secretType: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ร่างเหยื่อ B', desc: 'เหรียญตราโมโนคุมะเก่าๆ 10 เหรียญในกระเป๋ากางเกง ใช้หยอดตู้กาชาปองในห้องเรียน' },
+  { id: 'EVD-16', aliases: ['T04', 'TRASH-04', '16', 'E16'], name: 'หนังสือการ์ตูนยอดนักสืบเล่ม 13 ขาดครึ่ง', secretType: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ทางเดินโถงกลาง', desc: 'การ์ตูนสืบสวนหน้าเฉลยคนร้ายถูกฉีกหายไป มีแต่รอยขีดเขียนเล่นของนักเรียน' }
 ];
 
-function renderPlayerCharSheet() {
-  const container = document.getElementById('pCharSheetContent');
-  if (!container) return;
+let currentUserClueTagFilter = 'ALL';
 
-  const role = (myPlayer && myPlayer.role) ? myPlayer.role : 'นักแต่งนิยาย';
-  const data = CHARACTER_DATA[role] || CHARACTER_DATA['นักแต่งนิยาย'];
+function getUnlockedClues() {
+  const raw = localStorage.getItem('dangan_unlocked_' + (currentUserHash || 'guest'));
+  if (raw) {
+    try { return JSON.parse(raw); } catch(e) {}
+  }
+  // Base starting clues for trial
+  return ['EVD-01', 'EVD-05'];
+}
 
-  let statPills = data.stats.map(s => `<span class="stat-pill">⚡ ${s}</span>`).join('');
-  let timelineItems = data.timeline.map(t => `
-    <div class="timeline-item">
-      <span class="timeline-time">⏱️ ${t.time}</span>
-      <span class="timeline-desc">${t.desc}</span>
-    </div>
-  `).join('');
+function getClueTags() {
+  const raw = localStorage.getItem('dangan_tags_' + (currentUserHash || 'guest'));
+  if (raw) {
+    try { return JSON.parse(raw); } catch(e) {}
+  }
+  return {};
+}
 
-  let killerWarning = '';
-  if (data.isKiller) {
-    killerWarning = `
-      <div style="background:#380e15; border:2px solid var(--mono-red); border-radius:8px; padding:12px; margin-bottom:10px;">
-        <span style="color:var(--mono-red); font-weight:900; font-size:0.95rem;">☠️ ลับเฉพาะคนร้าย (BLACKENED BRIEFING)</span>
-        <p style="color:#ffcccc; font-size:0.85rem; margin-top:4px; line-height:1.4;">
-          คุณคือผู้เซ็ตกับดักฆ่า B! อย่าให้ใครจับได้ว่าคุณนำท่อนกระดูกหมูไปต้มในหม้อสตูว์ หรือเจาะถังน้ำเพื่อตั้งเวลา!
-        </p>
-      </div>
-    `;
+function getClueNotes() {
+  const raw = localStorage.getItem('dangan_notes_' + (currentUserHash || 'guest'));
+  if (raw) {
+    try { return JSON.parse(raw); } catch(e) {}
+  }
+  return {};
+}
+
+function toggleClueTag(clueId, tagType) {
+  const tags = getClueTags();
+  if (tags[clueId] === tagType) {
+    delete tags[clueId];
+  } else {
+    tags[clueId] = tagType;
+  }
+  localStorage.setItem('dangan_tags_' + (currentUserHash || 'guest'), JSON.stringify(tags));
+  renderPlayerCluesList();
+}
+
+function saveClueNote(clueId, noteText) {
+  const notes = getClueNotes();
+  notes[clueId] = noteText;
+  localStorage.setItem('dangan_notes_' + (currentUserHash || 'guest'), JSON.stringify(notes));
+}
+
+function filterUserClueTag(tag) {
+  currentUserClueTagFilter = tag;
+  const btns = document.querySelectorAll('.clue-filter-tags .clue-tag-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  if (tag === 'ALL' && btns[0]) btns[0].classList.add('active');
+  else if (tag === 'IMPORTANT' && btns[1]) btns[1].classList.add('active');
+  else if (tag === 'DOUBT' && btns[2]) btns[2].classList.add('active');
+  else if (tag === 'TRASH' && btns[3]) btns[3].classList.add('active');
+  else if (tag === 'LOCKED' && btns[4]) btns[4].classList.add('active');
+  renderPlayerCluesList();
+}
+
+function unlockClue(rawCode) {
+  if (!rawCode) return false;
+  const clean = rawCode.trim().toUpperCase();
+  const clue = ALL_CLUES_DATA.find(c => {
+    if (c.id === clean) return true;
+    if (c.aliases && c.aliases.includes(clean)) return true;
+    const num = clean.replace(/^(EVD-|CORE-|SUPP-|HERR-|TRASH-|C|S|H|T)/i, '');
+    const cNum = c.id.replace('EVD-', '');
+    if (num && parseInt(num, 10) === parseInt(cNum, 10)) return true;
+    return false;
+  });
+
+  if (!clue) {
+    playSfx('wrong');
+    alert(`❌ ไม่พบหลักฐานสำหรับรหัส: "${rawCode}" กรุณาตรวจสอบรหัสอีกครั้ง`);
+    return false;
   }
 
-  container.innerHTML = `
-    <div class="char-sheet-card">
-      ${killerWarning}
-      <div class="char-title-banner">
-        <div>
-          <div class="char-name">${(myPlayer && myPlayer.name) ? myPlayer.name : 'ชื่อตัวละคร'}</div>
-          <div style="color:var(--mono-pink); font-size:0.9rem; font-weight:700;">${data.title}</div>
-        </div>
-        <span class="char-role-badge">${role}</span>
-      </div>
+  let unlocked = getUnlockedClues();
+  if (!unlocked.includes(clue.id)) {
+    unlocked.push(clue.id);
+    localStorage.setItem('dangan_unlocked_' + (currentUserHash || 'guest'), JSON.stringify(unlocked));
+    playSfx('correct');
+    showToast(`✨ ค้นพบหลักฐานใหม่: [${clue.name}] บันทึกลงใน Monopad แล้ว!`);
+    broadcast({
+      type: 'clue_discovered',
+      clueId: clue.id,
+      clueName: clue.name,
+      playerName: (myPlayer && myPlayer.name) ? myPlayer.name : 'นักเรียน'
+    });
+  } else {
+    showToast(`ℹ️ คุณมีหลักฐาน [${clue.name}] ใน Monopad อยู่แล้ว`);
+  }
 
-      <div class="char-sheet-layout">
-        <div class="char-profile-pane">
-          <div>
-            <div style="font-size:0.85rem; color:#aaa; font-weight:700; margin-bottom:6px;">สเตตัสเด่น & ความสามารถ:</div>
-            <div class="stat-badge-row">${statPills}</div>
-          </div>
+  renderPlayerCluesList();
+  return true;
+}
 
-          <div class="hook-box" style="margin-top:12px;">
-            <strong>🎭 กฎควบคุมพฤติกรรม & บทบาทการเล่น:</strong><br>
-            ${data.hook}
-          </div>
-        </div>
+function showToast(text) {
+  let t = document.getElementById('danganToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'danganToast';
+    t.style.position = 'fixed';
+    t.style.bottom = '80px';
+    t.style.left = '50%';
+    t.style.transform = 'translateX(-50%)';
+    t.style.background = 'rgba(20, 20, 32, 0.96)';
+    t.style.border = '2px solid var(--mono-pink)';
+    t.style.borderRadius = '8px';
+    t.style.color = '#fff';
+    t.style.padding = '10px 20px';
+    t.style.fontWeight = '900';
+    t.style.fontSize = '0.9rem';
+    t.style.boxShadow = '4px 4px 0px #000';
+    t.style.zIndex = '999999';
+    t.style.transition = 'opacity 0.3s ease';
+    document.body.appendChild(t);
+  }
+  t.innerText = text;
+  t.style.opacity = '1';
+  t.style.display = 'block';
+  setTimeout(() => {
+    t.style.opacity = '0';
+    setTimeout(() => { t.style.display = 'none'; }, 300);
+  }, 3200);
+}
 
-        <div class="char-timeline-pane">
-          <div style="font-size:0.95rem; color:var(--mono-yellow); font-weight:900; margin-bottom:8px;">
-            📅 ไทม์ไลน์ความทรงจำส่วนตัว (Personal Timeline 17:30 - 21:00):
-          </div>
-          <div class="timeline-block">
-            ${timelineItems}
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function renderPlayerCluesList() {
   const container = document.getElementById('pCluesListContent');
   if (!container) return;
 
+  const unlocked = getUnlockedClues();
+  const tags = getClueTags();
+  const notes = getClueNotes();
+
+  const countBadge = document.getElementById('pUnlockedClueCount');
+  if (countBadge) countBadge.innerText = unlocked.length;
+
   const q = (document.getElementById('clueSearchInput') ? document.getElementById('clueSearchInput').value : '').toLowerCase().trim();
 
-  let filtered = ALL_CLUES_DATA.filter(c => {
-    const matchType = (currentClueFilter === 'ALL' || c.type === currentClueFilter);
-    const matchQuery = !q || c.id.toLowerCase().includes(q) || c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.loc.toLowerCase().includes(q);
-    return matchType && matchQuery;
+  let html = '';
+  let visibleCount = 0;
+
+  ALL_CLUES_DATA.forEach(c => {
+    const isUnlocked = unlocked.includes(c.id);
+    const userTag = tags[c.id] || '';
+    const userNote = notes[c.id] || '';
+
+    // Filter by tag
+    if (currentUserClueTagFilter === 'IMPORTANT' && userTag !== 'star') return;
+    if (currentUserClueTagFilter === 'DOUBT' && userTag !== 'doubt') return;
+    if (currentUserClueTagFilter === 'TRASH' && userTag !== 'trash') return;
+    if (currentUserClueTagFilter === 'LOCKED' && isUnlocked) return;
+    if (currentUserClueTagFilter !== 'LOCKED' && currentUserClueTagFilter !== 'ALL' && !isUnlocked) return;
+
+    // Search query
+    if (q) {
+      const matchText = c.id.toLowerCase().includes(q) || c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.loc.toLowerCase().includes(q) || userNote.toLowerCase().includes(q);
+      if (!matchText) return;
+    }
+
+    visibleCount++;
+
+    if (isUnlocked) {
+      html += `
+        <div class="clue-card">
+          <div class="clue-header">
+            <span class="clue-code" style="color:var(--mono-yellow); font-weight:900;">${c.id}</span>
+            <span style="font-size:0.75rem; color:#888;">กระสุนความจริง</span>
+          </div>
+          <div class="clue-name">${c.name}</div>
+          <div class="clue-location">📍 สถานที่พบ: ${c.loc}</div>
+          <div class="clue-desc">${c.desc}</div>
+
+          <!-- 3-State Tag Picker -->
+          <div class="clue-tag-picker">
+            <button class="tag-pill star ${userTag === 'star' ? 'active' : ''}" onclick="toggleClueTag('${c.id}', 'star')">
+              ⭐ สำคัญ
+            </button>
+            <button class="tag-pill doubt ${userTag === 'doubt' ? 'active' : ''}" onclick="toggleClueTag('${c.id}', 'doubt')">
+              ❓ สงสัย
+            </button>
+            <button class="tag-pill trash ${userTag === 'trash' ? 'active' : ''}" onclick="toggleClueTag('${c.id}', 'trash')">
+              ❌ หลอก/ขยะ
+            </button>
+          </div>
+
+          <!-- Personal Notes Field -->
+          <div class="clue-note-wrap">
+            <input type="text" class="clue-note-input" placeholder="📝 บันทึกส่วนตัว (พิมพ์เพื่อบันทึก)..." value="${escapeHtml(userNote)}" onchange="saveClueNote('${c.id}', this.value)" onblur="saveClueNote('${c.id}', this.value)">
+          </div>
+        </div>
+      `;
+    } else {
+      // Locked clue card
+      html += `
+        <div class="clue-locked-card">
+          <div>
+            <div style="color:#aaa; font-weight:700; font-size:0.9rem;">🔒 ${c.id}: [ยังไม่ถูกค้นพบ]</div>
+            <div style="font-size:0.8rem; color:#777; margin-top:3px;">📍 เบาะแสสถานที่: ${c.loc}</div>
+          </div>
+          <button class="small-btn cyan" onclick="openClueScannerModal('${c.id}')" style="font-size:0.75rem; padding:6px 10px;">
+            สแกน
+          </button>
+        </div>
+      `;
+    }
   });
 
-  if (filtered.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:30px; color:#888;">ไม่พบการ์ดหลักฐานที่ตรงกับการค้นหา</div>`;
-    return;
+  if (visibleCount === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:30px; color:#888;">ไม่พบการ์ดหลักฐานที่ตรงกับเงื่อนไข</div>`;
+  } else {
+    container.innerHTML = html;
   }
-
-  container.innerHTML = filtered.map(c => {
-    let cardClass = c.type.toLowerCase();
-    return `
-      <div class="clue-card ${cardClass}">
-        <div class="clue-header">
-          <span class="clue-code" style="color:var(--mono-yellow);">${c.id}</span>
-          <span class="clue-type-pill">${c.typeLabel}</span>
-        </div>
-        <div class="clue-name">${c.name}</div>
-        <div class="clue-location">📍 สถานที่พบ: ${c.loc}</div>
-        <div class="clue-desc">${c.desc}</div>
-      </div>
-    `;
-  }).join('');
 }
 
 function filterPlayerClues() {
   renderPlayerCluesList();
 }
 
-function filterClueType(type) {
-  currentClueFilter = type;
-  const btns = document.querySelectorAll('.clue-tag-btn');
-  btns.forEach(b => b.classList.remove('active'));
-
-  if (type === 'ALL' && btns[0]) btns[0].classList.add('active');
-  else if (type === 'CORE' && btns[1]) btns[1].classList.add('active');
-  else if (type === 'SUPP' && btns[2]) btns[2].classList.add('active');
-  else if (type === 'HERR' && btns[3]) btns[3].classList.add('active');
-  else if (type === 'TRASH' && btns[4]) btns[4].classList.add('active');
-
-  renderPlayerCluesList();
-}
-
 // ==========================================================
 // STAGE CONTROLS & TIMERS
 // ==========================================================
-function setStage(stage) {
+function splitGraphemes(str) {
+  if (!str) return [];
+  if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+    try {
+      const seg = new Intl.Segmenter('th', { granularity: 'grapheme' });
+      return Array.from(seg.segment(str), s => s.segment);
+    } catch(e) {}
+  }
+  return Array.from(str);
+}
+
+function setStage(stage, config) {
   gameState.stage = stage;
   stopTimer();
 
-  if (stage === 'stage1') {
+  if (stage === 'investigation') {
+    startTimer(config && config.duration ? config.duration : 300);
+    playSfx('gavel');
+    logCourt(`🔍 [INVESTIGATION]: เริ่มต้นช่วงเวลาสืบสวนหาหลักฐาน! ออกค้นหาและสแกน QR Code`);
+  } else if (stage === 'stage1') {
     gameState.stg1Submissions = 0;
+    if (config) {
+      if (config.prompt) gameState.stg1Prompt = config.prompt;
+      if (config.correctClueId) gameState.stg1TargetClue = config.correctClueId;
+    }
+    const pBox = document.getElementById('courtStage1Prompt');
+    if (pBox && gameState.stg1Prompt) pBox.innerText = `"${gameState.stg1Prompt}"`;
     startTimer(60);
     playSfx('gavel');
   } else if (stage === 'stage2') {
-    gameState.stg2Board = ["_", "_", "_", "_", "_", "_", "_"];
+    if (config) {
+      if (config.targetWord) {
+        gameState.stg2Word = config.targetWord;
+        gameState.stg2Target = splitGraphemes(config.targetWord);
+      }
+      if (config.prompt) gameState.stg2Prompt = config.prompt;
+    }
+    gameState.stg2Board = Array(gameState.stg2Target.length).fill("_");
+    const rTitle = document.querySelector('#courtStage2 .riddle-title');
+    if (rTitle && gameState.stg2Prompt) rTitle.innerText = `"${gameState.stg2Prompt}"`;
     startTimer(75);
     playSfx('gavel');
   } else if (stage === 'stage3') {
+    if (config) {
+      if (config.opponent) gameState.stg3Opponent = config.opponent;
+      if (config.argument) gameState.stg3Argument = config.argument;
+    }
+    const oppEl = document.getElementById('rebuttalSuspect');
+    if (oppEl && gameState.stg3Opponent) oppEl.innerText = gameState.stg3Opponent;
+    const stmtEl = document.getElementById('rebuttalStatement');
+    if (stmtEl && gameState.stg3Argument) stmtEl.innerText = `"${gameState.stg3Argument}"`;
     startTimer(45);
     playSfx('gavel');
   } else if (stage === 'stage4') {
@@ -896,10 +1165,26 @@ function setStage(stage) {
     startTimer(60);
     playSfx('gavel');
   } else if (stage === 'stage5') {
+    if (config) {
+      if (config.topic) gameState.stg5Topic = config.topic;
+      if (config.leftTeam) gameState.stg5LeftTeam = config.leftTeam;
+      if (config.rightTeam) gameState.stg5RightTeam = config.rightTeam;
+    }
+    const sTitle = document.querySelector('#courtStage5 .riddle-title');
+    if (sTitle && gameState.stg5Topic) sTitle.innerText = `"${gameState.stg5Topic}"`;
+    const sLeft = document.querySelector('#courtStage5 .scrum-side.left h3');
+    if (sLeft && gameState.stg5LeftTeam) sLeft.innerText = gameState.stg5LeftTeam;
+    const sRight = document.querySelector('#courtStage5 .scrum-side.right h3');
+    if (sRight && gameState.stg5RightTeam) sRight.innerText = gameState.stg5RightTeam;
     gameState.stg5Meter = 50;
     startTimer(60);
     playSfx('gavel');
   } else if (stage === 'stage6') {
+    if (config && config.statement) {
+      gameState.stg6Statement = config.statement;
+    }
+    const scEl = document.getElementById('culpritScreamText');
+    if (scEl && gameState.stg6Statement) scEl.innerText = `"${gameState.stg6Statement}"`;
     gameState.stg6Shield = 100;
     startTimer(45);
     playSfx('gavel');
@@ -908,6 +1193,8 @@ function setStage(stage) {
     gameState.votes = {};
     startTimer(60);
     playSfx('siren');
+  } else if (stage === 'lobby') {
+    logCourt(`🏛️ [LOBBY]: กลับสู่ห้องพิจารณาคดีหลัก`);
   }
 
   renderStage(stage);
@@ -942,58 +1229,162 @@ function updateTimerDisplay() {
   const m = Math.floor(gameState.timeRemaining / 60);
   const s = gameState.timeRemaining % 60;
   const str = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  document.getElementById('courtTimerDigits').innerText = str;
-  if (gameState.timeRemaining <= 15) {
-    document.getElementById('courtTimerDigits').style.color = '#ff2244';
-  } else {
-    document.getElementById('courtTimerDigits').style.color = '#fff';
+  const el = document.getElementById('courtTimerDigits');
+  if (el) {
+    el.innerText = str;
+    if (gameState.timeRemaining <= 15) {
+      el.style.color = '#ff2244';
+    } else {
+      el.style.color = '#fff';
+    }
   }
 }
 
 function updateInfluenceDisplay() {
-  document.getElementById('courtInfluenceBar').style.width = `${gameState.influence}%`;
-  document.getElementById('courtInfluenceTxt').innerText = `${gameState.influence}%`;
+  const bar = document.getElementById('courtInfluenceBar');
+  const txt = document.getElementById('courtInfluenceTxt');
+  if (bar) bar.style.width = `${gameState.influence}%`;
+  if (txt) txt.innerText = `${gameState.influence}%`;
 }
 
 function logCourt(text) {
   const box = document.getElementById('courtLog');
+  if (!box) return;
   const d = document.createElement('div');
   d.innerText = `> ${text}`;
   box.appendChild(d);
   box.scrollTop = box.scrollHeight;
 }
 
+function updateDiscoveredCluesDisplay() {
+  const discovered = gameState.discoveredClues || [];
+  const count = discovered.length;
+  const countEl = document.getElementById('courtDiscoveredCount');
+  if (countEl) countEl.innerText = count;
+
+  const fillEl = document.getElementById('courtDiscoveryFill');
+  if (fillEl) fillEl.style.width = `${Math.min(100, Math.round((count / 16) * 100))}%`;
+
+  const mapStubs = {
+    'kitchenClueList': ['EVD-01', 'EVD-07', 'EVD-09', 'EVD-13'],
+    'courtyardClueList': ['EVD-03', 'EVD-05', 'EVD-12'],
+    'laundryClueList': ['EVD-04', 'EVD-11', 'EVD-14'],
+    'hallwayClueList': ['EVD-02', 'EVD-06', 'EVD-08', 'EVD-10', 'EVD-15', 'EVD-16']
+  };
+
+  Object.entries(mapStubs).forEach(([listId, clueIds]) => {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    const items = list.querySelectorAll('.clue-stub');
+    clueIds.forEach((cid, idx) => {
+      if (items[idx]) {
+        if (discovered.includes(cid)) {
+          items[idx].classList.add('found');
+          const found = ALL_CLUES_DATA.find(c => c.id === cid);
+          items[idx].innerHTML = `✅ [ค้นพบ]: ${found ? found.name : cid}`;
+        }
+      }
+    });
+  });
+}
+
+function handleResetSession() {
+  stopTimer();
+  gameState.players = {};
+  gameState.stage = 'lobby';
+  gameState.influence = 100;
+  gameState.stg1Submissions = 0;
+  gameState.stg5Meter = 50;
+  gameState.stg6Shield = 100;
+  gameState.votes = {};
+  gameState.discoveredClues = [];
+  gameState.discoveredCluesCount = 0;
+
+  if (currentView === 'player') {
+    alert('🔄 ผู้ดูแลศาล (DM) ได้ทำการรีเซ็ตห้องเพื่อเริ่มรอบใหม่');
+    sessionStorage.removeItem('dangan_user_hash');
+    currentUserHash = '';
+    myPlayer = null;
+    navigate('/play?room=' + roomCode);
+  } else {
+    updateInfluenceDisplay();
+    updatePlayerDisplays();
+    renderStage('lobby');
+  }
+}
+
+function handleKickPlayer(kickedId) {
+  if (myPlayer && myPlayer.id === kickedId) {
+    if (hostPeer) hostPeer.close();
+    sessionStorage.removeItem('dangan_user_hash');
+    alert('⚠️ คุณถูกนำออกจากห้องโดยผู้ดูแลศาล (DM)');
+    navigate('/');
+    return;
+  }
+
+  if (gameState.players[kickedId]) {
+    delete gameState.players[kickedId];
+    updatePlayerDisplays();
+  }
+}
+
+function handleClueDiscovered(clueId, clueName, playerName) {
+  if (!gameState.discoveredClues) gameState.discoveredClues = [];
+  if (!gameState.discoveredClues.includes(clueId)) {
+    gameState.discoveredClues.push(clueId);
+    gameState.discoveredCluesCount = gameState.discoveredClues.length;
+    updateDiscoveredCluesDisplay();
+    logCourt(`🔎 [DISCOVERY]: ${playerName || 'นักเรียน'} สแกนพบหลักฐาน [${clueName || clueId}]!`);
+    if (currentView === 'court') {
+      playSfx('correct');
+    }
+  }
+}
+
 // ==========================================================
 // STAGE RENDERERS (COURTROOM VIEW & MOBILE VIEW)
 // ==========================================================
 function renderStage(stage) {
-  // Hide all court boxes
-  ['courtLobby','courtStage1','courtStage2','courtStage3','courtStage4','courtStage5','courtStage6','courtStage7','courtVerdict'].forEach(id => {
+  const courtStages = ['courtLobby', 'courtInvestigation', 'courtStage1', 'courtStage2', 'courtStage3', 'courtStage4', 'courtStage5', 'courtStage6', 'courtStage7', 'courtVerdict'];
+  courtStages.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
 
-  if (stage === 'lobby') document.getElementById('courtLobby').classList.remove('hidden');
-  else if (stage === 'stage1') {
-    document.getElementById('courtStage1').classList.remove('hidden');
+  if (stage === 'investigation') {
+    const inv = document.getElementById('courtInvestigation');
+    if (inv) inv.classList.remove('hidden');
+    updateDiscoveredCluesDisplay();
+  } else if (stage === 'stage1') {
+    const s1 = document.getElementById('courtStage1');
+    if (s1) s1.classList.remove('hidden');
     updateStg1Display();
   } else if (stage === 'stage2') {
-    document.getElementById('courtStage2').classList.remove('hidden');
+    const s2 = document.getElementById('courtStage2');
+    if (s2) s2.classList.remove('hidden');
     updateHangmanDisplay();
   } else if (stage === 'stage3') {
-    document.getElementById('courtStage3').classList.remove('hidden');
+    const s3 = document.getElementById('courtStage3');
+    if (s3) s3.classList.remove('hidden');
   } else if (stage === 'stage4') {
-    document.getElementById('courtStage4').classList.remove('hidden');
+    const s4 = document.getElementById('courtStage4');
+    if (s4) s4.classList.remove('hidden');
     updateLogicDiveDisplay();
   } else if (stage === 'stage5') {
-    document.getElementById('courtStage5').classList.remove('hidden');
+    const s5 = document.getElementById('courtStage5');
+    if (s5) s5.classList.remove('hidden');
     updateScrumDisplay();
   } else if (stage === 'stage6') {
-    document.getElementById('courtStage6').classList.remove('hidden');
+    const s6 = document.getElementById('courtStage6');
+    if (s6) s6.classList.remove('hidden');
     updateShieldDisplay();
   } else if (stage === 'stage7') {
-    document.getElementById('courtStage7').classList.remove('hidden');
+    const s7 = document.getElementById('courtStage7');
+    if (s7) s7.classList.remove('hidden');
     updateVoteDisplay();
+  } else {
+    const lob = document.getElementById('courtLobby');
+    if (lob) lob.classList.remove('hidden');
   }
 
   // Render on Mobile
@@ -1005,14 +1396,17 @@ function renderStage(stage) {
 // ==========================================================
 // 1. Evidence Linker
 function handleStg1Submit(clueId, pName) {
-  if (clueId === 'CORE-01') {
+  const target = gameState.stg1TargetClue || 'EVD-01';
+  if (clueId === target || clueId === 'CORE-01') {
     gameState.stg1Submissions++;
     playSfx('correct');
-    logCourt(`🎯 [TRUTH BULLET]: ${pName} นำเสนอ 'ท่อนกระดูกหมูในสตูว์' ถูกต้อง!`);
+    const clueObj = ALL_CLUES_DATA.find(c => c.id === clueId);
+    const cName = clueObj ? clueObj.name : clueId;
+    logCourt(`🎯 [TRUTH BULLET]: ${pName} ยิงหลักฐาน '${cName}' เข้าเป้าหมาย!`);
     updateStg1Display();
     if (gameState.stg1Submissions >= gameState.stg1Required) {
-      logCourt(`✨ [CLEARED]: หักล้างข้ออ้างสำเร็จ!`);
-      playSfx('correct');
+      logCourt(`✨ [CLEARED]: หักล้างข้ออ้างของคนร้ายสำเร็จ!`);
+      playSfx('point_break');
     }
   } else {
     gameState.influence = Math.max(0, gameState.influence - 10);
@@ -1025,10 +1419,14 @@ function handleStg1Submit(clueId, pName) {
 function updateStg1Display() {
   document.getElementById('stg1Count').innerText = gameState.stg1Submissions;
   const placeholders = document.querySelectorAll('#stg1SlotsDisplay .clue-card-placeholder');
+  const target = gameState.stg1TargetClue || 'EVD-01';
+  const clueObj = ALL_CLUES_DATA.find(c => c.id === target);
+  const targetName = clueObj ? clueObj.name : target;
+
   placeholders.forEach((el, idx) => {
     if (idx < gameState.stg1Submissions) {
       el.classList.add('active-match');
-      el.innerText = `✅ [CORE-01] ท่อนกระดูกหมูเปื้อนเลือด`;
+      el.innerText = `✅ [${target}] ${targetName}`;
     } else {
       el.classList.remove('active-match');
       el.innerText = `รอหลักฐานชิ้นที่ ${idx+1}...`;
@@ -1037,11 +1435,22 @@ function updateStg1Display() {
 }
 
 // 2. Hangman's Gambit
-function handleStg2Char(idx, char) {
-  if (gameState.stg2Target[idx] === char) {
-    gameState.stg2Board[idx] = char;
+function handleStg2Char(char) {
+  let matched = false;
+  gameState.stg2Target.forEach((targetChar, idx) => {
+    if (targetChar.toUpperCase() === char.toUpperCase()) {
+      gameState.stg2Board[idx] = targetChar;
+      matched = true;
+    }
+  });
+
+  if (matched) {
     playSfx('correct');
     updateHangmanDisplay();
+    if (!gameState.stg2Board.includes('_')) {
+      playSfx('point_break');
+      logCourt(`✨ [HANGMAN SOLVED]: ถอดรหัสสำเร็จ! "${gameState.stg2Target.join('')}"`);
+    }
   } else {
     gameState.influence = Math.max(0, gameState.influence - 5);
     updateInfluenceDisplay();
@@ -1051,6 +1460,7 @@ function handleStg2Char(idx, char) {
 
 function updateHangmanDisplay() {
   const b = document.getElementById('hangmanBoard');
+  if (!b) return;
   b.innerHTML = '';
   gameState.stg2Board.forEach(c => {
     const tile = document.createElement('div');
@@ -1209,27 +1619,43 @@ function renderMobileTask(stage) {
   if (stage === 'lobby') {
     area.innerHTML = '<div class="idle-message"><div class="idle-spinner"></div><p>กำลังรอเริ่มศาลชั้นเรียน...</p></div>';
   } else if (stage === 'stage1') {
+    const target = gameState.stg1TargetClue || 'EVD-01';
+    const allDistractors = ['EVD-01', 'EVD-02', 'EVD-04', 'EVD-05', 'EVD-09', 'EVD-11', 'EVD-14'];
+    let chosenIds = [target];
+    for (const d of allDistractors) {
+      if (chosenIds.length >= 4) break;
+      if (!chosenIds.includes(d)) chosenIds.push(d);
+    }
+    chosenIds.sort();
+    const btnsHtml = chosenIds.map(cid => {
+      const clue = ALL_CLUES_DATA.find(c => c.id === cid) || { id: cid, name: cid };
+      return `<button class="p-task-btn" onclick="sendStg1('${clue.id}')">[${clue.id}] ${clue.name}</button>`;
+    }).join('');
+
     area.innerHTML = `
-      <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">เลือกการ์ดหลักฐานที่ตรงกับอาวุธ:</h3>
+      <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">เลือกการ์ดหลักฐานที่ตรงกับอาวุธ/ปริศนา:</h3>
       <div class="mobile-task-grid">
-        <button class="p-task-btn" onclick="sendStg1('CORE-01')">🔴 [CORE-01] ท่อนกระดูกหมูต้มเปื้อนเลือด</button>
-        <button class="p-task-btn" onclick="sendStg1('HERR-01')">🟡 [HERR-01] หลอดแก้วไซยาไนด์เปล่า</button>
-        <button class="p-task-btn" onclick="sendStg1('TRASH-02')">⚫ [TRASH-02] ดัมเบลเปื้อนซอสมะเขือเทศ</button>
-        <button class="p-task-btn" onclick="sendStg1('SUPP-01')">🔵 [SUPP-01] แผงตั้งเวลาเครื่องอบผ้า</button>
+        ${btnsHtml}
       </div>
     `;
   } else if (stage === 'stage2') {
+    const targetLetters = (gameState.stg2Target && gameState.stg2Target.length) ? [...gameState.stg2Target] : ["น", "า", "ฬิ", "ก", "า", "น้", "ำ"];
+    const dummyPool = ['ร', 'ว', 'ส', 'ม', 'อ', 'เ', 'ย', 'ด', 'บ', 'ง', 'ท', 'ล'];
+    const letterSet = new Set(targetLetters);
+    for (const d of dummyPool) {
+      if (letterSet.size >= targetLetters.length + 3) break;
+      letterSet.add(d);
+    }
+    const letterArray = Array.from(letterSet).sort(() => 0.5 - Math.random());
+    const btnsHtml = letterArray.map(ch => {
+      const safeCh = ch.replace(/'/g, "\\'");
+      return `<button class="p-task-btn letter-btn" onclick="sendStg2Char('${safeCh}')">${ch}</button>`;
+    }).join('');
+
     area.innerHTML = `
       <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">แตะตัวอักษรเพื่อส่งขึ้นกระดาน:</h3>
       <div class="hangman-letters-grid">
-        <button class="p-task-btn letter-btn" onclick="sendStg2(0,'น')">น</button>
-        <button class="p-task-btn letter-btn" onclick="sendStg2(1,'า')">า</button>
-        <button class="p-task-btn letter-btn" onclick="sendStg2(2,'ฬิ')">ฬิ</button>
-        <button class="p-task-btn letter-btn" onclick="sendStg2(3,'ก')">ก</button>
-        <button class="p-task-btn letter-btn" onclick="sendStg2(4,'า')">า</button>
-        <button class="p-task-btn letter-btn" onclick="sendStg2(5,'น้')">น้</button>
-        <button class="p-task-btn letter-btn" onclick="sendStg2(6,'ำ')">ำ</button>
-        <button class="p-task-btn letter-btn" onclick="sendStg2(99,'ร')">ร</button>
+        ${btnsHtml}
       </div>
     `;
   } else if (stage === 'stage3') {
@@ -1280,8 +1706,12 @@ function sendStg1(id) {
   broadcast({ type: 'stg1_submit', clueId: id, playerName: myPlayer ? myPlayer.name : 'ผู้เล่น' });
 }
 
+function sendStg2Char(char) {
+  broadcast({ type: 'stg2_char', char: char });
+}
+
 function sendStg2(idx, char) {
-  broadcast({ type: 'stg2_char', index: idx, char: char });
+  sendStg2Char(char);
 }
 
 function submitPlayerVote(cand) {
@@ -1340,6 +1770,18 @@ function sendSabotage(type) {
 }
 
 function handleSabotage(type, pName) {
+  // CRITICAL REQUIREMENT 1: Sabotage Isolation - Anomaly/glitch sabotage triggered by killer Magician (A) must NEVER affect the Admin/DM view.
+  if (currentView === 'admin') {
+    if (type === 'drain_time') {
+      gameState.timeRemaining = Math.max(5, gameState.timeRemaining - 10);
+      updateTimerDisplay();
+    } else if (type === 'corrupt_data') {
+      gameState.influence = Math.max(0, gameState.influence - 10);
+      updateInfluenceDisplay();
+    }
+    return;
+  }
+
   playSfx('glitch');
   if (type === 'glitch') {
     const overlay = document.getElementById('screenGlitch');
@@ -1399,6 +1841,7 @@ function triggerFx(fx) {
 function updateAdminDisplay() {
   const table = document.getElementById('adminPlayerTable');
   const cnt = document.getElementById('adminPlayerCount');
+  if (!table || !cnt) return;
   table.innerHTML = '';
   const players = Object.values(gameState.players);
   cnt.innerText = players.length;
@@ -1408,11 +1851,14 @@ function updateAdminDisplay() {
     row.className = 'admin-p-row' + (p.isKiller ? ' is-killer' : '');
     row.innerHTML = `
       <div>
-        <strong>${p.name}</strong>
-        <span style="color:#ffe600; font-size:0.8rem; margin-left:6px;">[${p.role}]</span>
+        <strong>${escapeHtml(p.name)}</strong>
+        <span style="color:#ffe600; font-size:0.8rem; margin-left:6px;">[${escapeHtml(p.role)}]</span>
         ${p.isKiller ? '<span style="color:#ff2244; font-weight:900; margin-left:6px;">[SABOTEUR]</span>' : ''}
       </div>
-      <div>${p.votedFor ? `โหวต: ${p.votedFor}` : 'ยังไม่โหวต'}</div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span>${p.votedFor ? `โหวต: ${escapeHtml(p.votedFor)}` : 'ยังไม่โหวต'}</span>
+        <button class="small-btn red" style="padding:4px 8px; font-size:0.75rem; font-weight:700;" onclick="adminKickPlayer('${p.id}')">❌ เตะ</button>
+      </div>
     `;
     table.appendChild(row);
   });
@@ -1440,6 +1886,346 @@ function adminChangeRoomCode() {
   if (newCode) {
     roomCode = newCode;
     window.location.href = window.location.pathname + '?room=' + roomCode + '&view=' + currentView;
+  }
+}
+
+// ==========================================================
+// SESSION MANAGEMENT (RESET & KICK)
+// ==========================================================
+function adminKickPlayer(peerId) {
+  if (!peerId) return;
+  const target = gameState.players[peerId];
+  const name = target ? target.name : peerId;
+  if (!confirm(`คุณต้องการเตะผู้เล่น "${name}" ออกจากห้องใช่หรือไม่?`)) return;
+
+  delete gameState.players[peerId];
+  updatePlayerDisplays();
+  broadcast({ type: 'kick_player', playerId: peerId });
+  logCourt(`🚫 [KICK]: ผู้ดูแลระบบได้เตะ "${name}" ออกจากห้องแล้ว`);
+}
+
+function adminResetSession() {
+  if (!confirm("⚠️ ยืนยันการรีเซ็ตห้องศาลทั้งหมด (Reset Session)?\nคะแนน/โหวต/หลักฐานที่พบจะถูกล้างใหม่ทั้งหมดเหมือนเริ่มศาลใหม่")) return;
+
+  handleResetSession();
+  broadcast({ type: 'reset_session' });
+  logCourt(`🔄 [RESET]: ผู้ดูแลระบบได้ทำการรีเซ็ตเซสชันศาลชั้นเรียนแล้ว`);
+}
+
+// ==========================================================
+// ADMIN MINIGAME CONFIG & 1-CLICK PRESETS
+// ==========================================================
+let currentSelectedConfigStage = 'stage1';
+
+function openAdminMinigameModal(defaultTab) {
+  const modal = document.getElementById('adminMinigameModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  selectConfigTab(defaultTab || 'stage1');
+}
+
+function closeAdminMinigameModal() {
+  const modal = document.getElementById('adminMinigameModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function selectConfigTab(stageKey) {
+  currentSelectedConfigStage = stageKey;
+  const stages = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'];
+  stages.forEach(stg => {
+    const tabBtn = document.getElementById('cfgTab' + stg.charAt(0).toUpperCase() + stg.slice(1));
+    const pane = document.getElementById('cfgPane' + stg.charAt(0).toUpperCase() + stg.slice(1));
+    if (tabBtn) {
+      if (stg === stageKey) tabBtn.classList.add('active');
+      else tabBtn.classList.remove('active');
+    }
+    if (pane) {
+      if (stg === stageKey) pane.classList.remove('hidden');
+      else pane.classList.add('hidden');
+    }
+  });
+}
+
+function applyPresetStage1(presetKey) {
+  const pInput = document.getElementById('cfgStg1Prompt');
+  const tSelect = document.getElementById('cfgStg1TargetClue');
+  if (!pInput || !tSelect) return;
+
+  if (presetKey === 'bone') {
+    pInput.value = "อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?";
+    tSelect.value = "EVD-01";
+  } else if (presetKey === 'knife') {
+    pInput.value = "B ใช้สิ่งใดในการตัดเชือกเพื่อพยายามหนีเอาชีวิตรอดจนเกิดการสะบัดหลุด!?";
+    tSelect.value = "EVD-02";
+  } else if (presetKey === 'timer') {
+    pInput.value = "อุปกรณ์ใดถูกดัดแปลงเพื่อทำให้ระบบไฟฟ้าและน้ำทำงานประสานกัน!?";
+    tSelect.value = "EVD-04";
+  }
+}
+
+function applyPresetStage2(word, prompt) {
+  const wInput = document.getElementById('cfgStg2Word');
+  const pInput = document.getElementById('cfgStg2Prompt');
+  if (wInput) wInput.value = word;
+  if (pInput) pInput.value = prompt;
+}
+
+function applyPresetStage3(opp, arg) {
+  const oppInput = document.getElementById('cfgStg3Opponent');
+  const argInput = document.getElementById('cfgStg3Arg');
+  if (oppInput) oppInput.value = opp;
+  if (argInput) argInput.value = arg;
+}
+
+function applyPresetStage4(key) {
+  // Standard logic dive route
+}
+
+function applyPresetStage5(topic, left, right) {
+  const tInput = document.getElementById('cfgStg5Topic');
+  const lInput = document.getElementById('cfgStg5Left');
+  const rInput = document.getElementById('cfgStg5Right');
+  if (tInput) tInput.value = topic;
+  if (lInput) lInput.value = left;
+  if (rInput) rInput.value = right;
+}
+
+function applyPresetStage6(opp, scream) {
+  const sInput = document.getElementById('cfgStg6Scream');
+  if (sInput) sInput.value = scream;
+}
+
+function adminLaunchSelectedConfigGame() {
+  const stg = currentSelectedConfigStage || 'stage1';
+  let config = {};
+
+  if (stg === 'stage1') {
+    const prompt = document.getElementById('cfgStg1Prompt') ? document.getElementById('cfgStg1Prompt').value : '';
+    const target = document.getElementById('cfgStg1TargetClue') ? document.getElementById('cfgStg1TargetClue').value : 'EVD-01';
+    config = { prompt: prompt, correctClueId: target };
+  } else if (stg === 'stage2') {
+    const prompt = document.getElementById('cfgStg2Prompt') ? document.getElementById('cfgStg2Prompt').value : '';
+    const word = document.getElementById('cfgStg2Word') ? document.getElementById('cfgStg2Word').value.trim() : 'นาฬิกาน้ำ';
+    config = { prompt: prompt, targetWord: word };
+  } else if (stg === 'stage3') {
+    const opp = document.getElementById('cfgStg3Opponent') ? document.getElementById('cfgStg3Opponent').value : 'นักมายากล (A)';
+    const arg = document.getElementById('cfgStg3Arg') ? document.getElementById('cfgStg3Arg').value : '';
+    config = { opponent: opp, argument: arg };
+  } else if (stg === 'stage4') {
+    config = {};
+  } else if (stg === 'stage5') {
+    const topic = document.getElementById('cfgStg5Topic') ? document.getElementById('cfgStg5Topic').value : '';
+    const left = document.getElementById('cfgStg5Left') ? document.getElementById('cfgStg5Left').value : '';
+    const right = document.getElementById('cfgStg5Right') ? document.getElementById('cfgStg5Right').value : '';
+    config = { topic: topic, leftTeam: left, rightTeam: right };
+  } else if (stg === 'stage6') {
+    const scream = document.getElementById('cfgStg6Scream') ? document.getElementById('cfgStg6Scream').value : '';
+    config = { opponent: 'นักมายากล (A)', scream: scream };
+  }
+
+  setStage(stg, config);
+  broadcast({ type: 'set_stage', stage: stg, config: config });
+  closeAdminMinigameModal();
+  logCourt(`🎮 [MINIGAME LAUNCH]: DM เริ่มต้น ${stg.toUpperCase()} พร้อมการตั้งค่าที่กำหนด`);
+}
+
+// ==========================================================
+// ADMIN PRINTABLE CLUES MODAL
+// ==========================================================
+function adminOpenPrintCluesModal() {
+  const modal = document.getElementById('adminPrintCluesModal');
+  const sheet = document.getElementById('printableCluesSheet');
+  if (!modal || !sheet) return;
+
+  sheet.innerHTML = '';
+  ALL_CLUES_DATA.forEach(c => {
+    const qrTargetUrl = `https://danganronpa-ttrpg.vercel.app/play?room=${roomCode}&clue=${c.id}`;
+    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrTargetUrl)}`;
+
+    const card = document.createElement('div');
+    card.className = 'printable-clue-card';
+    card.innerHTML = `
+      <div class="p-card-top">
+        <span class="p-card-id">[${c.id}]</span>
+        <span class="p-card-type">[${c.typeLabel}]</span>
+      </div>
+      <h4 class="p-card-title">${escapeHtml(c.name)}</h4>
+      <div class="p-card-loc">📍 สถานที่พบ: ${escapeHtml(c.loc)}</div>
+      <div class="p-card-qr-box">
+        <img src="${qrImgUrl}" alt="QR ${c.id}" class="p-card-qr-img" onerror="this.style.display='none';">
+      </div>
+      <div class="p-card-code-hint">รหัสสแกน / กรอกด้วยตนเอง: <strong>${c.id}</strong></div>
+      <p class="p-card-desc">${escapeHtml(c.desc)}</p>
+    `;
+    sheet.appendChild(card);
+  });
+
+  modal.classList.remove('hidden');
+}
+
+function closeAdminPrintCluesModal() {
+  const modal = document.getElementById('adminPrintCluesModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// ==========================================================
+// MONOPAD CAMERA & QR SCANNER
+// ==========================================================
+let cameraStream = null;
+let cameraScanningInterval = null;
+
+function openClueScannerModal() {
+  const modal = document.getElementById('clueScanModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  const inp = document.getElementById('manualClueInput');
+  if (inp) {
+    inp.value = '';
+    setTimeout(() => inp.focus(), 200);
+  }
+}
+
+function closeClueScannerModal() {
+  stopCameraStream();
+  const modal = document.getElementById('clueScanModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function submitManualClue() {
+  const inp = document.getElementById('manualClueInput');
+  if (!inp || !inp.value.trim()) {
+    alert('กรุณากรอกรหัสหลักฐาน เช่น EVD-01 หรือ C01');
+    return;
+  }
+  const success = unlockClue(inp.value.trim());
+  if (success) {
+    closeClueScannerModal();
+  }
+}
+
+function toggleCameraScanner() {
+  if (cameraStream) {
+    stopCameraStream();
+  } else {
+    startCameraStream();
+  }
+}
+
+async function startCameraStream() {
+  const video = document.getElementById('cameraVideoFeed');
+  const btn = document.getElementById('btnToggleCamera');
+  const status = document.getElementById('cameraStatusText');
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (status) status.innerText = '❌ เบราว์เซอร์ไม่รองรับการเข้าถึงกล้อง กรุณาพิมพ์รหัสแทน';
+    return;
+  }
+
+  try {
+    if (status) status.innerText = 'กำลังเปิดกล้อง...';
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } }
+    });
+    cameraStream = stream;
+    if (video) {
+      video.srcObject = stream;
+      video.setAttribute('playsinline', true);
+      video.style.display = 'block';
+      await video.play();
+    }
+    if (btn) {
+      btn.innerText = '⏹️ ปิดกล้อง';
+      btn.className = 'small-btn red';
+    }
+    if (status) status.innerText = '📷 นำกล้องส่องไปที่ QR Code บนบัตรหลักฐาน...';
+
+    // Start scanning frames if BarcodeDetector is available
+    if (window.BarcodeDetector) {
+      const detector = new BarcodeDetector({ formats: ['qr_code'] });
+      cameraScanningInterval = setInterval(async () => {
+        if (!video || video.readyState < 2) return;
+        try {
+          const barcodes = await detector.detect(video);
+          if (barcodes && barcodes.length > 0) {
+            handleQrPayload(barcodes[0].rawValue);
+          }
+        } catch(err) {}
+      }, 400);
+    } else {
+      if (status) status.innerText = '📷 หากกล้องไม่ตรวจจับอัตโนมัติ ให้กรอกรหัส หรืออัปโหลดรูป QR ด้านล่าง';
+    }
+  } catch(err) {
+    console.error('Camera error:', err);
+    if (status) status.innerText = '❌ ไม่สามารถเปิดกล้องได้ (โปรดอนุญาตสิทธิ์กล้อง หรือใช้การกรอกรหัส)';
+    stopCameraStream();
+  }
+}
+
+function stopCameraStream() {
+  if (cameraScanningInterval) {
+    clearInterval(cameraScanningInterval);
+    cameraScanningInterval = null;
+  }
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+  const video = document.getElementById('cameraVideoFeed');
+  if (video) {
+    video.style.display = 'none';
+    video.srcObject = null;
+  }
+  const btn = document.getElementById('btnToggleCamera');
+  if (btn) {
+    btn.innerText = '📷 เปิดกล้องสแกนทันที';
+    btn.className = 'small-btn cyan';
+  }
+  const status = document.getElementById('cameraStatusText');
+  if (status) status.innerText = '';
+}
+
+function handleQrPayload(rawStr) {
+  if (!rawStr) return;
+  stopCameraStream();
+  let clueCode = rawStr;
+  try {
+    if (rawStr.includes('?')) {
+      const url = new URL(rawStr, window.location.origin);
+      clueCode = url.searchParams.get('clue') || url.searchParams.get('unlock') || rawStr;
+    }
+  } catch(e) {}
+
+  const success = unlockClue(clueCode);
+  if (success) {
+    closeClueScannerModal();
+  }
+}
+
+async function handleQrFileUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const status = document.getElementById('cameraStatusText');
+  if (status) status.innerText = 'กำลังอ่านรูปภาพ QR...';
+
+  try {
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    await img.decode();
+
+    if (window.BarcodeDetector) {
+      const detector = new BarcodeDetector({ formats: ['qr_code'] });
+      const barcodes = await detector.detect(img);
+      if (barcodes && barcodes.length > 0) {
+        handleQrPayload(barcodes[0].rawValue);
+        return;
+      }
+    }
+
+    if (status) status.innerText = '⚠️ ไม่สามารถอ่าน QR อัตโนมัติได้ กรุณากรอกรหัสด้วยตนเอง';
+  } catch(err) {
+    console.error('QR file scan error:', err);
+    if (status) status.innerText = '❌ เกิดข้อผิดพลาดในการอ่านไฟล์ภาพ';
   }
 }
 
