@@ -67,6 +67,10 @@
           <span class="tab-btn-full">📱 ผู้เล่น (Player)</span>
           <span class="tab-btn-short">📱 Play</span>
         </button>
+        <button id="tabSimulation" class="tab-btn" onclick="navigate('/simulation')">
+          <span class="tab-btn-full">🧪 จำลองระบบ (Sim Lab)</span>
+          <span class="tab-btn-short">🧪 Sim</span>
+        </button>
       </nav>
     </div>
   </header>
@@ -126,6 +130,14 @@
           <h2 class="hub-card-title" style="color:#ffcc00;">Character Sheet (A4 พิมพ์)</h2>
           <p class="hub-card-desc">แบบฟอร์มแฟ้มประวัตินักเรียน 2d6 ระบบ A4 พร้อมพิมพ์ โหลด Preset 6 ตัวละครครบถ้วน (INT, WIS, STR, CHA, ฯลฯ)</p>
           <div class="hub-action-tag" style="background:#ffcc00; color:#000; font-weight:900;">เปิดใบตัวละคร A4 →</div>
+        </div>
+
+        <!-- Card 5: Simulation Sandbox -->
+        <div class="hub-card simulation" onclick="navigate('/simulation')" style="border-color:#00ffcc; cursor:pointer;">
+          <div class="hub-card-icon">🧪</div>
+          <h2 class="hub-card-title" style="color:#00ffcc;">จำลองระบบเสมือนจริง (Sim Lab)</h2>
+          <p class="hub-card-desc">ห้องแล็บทดสอบ Real-time มัลติไคลเอนต์: จำลองจอใหญ่ศาล, DM Admin, และมือถือผู้เล่น 2 จอ พร้อมปุ่มทดสอบมินิเกมครบ 8 สเตจ และมิเตอร์วัด Latency</p>
+          <div class="hub-action-tag" style="background:#00ffcc; color:#000; font-weight:900;">เปิดห้องทดลองจำลอง →</div>
         </div>
       </div>
     </div>
@@ -926,6 +938,140 @@
       </aside>
     </div>
   </main>
+
+  <!-- ============================================== -->
+  <!-- VIEW 4: REAL-TIME MULTI-CLIENT SIMULATION LAB  -->
+  <!-- ============================================== -->
+  <main id="viewSimulation" class="view-panel hidden">
+    <div class="sim-lab-container">
+      <!-- Sim Top Bar -->
+      <div class="sim-header">
+        <div class="sim-header-info">
+          <div class="slanted-banner cyan">MULTI-CLIENT REAL-TIME SIMULATION LAB</div>
+          <h1 class="sim-title">ห้องทดลองจำลองการเชื่อมต่อเสมือนจริง (Live Sandbox)</h1>
+          <p class="sim-desc">
+            ทดสอบการส่งข้อมูล Real-time ระหว่างอุปกรณ์ข้ามเครือข่ายด้วยระบบ SSE Stream Bus & WebRTC Dual-Transport: จำลอง จอศาล (Court), ผู้คุมเกม (Admin DM), ผู้เล่น 1 (นาเอกิ), และผู้เล่น 2 (เคียวโกะ)
+          </p>
+        </div>
+        <div class="sim-meta-badge">
+          <div class="sim-room-display">
+            <span>รหัสห้องทดสอบ:</span>
+            <strong id="simActiveRoomCode">SIM888</strong>
+          </div>
+          <div class="sim-ping-badge" id="simPingBadge">
+            <span class="sim-ping-dot"></span>
+            <span>Latency: <strong id="simPingMs">-- ms</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Control Action Ribbon -->
+      <div class="sim-controls-card">
+        <div class="sim-controls-title">⚡ แผงจำลองการกระทำด่วน (1-Click Test Actions):</div>
+        <div class="sim-btn-ribbon">
+          <button class="sim-btn auto-sim" onclick="runSimFullSequence()">
+            ▶️ รันการจำลองอัตโนมัติครบ 8 สเตจ (Full Auto Test)
+          </button>
+          <button class="sim-btn" onclick="simJoinPlayers()">
+            👤 1. จำลองผู้เล่น 2 คนเข้าสู่ศาล
+          </button>
+          <button class="sim-btn" onclick="simStage1Evidence()">
+            🔍 2. สเตจ 1: ส่งหลักฐาน (Evidence Linker)
+          </button>
+          <button class="sim-btn" onclick="simStage2Hangman()">
+            🔤 3. สเตจ 2: เดาคำ "นาฬิกาน้ำ" (Hangman)
+          </button>
+          <button class="sim-btn" onclick="simStage3Rebuttal()">
+            🗡️ 4. สเตจ 3: ฟันดาบความจริง (Rebuttal)
+          </button>
+          <button class="sim-btn" onclick="simStage4LogicDive()">
+            🛹 5. สเตจ 4: โหวตทางสเก็ตบอร์ด (Logic Dive)
+          </button>
+          <button class="sim-btn" onclick="simStage5Scrum()">
+            🔥 6. สเตจ 5: รัวดันคะแนน (Debate Scrum)
+          </button>
+          <button class="sim-btn" onclick="simStage6Armament()">
+            🔨 7. สเตจ 6: ทุบเกราะความจริง (Armament)
+          </button>
+          <button class="sim-btn" onclick="simClosingArgument()">
+            📖 8. สรุปเหตุการณ์ (Closing Argument)
+          </button>
+          <button class="sim-btn" onclick="simStage7Vote()">
+            🗳️ 9. สเตจ 7: ลงคะแนนโหวต (Voting Time)
+          </button>
+          <button class="sim-btn ping" onclick="simProbePing()">
+            ⚡ วัด Ping Latency สด
+          </button>
+          <button class="sim-btn reset" onclick="simResetRoom()">
+            🔄 รีเซ็ตห้องทดลอง
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Viewports Grid: Court, Admin, Mobile 1, Mobile 2 -->
+      <div class="sim-devices-grid">
+        <!-- Panel 1: Court Projector Screen -->
+        <div class="sim-device-panel court-panel">
+          <div class="sim-panel-header">
+            <span class="sim-icon">🖥️</span>
+            <span class="sim-panel-title">1. จอหลักศาลชั้นเรียน (Court Screen / Projector)</span>
+            <span class="sim-panel-status live">LIVE STREAM</span>
+          </div>
+          <div class="sim-iframe-wrap court-wrap">
+            <iframe id="simFrameCourt" class="sim-iframe" src="about:blank"></iframe>
+          </div>
+        </div>
+
+        <!-- Panel 2: Admin Controller -->
+        <div class="sim-device-panel admin-panel">
+          <div class="sim-panel-header">
+            <span class="sim-icon">👑</span>
+            <span class="sim-panel-title">2. ผู้ดูแลศาล (DM Admin Controller)</span>
+            <span class="sim-panel-status live">DM READY</span>
+          </div>
+          <div class="sim-iframe-wrap">
+            <iframe id="simFrameAdmin" class="sim-iframe" src="about:blank"></iframe>
+          </div>
+        </div>
+
+        <!-- Panel 3: Mobile Player 1 -->
+        <div class="sim-device-panel mobile-panel">
+          <div class="sim-panel-header">
+            <span class="sim-icon">📱</span>
+            <span class="sim-panel-title">3. มือถือผู้เล่น 1 (นาเอกิ - นักแต่งนิยาย)</span>
+            <span class="sim-panel-status live">CONNECTED</span>
+          </div>
+          <div class="sim-iframe-wrap mobile-wrap">
+            <iframe id="simFramePlayer1" class="sim-iframe" src="about:blank"></iframe>
+          </div>
+        </div>
+
+        <!-- Panel 4: Mobile Player 2 -->
+        <div class="sim-device-panel mobile-panel">
+          <div class="sim-panel-header">
+            <span class="sim-icon">📱</span>
+            <span class="sim-panel-title">4. มือถือผู้เล่น 2 (เคียวโกะ - นักกีฬา)</span>
+            <span class="sim-panel-status live">CONNECTED</span>
+          </div>
+          <div class="sim-iframe-wrap mobile-wrap">
+            <iframe id="simFramePlayer2" class="sim-iframe" src="about:blank"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Event & Latency Monitor Console -->
+      <div class="sim-console-card">
+        <div class="sim-console-header">
+          <span>📡 บันทึกเหตุการณ์เครือข่ายสด (Real-Time Network & Latency Monitor)</span>
+          <button class="sim-clear-btn" onclick="clearSimLogs()">ล้างบันทึก</button>
+        </div>
+        <div id="simEventLogConsole" class="sim-log-body">
+          <div class="sim-log-entry info">[SYSTEM]: พร้อมเริ่มการจำลองการเชื่อมต่อเสมือนจริง กรุณากดปุ่มด้านบนเพื่อสั่งการ</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
 
   <!-- ============================================== -->
   <!-- PIN MODAL FOR /ADMIN (PIN: 295437)             -->

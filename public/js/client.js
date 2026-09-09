@@ -15,6 +15,11 @@ let peerConnections = []; // If this client is Host, stores all player connectio
 let isHost = false;
 let socket = null;
 
+// Server-Sent Events (SSE) Real-Time Message Bus
+let serverStreamSource = null;
+let activeServerRoomCode = null;
+const processedMessageIds = new Set();
+
 let currentView = 'hub'; // hub, court, admin, player
 let currentUserHash = '';
 let enteredPin = '';
@@ -517,6 +522,9 @@ function setupPeerJS() {
   if (currentView === 'hub') return;
   if (!roomCode) return;
 
+  // Always connect to high-speed SSE real-time relay bus
+  setupServerStream(roomCode);
+
   const hostPeerId = `dangan-court-${roomCode.toLowerCase()}`;
 
   // ONLY Courtroom main projector screen is Host!
@@ -676,27 +684,111 @@ function connectToHostPeer(hostId, onConnected) {
   }
 }
 
+// ==========================================================
+// SERVER-SENT EVENTS (SSE) REAL-TIME RELAY ENGINE
+// ==========================================================
+function setupServerStream(code) {
+  if (!code) return;
+  code = code.trim().toUpperCase();
+  if (serverStreamSource && activeServerRoomCode === code) return;
+
+  if (serverStreamSource) {
+    try { serverStreamSource.close(); } catch(e) {}
+    serverStreamSource = null;
+  }
+  activeServerRoomCode = code;
+
+  const sseUrl = '/api/rooms/' + encodeURIComponent(code) + '/stream';
+  console.log('[SSE] Connecting to real-time message stream:', sseUrl);
+
+  try {
+    serverStreamSource = new EventSource(sseUrl);
+
+    serverStreamSource.onopen = () => {
+      console.log('[SSE] Real-time stream active for room:', code);
+    };
+
+    serverStreamSource.onmessage = (event) => {
+      if (!event.data) return;
+      try {
+        const msg = JSON.parse(event.data);
+        if (!msg || !msg.type) return;
+
+        // Deduplication: skip if already handled
+        if (msg._id) {
+          if (processedMessageIds.has(msg._id)) return;
+          processedMessageIds.add(msg._id);
+          if (processedMessageIds.size > 500) {
+            const oldest = processedMessageIds.values().next().value;
+            processedMessageIds.delete(oldest);
+          }
+        }
+
+        // Process message through universal dispatcher
+        handleIncomingMessage(msg, null);
+      } catch (err) {
+        console.error('[SSE] JSON parse error:', err, event.data);
+      }
+    };
+
+    serverStreamSource.onerror = (err) => {
+      console.warn('[SSE] Stream notice/reconnecting:', err);
+    };
+  } catch (err) {
+    console.error('[SSE] Failed to initialize EventSource:', err);
+  }
+}
+
 function broadcast(msg) {
-  // If host, send to all connected peers
+  if (!msg || !msg.type) return;
+
+  // 1. Assign unique message ID for cross-transport deduplication
+  if (!msg._id) {
+    const senderTag = (myPlayer && myPlayer.id) ? myPlayer.id : (currentUserHash || (isHost ? 'court_host' : 'anon'));
+    msg._id = senderTag + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+  }
+
+  // Record our own ID so we don't duplicate on loopback
+  processedMessageIds.add(msg._id);
+  if (processedMessageIds.size > 500) {
+    const oldest = processedMessageIds.values().next().value;
+    processedMessageIds.delete(oldest);
+  }
+
+  // 2. High-speed guaranteed HTTP POST broadcast relay via Node server
+  const activeRoom = roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room'));
+  if (activeRoom) {
+    try {
+      fetch('/api/rooms/' + encodeURIComponent(activeRoom.toUpperCase()) + '/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msg),
+        keepalive: true
+      }).catch(err => {
+        console.warn('[BROADCAST POST FAIL]:', err);
+      });
+    } catch(e) {}
+  }
+
+  // 3. WebRTC DataChannel (Parallel direct peer-to-peer fast path)
   if (isHost) {
     peerConnections.forEach(conn => {
-      if (conn.open) {
+      if (conn && conn.open) {
         try { conn.send(msg); } catch(e) {}
       }
     });
   } else if (hostPeer && hostPeer.open) {
-    // If client, send to host
-    hostPeer.send(msg);
+    try { hostPeer.send(msg); } catch(e) {}
   }
 
-  // Also broadcast locally to this browser tab ONLY if it shouldn't be excluded
+  // 4. Also broadcast locally to this browser tab ONLY if it shouldn't be excluded
   if (msg.type !== 'trigger_fx' && msg.type !== 'request_claim_character' && msg.type !== 'player_leave') {
     handleIncomingMessage(msg, null);
   }
 
-  // Sync to socket if available
+  // 5. Socket.io if available
   if (socket && socket.connected) {
-    socket.emit('client_broadcast', msg);
+    try { socket.emit('client_broadcast', msg); } catch(e) {}
   }
 }
 
@@ -709,18 +801,21 @@ function handleIncomingMessage(msg, senderConn) {
     if (!isHost) return;
     const reqRole = msg.role;
     const reqName = msg.playerName;
-    const senderId = senderConn ? senderConn.peer : (currentUserHash || 'host_p');
+    const senderId = senderConn ? senderConn.peer : (msg.userHash || currentUserHash || ('p_' + Math.random().toString(36).substr(2, 6)));
 
     // Check if role is already claimed by someone else
-    const existing = Object.values(gameState.players).find(p => p.role === reqRole && p.id !== senderId);
+    const existing = Object.values(gameState.players).find(p => p.role === reqRole && p.id !== senderId && p.userHash !== msg.userHash);
     if (existing) {
+      const rejectPacket = {
+        type: 'claim_rejected',
+        targetHash: msg.userHash || senderId,
+        role: reqRole,
+        reason: `บทบาท "${reqRole}" ถูกเลือกโดย "${existing.name}" ไปแล้ว กรุณาเลือกบทอื่น!`
+      };
       if (senderConn && senderConn.open) {
-        senderConn.send({
-          type: 'claim_rejected',
-          role: reqRole,
-          reason: `บทบาท "${reqRole}" ถูกเลือกโดย "${existing.name}" ไปแล้ว กรุณาเลือกบทอื่น!`
-        });
+        try { senderConn.send(rejectPacket); } catch(e) {}
       }
+      broadcast(rejectPacket);
       return;
     }
 
@@ -737,43 +832,24 @@ function handleIncomingMessage(msg, senderConn) {
     gameState.players[senderId] = playerObj;
     updatePlayerDisplays();
 
-    // Send approval back
-    let sentApproval = false;
+    // Send approval back to player via both direct and broadcast channels
+    const approvePacket = {
+      type: 'claim_approved',
+      targetHash: msg.userHash || senderId,
+      player: playerObj,
+      state: gameState
+    };
     if (senderConn && senderConn.open) {
-      try {
-        senderConn.send({
-          type: 'claim_approved',
-          player: playerObj,
-          state: gameState
-        });
-        sentApproval = true;
-      } catch(e) {}
+      try { senderConn.send(approvePacket); } catch(e) {}
     }
-    if (!sentApproval) {
-      const targetConn = peerConnections.find(c => c.peer === senderId && c.open);
-      if (targetConn) {
-        try {
-          targetConn.send({
-            type: 'claim_approved',
-            player: playerObj,
-            state: gameState
-          });
-        } catch(e) {}
-      }
-    }
+    broadcast(approvePacket);
 
-    // Broadcast to all other peers so they disable this role card
-    peerConnections.forEach(c => {
-      if (c.open) {
-        try {
-          c.send({
-            type: 'character_claimed',
-            role: reqRole,
-            playerName: reqName,
-            peerId: senderId
-          });
-        } catch(e) {}
-      }
+    // Broadcast to all other clients so they disable this role card
+    broadcast({
+      type: 'character_claimed',
+      role: reqRole,
+      playerName: reqName,
+      peerId: senderId
     });
 
     if (isHost) {
@@ -782,6 +858,7 @@ function handleIncomingMessage(msg, senderConn) {
 
     logCourt(`👤 [PODIUM]: ${reqName} ยืนประจำแท่น [${reqRole}]`);
   } else if (msg.type === 'claim_approved') {
+    if (msg.targetHash && currentUserHash && msg.targetHash !== currentUserHash) return;
     if (typeof joinClaimTimeout !== 'undefined' && joinClaimTimeout) {
       clearTimeout(joinClaimTimeout);
       joinClaimTimeout = null;
@@ -818,6 +895,7 @@ function handleIncomingMessage(msg, senderConn) {
     showToast(`✨ คุณได้สวมบทบาท [${myPlayer.role}] เข้าสู่ศาลแล้ว!`);
     playSfx('correct');
   } else if (msg.type === 'claim_rejected') {
+    if (msg.targetHash && currentUserHash && msg.targetHash !== currentUserHash) return;
     if (typeof joinClaimTimeout !== 'undefined' && joinClaimTimeout) {
       clearTimeout(joinClaimTimeout);
       joinClaimTimeout = null;
@@ -869,11 +947,14 @@ function handleIncomingMessage(msg, senderConn) {
     logCourt(`👤 [JOIN]: ${msg.player.name} (${msg.player.role}) ยืนประจำโพเดียม`);
     if (isHost) broadcast({ type: 'sync_state', state: gameState });
   } else if (msg.type === 'request_sync_state') {
-    if (isHost && senderConn && senderConn.open) {
-      senderConn.send({ type: 'sync_state', state: gameState });
+    if (isHost) {
+      if (senderConn && senderConn.open) {
+        try { senderConn.send({ type: 'sync_state', state: gameState }); } catch(e) {}
+      }
+      broadcast({ type: 'sync_state', state: gameState });
       if (gameState && gameState.players) {
         Object.values(gameState.players).forEach(p => {
-          senderConn.send({
+          broadcast({
             type: 'character_claimed',
             role: p.role,
             playerName: p.name,
@@ -1033,7 +1114,13 @@ function handleRoute() {
     switchView('hub');
   } else if (lowerP === 'court') {
     switchView('court');
+  } else if (lowerP === 'simulation' || lowerP === 'sim') {
+    switchView('simulation');
   } else if (lowerP === 'admin') {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('pin') === ADMIN_CORRECT_PIN) {
+      sessionStorage.setItem('dangan_admin_auth', ADMIN_CORRECT_PIN);
+    }
     const auth = sessionStorage.getItem('dangan_admin_auth');
     if (auth === ADMIN_CORRECT_PIN) {
       switchView('admin');
@@ -1067,20 +1154,20 @@ function switchView(v) {
   currentView = v;
 
   // Set active view class on root elements to control navigation button visibility
-  ['view-is-hub', 'view-is-court', 'view-is-admin', 'view-is-player'].forEach(cls => {
+  ['view-is-hub', 'view-is-court', 'view-is-admin', 'view-is-player', 'view-is-simulation'].forEach(cls => {
     document.documentElement.classList.remove(cls);
     document.body.classList.remove(cls);
   });
   document.documentElement.classList.add('view-is-' + v);
   document.body.classList.add('view-is-' + v);
 
-  const panels = ['viewHub', 'viewCourt', 'viewAdmin', 'viewPlayer'];
+  const panels = ['viewHub', 'viewCourt', 'viewAdmin', 'viewPlayer', 'viewSimulation'];
   panels.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
 
-  const tabs = ['tabHub', 'tabCourt', 'tabAdmin', 'tabPlayer'];
+  const tabs = ['tabHub', 'tabCourt', 'tabAdmin', 'tabPlayer', 'tabSimulation'];
   tabs.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active');
@@ -1113,6 +1200,12 @@ function switchView(v) {
     const tab = document.getElementById('tabPlayer');
     if (tab) tab.classList.add('active');
     initRealtime();
+  } else if (v === 'simulation') {
+    const el = document.getElementById('viewSimulation');
+    if (el) el.classList.remove('hidden');
+    const tab = document.getElementById('tabSimulation');
+    if (tab) tab.classList.add('active');
+    initSimulationLab();
   }
 }
 
@@ -1264,6 +1357,26 @@ function initPlayerSession(hash) {
   const pHash = document.getElementById('pMyHash');
   if (pHash) pHash.innerText = '#' + hash;
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const qRoom = urlParams.get('room');
+  const qName = urlParams.get('name');
+  const qRole = urlParams.get('role');
+  const qAutoJoin = urlParams.get('autoJoin');
+
+  if (qRoom) {
+    roomCode = qRoom.trim().toUpperCase();
+    const roomInp = document.getElementById('mobileRoomInput');
+    if (roomInp) roomInp.value = roomCode;
+  }
+  if (qName) {
+    const nameInp = document.getElementById('mobileNameInput');
+    if (nameInp) nameInp.value = qName;
+  }
+  if (qRole) {
+    const roleSel = document.getElementById('mobileRoleSelect');
+    if (roleSel) roleSel.value = qRole;
+  }
+
   // Check if room changed from previous session
   const savedRoom = localStorage.getItem('dangan_current_room');
   if (roomCode && savedRoom && savedRoom.toUpperCase() !== roomCode.toUpperCase()) {
@@ -1316,6 +1429,10 @@ function initPlayerSession(hash) {
   if (joinScr) joinScr.classList.remove('hidden');
   const gameScr = document.getElementById('mobileGameScreen');
   if (gameScr) gameScr.classList.add('hidden');
+
+  if (qAutoJoin === '1' && (!myPlayer || !myPlayer.name)) {
+    setTimeout(() => { playerJoin(); }, 350);
+  }
 }
 
 // ==========================================================
@@ -2954,6 +3071,16 @@ function playerJoin() {
   }
 
   roomCode = room;
+  localStorage.setItem('dangan_current_room', roomCode);
+
+  if (!currentUserHash) {
+    currentUserHash = localStorage.getItem('dangan_current_user_hash') || ('u-' + Math.random().toString(36).substring(2, 8));
+    localStorage.setItem('dangan_current_user_hash', currentUserHash);
+  }
+
+  // Connect to SSE stream immediately for guaranteed zero-delay messaging
+  setupServerStream(roomCode);
+
   const btnJoin = document.querySelector('#mobileJoinScreen .dangan-action-btn');
   if (btnJoin) {
     btnJoin.disabled = true;
@@ -2970,29 +3097,29 @@ function playerJoin() {
     type: 'request_claim_character',
     role: role,
     playerName: name,
-    userHash: currentUserHash || ('u-' + Math.random().toString(36).substr(2, 7))
+    userHash: currentUserHash
   };
 
   const sendClaim = () => {
     try {
       if (hostPeer && hostPeer.open) {
         hostPeer.send(claimPacket);
-      } else {
-        broadcast(claimPacket);
       }
-    } catch(e) {
-      console.warn('[WEBRTC] Direct send failed, using broadcast:', e);
-      broadcast(claimPacket);
-    }
+    } catch(e) {}
+    broadcast(claimPacket);
   };
 
+  // Immediate send via SSE broadcast relay
+  sendClaim();
+
+  // Parallel WebRTC connection
   const hostPeerId = `dangan-court-${roomCode.toLowerCase()}`;
   if (!hostPeer || !hostPeer.open) {
     connectToHostPeer(hostPeerId, () => {
-      sendClaim();
+      try {
+        if (hostPeer && hostPeer.open) hostPeer.send(claimPacket);
+      } catch(e) {}
     });
-  } else {
-    sendClaim();
   }
 }
 
