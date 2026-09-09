@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DANGANRONPA: CLASS TRIAL SYSTEM</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- PeerJS for 100% Real-time Serverless WebRTC across devices (Works on Vercel & Local) -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <!-- Socket.io for local server fallback -->
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="dangan-body">
+
+  <!-- ============================================== -->
+  <!-- TOP DANGANRONPA HEADER BAR                     -->
+  <!-- ============================================== -->
+  <header class="dangan-header">
+    <div class="monokuma-brand">
+      <div class="monokuma-logo">
+        <div class="eye-left"></div>
+        <div class="eye-right"></div>
+      </div>
+      <div class="brand-text">
+        <span class="sub-tag">SUPER HIGH SCHOOL LEVEL TRPG</span>
+        <span class="main-title">CLASS TRIAL // ศาลชั้นเรียนแห่งความสิ้นหวัง</span>
+      </div>
+    </div>
+
+    <!-- Room Code Badge & Mode Selector -->
+    <div class="header-controls">
+      <div class="room-badge">
+        <span class="room-lbl">ROOM CODE:</span>
+        <span id="displayRoomCode" class="room-code-val">DESPAIR</span>
+        <button class="icon-btn" onclick="copyRoomLink()" title="คัดลอกลิงก์ให้เพื่อน">📋</button>
+      </div>
+
+      <nav class="view-tabs">
+        <button id="tabCourt" class="tab-btn active" onclick="switchView('court')">🏛️ จอหลักศาล (Courtroom)</button>
+        <button id="tabAdmin" class="tab-btn" onclick="switchView('admin')">🎛️ ผู้ดูแลศาล (DM Admin)</button>
+        <button id="tabPlayer" class="tab-btn" onclick="switchView('player')">📱 จอมือถือผู้เล่น (Player)</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============================================== -->
+  <!-- VIEW 1: COURTROOM MAIN SCREEN (FOR PROJECTOR) -->
+  <!-- ============================================== -->
+  <main id="viewCourt" class="view-panel active-panel">
+    <!-- Top Stats Bar -->
+    <div class="court-top-bar">
+      <!-- Influence Gauge -->
+      <div class="influence-wrap">
+        <div class="influence-header">
+          <span class="gauge-title">INFLUENCE GAUGE (เกจความน่าเชื่อถือ)</span>
+          <span id="courtInfluenceTxt" class="gauge-pct">100%</span>
+        </div>
+        <div class="gauge-track">
+          <div id="courtInfluenceBar" class="gauge-fill" style="width: 100%;"></div>
+          <div class="gauge-stripes"></div>
+        </div>
+      </div>
+
+      <!-- Monokuma Countdown Clock -->
+      <div class="monokuma-clock">
+        <div class="clock-label">TIME LIMIT</div>
+        <div id="courtTimerDigits" class="clock-digits">01:00</div>
+      </div>
+    </div>
+
+    <!-- Stage Projection Arena -->
+    <section class="court-stage-arena">
+
+      <!-- STAGE 0: LOBBY & PODIUMS -->
+      <div id="courtLobby" class="court-box">
+        <div class="slanted-banner pink">CLASS TRIAL IN SESSION</div>
+        <h1 class="neon-heading">เตรียมความพร้อมเข้าสู่บัลลังก์ศาล</h1>
+        
+        <div class="join-callout">
+          <p>📲 ผู้เล่นทุกคนเปิดมือถือ แล้วเข้าเว็บนี้เพื่อเชื่อมต่อ:</p>
+          <div id="courtJoinUrl" class="url-badge">กำลังโหลด URL...</div>
+          <p class="sub-guide">ใส่ Room Code: <strong id="courtLobbyRoomCode" class="pink-text">DESPAIR</strong> และเลือกอาชีพของตนเอง</p>
+        </div>
+
+        <div class="court-podiums-header">นักเรียนที่ยืนประจำแท่นโพเดียม (<span id="courtPlayerCount">0</span> คน):</div>
+        <div id="courtPodiumList" class="podium-grid"></div>
+      </div>
+
+      <!-- STAGE 1: EVIDENCE LINKER (NON-STOP DEBATE) -->
+      <div id="courtStage1" class="court-box hidden">
+        <div class="slanted-banner yellow">MINI-GAME 1: EVIDENCE LINKER</div>
+        <div class="monokuma-speak-box">
+          <div class="mono-avatar"></div>
+          <div class="mono-speech" id="courtStage1Prompt">
+            "อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?"
+          </div>
+        </div>
+        <div class="game-instruction">เป้าหมาย: ผู้เล่นต้องส่งการ์ดหลักฐานที่ถูกต้องตรงกัน 3 คนเพื่อหักล้าง!</div>
+        <div class="clue-slots-arena">
+          <div class="slot-counter">หลักฐานที่ยิงเข้ามา: <span id="stg1Count">0</span> / 3</div>
+          <div id="stg1SlotsDisplay" class="clue-cards-display">
+            <div class="clue-card-placeholder">รอหลักฐานชิ้นที่ 1...</div>
+            <div class="clue-card-placeholder">รอหลักฐานชิ้นที่ 2...</div>
+            <div class="clue-card-placeholder">รอหลักฐานชิ้นที่ 3...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 2: HANGMAN'S GAMBIT (ถอดรหัสคำศัพท์) -->
+      <div id="courtStage2" class="court-box hidden">
+        <div class="slanted-banner cyan">MINI-GAME 2: HANGMAN'S GAMBIT</div>
+        <h2 class="riddle-title">"ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!"</h2>
+        <div class="game-instruction">ผู้เล่นช่วยกันกดเลือกตัวอักษรบนมือถือมาประกอบเป็นคำสำคัญ!</div>
+        <div id="hangmanBoard" class="hangman-board"></div>
+      </div>
+
+      <!-- STAGE 3: REBUTTAL SHOWDOWN (ดวลดาบคำพูด) -->
+      <div id="courtStage3" class="court-box hidden">
+        <div class="slanted-banner red">MINI-GAME 3: REBUTTAL SHOWDOWN</div>
+        <div class="rebuttal-arena">
+          <div class="fighter-card left">
+            <div class="fighter-tag">BLADE OF TRUTH</div>
+            <h3 id="rebuttalAccuser">ฝ่ายกล่าวหา</h3>
+            <div class="score-pips" id="accuserPips">● ● ○</div>
+          </div>
+          <div class="vs-emblem">VS</div>
+          <div class="fighter-card right">
+            <div class="fighter-tag">BLADE OF DENIAL</div>
+            <h3 id="rebuttalSuspect">นักมายากล (A)</h3>
+            <div class="score-pips" id="suspectPips">● ○ ○</div>
+          </div>
+        </div>
+        <div class="rebuttal-quote" id="rebuttalStatement">
+          "ฉันอยู่แต่ในครัวตลอดเวลา จะไปเอาเวลาที่ไหนไปทำร้ายหมอนั่นได้!?"
+        </div>
+      </div>
+
+      <!-- STAGE 4: LOGIC DIVE (สเก็ตบอร์ดดำดิ่งตรรกะ) -->
+      <div id="courtStage4" class="court-box hidden">
+        <div class="slanted-banner purple">MINI-GAME 4: LOGIC DIVE</div>
+        <div class="logic-dive-display">
+          <div class="tube-stage" id="diveStageNum">STAGE 1 / 3</div>
+          <h2 class="tube-question" id="diveQuestion">
+            "มีดพกเปื้อนใยเชือกในกระเป๋าเสื้อของ B หมายความว่าอย่างไร?"
+          </h2>
+          <div class="tube-choices">
+            <div class="choice-lane" id="laneA">A: คนร้ายใช้มีดอำพราง</div>
+            <div class="choice-lane highlight" id="laneB">B: ตัวเหยื่อตัดเชือกเองจนรอดแล้ว!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 5: DEBATE SCRUM (ศึกสองขั้วความคิด) -->
+      <div id="courtStage5" class="court-box hidden">
+        <div class="slanted-banner pink">MINI-GAME 5: DEBATE SCRUM</div>
+        <h2 class="riddle-title">"ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?"</h2>
+        <div class="scrum-container">
+          <div class="scrum-side left">
+            <h3>🔴 โหวต A (นักมายากล)</h3>
+            <p>คนวางกับดักต้องรับผิดชอบ!</p>
+          </div>
+          <div class="scrum-gauge-box">
+            <div class="scrum-center-mark"></div>
+            <div id="courtScrumFill" class="scrum-fill-bar" style="width: 50%;"></div>
+          </div>
+          <div class="scrum-side right">
+            <h3>🟢 โหวต B (ตัวเหยื่อเอง)</h3>
+            <p>B ตัดเชือกแล้วผูกคอตายเอง!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 6: ARGUMENT ARMAMENT (ทุบเกราะความจริง) -->
+      <div id="courtStage6" class="court-box hidden">
+        <div class="slanted-banner red">MINI-GAME 6: ARGUMENT ARMAMENT</div>
+        <h2 class="riddle-title">"ทุบทำลายเกราะการปฏิเสธครั้งสุดท้ายของคนร้าย!"</h2>
+        <div class="armament-target">
+          <div class="shield-meter">
+            <span>ARMAMENT SHIELD:</span>
+            <div class="shield-track">
+              <div id="shieldFill" class="shield-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+          <div class="culprit-scream" id="culpritScreamText">
+            "ไม่มีทาง! แผนการมายากลอันสมบูรณ์แบบของฉันไม่มีวันล้มเหลวเด็ดขาด!!"
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 7: VOTING TIME (ห้องลงคะแนนตัดสินชี้ชะตา) -->
+      <div id="courtStage7" class="court-box hidden">
+        <div class="slanted-banner yellow">CLASS TRIAL: VOTING TIME</div>
+        <h1 class="neon-heading">ถึงเวลาลงคะแนนเสียงตัดสินชี้ชะตา!</h1>
+        <p class="sub-guide">หยิบมือถือของคุณขึ้นมา แล้วกดโหวตผู้ต้องสงสัยที่แท่นโพเดียม!</p>
+        
+        <div class="voting-tally-container">
+          <h3>ผลคะแนนโหวตสด (Live Vote Tally):</h3>
+          <div id="courtVoteResults" class="vote-results-grid"></div>
+        </div>
+      </div>
+
+      <!-- STAGE 8: VERDICT EXECUTION (ฉากคำตัดสิน) -->
+      <div id="courtVerdict" class="court-box hidden">
+        <h1 id="verdictHeadline" class="verdict-headline">VERDICT REACHED</h1>
+        <div id="verdictDetails" class="verdict-body"></div>
+      </div>
+
+    </section>
+
+    <!-- Terminal Bottom Bar -->
+    <footer class="court-footer">
+      <div class="terminal-title">📡 MONOKUMA TRIAL ANOMALY MONITOR:</div>
+      <div id="courtLog" class="terminal-stream">
+        <div>[SYSTEM BOOT]: ศาลชั้นเรียนออนไลน์ พร้อมรับการเชื่อมต่อ...</div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ============================================== -->
+  <!-- VIEW 2: DM / ADMIN CONTROL DASHBOARD          -->
+  <!-- ============================================== -->
+  <main id="viewAdmin" class="view-panel hidden">
+    <div class="admin-grid">
+      <!-- Left Column: Master Controls -->
+      <div class="admin-col master-col">
+        <div class="admin-card">
+          <h2 class="admin-card-title">🎛️ เลือกเปิดมินิเกม (Mini-Game Selector)</h2>
+          <div class="minigame-btn-grid">
+            <button class="dm-act-btn pink" onclick="adminSetGame('stage1')">
+              <strong>1. Evidence Linker</strong>
+              <span>ทลายข้ออ้างอาวุธสตูว์</span>
+            </button>
+            <button class="dm-act-btn cyan" onclick="adminSetGame('stage2')">
+              <strong>2. Hangman's Gambit</strong>
+              <span>ถอดรหัสคำ "นาฬิกาน้ำ"</span>
+            </button>
+            <button class="dm-act-btn red" onclick="adminSetGame('stage3')">
+              <strong>3. Rebuttal Showdown</strong>
+              <span>ดวลดาบคำพูด 1 ต่อ 1</span>
+            </button>
+            <button class="dm-act-btn purple" onclick="adminSetGame('stage4')">
+              <strong>4. Logic Dive</strong>
+              <span>สเก็ตบอร์ดดำดิ่งตรรกะ 3 ด่าน</span>
+            </button>
+            <button class="dm-act-btn green" onclick="adminSetGame('stage5')">
+              <strong>5. Debate Scrum</strong>
+              <span>ศึก 2 ขั้ว: โหวต A vs B</span>
+            </button>
+            <button class="dm-act-btn orange" onclick="adminSetGame('stage6')">
+              <strong>6. Argument Armament</strong>
+              <span>ทุบเกราะความจริงคนร้าย</span>
+            </button>
+            <button class="dm-act-btn yellow" onclick="adminSetGame('stage7')">
+              <strong>🗳️ เริ่มเปิดการโหวต (Voting Time)</strong>
+              <span>ส่งหน้าจอโหวตเข้ามือถือทุกคน</span>
+            </button>
+            <button class="dm-act-btn grey" onclick="adminSetGame('lobby')">
+              <strong>🏛️ กลับสู่หน้า Lobby</strong>
+              <span>พักเบรก / รอเริ่มฉาก</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Timer & Influence Controls -->
+        <div class="admin-card">
+          <h2 class="admin-card-title">⏱️ ควบคุมเวลา & พลังชีวิต (Influence Gauge)</h2>
+          <div class="ctrl-row">
+            <span>นาฬิกาจับเวลา:</span>
+            <button class="small-btn" onclick="adminAdjustTimer(30)">+30s</button>
+            <button class="small-btn" onclick="adminAdjustTimer(-15)">-15s</button>
+            <button class="small-btn red" onclick="adminToggleTimer()">⏯️ เริ่ม/หยุด</button>
+          </div>
+          <div class="ctrl-row" style="margin-top:12px;">
+            <span>เกจความน่าเชื่อถือ:</span>
+            <button class="small-btn green" onclick="adminAdjustInfluence(20)">+20% Heal</button>
+            <button class="small-btn red" onclick="adminAdjustInfluence(-20)">-20% Penalty</button>
+            <button class="small-btn yellow" onclick="adminAdjustInfluence(100, true)">100% Reset</button>
+          </div>
+        </div>
+
+        <!-- Verdict Decision -->
+        <div class="admin-card highlight-border">
+          <h2 class="admin-card-title">⚖️ สรุปคำตัดสินของ Monokuma (The Execution)</h2>
+          <p class="card-desc">เมื่อโหวตเสร็จสิ้น DM กดปุ่มเพื่อสั่งประหารและเปิดผลลัพธ์:</p>
+          <div class="verdict-btn-group">
+            <button class="verdict-btn win" onclick="adminTriggerVerdict(true)">
+              🟢 ตัดสินถูก (B คือ Blackened)
+              <small>ทุกคนรอดชีวิต! A แผนพังยับเยิน (True Ending)</small>
+            </button>
+            <button class="verdict-btn lose" onclick="adminTriggerVerdict(false)">
+              🔴 ตัดสินผิด (โหวต A)
+              <small>ประหารชีวิตหมู่ทุกคน! (Bad Ending)</small>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Player Management & Monokuma SFX -->
+      <div class="admin-col side-col">
+        <!-- Connected Players Table -->
+        <div class="admin-card">
+          <h2 class="admin-card-title">👥 ผู้เล่นในระบบ (<span id="adminPlayerCount">0</span>)</h2>
+          <div id="adminPlayerTable" class="admin-player-list"></div>
+        </div>
+
+        <!-- Monokuma Soundboard & Visual Triggers -->
+        <div class="admin-card">
+          <h2 class="admin-card-title">📢 Monokuma Soundboard & FX</h2>
+          <div class="soundboard-grid">
+            <button class="sound-btn" onclick="triggerFx('gavel')">🔨 เคาะค้อนศาล</button>
+            <button class="sound-btn" onclick="triggerFx('laugh')">🐻 เสียงหัวเราะ Monokuma</button>
+            <button class="sound-btn" onclick="triggerFx('glitch')">⚡ สัญญาณรบกวน (Glitch)</button>
+            <button class="sound-btn" onclick="triggerFx('correct')">✨ ตรรกะถูกต้อง</button>
+            <button class="sound-btn" onclick="triggerFx('wrong')">💀 เสียงลงทัณฑ์</button>
+            <button class="sound-btn" onclick="triggerFx('siren')">🚨 ไซเรนเตือนภัย</button>
+          </div>
+        </div>
+
+        <!-- Room Configuration -->
+        <div class="admin-card">
+          <h2 class="admin-card-title">⚙️ ตั้งค่าห้องพิจารณาคดี</h2>
+          <div class="form-row">
+            <label>เปลี่ยน Room Code:</label>
+            <input type="text" id="inputNewRoomCode" value="DESPAIR" maxlength="10">
+            <button class="small-btn" onclick="adminChangeRoomCode()">บันทึก</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================== -->
+  <!-- VIEW 3: MOBILE PLAYER VIEW                     -->
+  <!-- ============================================== -->
+  <main id="viewPlayer" class="view-panel hidden">
+    <!-- Player Join Card -->
+    <div id="mobileJoinScreen" class="mobile-center-card">
+      <div class="mobile-brand-tag">DANGANRONPA CLASS TRIAL</div>
+      <h2 class="neon-pink-text">เข้าสู่แท่นโพเดียม</h2>
+      
+      <div class="mobile-input-group">
+        <label>Room Code ของห้อง:</label>
+        <input type="text" id="mobileRoomInput" value="DESPAIR" uppercase>
+      </div>
+      <div class="mobile-input-group">
+        <label>ชื่อตัวละคร / ชื่อของคุณ:</label>
+        <input type="text" id="mobileNameInput" placeholder="กรอกชื่อของคุณ..." maxlength="12">
+      </div>
+      <div class="mobile-input-group">
+        <label>เลือกอาชีพสุดยอดนักเรียน (Ultimate):</label>
+        <select id="mobileRoleSelect">
+          <option value="นักแต่งนิยาย">PC 1: สุดยอดนักแต่งนิยาย</option>
+          <option value="นักกีฬา">PC 2: สุดยอดนักกีฬา</option>
+          <option value="นักมายากล">PC 3: สุดยอดนักมายากล (A)</option>
+          <option value="นักชิม">PC 4: สุดยอดนักชิม</option>
+          <option value="นักแสดงผาดโผน">PC 5: สุดยอดนักแสดงผาดโผน</option>
+          <option value="ช่างกล">PC 6: สุดยอดช่างกล</option>
+        </select>
+      </div>
+      
+      <button class="dangan-action-btn pink" onclick="playerJoin()">เข้าสู่ศาลชั้นเรียน</button>
+    </div>
+
+    <!-- Active Player Game Screen -->
+    <div id="mobileGameScreen" class="mobile-game-container hidden">
+      <!-- Player Status Top Bar -->
+      <div class="player-top-strip">
+        <div class="p-identity">
+          <span id="pMyName" class="p-name">ชื่อผู้เล่น</span>
+          <span id="pMyRole" class="p-role">[อาชีพ]</span>
+        </div>
+        <div id="pMyStatus" class="p-status normal">🛡️ นักเรียนผู้บริสุทธิ์</div>
+      </div>
+
+      <!-- Real-time Dynamic Task Area -->
+      <div id="mobileTaskArea" class="mobile-task-content">
+        <div class="idle-message">
+          <div class="idle-spinner"></div>
+          <p>รอผู้ดูแลศาลเปิดมินิเกมประจำช่วง...</p>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SECRET SABOTEUR DRAWER (EXCLUSIVE TO A)    -->
+      <!-- ========================================== -->
+      <aside id="mobileSaboteurPanel" class="saboteur-dock hidden">
+        <div class="saboteur-handle" onclick="toggleSaboteurDock()">
+          <span class="sab-title">☠️ เมนูลับคนร้าย (SABOTAGE PANEL)</span>
+          <span id="sabArrow">▲</span>
+        </div>
+        <div id="saboteurOptions" class="sab-options-grid">
+          <p class="sab-hint">🤫 แอบกดก่อกวนตอนเพื่อนเผลอเพื่อปั่นป่วนศาล!</p>
+          <div class="sab-btn-group">
+            <button id="sabBtnGlitch" class="sab-trigger-btn" onclick="sendSabotage('glitch')">
+              ⚡ ก่อกวนสัญญาณ (จอเพื่อนเบลอ 4s)
+            </button>
+            <button id="sabBtnTimer" class="sab-trigger-btn" onclick="sendSabotage('drain_time')">
+              ⏱️ แอบลดเวลา (-10 วินาที)
+            </button>
+            <button id="sabBtnCorrupt" class="sab-trigger-btn" onclick="sendSabotage('corrupt_data')">
+              ⚠️ แทรกแซงข้อมูล (-10% เลือดศาล)
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Fullscreen Glitch FX Overlay -->
+  <div id="screenGlitch" class="screen-glitch-layer hidden">
+    <div class="glitch-warning-box">
+      <div class="glitch-icon">⚡⚡⚡</div>
+      <div class="glitch-title">WARNING: SYSTEM JAMMED</div>
+      <div class="glitch-sub">ตรวจพบคีย์สัญญาณรบกวนผิดปกติ!</div>
+    </div>
+  </div>
+
+  <script src="js/client.js"></script>
+</body>
+</html>
