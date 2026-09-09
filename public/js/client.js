@@ -181,24 +181,24 @@ let timerInterval = null;
 // AUTHENTIC DANGANRONPA AUDIO & SFX ENGINE
 // ==========================================================
 const SOUND_FILES = {
-  gavel: '/sounds/minigame_start.wav',
-  laugh: '/sounds/monokuma_laugh1.wav',
-  laugh1: '/sounds/monokuma_laugh1.wav',
-  laugh2: '/sounds/monokuma_laugh2.wav',
-  laugh3: '/sounds/monokuma_laugh3.wav',
+  gavel: '/sounds/gavel_wooden.wav',
+  laugh: '/sounds/monokuma_laugh_pure.wav',
+  laugh1: '/sounds/monokuma_laugh_pure.wav',
+  laugh2: '/sounds/monokuma_laugh_pure.wav',
+  laugh3: '/sounds/monokuma_laugh_pure.wav',
   blade: '/sounds/sword_clash.wav',
   slash: '/sounds/sword_swing.wav',
   break: '/sounds/screenbreak.mp3',
   point_break: '/sounds/screenbreak.mp3',
   chime: '/sounds/dingdongbingbong.mp3',
-  bda: '/sounds/bda_announ.mp3',
+  bda: '/sounds/bda_bell.mp3',
   bda_bell: '/sounds/bda_bell.mp3',
   counter: '/sounds/countersfx.mp3',
   shoot: '/sounds/shoottb.mp3',
   rebuttal: '/sounds/rebuttal_intro.wav',
   vote_intro: '/sounds/vote_intro.wav',
   vote_music: '/sounds/vote_intro.wav',
-  correct: '/sounds/vote_correct.wav',
+  correct: '/sounds/correct_logic.wav',
   wrong: '/sounds/vote_incorrect.wav',
   clue_get: '/sounds/bullet_get.mp3',
   bullet_get: '/sounds/bullet_get.mp3',
@@ -207,6 +207,7 @@ const SOUND_FILES = {
 };
 
 let audioCtx = null;
+let activeSfxAudio = null;
 
 function getAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -215,17 +216,24 @@ function getAudio() {
 }
 
 function playSfx(type) {
-  let soundKey = type;
-  if (type === 'laugh') {
-    const laughs = ['laugh1', 'laugh2', 'laugh3'];
-    soundKey = laughs[Math.floor(Math.random() * laughs.length)];
+  // Prevent audio overlapping: stop previous soundboard SFX immediately
+  if (activeSfxAudio) {
+    try {
+      activeSfxAudio.pause();
+      activeSfxAudio.currentTime = 0;
+    } catch(e) {}
+    activeSfxAudio = null;
   }
 
-  const file = SOUND_FILES[soundKey] || SOUND_FILES[type];
+  const file = SOUND_FILES[type];
   if (file) {
     try {
       const audio = new Audio(file);
-      audio.volume = 0.85;
+      audio.volume = 0.88;
+      activeSfxAudio = audio;
+      audio.onended = () => {
+        if (activeSfxAudio === audio) activeSfxAudio = null;
+      };
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
@@ -596,8 +604,8 @@ function broadcast(msg) {
     hostPeer.send(msg);
   }
 
-  // Also broadcast locally to this browser tab ONLY if host, or if it's not a claim request / leave
-  if (isHost || (msg.type !== 'request_claim_character' && msg.type !== 'player_leave')) {
+  // Also broadcast locally to this browser tab ONLY if it shouldn't be excluded
+  if (msg.type !== 'trigger_fx' && msg.type !== 'request_claim_character' && msg.type !== 'player_leave') {
     handleIncomingMessage(msg, null);
   }
 
@@ -739,8 +747,8 @@ function handleIncomingMessage(msg, senderConn) {
       }
     }
   } else if (msg.type === 'session_terminated') {
-    alert('🚪 เซสชันศาลชั้นเรียนนี้จบลงแล้ว ทุกคนจะถูกนำกลับไปหน้าเลือกตัวละครใหม่เหมือน Kahoot!');
     clearPlayerLocalData();
+    alert('🚪 เซสชันศาลชั้นเรียนนี้ถูกรีเซ็ตเรียบร้อยแล้ว ทุกคนจะถูกนำกลับสู่หน้าหลักเพื่อเริ่มรอบใหม่เหมือน Kahoot!');
     window.location.href = '/';
   } else if (msg.type === 'player_joined') {
     gameState.players[msg.player.id] = msg.player;
@@ -809,7 +817,9 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'verdict') {
     showVerdict(msg.isVictory);
   } else if (msg.type === 'trigger_fx') {
-    playSfx(msg.fx);
+    if (isHost || currentView === 'court') {
+      playSfx(msg.fx);
+    }
   }
 }
 
@@ -967,14 +977,23 @@ function updateHubDisplay() {
 function clearPlayerLocalData() {
   myPlayer = null;
   currentUserHash = '';
-  const keysToRemove = [];
+  const localKeys = [];
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
     if (k && k.startsWith('dangan_')) {
-      keysToRemove.push(k);
+      localKeys.push(k);
     }
   }
-  keysToRemove.forEach(k => localStorage.removeItem(k));
+  localKeys.forEach(k => localStorage.removeItem(k));
+
+  const sessionKeys = [];
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const k = sessionStorage.key(i);
+    if (k && k.startsWith('dangan_')) {
+      sessionKeys.push(k);
+    }
+  }
+  sessionKeys.forEach(k => sessionStorage.removeItem(k));
 }
 
 function copyRoomLink() {
@@ -2291,8 +2310,15 @@ function adminTriggerVerdict(isVictory) {
 }
 
 function triggerFx(fx) {
-  playSfx(fx);
-  broadcast({ type: 'trigger_fx', fx: fx });
+  if (isHost || currentView === 'court') {
+    playSfx(fx);
+    broadcast({ type: 'trigger_fx', fx: fx });
+  } else if (hostPeer && hostPeer.open) {
+    broadcast({ type: 'trigger_fx', fx: fx });
+    showToast(`🔊 ส่งเสียง [${fx}] ขึ้นจอศาลเรียบร้อย`);
+  } else {
+    playSfx(fx);
+  }
 }
 
 function updateAdminDisplay() {
@@ -2373,11 +2399,19 @@ function adminKickPlayer(peerId) {
 }
 
 function adminResetSession() {
-  if (!confirm("⚠️ ยืนยันการรีเซ็ตห้องศาลทั้งหมด (Reset Session)?\nคะแนน/โหวต/หลักฐานที่พบจะถูกล้างใหม่ทั้งหมดเหมือนเริ่มศาลใหม่")) return;
+  if (!confirm("⚠️ ยืนยันการรีเซ็ตห้องศาลทั้งหมด (Reset Session)?\nผู้เล่นทุกคนรวมถึง Admin จะถูกเตะออก ห้องจะถูกรีเซ็ตใหม่ทั้งหมดเหมือน Kahoot")) return;
 
-  handleResetSession();
-  broadcast({ type: 'reset_session' });
-  logCourt(`🔄 [RESET]: ผู้ดูแลระบบได้ทำการรีเซ็ตเซสชันศาลชั้นเรียนแล้ว`);
+  broadcast({ type: 'session_terminated' });
+  deleteActiveRoom(roomCode);
+
+  clearPlayerLocalData();
+
+  if (myPeer && !myPeer.destroyed) {
+    try { myPeer.destroy(); } catch(e) {}
+  }
+
+  alert('🔄 ทำการล้างห้องศาลเรียบร้อยแล้ว ทุกคนรวมถึง Admin ถูกนำกลับสู่หน้าหลักเพื่อเริ่มรอบใหม่');
+  window.location.href = '/';
 }
 
 function playerLeaveGame() {
