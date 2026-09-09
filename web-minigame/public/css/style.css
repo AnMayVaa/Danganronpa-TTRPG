@@ -18,6 +18,11 @@
   --slanted-angle: -8deg;
 }
 
+/* CRITICAL: Ensure hidden elements are NEVER displayed */
+.hidden {
+  display: none !important;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -57,6 +62,7 @@ body.dangan-body {
   display: flex;
   align-items: center;
   gap: 15px;
+  cursor: pointer;
 }
 
 .monokuma-logo {
@@ -162,6 +168,9 @@ body.dangan-body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 
 .tab-btn.active {
@@ -185,8 +194,208 @@ body.dangan-body {
   width: 100%;
 }
 
-.view-panel.hidden {
-  display: none !important;
+/* ==========================================================
+   HUB / PORTAL VIEW (ROOT '/')
+   ========================================================== */
+.hub-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 20px;
+  gap: 30px;
+}
+
+.hub-hero {
+  background: var(--bg-panel);
+  border: 2px solid var(--mono-pink);
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 850px;
+  width: 100%;
+  box-shadow: 0 0 35px rgba(255, 20, 147, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.hub-hero::before {
+  content: "KILLING GAME";
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  font-size: 5rem;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.03);
+  font-style: italic;
+  pointer-events: none;
+}
+
+.hub-title {
+  font-size: 2.8rem;
+  font-weight: 900;
+  font-style: italic;
+  color: #fff;
+  margin: 15px 0 10px;
+  text-shadow: 0 0 20px rgba(255, 20, 147, 0.6);
+}
+
+.hub-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  max-width: 650px;
+  margin: 0 auto 25px;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  max-width: 1050px;
+  width: 100%;
+}
+
+.hub-card {
+  background: var(--bg-card);
+  border: 2px solid #383858;
+  border-radius: 12px;
+  padding: 30px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 15px;
+  transition: all 0.25s;
+  cursor: pointer;
+  text-decoration: none;
+  color: #fff;
+}
+
+.hub-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+}
+
+.hub-card.court { border-color: var(--mono-cyan); }
+.hub-card.court:hover { box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
+
+.hub-card.player { border-color: var(--mono-pink); }
+.hub-card.player:hover { box-shadow: 0 0 20px rgba(255, 20, 147, 0.4); }
+
+.hub-card.admin { border-color: var(--mono-yellow); }
+.hub-card.admin:hover { box-shadow: 0 0 20px rgba(255, 230, 0, 0.4); }
+
+.hub-card-icon {
+  font-size: 3rem;
+}
+
+.hub-card-title {
+  font-size: 1.4rem;
+  font-weight: 900;
+  font-style: italic;
+}
+
+.hub-card-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.hub-action-tag {
+  margin-top: auto;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+.hub-card.court .hub-action-tag { background: rgba(0, 243, 255, 0.15); color: var(--mono-cyan); }
+.hub-card.player .hub-action-tag { background: rgba(255, 20, 147, 0.15); color: var(--mono-pink); }
+.hub-card.admin .hub-action-tag { background: rgba(255, 230, 0, 0.15); color: var(--mono-yellow); }
+
+/* ==========================================================
+   PIN ACCESS MODAL FOR /ADMIN (PIN: 295437)
+   ========================================================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(8, 8, 15, 0.92);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.pin-modal {
+  background: var(--bg-panel);
+  border: 3px solid var(--mono-yellow);
+  border-radius: 14px;
+  padding: 35px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 0 35px rgba(255, 230, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pin-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--mono-yellow);
+  letter-spacing: 1px;
+}
+
+.pin-display-box {
+  background: #080810;
+  border: 2px solid #444;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 2.2rem;
+  font-family: monospace;
+  font-weight: 900;
+  letter-spacing: 8px;
+  color: var(--mono-cyan);
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.pin-key {
+  background: #252540;
+  border: 1px solid #555577;
+  color: #fff;
+  padding: 16px;
+  font-size: 1.4rem;
+  font-weight: 900;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pin-key:active {
+  background: var(--mono-yellow);
+  color: #000;
+  transform: scale(0.95);
+}
+
+.pin-key.clear { color: var(--mono-red); font-size: 1.1rem; }
+.pin-key.enter { color: var(--mono-green); font-size: 1.1rem; }
+
+.pin-err-msg {
+  color: var(--mono-red);
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-height: 22px;
 }
 
 /* ==========================================================
@@ -329,6 +538,7 @@ body.dangan-body {
   color: var(--mono-cyan);
   font-family: monospace;
   margin: 8px 0;
+  word-break: break-all;
 }
 
 .sub-guide {
@@ -397,6 +607,7 @@ body.dangan-body {
   background: linear-gradient(90deg, #fff 50%, #111 50%);
   border: 3px solid var(--mono-red);
   box-shadow: 0 0 10px var(--mono-red);
+  flex-shrink: 0;
 }
 
 .mono-speech {
@@ -448,6 +659,8 @@ body.dangan-body {
   display: flex;
   gap: 14px;
   margin-top: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .hangman-tile {
@@ -822,6 +1035,7 @@ body.dangan-body {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .small-btn {
@@ -1129,6 +1343,11 @@ body.dangan-body {
   align-items: center;
   animation: shake 0.15s infinite;
   pointer-events: none;
+}
+
+.screen-glitch-layer.hidden,
+.modal-backdrop.hidden {
+  display: none !important;
 }
 
 .glitch-warning-box {

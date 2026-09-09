@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>DANGANRONPA: CLASS TRIAL SYSTEM</title>
-  <link rel="stylesheet" href="css/style.css">
-  <!-- PeerJS for 100% Real-time Serverless WebRTC across devices (Works on Vercel & Local) -->
+  <title>DANGANRONPA TRPG: CLASS TRIAL SYSTEM</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- PeerJS for 100% Real-time Serverless WebRTC (Works on Vercel & Local) -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <!-- Socket.io for local server fallback -->
   <script src="/socket.io/socket.io.js"></script>
@@ -16,7 +16,7 @@
   <!-- TOP DANGANRONPA HEADER BAR                     -->
   <!-- ============================================== -->
   <header class="dangan-header">
-    <div class="monokuma-brand">
+    <div class="monokuma-brand" onclick="navigate('/')">
       <div class="monokuma-logo">
         <div class="eye-left"></div>
         <div class="eye-right"></div>
@@ -30,23 +30,78 @@
     <!-- Room Code Badge & Mode Selector -->
     <div class="header-controls">
       <div class="room-badge">
-        <span class="room-lbl">ROOM CODE:</span>
+        <span class="room-lbl">ROOM:</span>
         <span id="displayRoomCode" class="room-code-val">DESPAIR</span>
         <button class="icon-btn" onclick="copyRoomLink()" title="คัดลอกลิงก์ให้เพื่อน">📋</button>
       </div>
 
       <nav class="view-tabs">
-        <button id="tabCourt" class="tab-btn active" onclick="switchView('court')">🏛️ จอหลักศาล (Courtroom)</button>
-        <button id="tabAdmin" class="tab-btn" onclick="switchView('admin')">🎛️ ผู้ดูแลศาล (DM Admin)</button>
-        <button id="tabPlayer" class="tab-btn" onclick="switchView('player')">📱 จอมือถือผู้เล่น (Player)</button>
+        <button id="tabHub" class="tab-btn" onclick="navigate('/')">🏠 หน้าหลัก (Hub)</button>
+        <button id="tabCourt" class="tab-btn" onclick="navigate('/court')">🏛️ จอใหญ่ศาล (Court)</button>
+        <button id="tabAdmin" class="tab-btn" onclick="navigate('/admin')">🎛️ ผู้ดูแลศาล (Admin)</button>
+        <button id="tabPlayer" class="tab-btn" onclick="navigate('/play')">📱 ผู้เล่น (Player)</button>
       </nav>
     </div>
   </header>
 
   <!-- ============================================== -->
+  <!-- VIEW 0: HUB PORTAL (ROOT '/')                  -->
+  <!-- ============================================== -->
+  <main id="viewHub" class="view-panel">
+    <div class="hub-container">
+      <div class="hub-hero">
+        <div class="slanted-banner pink">DANGANRONPA TRPG HUB</div>
+        <h1 class="hub-title">ยินดีต้อนรับสู่ศาลชั้นเรียนแห่งความสิ้นหวัง</h1>
+        <p class="hub-subtitle">
+          ระบบควบคุมมินิเกมและการพิจารณาคดีสไตล์ Danganronpa แบบ Real-time ข้ามอุปกรณ์ เชื่อมต่อระหว่างจอใหญ่หน้าห้อง มือถือผู้เล่น และแท่นควบคุมของ DM
+        </p>
+      </div>
+
+      <!-- Quick Resume Previous Session if Available -->
+      <div id="hubResumeBox" class="hidden" style="margin-top: -10px; margin-bottom: 5px; width: 100%; max-width: 850px;">
+        <div style="background: rgba(255, 20, 147, 0.12); border: 2px dashed var(--mono-pink); border-radius: 12px; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+          <div style="text-align: left;">
+            <div style="color: var(--mono-pink); font-weight: 900; font-size: 1.1rem;">📱 พบเซสชันตัวละครของคุณที่เคยเล่นไว้!</div>
+            <div id="hubResumeInfo" style="color: #ccc; font-size: 0.95rem; margin-top: 4px;">ตัวละคร: - | Hash: -</div>
+          </div>
+          <button class="dangan-action-btn pink" style="padding: 10px 20px; font-size: 0.9rem;" onclick="resumePlayerSession()">
+            ▶️ เข้าสู่หน้าจอตัวละครของคุณ
+          </button>
+        </div>
+      </div>
+
+      <div class="hub-grid">
+        <!-- Card 1: Courtroom -->
+        <div class="hub-card court" onclick="navigate('/court')">
+          <div class="hub-card-icon">🏛️</div>
+          <h2 class="hub-card-title">จอหลักศาลชั้นเรียน</h2>
+          <p class="hub-card-desc">สำหรับเปิดขึ้นโปรเจกเตอร์หรือทีวีหน้าห้อง แสดงเกจพลังชีวิต เวลาถอยหลัง แท่นโพเดียม และมินิเกมขนาดใหญ่</p>
+          <div class="hub-action-tag">เปิดจอโปรเจกเตอร์ →</div>
+        </div>
+
+        <!-- Card 2: Player Screen -->
+        <div class="hub-card player" onclick="navigate('/play')">
+          <div class="hub-card-icon">📱</div>
+          <h2 class="hub-card-title">เข้าร่วมเป็นผู้เล่น (Player)</h2>
+          <p class="hub-card-desc">สำหรับเปิดบนมือถือของนักเรียนทุกคน เลือกตัวละคร ป้อนการ์ดหลักฐาน ดันตรรกะดีเบต และแอบก่อกวนหากเป็นคนร้าย</p>
+          <div class="hub-action-tag">เข้าเล่นบนมือถือ →</div>
+        </div>
+
+        <!-- Card 3: Admin Screen -->
+        <div class="hub-card admin" onclick="navigate('/admin')">
+          <div class="hub-card-icon">🎛️</div>
+          <h2 class="hub-card-title">ผู้ดูแลศาล (DM Admin)</h2>
+          <p class="hub-card-desc">สำหรับ DM ควบคุมศาลชั้นเรียน เลือกเปิดมินิเกมทั้ง 7 ด่าน ควบคุมเวลา สั่งประหารชีวิต และเปิด Soundboard (ต้องใส่ PIN)</p>
+          <div class="hub-action-tag">เข้าสู่แผงควบคุม (PIN) →</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================== -->
   <!-- VIEW 1: COURTROOM MAIN SCREEN (FOR PROJECTOR) -->
   <!-- ============================================== -->
-  <main id="viewCourt" class="view-panel active-panel">
+  <main id="viewCourt" class="view-panel hidden">
     <!-- Top Stats Bar -->
     <div class="court-top-bar">
       <!-- Influence Gauge -->
@@ -220,6 +275,20 @@
   <!-- VIEW 2: DM / ADMIN CONTROL DASHBOARD          -->
   <!-- ============================================== -->
   <main id="viewAdmin" class="view-panel hidden">
+    <!-- Admin Top Status Bar -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; background:rgba(20, 20, 36, 0.95); padding:12px 20px; border-radius:10px; border:2px solid var(--mono-yellow); box-shadow:0 0 15px rgba(255, 230, 0, 0.2); flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:1.6rem;">🎛️</span>
+        <div>
+          <div style="color:var(--mono-yellow); font-weight:900; letter-spacing:1px; font-size:1.1rem;">DM ADMIN DASHBOARD</div>
+          <div style="color:#00ff88; font-size:0.8rem; font-weight:700;">● รหัสผ่าน PIN: 295437 ได้รับการยืนยันความถูกต้องแล้ว</div>
+        </div>
+      </div>
+      <button class="small-btn red" onclick="adminLogout()" style="padding:8px 16px; font-weight:900; cursor:pointer;">
+        🔒 ล็อก / ออกจากระบบ
+      </button>
+    </div>
+
     <div class="admin-grid">
       <!-- Left Column: Master Controls -->
       <div class="admin-col master-col">
@@ -337,10 +406,18 @@
     <div id="mobileJoinScreen" class="mobile-center-card">
       <div class="mobile-brand-tag">DANGANRONPA CLASS TRIAL</div>
       <h2 class="neon-pink-text">เข้าสู่แท่นโพเดียม</h2>
+
+      <div class="user-hash-banner" style="background:#151528; border:1px solid #383858; border-radius:8px; padding:12px; margin: 15px 0; font-size:0.85rem; color:#aaa; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+          <span>ลิงก์ผู้เล่นส่วนตัว:</span>
+          <strong id="displayUserHash" style="color:var(--mono-pink); font-family:monospace; margin-left:6px; font-size:1rem;">#USER</strong>
+        </div>
+        <button type="button" class="small-btn" onclick="copyPersonalLink()" style="font-size:0.75rem;">📋 คัดลอกลิงก์นี้</button>
+      </div>
       
       <div class="mobile-input-group">
         <label>Room Code ของห้อง:</label>
-        <input type="text" id="mobileRoomInput" value="DESPAIR" uppercase>
+        <input type="text" id="mobileRoomInput" value="DESPAIR">
       </div>
       <div class="mobile-input-group">
         <label>ชื่อตัวละคร / ชื่อของคุณ:</label>
@@ -368,6 +445,8 @@
         <div class="p-identity">
           <span id="pMyName" class="p-name">ชื่อผู้เล่น</span>
           <span id="pMyRole" class="p-role">[อาชีพ]</span>
+          <span id="pMyHash" style="font-size:0.75rem; color:#888; margin-left:4px; font-family:monospace;">#USER</span>
+          <button class="icon-btn" onclick="copyPersonalLink()" title="คัดลอกลิงก์ส่วนตัว" style="font-size:0.8rem; padding:2px 6px; margin-left:4px;">📋</button>
         </div>
         <div id="pMyStatus" class="p-status normal">🛡️ นักเรียนผู้บริสุทธิ์</div>
       </div>
@@ -406,8 +485,41 @@
     </div>
   </main>
 
+  <!-- ============================================== -->
+  <!-- PIN MODAL FOR /ADMIN (PIN: 295437)             -->
+  <!-- ============================================== -->
+  <div id="pinModal" class="modal-backdrop hidden" style="display: none;">
+    <div class="pin-modal">
+      <div class="slanted-banner yellow">SECURITY CHECK</div>
+      <h2 class="pin-title">🔒 ใส่รหัสผ่านผู้ดูแลศาล</h2>
+      <p style="color: #aaa; font-size: 0.85rem;">กรุณากรอกรหัส PIN 6 หลักเพื่อเข้าถึง DM Admin Dashboard</p>
+      
+      <div id="pinDisplay" class="pin-display-box">------</div>
+      <div id="pinErrMsg" class="pin-err-msg"></div>
+
+      <div class="pin-keypad">
+        <button class="pin-key" onclick="pressPin('1')">1</button>
+        <button class="pin-key" onclick="pressPin('2')">2</button>
+        <button class="pin-key" onclick="pressPin('3')">3</button>
+        <button class="pin-key" onclick="pressPin('4')">4</button>
+        <button class="pin-key" onclick="pressPin('5')">5</button>
+        <button class="pin-key" onclick="pressPin('6')">6</button>
+        <button class="pin-key" onclick="pressPin('7')">7</button>
+        <button class="pin-key" onclick="pressPin('8')">8</button>
+        <button class="pin-key" onclick="pressPin('9')">9</button>
+        <button class="pin-key clear" onclick="clearPin()">C</button>
+        <button class="pin-key" onclick="pressPin('0')">0</button>
+        <button class="pin-key enter" onclick="submitPin()">OK</button>
+      </div>
+
+      <button style="background:transparent; border:none; color:#777; cursor:pointer; font-size:0.9rem; margin-top:5px;" onclick="navigate('/')">
+        ← ยกเลิกและกลับหน้าหลัก
+      </button>
+    </div>
+  </div>
+
   <!-- Fullscreen Glitch FX Overlay -->
-  <div id="screenGlitch" class="screen-glitch-layer hidden">
+  <div id="screenGlitch" class="screen-glitch-layer hidden" style="display: none;">
     <div class="glitch-warning-box">
       <div class="glitch-icon">⚡⚡⚡</div>
       <div class="glitch-title">WARNING: SYSTEM JAMMED</div>
@@ -415,6 +527,6 @@
     </div>
   </div>
 
-  <script src="js/client.js"></script>
+  <script src="/js/client.js"></script>
 </body>
 </html>
