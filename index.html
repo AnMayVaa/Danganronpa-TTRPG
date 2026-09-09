@@ -119,6 +119,14 @@
           <p class="hub-card-desc">สำหรับ DM ควบคุมศาลชั้นเรียน เลือกมินิเกม ควบคุมเวลา สั่งประหารชีวิต และเปิด Soundboard (ต้องใส่ PIN)</p>
           <div class="hub-action-tag">เข้าสู่แผงควบคุม (PIN) →</div>
         </div>
+
+        <!-- Card 4: Character Sheet Printable A4 -->
+        <div class="hub-card" onclick="window.open('/character_sheet.html', '_blank')" style="border-color:#ffcc00; cursor:pointer;">
+          <div class="hub-card-icon">📜</div>
+          <h2 class="hub-card-title" style="color:#ffcc00;">Character Sheet (A4 พิมพ์)</h2>
+          <p class="hub-card-desc">แบบฟอร์มแฟ้มประวัตินักเรียน 2d6 ระบบ A4 พร้อมพิมพ์ โหลด Preset 6 ตัวละครครบถ้วน (INT, WIS, STR, CHA, ฯลฯ)</p>
+          <div class="hub-action-tag" style="background:#ffcc00; color:#000; font-weight:900;">เปิดใบตัวละคร A4 →</div>
+        </div>
       </div>
     </div>
   </main>
@@ -129,20 +137,13 @@
   <main id="viewCourt" class="view-panel hidden">
     <!-- Top Stats Bar -->
     <div class="court-top-bar">
-      <!-- Influence Gauge -->
-      <div class="influence-wrap">
-        <div class="influence-header">
-          <span class="gauge-title">INFLUENCE GAUGE (เกจความน่าเชื่อถือ)</span>
-          <span id="courtInfluenceTxt" class="gauge-pct">100%</span>
-        </div>
-        <div class="gauge-track">
-          <div id="courtInfluenceBar" class="gauge-fill" style="width: 100%;"></div>
-          <div class="gauge-stripes"></div>
-        </div>
+      <div class="court-top-brand" style="display:flex; align-items:center; gap:12px;">
+        <span class="slanted-banner pink" style="position:static !important; display:inline-block; margin:0; font-size:0.75rem; padding:3px 10px;">HOPE'S PEAK ACADEMY</span>
+        <span style="color:#fff; font-weight:900; font-size:1.1rem; letter-spacing:1px;">⚖️ CLASS TRIAL SESSION // ศาลชั้นเรียน</span>
       </div>
 
-      <!-- Monokuma Countdown Clock -->
-      <div class="monokuma-clock">
+      <!-- Monokuma Countdown Clock (Shown only during timed mini-games) -->
+      <div class="monokuma-clock hidden">
         <div class="clock-label">TIME LIMIT</div>
         <div id="courtTimerDigits" class="clock-digits">01:00</div>
       </div>
@@ -422,10 +423,15 @@
           <div style="color:#00ff88; font-size:0.8rem; font-weight:700;">● รหัสผ่าน PIN: 295437 ได้รับการยืนยันความถูกต้องแล้ว</div>
         </div>
       </div>
-      <button class="small-btn red admin-logout-btn" onclick="adminLogout()" style="padding:8px 14px; font-weight:900; cursor:pointer;">
-        <span class="btn-txt-full">🔒 ล็อก / ออกจากระบบ</span>
-        <span class="btn-txt-short">🔒 ออก</span>
-      </button>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <a href="/character_sheet.html" target="_blank" class="small-btn yellow" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-weight:900; padding:8px 14px;">
+          📜 พิมพ์ Character Sheet A4 (2d6)
+        </a>
+        <button class="small-btn red admin-logout-btn" onclick="adminLogout()" style="padding:8px 14px; font-weight:900; cursor:pointer;">
+          <span class="btn-txt-full">🔒 ล็อก / ออกจากระบบ</span>
+          <span class="btn-txt-short">🔒 ออก</span>
+        </button>
+      </div>
     </div>
 
     <div class="admin-grid">
@@ -440,8 +446,8 @@
           </div>
           <div class="minigame-btn-grid">
             <button class="dm-act-btn cyan" onclick="adminSetGame('investigation')" style="grid-column: 1 / -1;">
-              <strong>🔍 0. Investigation Phase (ช่วงเวลาสืบสวนหาหลักฐาน)</strong>
-              <span>เปิดระบบสำรวจ รวบรวมเบาะแส และให้ผู้เล่นใช้มือถือสแกน QR Code</span>
+              <strong>🔍 0. Investigation Phase (ช่วงเวลาสืบสวนหาหลักฐาน - Turn-Based)</strong>
+              <span>เปิดระบบสำรวจ รวบรวมเบาะแส และให้ผู้เล่นใช้มือถือสแกน QR Code (ไม่จับเวลา / ผลัดกันเล่น)</span>
             </button>
             <button class="dm-act-btn gold" onclick="adminSetGame('trial')" style="grid-column: 1 / -1; background:#2a200a; border:2px solid #ffe600;">
               <strong>⚖️ Class Trial (ศาลชั้นเรียน - ช่วงอภิปราย & ไต่สวนทั่วไป)</strong>

@@ -1355,6 +1355,100 @@ const CHARACTER_DATA = {
   }
 };
 
+let playerCredibilityHearts = 5;
+function cyclePlayerCredibility() {
+  playerCredibilityHearts--;
+  if (playerCredibilityHearts < 0) playerCredibilityHearts = 5;
+  const container = document.getElementById('pCredibilityHearts');
+  if (container) {
+    let hearts = '';
+    for (let i = 0; i < 5; i++) {
+      hearts += `<span>${i < playerCredibilityHearts ? '❤️' : '🖤'}</span>`;
+    }
+    container.innerHTML = hearts;
+    if (playerCredibilityHearts === 0) {
+      showToast('⚠️ สิ้นหวัง (Panic State)! คุณสูญเสียแต้มความน่าเชื่อถือทั้งหมด!');
+    }
+  }
+}
+
+function renderPlayerCharSheet() {
+  const container = document.getElementById('pCharSheetContent');
+  if (!container) return;
+
+  const role = (myPlayer && myPlayer.role) ? myPlayer.role : 'นักแต่งนิยาย';
+  const cData = CHARACTER_DATA[role] || CHARACTER_DATA['นักแต่งนิยาย'];
+
+  let timelineHtml = '';
+  if (cData.timeline) {
+    cData.timeline.forEach(item => {
+      timelineHtml += `
+        <div style="margin-bottom:10px; padding:8px 12px; background:rgba(0,0,0,0.3); border-left:3px solid var(--mono-yellow); border-radius:4px;">
+          <div style="font-weight:900; color:var(--mono-yellow); font-size:0.85rem; margin-bottom:2px;">⏱️ ${item.time}</div>
+          <div style="font-size:0.85rem; color:#ddd; line-height:1.4;">${item.desc}</div>
+        </div>
+      `;
+    });
+  }
+
+  let hearts = '';
+  for (let i = 0; i < 5; i++) {
+    hearts += `<span>${i < playerCredibilityHearts ? '❤️' : '🖤'}</span>`;
+  }
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+      <div>
+        <h2 style="color:var(--court-gold); font-size:1.2rem; margin-bottom:2px;">${cData.title}</h2>
+        <div style="font-size:0.8rem; color:#aaa;">แฟ้มประวัตินักเรียน & กฎบทบาทเฉพาะบุคคล (2d6 System)</div>
+      </div>
+      <a href="/character_sheet.html" target="_blank" class="small-btn yellow" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-weight:900; padding:8px 12px; font-size:0.85rem;">
+        🖨️ เปิด Character Sheet พิมพ์ A4
+      </a>
+    </div>
+
+    <!-- Stats & Credibility Row -->
+    <div style="background:rgba(20,20,35,0.85); border:2px solid var(--mono-dark-border); border-radius:8px; padding:12px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+        <span style="font-size:0.85rem; font-weight:900; color:var(--mono-cyan);">📊 ค่าพลังหลัก (2d6 Modifiers):</span>
+        <div style="display:flex; gap:8px;">
+          <span style="font-size:0.8rem; color:#ff4466; font-weight:900;">HP: 10-16</span>
+          <span style="font-size:0.8rem; color:#00e5ff; font-weight:900;">WP: 10-14</span>
+        </div>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+        ${(cData.stats || []).map(st => `<span style="background:#111122; border:1px solid #444; border-radius:4px; padding:3px 8px; font-size:0.82rem; font-weight:700; color:#fff;">${st}</span>`).join('')}
+      </div>
+
+      <!-- Credibility Hearts Tracker -->
+      <div style="border-top:1px dashed #444; padding-top:8px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span style="font-size:0.85rem; font-weight:900; color:#ff0055;">❤️ Personal Credibility Gauge:</span>
+          <div style="font-size:0.75rem; color:#888;">แต้มความน่าเชื่อถือส่วนตัว (แตะเพื่อลด 1 เมื่อถูกหักล้างในศาล)</div>
+        </div>
+        <div id="pCredibilityHearts" style="display:flex; gap:4px; font-size:1.2rem; cursor:pointer;" onclick="cyclePlayerCredibility()">
+          ${hearts}
+        </div>
+      </div>
+    </div>
+
+    <!-- Roleplay Hook & Talents -->
+    <div style="background:rgba(20,20,35,0.85); border:2px solid var(--mono-dark-border); border-radius:8px; padding:12px; margin-bottom:14px;">
+      <div style="font-size:0.85rem; font-weight:900; color:var(--mono-yellow); margin-bottom:6px;">🎭 ลักษณะนิสัย & กฎควบคุมพฤติกรรม:</div>
+      <p style="font-size:0.85rem; color:#ddd; margin-bottom:8px; line-height:1.4;">${cData.personality || ''}</p>
+      <div style="background:rgba(255,230,0,0.1); border-left:3px solid var(--mono-yellow); padding:8px 10px; font-size:0.82rem; color:#eee; line-height:1.35;">
+        ${cData.hook || ''}
+      </div>
+    </div>
+
+    <!-- Personal Timeline -->
+    <div style="background:rgba(20,20,35,0.85); border:2px solid var(--mono-dark-border); border-radius:8px; padding:12px;">
+      <div style="font-size:0.85rem; font-weight:900; color:#00ff88; margin-bottom:8px;">⏱️ ไทม์ไลน์ความทรงจำของคุณ (ช่วงเกิดเหตุ 17:30 - 21:00 น.):</div>
+      ${timelineHtml}
+    </div>
+  `;
+}
+
 const ALL_CLUES_DATA = [
   { id: 'EVD-01', aliases: ['C01', 'CORE-01', '1', 'E1'], name: 'ท่อนกระดูกหมูต้มเปื้อนเลือดสดมนุษย์', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องครัว (ก้นหม้อสตูว์)', desc: 'ท่อนกระดูกหมูขนาดใหญ่สับสองท่อน ผิวกระดูกมีรอยร้าวจากการฟาดอย่างแรง มีกลิ่นคาวสนิมเหล็กเข้มข้นของเลือดสดมนุษย์ซึมลึกในเนื้อกระดูกชัดเจน' },
   { id: 'EVD-02', aliases: ['C02', 'CORE-02', '2', 'E2'], name: 'มีดพกเปื้อนใยเชือกในกระเป๋าเสื้อ B', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ร่างเหยื่อ B', desc: 'มีดพกพับเดินป่า ใบมีดมีคราบใยเชือกไนลอนติดอยู่ แสดงว่าเหยื่อใช้มีดตัดเชือกที่มัดมือตนเองจนขาดออกมาก่อนเสียชีวิต!' },
@@ -1618,9 +1712,9 @@ function setStage(stage, config) {
   stopTimer();
 
   if (stage === 'investigation') {
-    startTimer(config && config.duration ? config.duration : 300);
+    stopTimer();
     playSfx('gavel');
-    logCourt(`🔍 [INVESTIGATION]: เริ่มต้นช่วงเวลาสืบสวนหาหลักฐาน! ออกค้นหาและสแกน QR Code`);
+    logCourt(`🔍 [INVESTIGATION]: เริ่มต้นช่วงเวลาสืบสวนหาหลักฐาน (Turn-Based)! ออกค้นหาและสแกน QR Code`);
   } else if (stage === 'trial') {
     playSfx('gavel');
     logCourt(`⚖️ [CLASS TRIAL]: เริ่มต้นศาลชั้นเรียน! เข้าสู่ช่วงอภิปรายและไต่สวนคดี`);
@@ -1856,6 +1950,16 @@ function renderStage(stage) {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
+
+  // Clock visibility: Only show during timed mini-games (stage1 to stage7)
+  const clockEl = document.querySelector('.monokuma-clock');
+  if (clockEl) {
+    if (stage && stage.startsWith('stage')) {
+      clockEl.classList.remove('hidden');
+    } else {
+      clockEl.classList.add('hidden');
+    }
+  }
 
   if (stage === 'trial') {
     const ct = document.getElementById('courtTrial');
