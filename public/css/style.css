@@ -4,18 +4,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,600;0,700;0,900;1,700;1,900&display=swap');
 
 :root {
-  --bg-core: #090910;
-  --bg-panel: #131322;
-  --bg-card: #1c1c30;
-  --mono-pink: #ff1493;
-  --mono-cyan: #00f3ff;
-  --mono-yellow: #ffe600;
-  --mono-red: #ff2244;
-  --mono-purple: #b537f2;
-  --mono-green: #00ff88;
+  --bg-core: #101017;
+  --bg-panel: #181824;
+  --bg-card: #20202e;
+  --mono-pink: #e60067; /* Iconic Danganronpa Hot Blood Pink */
+  --mono-red: #c8102e; /* Monokuma Crimson Eye */
+  --mono-yellow: #d49b18; /* Trial Gold */
+  --court-wood: #2a1a14; /* Danganronpa 1 mahogany podium wood */
+  --court-wood-border: #4a3024;
+  --court-gold: #e5a823;
+  --mono-white: #ffffff;
+  --mono-black: #111116;
+  --mono-green: #2ecc71;
+  --mono-purple: #7d3c98;
+  --mono-cyan: #e8f0fe; /* Soft high-contrast text tone instead of glowing neon cyan */
   --text-bright: #ffffff;
-  --text-muted: #8e8ea8;
-  --slanted-angle: -8deg;
+  --text-muted: #9c9cb2;
+  --slanted-angle: -7deg;
 }
 
 /* CRITICAL: Ensure hidden elements are NEVER displayed */
@@ -34,9 +39,9 @@
 body.dangan-body {
   background-color: var(--bg-core);
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(255, 20, 147, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(0, 243, 255, 0.05) 0%, transparent 40%),
-    repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 2px, transparent 2px, transparent 4px);
+    radial-gradient(#252535 15%, transparent 16%),
+    radial-gradient(circle at 50% 0%, rgba(230, 0, 103, 0.08) 0%, transparent 60%);
+  background-size: 16px 16px, 100% 100%;
   color: var(--text-bright);
   min-height: 100vh;
   display: flex;
@@ -45,16 +50,16 @@ body.dangan-body {
 }
 
 /* ==========================================================
-   HEADER & TOP NAV
+   HEADER & TOP NAV (DANGANRONPA 1 STYLE)
    ========================================================== */
 .dangan-header {
-  background: linear-gradient(180deg, #181828 0%, #0d0d17 100%);
-  border-bottom: 3px solid var(--mono-pink);
+  background: #14141e;
+  border-bottom: 4px solid var(--mono-pink);
   padding: 10px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(255, 20, 147, 0.35);
+  box-shadow: 0 4px 0px #000;
   z-index: 100;
 }
 
@@ -208,22 +213,22 @@ body.dangan-body {
 
 .hub-hero {
   background: var(--bg-panel);
-  border: 2px solid var(--mono-pink);
-  border-radius: 16px;
+  border: 4px solid #000;
+  border-radius: 12px;
   padding: 40px;
   max-width: 850px;
   width: 100%;
-  box-shadow: 0 0 35px rgba(255, 20, 147, 0.25);
+  box-shadow: 8px 8px 0px var(--mono-pink);
   position: relative;
   overflow: hidden;
 }
 
 .hub-hero::before {
-  content: "KILLING GAME";
+  content: "TRIGGER HAPPY";
   position: absolute;
-  right: -20px;
-  bottom: -20px;
-  font-size: 5rem;
+  right: -10px;
+  bottom: -15px;
+  font-size: 4.5rem;
   font-weight: 900;
   color: rgba(255, 255, 255, 0.03);
   font-style: italic;
@@ -236,14 +241,15 @@ body.dangan-body {
   font-style: italic;
   color: #fff;
   margin: 15px 0 10px;
-  text-shadow: 0 0 20px rgba(255, 20, 147, 0.6);
+  text-shadow: 3px 3px 0px #000;
 }
 
 .hub-subtitle {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   color: var(--text-muted);
   max-width: 650px;
   margin: 0 auto 25px;
+  line-height: 1.6;
 }
 
 .hub-grid {
@@ -256,33 +262,29 @@ body.dangan-body {
 
 .hub-card {
   background: var(--bg-card);
-  border: 2px solid #383858;
-  border-radius: 12px;
+  border: 3px solid #000;
+  border-radius: 10px;
   padding: 30px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 15px;
-  transition: all 0.25s;
+  transition: all 0.15s;
   cursor: pointer;
   text-decoration: none;
   color: #fff;
+  box-shadow: 6px 6px 0px #000;
 }
 
 .hub-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0px #000;
 }
 
-.hub-card.court { border-color: var(--mono-cyan); }
-.hub-card.court:hover { box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
-
-.hub-card.player { border-color: var(--mono-pink); }
-.hub-card.player:hover { box-shadow: 0 0 20px rgba(255, 20, 147, 0.4); }
-
-.hub-card.admin { border-color: var(--mono-yellow); }
-.hub-card.admin:hover { box-shadow: 0 0 20px rgba(255, 230, 0, 0.4); }
+.hub-card.court { border-top: 6px solid var(--court-gold); }
+.hub-card.player { border-top: 6px solid var(--mono-pink); }
+.hub-card.admin { border-top: 6px solid var(--mono-red); }
 
 .hub-card-icon {
   font-size: 3rem;
@@ -485,7 +487,7 @@ body.dangan-body {
 
 .court-box {
   background: var(--bg-panel);
-  border: 2px solid #333355;
+  border: 3px solid #000;
   border-radius: 12px;
   padding: 30px;
   flex: 1;
@@ -496,63 +498,167 @@ body.dangan-body {
   text-align: center;
   position: relative;
   overflow: hidden;
+  box-shadow: 6px 6px 0px #000;
 }
 
 .slanted-banner {
   position: absolute;
   top: 18px;
   left: 20px;
-  transform: skewX(-10deg);
-  padding: 4px 16px;
+  transform: skewX(-8deg);
+  padding: 5px 18px;
   font-weight: 900;
   font-size: 0.85rem;
   letter-spacing: 1.5px;
   color: #000;
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0px #000;
 }
 
-.slanted-banner.pink { background: var(--mono-pink); color: #fff; box-shadow: 0 0 10px var(--mono-pink); }
-.slanted-banner.yellow { background: var(--mono-yellow); box-shadow: 0 0 10px var(--mono-yellow); }
-.slanted-banner.cyan { background: var(--mono-cyan); box-shadow: 0 0 10px var(--mono-cyan); }
-.slanted-banner.red { background: var(--mono-red); color: #fff; box-shadow: 0 0 10px var(--mono-red); }
-.slanted-banner.purple { background: var(--mono-purple); color: #fff; box-shadow: 0 0 10px var(--mono-purple); }
+.slanted-banner.pink { background: var(--mono-pink); color: #fff; }
+.slanted-banner.yellow { background: var(--mono-yellow); color: #000; }
+.slanted-banner.cyan { background: var(--mono-white); color: #000; }
+.slanted-banner.red { background: var(--mono-red); color: #fff; }
+.slanted-banner.purple { background: var(--mono-purple); color: #fff; }
 
-.neon-heading {
+.court-heading {
   font-size: 2.3rem;
   font-weight: 900;
   font-style: italic;
-  margin: 15px 0;
-  text-shadow: 0 0 12px rgba(255, 20, 147, 0.5);
+  margin: 15px 0 10px;
+  color: #fff;
+  text-shadow: 3px 3px 0px #000;
 }
 
-.join-callout {
-  background: #1c1c32;
-  border: 2px dashed var(--mono-cyan);
-  padding: 20px 35px;
+/* QR Code & Join Grid (Danganronpa 1 Courtroom Style) */
+.join-callout-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 25px;
+  background: var(--court-wood);
+  border: 3px solid #000;
+  box-shadow: 6px 6px 0px #000;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 18px 0 25px;
+  max-width: 900px;
+  width: 100%;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .join-callout-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+}
+
+.court-qr-card {
+  background: #fff;
+  border: 3px solid #000;
+  box-shadow: 5px 5px 0px var(--mono-pink);
   border-radius: 10px;
-  margin: 15px 0 25px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-frame {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.qr-caption {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #111;
+  text-align: center;
+}
+
+.join-details-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .join-details-card {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.join-label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.room-code-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #111118;
+  border: 2px solid var(--mono-yellow);
+  padding: 8px 18px;
+  border-radius: 6px;
+  box-shadow: 4px 4px 0px #000;
+}
+
+.room-code-tag {
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: var(--mono-yellow);
+  letter-spacing: 1px;
+}
+
+.court-gold-text {
+  color: var(--court-gold);
+  font-size: 1.7rem;
+  font-family: monospace;
+  letter-spacing: 2px;
 }
 
 .url-badge {
-  font-size: 1.9rem;
+  font-size: 1.6rem;
   font-weight: 900;
-  color: var(--mono-cyan);
+  color: #fff;
+  background: #111;
+  border: 2px solid #333348;
+  padding: 8px 16px;
+  border-radius: 6px;
   font-family: monospace;
-  margin: 8px 0;
   word-break: break-all;
+  box-shadow: 3px 3px 0px #000;
 }
 
 .sub-guide {
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: var(--text-muted);
+  line-height: 1.5;
 }
 
-.pink-text { color: var(--mono-pink); }
-
 .court-podiums-header {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--mono-yellow);
   margin-bottom: 15px;
+  letter-spacing: 1px;
 }
 
 .podium-grid {
@@ -560,29 +666,32 @@ body.dangan-body {
   flex-wrap: wrap;
   gap: 16px;
   justify-content: center;
-  max-width: 900px;
+  max-width: 950px;
 }
 
 .podium-seat {
-  background: #24243e;
-  border: 2px solid #505075;
-  padding: 10px 20px;
-  border-radius: 30px;
+  background: var(--court-wood);
+  border: 3px solid var(--court-wood-border);
+  box-shadow: 4px 4px 0px #000;
+  padding: 12px 22px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
 }
 
 .podium-seat.killer-badge {
   border-color: var(--mono-red);
+  box-shadow: 4px 4px 0px var(--mono-red);
 }
 
 .podium-role {
-  font-size: 0.8rem;
-  color: var(--mono-yellow);
-  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--court-gold);
+  font-weight: 900;
 }
 
 /* ==========================================================
@@ -1368,4 +1477,303 @@ body.dangan-body {
   50% { transform: translate(-4px, 0px) rotate(1deg); }
   75% { transform: translate(3px, 2px) rotate(0deg); }
   100% { transform: translate(1px, -2px) rotate(1deg); }
+}
+
+/* ==========================================================
+   MOBILE PLAYER SUB-NAVIGATION & REFERENCE PAGES (DR1 STYLE)
+   ========================================================== */
+.player-nav-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 12px 0 16px;
+  width: 100%;
+}
+
+.p-nav-btn {
+  background: #181824;
+  border: 2px solid #333348;
+  color: #bbb;
+  padding: 10px 4px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #000;
+  transition: all 0.15s;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.p-nav-btn.active {
+  background: var(--mono-pink);
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 3px 3px 0px #000;
+}
+
+.player-tab-pane {
+  width: 100%;
+}
+
+.player-tab-pane.hidden {
+  display: none !important;
+}
+
+.p-reference-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+}
+
+.dr1-handbook-card {
+  background: #1c1c28;
+  border: 3px solid #000;
+  box-shadow: 5px 5px 0px #000;
+  border-radius: 10px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dr1-section-title {
+  font-size: 1.3rem;
+  font-weight: 900;
+  font-style: italic;
+  color: var(--mono-yellow);
+  margin-bottom: 12px;
+  text-shadow: 1px 1px 0px #000;
+}
+
+.dr1-rule-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: #ddd;
+  line-height: 1.5;
+}
+
+.dr1-rule-list strong {
+  color: var(--mono-pink);
+}
+
+/* Character Sheet View */
+.char-sheet-card {
+  background: #1c1c28;
+  border: 3px solid #000;
+  box-shadow: 5px 5px 0px var(--mono-pink);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.char-title-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #333348;
+  padding-bottom: 10px;
+}
+
+.char-name {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #fff;
+}
+
+.char-role-badge {
+  background: var(--mono-yellow);
+  color: #000;
+  font-weight: 900;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  box-shadow: 2px 2px 0px #000;
+}
+
+.stat-badge-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  background: #111118;
+  border: 1px solid #444460;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--court-gold);
+}
+
+.hook-box {
+  background: rgba(230, 0, 103, 0.08);
+  border-left: 4px solid var(--mono-pink);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.9rem;
+  color: #eee;
+  line-height: 1.5;
+}
+
+.timeline-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.timeline-item {
+  background: #14141e;
+  border: 1px solid #2e2e42;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeline-time {
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: var(--mono-yellow);
+  letter-spacing: 0.5px;
+}
+
+.timeline-desc {
+  font-size: 0.9rem;
+  color: #ccc;
+  line-height: 1.4;
+}
+
+/* Truth Bullets & Clues Screen */
+.clues-search-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.clues-search-bar input {
+  width: 100%;
+  background: #111118;
+  border: 2px solid #3d3d55;
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.clues-search-bar input:focus {
+  border-color: var(--mono-pink);
+  outline: none;
+}
+
+.clue-filter-tags {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.clue-tag-btn {
+  background: #202030;
+  border: 1px solid #444460;
+  color: #ccc;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.clue-tag-btn.active {
+  background: #fff;
+  color: #000;
+  font-weight: 900;
+  box-shadow: 2px 2px 0px #000;
+}
+
+.clue-tag-btn.red.active { background: var(--mono-red); color: #fff; }
+.clue-tag-btn.blue.active { background: #2980b9; color: #fff; }
+.clue-tag-btn.yellow.active { background: var(--mono-yellow); color: #000; }
+.clue-tag-btn.grey.active { background: #555; color: #fff; }
+
+.p-clues-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 550px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.clue-card {
+  background: #181824;
+  border: 2px solid #333348;
+  border-left: 6px solid #888;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 3px 3px 0px #000;
+}
+
+.clue-card.core { border-left-color: var(--mono-red); }
+.clue-card.supp { border-left-color: #3498db; }
+.clue-card.herr { border-left-color: var(--mono-yellow); }
+.clue-card.trash { border-left-color: #7f8c8d; }
+
+.clue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clue-code {
+  font-size: 0.8rem;
+  font-weight: 900;
+  font-family: monospace;
+}
+
+.clue-type-pill {
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.clue-card.core .clue-type-pill { background: rgba(200, 16, 46, 0.2); color: #ff4d6d; }
+.clue-card.supp .clue-type-pill { background: rgba(52, 152, 219, 0.2); color: #5dade2; }
+.clue-card.herr .clue-type-pill { background: rgba(212, 155, 24, 0.2); color: #f4d03f; }
+.clue-card.trash .clue-type-pill { background: rgba(127, 140, 141, 0.2); color: #bdc3c7; }
+
+.clue-name {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #fff;
+}
+
+.clue-location {
+  font-size: 0.8rem;
+  color: #8888a0;
+}
+
+.clue-desc {
+  font-size: 0.88rem;
+  color: #ddd;
+  line-height: 1.4;
+  background: #111118;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 2px solid #444;
 }

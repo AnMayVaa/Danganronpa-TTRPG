@@ -147,7 +147,12 @@ function initRealtime() {
   const mobRoom = document.getElementById('mobileRoomInput');
   if (mobRoom) mobRoom.value = roomCode;
   const joinUrl = document.getElementById('courtJoinUrl');
-  if (joinUrl) joinUrl.innerText = window.location.origin + '/play?room=' + roomCode;
+  const directJoin = window.location.origin + '/play?room=' + roomCode;
+  if (joinUrl) joinUrl.innerText = directJoin;
+  const qrImg = document.getElementById('courtQrImg');
+  if (qrImg) {
+    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(directJoin);
+  }
 
   // Try connecting to local Socket.io first
   if (typeof io !== 'undefined') {
@@ -599,6 +604,258 @@ function initPlayerSession(hash) {
 }
 
 // ==========================================================
+// PC MULTI-PAGE NAVIGATION & REFERENCE LORE
+// ==========================================================
+let currentClueFilter = 'ALL';
+
+function switchPlayerTab(tab) {
+  const tabs = ['pTabGame', 'pTabChar', 'pTabClues', 'pTabGuide'];
+  const panes = ['playerSectionGame', 'playerSectionChar', 'playerSectionClues', 'playerSectionGuide'];
+
+  tabs.forEach(t => {
+    const el = document.getElementById(t);
+    if (el) el.classList.remove('active');
+  });
+  panes.forEach(p => {
+    const el = document.getElementById(p);
+    if (el) el.classList.add('hidden');
+  });
+
+  if (tab === 'game') {
+    const t = document.getElementById('pTabGame');
+    const p = document.getElementById('playerSectionGame');
+    if (t) t.classList.add('active');
+    if (p) p.classList.remove('hidden');
+  } else if (tab === 'char') {
+    const t = document.getElementById('pTabChar');
+    const p = document.getElementById('playerSectionChar');
+    if (t) t.classList.add('active');
+    if (p) p.classList.remove('hidden');
+    renderPlayerCharSheet();
+  } else if (tab === 'clues') {
+    const t = document.getElementById('pTabClues');
+    const p = document.getElementById('playerSectionClues');
+    if (t) t.classList.add('active');
+    if (p) p.classList.remove('hidden');
+    renderPlayerCluesList();
+  } else if (tab === 'guide') {
+    const t = document.getElementById('pTabGuide');
+    const p = document.getElementById('playerSectionGuide');
+    if (t) t.classList.add('active');
+    if (p) p.classList.remove('hidden');
+  }
+}
+
+const CHARACTER_DATA = {
+  'นักแต่งนิยาย': {
+    title: 'PC 1: สุดยอดนักแต่งนิยาย (Ultimate Novelist)',
+    stats: ['INT 16 (+3)', 'WIS 15 (+2)', 'CHA 12 (+1)'],
+    personality: 'นิ่งสุขุม ช่างสังเกต มองทุกการกระทำเป็นพล็อตนิยายสืบสวน มีสมุดโน้ตติดตัวเสมอ',
+    hook: 'กฎนักสังเกตการณ์: แอบจดพฤติกรรมแปลกๆ ของเพื่อนลงสมุด และเปรียบเทียบทุกเบาะแสเหมือนพล็อตในนิยายสืบสวน',
+    timeline: [
+      { time: '17:30 - 18:30 น.', desc: 'นั่งเขียนนิยายมุมโถงกลาง สังเกตเห็นสุดยอดนักมายากลเดินเข้าออกระหว่างห้องครัวกับบันไดลงชั้นใต้ดิน 2-3 รอบด้วยท่าทางเร่งรีบ' },
+      { time: '19:00 - 20:00 น.', desc: 'ร่วมโต๊ะกินสตูว์เนื้อร่วมกับทุกคน จากนั้นก็นั่งอ่านสมุดโน้ตอยู่ที่ห้องนั่งเล่นยาวๆ' },
+      { time: '20:00 - 21:00 น.', desc: 'ช่วงไฟดับสั้นๆ นั่งพักสายตาอยู่บนโซฟาห้องนั่งเล่น ไม่ได้ลุกไปไหน มีเพื่อนคนอื่นนั่งอยู่ข้างๆ' },
+      { time: '21:00 น.', desc: 'เสียงกระแทกดัง "ตึง! ตึง! ตึง!" มาจากห้องซักรีดใต้ดิน วิ่งตามกลุ่มไปพังประตูและเห็นร่าง B ห้อยอยู่บนเพดาน' }
+    ]
+  },
+  'นักกีฬา': {
+    title: 'PC 2: สุดยอดนักกีฬา (Ultimate Athlete)',
+    stats: ['STR 16 (+3)', 'AGI 15 (+2)', 'CON 14 (+2)'],
+    personality: 'พลังล้นเหลือ เชื่อมั่นในการลงมือทำมากกว่าคำพูด รักความยุติธรรม ตรงไปตรงมา',
+    hook: 'เมื่อตอนบ่าย คุณไปดูห้องออกกำลังกาย แต่พบว่า "ลูกตุ้มเหล็กถ่วงน้ำหนัก (68 กก.)" และดัมเบลคู่โปรดหายไปจากชั้นวาง!',
+    timeline: [
+      { time: '17:30 - 18:30 น.', desc: 'วิ่งวอร์มรอบอาคาร สังเกตเห็นไฟในห้องซักรีดใต้ดินเปิดอยู่ และได้ยินเสียงน้ำไหลในท่อประปาดังผิดปกติ' },
+      { time: '19:00 - 20:00 น.', desc: 'กินสตูว์เนื้ออย่างเอร็ดอร่อย ชื่นชมว่าเนื้อและกระดูกชิ้นใหญ่สะใจ' },
+      { time: '20:00 - 21:00 น.', desc: 'วิดพื้นในห้องพัก ได้ยินเสียงคล้ายของหนักเลื่อนถ่วงพื้นด้านล่าง' },
+      { time: '21:00 น.', desc: 'วิ่งนำขบวนไปช่วยถีบพังประตูห้องซักรีด' }
+    ]
+  },
+  'นักมายากล': {
+    title: 'PC 3: สุดยอดนักมายากล A (Ultimate Magician - The Blackened)',
+    stats: ['DEX 16 (+3)', 'CHA 15 (+2)', 'INT 14 (+2)'],
+    personality: 'ร่าเริง พูดจาติดตลก มีลูกเล่นแพรวพราว แต่แฝงความทะเยอทะยานและเลือดเย็น',
+    isKiller: true,
+    hook: '⚠️ ความลับคนร้าย: คุณคือผู้เซ็ตกับดักฆ่า B! คุณใช้ท่อนกระดูกหมูฟาดหัว B สลบ นำกระดูกไปต้มในหม้อสตูว์ ผูกเชือกกับลูกตุ้ม 68 กก. และเจาะถังน้ำเพื่อตั้งเวลา... แต่ความจริง B ตัดเชือกและเกิดอุบัติเหตุคอหักตายเอง!',
+    timeline: [
+      { time: '17:30 - 18:30 น.', desc: 'เข้าครัวไปแอบหยิบท่อนกระดูกหมู แล้วลงไปล่อ B ในห้องซักรีดเพื่อเซ็ตกับดักเชือกโยงกับลูกตุ้มและถังน้ำนอกหน้าต่าง' },
+      { time: '19:00 - 20:00 น.', desc: 'ตักสตูว์เนื้อให้เพื่อนๆ กินอย่างกระตือรือร้น เพื่อกลบเกลื่อนหลักฐาน' },
+      { time: '20:00 - 21:00 น.', desc: 'แอบปลดระบบไฟในตู้ควบคุมเพื่อตัดตอนพยาน' },
+      { time: '21:00 น.', desc: 'แกล้งทำเป็นตกใจสุดขีดเมื่อเห็นศพ B ห้อยอยู่' }
+    ]
+  },
+  'นักชิม': {
+    title: 'PC 4: สุดยอดนักชิม (Ultimate Gourmet)',
+    stats: ['WIS 16 (+3)', 'CON 14 (+2)', 'CHA 13 (+1)'],
+    personality: 'พิถีพิถันเรื่องกลิ่นและรสชาติ ช่างสังเกตรายละเอียดเล็กๆ น้อยๆ ในอาหาร',
+    hook: 'ประสาทสัมผัสเรื่องรสและกลิ่นของคุณดีเยี่ยม ตอนกินสตูว์คุณสัมผัสได้ถึงรสเค็มจัดผิดปกติและกลิ่นคาวสนิมเหล็กของเลือดสด!',
+    timeline: [
+      { time: '17:30 - 18:30 น.', desc: 'เดินตรวจเครื่องปรุงในครัว พบว่าเกลือและไวน์แดงถูกใช้ไปในปริมาณมหาศาลผิดปกติ' },
+      { time: '19:00 - 20:00 น.', desc: 'ร่วมกินสตูว์และทักท้วงเรื่องรสเค็มจัดและกลิ่นคาวสนิม แต่เพื่อนๆ กำลังหิวจึงมองข้าม' },
+      { time: '20:00 - 21:00 น.', desc: 'จิบชาล้างคออยู่ในห้องอาหาร' },
+      { time: '21:00 น.', desc: 'วิ่งตามกลิ่นน้ำยาซักผ้าและควันไฟไปยังห้องซักรีด' }
+    ]
+  },
+  'นักแสดงผาดโผน': {
+    title: 'PC 5: สุดยอดนักแสดงผาดโผน (Ultimate Stuntman)',
+    stats: ['AGI 16 (+3)', 'DEX 15 (+2)', 'STR 13 (+1)'],
+    personality: 'บ้าบิ่น ไม่กลัวความสูง เชี่ยวชาญอุปกรณ์นิรภัย เชือก รอก และเงื่อนผูกลำตัว',
+    hook: 'คุณมีความรู้เรื่องเงื่อนเชือกอย่างลึกซึ้ง คุณสังเกตเห็นว่าเชือกที่ผูกร่าง B มีเงื่อนโบว์ไลน์ (Bowline) และสายรัดลำตัวปีนเขาแบบมีห่วงนิรภัย',
+    timeline: [
+      { time: '17:30 - 18:30 น.', desc: 'ปีนซ้อมบนระเบียง สังเกตเห็นเชือกเส้นใหญ่ผูกโยงจากหน้าต่างห้องซักรีดออกไปยังถังน้ำนอกกำแพง' },
+      { time: '19:00 - 20:00 น.', desc: 'กินสตูว์เนื้อและเล่าประสบการณ์สตันท์' },
+      { time: '20:00 - 21:00 น.', desc: 'ซ้อมยืดเหยียดกล้ามเนื้อในทางเดิน' },
+      { time: '21:00 น.', desc: 'วิ่งไปช่วยสำรวจเงื่อนเชือกที่ร่างของ B' }
+    ]
+  },
+  'ช่างกล': {
+    title: 'PC 6: สุดยอดช่างกล (Ultimate Mechanic)',
+    stats: ['INT 16 (+3)', 'DEX 14 (+2)', 'CON 13 (+1)'],
+    personality: 'ชอบรื้อ ซ่อม และวิเคราะห์เครื่องจักร ท่อประปา ตู้ไฟ เครื่องยนต์',
+    hook: 'คุณสังเกตเห็นว่าระบบตั้งเวลาของเครื่องอบผ้าและวาล์วระบายน้ำประปาถูกใครบางคนดัดแปลงให้ทำงานประสานกับไฟดับ!',
+    timeline: [
+      { time: '17:30 - 18:30 น.', desc: 'ตรวจตู้ไฟและแผงท่อประปาชั้นใต้ดิน พบว่าวาล์วน้ำหลักถูกปรับแต่ง' },
+      { time: '19:00 - 20:00 น.', desc: 'กินสตูว์เนื้อ' },
+      { time: '20:00 - 21:00 น.', desc: 'ช่วงไฟดับ คุณไปตรวจดูตู้ไฟพบเศษใยเชือกไนลอนไหม้คาเบรกเกอร์' },
+      { time: '21:00 น.', desc: 'ตรวจเครื่องอบผ้าในห้องซักรีดพบแผงตั้งเวลาหยุดทำงาน' }
+    ]
+  }
+};
+
+const ALL_CLUES_DATA = [
+  { id: 'CORE-01', name: 'ท่อนกระดูกหมูต้มเปื้อนเลือดสดมนุษย์', type: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องครัว (ก้นหม้อสตูว์)', desc: 'ท่อนกระดูกหมูขนาดใหญ่สับสองท่อน ผิวกระดูกมีรอยร้าวจากการฟาดอย่างแรง มีกลิ่นคาวสนิมเหล็กเข้มข้นของเลือดสดมนุษย์ซึมลึกในเนื้อกระดูกชัดเจน' },
+  { id: 'CORE-02', name: 'มีดพกเปื้อนใยเชือกในกระเป๋าเสื้อ B', type: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ร่างเหยื่อ B', desc: 'มีดพกพับเดินป่า ใบมีดมีคราบใยเชือกไนลอนติดอยู่ แสดงว่าเหยื่อใช้มีดตัดเชือกที่มัดมือตนเองจนขาดออกมาก่อนเสียชีวิต!' },
+  { id: 'CORE-03', name: 'ลูกตุ้มเหล็ก 68 กก. และรอกคู่หน้าต่าง', type: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ลานปูนนอกหน้าต่าง', desc: 'ลูกตุ้มเหล็กถ่วงน้ำหนัก 68 กก. ถูกผูกปลายเชือกโยงผ่านรอกหน้าต่าง ใช้เป็นน้ำหนักถ่วงดึงร่างเหยื่อขึ้นแขวนคอ' },
+  { id: 'CORE-04', name: 'แผงตั้งเวลาเครื่องอบผ้าและระบบประปา', type: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องซักรีดใต้ดิน', desc: 'แผงวงจรตั้งเวลาของเครื่องอบผ้าถูกดัดแปลงให้ตัดไฟและปล่อยน้ำออกจากท่อระบายในเวลาที่กำหนดเพื่อเริ่มกลไกสังหาร' },
+
+  { id: 'SUPP-01', name: 'ถังน้ำเจาะรูและคราบน้ำบนลานปูน', type: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ลานปูนนอกหน้าต่าง', desc: 'ถังพลาสติกขนาดใหญ่ถูกเจาะรูที่ก้น น้ำค่อยๆ ไหลซึมออกช้าๆ ทำหน้าที่เป็น "นาฬิกาน้ำ" ถ่วงเวลาให้น้ำหนักลดลงจนลูกตุ้มตกลงมา' },
+  { id: 'SUPP-02', name: 'สายรัดลำตัวปีนเขาแบบมีห่วงนิรภัย', type: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ร่างเหยื่อ B', desc: 'B สวมสายรัดลำตัวไว้ใต้เสื้อแจ็กเก็ต แต่แรงกระชาก (Shock Load) มหาศาลทำให้เงื่อนหลุดเลื่อนขึ้นมารัดคอจนกระดูกคอหัก' },
+  { id: 'SUPP-03', name: 'หม้อสตูว์เค็มจัดใส่ไวน์แดงดับคาวเข้มข้น', type: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ห้องครัว', desc: 'สตูว์เนื้อถูกปรุงรสเค็มจัดและใส่ไวน์แดงเข้มข้น เพื่อกลบกลิ่นคาวเลือดสดของ B ที่คนร้ายต้มท่อนกระดูกหมูลงไปอำพราง' },
+  { id: 'SUPP-04', name: 'เศษใยเชือกไนลอนไหม้เกรียมในตู้ควบคุมไฟ', type: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ทางเดินโถงกลาง', desc: 'เศษเชือกไนลอนถูกผูกโยงระหว่างสวิตช์ไฟกับตัวตั้งเวลา ทำให้เกิดไฟดับชั่วขณะตอน 20:30 น.' },
+
+  { id: 'HERR-01', name: 'หลอดแก้วสารพิษไซยาไนด์เปล่า', type: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ห้องครัว (ถังขยะ)', desc: 'หลอดแก้วติดฉลากกะโหลกไขว้ แต่ข้างในเป็นเพียงแป้งมันสำปะหลังผสมเกลือที่คนร้ายจงใจวางทิ้งไว้ลวงการสืบสวน' },
+  { id: 'HERR-02', name: 'จดหมายข่มขู่ลายมือปลอมของ B', type: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ร่างเหยื่อ B', desc: 'กระดาษโน้ตเขียนข้อความตัดพ้อและข่มขู่ แต่หมึกยังไม่แห้งสนิทและไม่ใช่ลายมือที่แท้จริงของ B' },
+  { id: 'HERR-03', name: 'เสื้อกันฝนเปื้อนคราบโคลนสีแดง', type: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ห้องซักรีด', desc: 'เสื้อกันฝนเปื้อนคราบสีแดงเข้ม แต่ผลการตรวจสอบพบว่าเป็นเพียงคราบสนิมผสมสีน้ำมัน' },
+  { id: 'HERR-04', name: 'รอยเท้าลึกลับมุ่งหน้าไปสระว่ายน้ำ', type: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ลานปูน', desc: 'รอยรองเท้าผ้าใบเปียกน้ำมุ่งตรงไปทางสระว่ายน้ำ แต่เป็นรอยเก่าตั้งแต่ตอนเที่ยงวัน' },
+
+  { id: 'TRASH-01', name: 'ห่อบะหมี่กึ่งสำเร็จรูปหมดอายุ 2 ปี', type: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ห้องครัว', desc: 'บะหมี่ซองรสหมูสับหมดอายุตั้งแต่ปีก่อน เส้นเหนียวแข็งกินไม่ได้ ไม่มีส่วนเกี่ยวข้องกับคดี' },
+  { id: 'TRASH-02', name: 'ดัมเบลเปื้อนซอสมะเขือเทศแห้งกรัง', type: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ห้องซักรีด', desc: 'ดัมเบลขนาด 5 กก. มีคราบสีแดงติดอยู่ แต่ดมดูแล้วเป็นซอสมะเขือเทศจากมื้อเที่ยงชัดเจน' },
+  { id: 'TRASH-03', name: 'เหรียญโมโนคุมะขึ้นสนิม 10 เหรียญ', type: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ร่างเหยื่อ B', desc: 'เหรียญตราโมโนคุมะเก่าๆ 10 เหรียญในกระเป๋ากางเกง ใช้หยอดตู้กาชาปองในห้องเรียน' },
+  { id: 'TRASH-04', name: 'หนังสือการ์ตูนยอดนักสืบเล่ม 13 ขาดครึ่ง', type: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ทางเดินโถงกลาง', desc: 'การ์ตูนสืบสวนหน้าเฉลยคนร้ายถูกฉีกหายไป มีแต่รอยขีดเขียนเล่นของนักเรียน' }
+];
+
+function renderPlayerCharSheet() {
+  const container = document.getElementById('pCharSheetContent');
+  if (!container) return;
+
+  const role = (myPlayer && myPlayer.role) ? myPlayer.role : 'นักแต่งนิยาย';
+  const data = CHARACTER_DATA[role] || CHARACTER_DATA['นักแต่งนิยาย'];
+
+  let statPills = data.stats.map(s => `<span class="stat-pill">⚡ ${s}</span>`).join('');
+  let timelineItems = data.timeline.map(t => `
+    <div class="timeline-item">
+      <span class="timeline-time">⏱️ ${t.time}</span>
+      <span class="timeline-desc">${t.desc}</span>
+    </div>
+  `).join('');
+
+  let killerWarning = '';
+  if (data.isKiller) {
+    killerWarning = `
+      <div style="background:#380e15; border:2px solid var(--mono-red); border-radius:8px; padding:12px; margin-bottom:10px;">
+        <span style="color:var(--mono-red); font-weight:900; font-size:0.95rem;">☠️ ลับเฉพาะคนร้าย (BLACKENED BRIEFING)</span>
+        <p style="color:#ffcccc; font-size:0.85rem; margin-top:4px; line-height:1.4;">
+          คุณคือผู้เซ็ตกับดักฆ่า B! อย่าให้ใครจับได้ว่าคุณนำท่อนกระดูกหมูไปต้มในหม้อสตูว์ หรือเจาะถังน้ำเพื่อตั้งเวลา!
+        </p>
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="char-sheet-card">
+      ${killerWarning}
+      <div class="char-title-banner">
+        <div>
+          <div class="char-name">${(myPlayer && myPlayer.name) ? myPlayer.name : 'ชื่อตัวละคร'}</div>
+          <div style="color:var(--mono-pink); font-size:0.9rem; font-weight:700;">${data.title}</div>
+        </div>
+        <span class="char-role-badge">${role}</span>
+      </div>
+
+      <div>
+        <div style="font-size:0.85rem; color:#aaa; font-weight:700; margin-bottom:6px;">สเตตัสเด่น & ความสามารถ:</div>
+        <div class="stat-badge-row">${statPills}</div>
+      </div>
+
+      <div class="hook-box">
+        <strong>🎭 กฎควบคุมพฤติกรรม & บทบาทการเล่น:</strong><br>
+        ${data.hook}
+      </div>
+
+      <div style="margin-top:5px;">
+        <div style="font-size:0.95rem; color:var(--mono-yellow); font-weight:900; margin-bottom:8px;">
+          📅 ไทม์ไลน์ความทรงจำส่วนตัว (Personal Timeline 17:30 - 21:00):
+        </div>
+        <div class="timeline-block">
+          ${timelineItems}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPlayerCluesList() {
+  const container = document.getElementById('pCluesListContent');
+  if (!container) return;
+
+  const q = (document.getElementById('clueSearchInput') ? document.getElementById('clueSearchInput').value : '').toLowerCase().trim();
+
+  let filtered = ALL_CLUES_DATA.filter(c => {
+    const matchType = (currentClueFilter === 'ALL' || c.type === currentClueFilter);
+    const matchQuery = !q || c.id.toLowerCase().includes(q) || c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.loc.toLowerCase().includes(q);
+    return matchType && matchQuery;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:30px; color:#888;">ไม่พบการ์ดหลักฐานที่ตรงกับการค้นหา</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(c => {
+    let cardClass = c.type.toLowerCase();
+    return `
+      <div class="clue-card ${cardClass}">
+        <div class="clue-header">
+          <span class="clue-code" style="color:var(--mono-yellow);">${c.id}</span>
+          <span class="clue-type-pill">${c.typeLabel}</span>
+        </div>
+        <div class="clue-name">${c.name}</div>
+        <div class="clue-location">📍 สถานที่พบ: ${c.loc}</div>
+        <div class="clue-desc">${c.desc}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterPlayerClues() {
+  renderPlayerCluesList();
+}
+
+function filterClueType(type) {
+  currentClueFilter = type;
+  const btns = document.querySelectorAll('.clue-tag-btn');
+  btns.forEach(b => b.classList.remove('active'));
+
+  if (type === 'ALL' && btns[0]) btns[0].classList.add('active');
+  else if (type === 'CORE' && btns[1]) btns[1].classList.add('active');
+  else if (type === 'SUPP' && btns[2]) btns[2].classList.add('active');
+  else if (type === 'HERR' && btns[3]) btns[3].classList.add('active');
+  else if (type === 'TRASH' && btns[4]) btns[4].classList.add('active');
+
+  renderPlayerCluesList();
+}
+
+// ==========================================================
 // STAGE CONTROLS & TIMERS
 // ==========================================================
 function setStage(stage) {
@@ -926,11 +1183,16 @@ function renderMobileTask(stage) {
   if (!area) return;
   area.innerHTML = '';
 
+  // Auto-switch to game tab if stage is active
+  if (stage !== 'lobby') {
+    switchPlayerTab('game');
+  }
+
   if (stage === 'lobby') {
     area.innerHTML = '<div class="idle-message"><div class="idle-spinner"></div><p>กำลังรอเริ่มศาลชั้นเรียน...</p></div>';
   } else if (stage === 'stage1') {
     area.innerHTML = `
-      <h3 style="color:#00f3ff; margin-bottom:12px;">เลือกการ์ดหลักฐานที่ตรงกับอาวุธ:</h3>
+      <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">เลือกการ์ดหลักฐานที่ตรงกับอาวุธ:</h3>
       <button class="p-task-btn" onclick="sendStg1('CORE-01')">🔴 [CORE-01] ท่อนกระดูกหมูต้มเปื้อนเลือด</button>
       <button class="p-task-btn" onclick="sendStg1('HERR-01')">🟡 [HERR-01] หลอดแก้วไซยาไนด์เปล่า</button>
       <button class="p-task-btn" onclick="sendStg1('TRASH-02')">⚫ [TRASH-02] ดัมเบลเปื้อนซอสมะเขือเทศ</button>
@@ -938,7 +1200,7 @@ function renderMobileTask(stage) {
     `;
   } else if (stage === 'stage2') {
     area.innerHTML = `
-      <h3 style="color:#00f3ff; margin-bottom:12px;">แตะตัวอักษรเพื่อส่งขึ้นกระดาน:</h3>
+      <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">แตะตัวอักษรเพื่อส่งขึ้นกระดาน:</h3>
       <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; width:100%;">
         <button class="p-task-btn" style="text-align:center;" onclick="sendStg2(0,'น')">น</button>
         <button class="p-task-btn" style="text-align:center;" onclick="sendStg2(1,'า')">า</button>
@@ -952,14 +1214,14 @@ function renderMobileTask(stage) {
     `;
   } else if (stage === 'stage3') {
     area.innerHTML = `
-      <h3 style="color:#ff2244; margin-bottom:12px;">ดวลดาบคำพูด (Rebuttal Showdown)!</h3>
-      <button class="p-task-btn" style="background:#1a4d2e; border-color:#00ff88; padding:25px;" onclick="broadcast({type:'trigger_fx',fx:'correct'})">
+      <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">ดวลดาบคำพูด (Rebuttal Showdown)!</h3>
+      <button class="p-task-btn" style="background:#3b141b; border: 3px solid var(--mono-pink); padding:25px; box-shadow: 4px 4px 0 #000;" onclick="broadcast({type:'trigger_fx',fx:'correct'})">
         ⚔️ ฟันดาบความจริง! (Truth Blade Slash)
       </button>
     `;
   } else if (stage === 'stage4') {
     area.innerHTML = `
-      <h3 style="color:#b537f2; margin-bottom:12px;">Logic Dive: เลือกทางแยกตรรกะ!</h3>
+      <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">Logic Dive: เลือกทางแยกตรรกะ!</h3>
       <button class="p-task-btn" onclick="advanceLogicDive('wrong')">ทางแยกซ้าย</button>
       <button class="p-task-btn" onclick="advanceLogicDive('correct')">ทางแยกขวา (ทางถูกต้อง)</button>
     `;
@@ -969,16 +1231,16 @@ function renderMobileTask(stage) {
       killerSab = `<button class="p-task-btn" style="background:#4a101a; border-color:#ff2244; margin-top:12px;" onclick="broadcast({type:'stg5_scrum',delta:-6})">☠️ [ลับเฉพาะคนร้าย] แอบดึงกลับ (-6%)</button>`;
     }
     area.innerHTML = `
-      <h3 style="color:#00ff88; margin-bottom:12px;">Debate Scrum: รัวปุ่มดันตรรกะ!</h3>
-      <button class="p-task-btn" style="background:#143d22; border-color:#00ff88; padding:25px; font-size:1.2rem;" onclick="broadcast({type:'stg5_scrum',delta:4})">
+      <h3 style="color:var(--mono-yellow); margin-bottom:12px; font-weight:900;">Debate Scrum: รัวปุ่มดันตรรกะ!</h3>
+      <button class="p-task-btn" style="background:#1d2b1e; border:3px solid #2ecc71; padding:25px; font-size:1.2rem; box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg5_scrum',delta:4})">
         🔥 ดันความจริง! (B ทำให้ตัวเองตาย)
       </button>
       ${killerSab}
     `;
   } else if (stage === 'stage6') {
     area.innerHTML = `
-      <h3 style="color:#ffea00; margin-bottom:12px;">Argument Armament: รัวปุ่มทุบเกราะ!</h3>
-      <button class="p-task-btn" style="background:#4d4010; border-color:#ffea00; padding:25px; font-size:1.2rem;" onclick="broadcast({type:'stg6_hit'})">
+      <h3 style="color:var(--mono-yellow); margin-bottom:12px; font-weight:900;">Argument Armament: รัวปุ่มทุบเกราะ!</h3>
+      <button class="p-task-btn" style="background:#423414; border:3px solid var(--mono-yellow); padding:25px; font-size:1.2rem; box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg6_hit'})">
         🔨 ทุบเกราะความจริง! (-15% Shield)
       </button>
     `;
@@ -986,7 +1248,7 @@ function renderMobileTask(stage) {
     const candidates = ['PC 1 (นักแต่งนิยาย)', 'PC 2 (นักกีฬา)', 'PC 3 (นักมายากล A)', 'PC 4 (นักชิม)', 'PC 5 (นักแสดงผาดโผน)', 'PC 6 (ช่างกล)', 'NPC B (สุดยอดนักเอาตัวรอด)'];
     let btns = candidates.map(c => `<button class="p-task-btn" onclick="submitPlayerVote('${c}')">👉 โหวต: ${c}</button>`).join('');
     area.innerHTML = `
-      <h3 style="color:#ffe600; margin-bottom:12px;">โหวตเลือก Blackened ผู้ปลิดชีพ B:</h3>
+      <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">โหวตเลือก Blackened ผู้ปลิดชีพ B:</h3>
       <div style="display:flex; flex-direction:column; gap:8px; width:100%;">${btns}</div>
     `;
   }

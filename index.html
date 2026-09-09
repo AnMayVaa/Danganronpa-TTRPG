@@ -129,12 +129,27 @@
       <!-- STAGE 0: LOBBY & PODIUMS -->
       <div id="courtLobby" class="court-box">
         <div class="slanted-banner pink">CLASS TRIAL IN SESSION</div>
-        <h1 class="neon-heading">เตรียมความพร้อมเข้าสู่บัลลังก์ศาล</h1>
+        <h1 class="court-heading">เตรียมความพร้อมเข้าสู่บัลลังก์ศาลชั้นเรียน</h1>
         
-        <div class="join-callout">
-          <p>📲 ผู้เล่นทุกคนเปิดมือถือ แล้วเข้าเว็บนี้เพื่อเชื่อมต่อ:</p>
-          <div id="courtJoinUrl" class="url-badge">กำลังโหลด URL...</div>
-          <p class="sub-guide">ใส่ Room Code: <strong id="courtLobbyRoomCode" class="pink-text">DESPAIR</strong> และเลือกอาชีพของตนเอง</p>
+        <div class="join-callout-grid">
+          <!-- QR Code Box for PC Mobile Scan -->
+          <div class="court-qr-card">
+            <div class="qr-frame">
+              <img id="courtQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://danganronpa-ttrpg.vercel.app/play?room=DESPAIR" alt="QR Code เข้าร่วมศาล" class="qr-img">
+            </div>
+            <div class="qr-caption">📷 สแกน QR Code ด้วยมือถือเพื่อเข้าเล่น</div>
+          </div>
+
+          <!-- Join URL & Room Code Info -->
+          <div class="join-details-card">
+            <p class="join-label">📲 หรือเปิดเว็บเบราว์เซอร์บนอุปกรณ์ของคุณ:</p>
+            <div id="courtJoinUrl" class="url-badge">กำลังโหลด URL...</div>
+            <div class="room-code-panel">
+              <span class="room-code-tag">ROOM CODE:</span>
+              <strong id="courtLobbyRoomCode" class="court-gold-text">DESPAIR</strong>
+            </div>
+            <p class="sub-guide">เลือกตัวละครของคุณ แล้วรอประธาน Monokuma สั่งเริ่มการพิจารณาคดี!</p>
+          </div>
         </div>
 
         <div class="court-podiums-header">นักเรียนที่ยืนประจำแท่นโพเดียม (<span id="courtPlayerCount">0</span> คน):</div>
@@ -451,11 +466,79 @@
         <div id="pMyStatus" class="p-status normal">🛡️ นักเรียนผู้บริสุทธิ์</div>
       </div>
 
-      <!-- Real-time Dynamic Task Area -->
-      <div id="mobileTaskArea" class="mobile-task-content">
-        <div class="idle-message">
-          <div class="idle-spinner"></div>
-          <p>รอผู้ดูแลศาลเปิดมินิเกมประจำช่วง...</p>
+      <!-- Player Page Sub-Navigation -->
+      <nav class="player-nav-tabs">
+        <button id="pTabGame" class="p-nav-btn active" onclick="switchPlayerTab('game')">
+          🎮 มินิเกม
+        </button>
+        <button id="pTabChar" class="p-nav-btn" onclick="switchPlayerTab('char')">
+          📜 ตัวละคร & ไทม์ไลน์
+        </button>
+        <button id="pTabClues" class="p-nav-btn" onclick="switchPlayerTab('clues')">
+          🔍 หลักฐาน
+        </button>
+        <button id="pTabGuide" class="p-nav-btn" onclick="switchPlayerTab('guide')">
+          📋 กฎ & ดีเบต
+        </button>
+      </nav>
+
+      <!-- TAB 1: Real-time Dynamic Task Area -->
+      <div id="playerSectionGame" class="player-tab-pane active-pane">
+        <div id="mobileTaskArea" class="mobile-task-content">
+          <div class="idle-message">
+            <div class="idle-spinner"></div>
+            <p>รอผู้ดูแลศาลเปิดมินิเกมประจำช่วง...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Character Sheet, Stats & Personal Timeline -->
+      <div id="playerSectionChar" class="player-tab-pane hidden">
+        <div id="pCharSheetContent" class="p-reference-content">
+          <!-- Populated dynamically from 02_Character_Sheets_and_Handouts.md -->
+        </div>
+      </div>
+
+      <!-- TAB 3: Truth Bullets & Investigation Clues (16 Clues) -->
+      <div id="playerSectionClues" class="player-tab-pane hidden">
+        <div class="clues-search-bar">
+          <input type="text" id="clueSearchInput" placeholder="🔎 ค้นหาการ์ดหลักฐาน..." onkeyup="filterPlayerClues()">
+          <div class="clue-filter-tags">
+            <button class="clue-tag-btn active" onclick="filterClueType('ALL')">ทั้งหมด (16)</button>
+            <button class="clue-tag-btn red" onclick="filterClueType('CORE')">🔴 หลัก (4)</button>
+            <button class="clue-tag-btn blue" onclick="filterClueType('SUPP')">🔵 เสริม (4)</button>
+            <button class="clue-tag-btn yellow" onclick="filterClueType('HERR')">🟡 หลอก (4)</button>
+            <button class="clue-tag-btn grey" onclick="filterClueType('TRASH')">⚫ ขยะ (4)</button>
+          </div>
+        </div>
+        <div id="pCluesListContent" class="p-clues-grid">
+          <!-- Populated dynamically from 03_Investigation_Clues_Cards.md -->
+        </div>
+      </div>
+
+      <!-- TAB 4: Trial Rules & Debate Flow -->
+      <div id="playerSectionGuide" class="player-tab-pane hidden">
+        <div class="p-reference-content">
+          <div class="dr1-handbook-card">
+            <div class="slanted-banner pink">MONOKUMA TRIAL RULES</div>
+            <h3 class="dr1-section-title">⚖️ กฎเหล็กประจำศาลชั้นเรียน</h3>
+            <ul class="dr1-rule-list">
+              <li><strong>1. กฎการสืบสวน:</strong> ผู้กระทำความผิด (Blackened) ต้องอำพรางตนเองไม่ให้เพื่อนจับได้ ส่วนนักเรียนผู้บริสุทธิ์ (Innocent) ต้องร่วมมือกันหาตัวคนร้ายที่แท้จริง</li>
+              <li><strong>2. กฎการโหวต:</strong> หลังสิ้นสุดการพิจารณาคดี จะมี "การลงคะแนนตัดสิน (Voting Time)" หากโหวตถูกตัวคนร้าย คนร้ายคนเดียวจะถูกประหารชีวิต! แต่หากโหวตผิด คนร้ายจะรอดชีวิต และนักเรียนคนอื่นทุกคนจะถูกประหารชีวิตหมู่!</li>
+              <li><strong>3. การนำเสนอหลักฐาน (Truth Bullets):</strong> ในช่วง Non-stop Debate หรือ Evidence Linker ให้ยิงกระสุนความจริงที่ขัดแย้งกับคำให้การของเพื่อนเพื่อเปิดโปงความจริง</li>
+              <li><strong>4. ลำดับมินิเกมของศาล:</strong>
+                <ol style="margin-left: 20px; margin-top: 6px; line-height: 1.6;">
+                  <li>Evidence Linker (ทลายข้ออ้างอาวุธสตูว์)</li>
+                  <li>Hangman's Gambit (ถอดรหัสกลไก "นาฬิกาน้ำ")</li>
+                  <li>Rebuttal Showdown (ดวลดาบคำพูด 1 ต่อ 1)</li>
+                  <li>Logic Dive (สเก็ตบอร์ดดำดิ่งเจาะลึก 3 ข้อสงสัย)</li>
+                  <li>Debate Scrum (ศึกสองขั้วความคิด A vs B)</li>
+                  <li>Argument Armament (ทุบเกราะความจริงทลายคำโกหก)</li>
+                  <li>Voting Time (ลงมติชี้ชะตาเลือก Blackened)</li>
+                </ol>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
