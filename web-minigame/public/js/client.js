@@ -916,17 +916,52 @@ function handleIncomingMessage(msg, senderConn) {
     handleSabotage(msg.sabType, msg.playerName);
   } else if (msg.type === 'stg1_submit') {
     handleStg1Submit(msg.clueId, msg.playerName);
+  } else if (msg.type === 'stg1_evaluate') {
+    evaluateStg1Batch();
   } else if (msg.type === 'stg2_char') {
     handleStg2Char(msg.char);
+  } else if (msg.type === 'rebuttal_slash') {
+    handleRebuttalSlash(msg.bullet, msg.playerName);
+  } else if (msg.type === 'rebuttal_verdict') {
+    // Rebuttal verdict already handled
+  } else if (msg.type === 'logic_dive_vote') {
+    handleLogicDiveVote(msg.question, msg.choice, msg.voterId, msg.playerName);
+  } else if (msg.type === 'logic_dive_crash') {
+    const crashNotice = document.getElementById('diveCrashNotice');
+    if (crashNotice) {
+      crashNotice.classList.remove('hidden');
+      crashNotice.style.display = 'block';
+      crashNotice.innerText = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${msg.winningChoice}] ซึ่งเป็นทางตัน (-15% Influence)`;
+    }
+  } else if (msg.type === 'logic_dive_retry') {
+    const choicesBox = document.getElementById('diveMobileChoices');
+    const feedback = document.getElementById('diveChoiceFeedback');
+    if (choicesBox) {
+      choicesBox.style.pointerEvents = 'auto';
+      Array.from(choicesBox.children).forEach(b => b.classList.remove('btn-selected'));
+    }
+    if (feedback) feedback.style.display = 'none';
   } else if (msg.type === 'stg5_scrum') {
-    gameState.stg5Meter = Math.max(0, Math.min(100, gameState.stg5Meter + msg.delta));
-    updateScrumDisplay();
+    handleStg5Scrum(msg.delta);
   } else if (msg.type === 'stg6_hit') {
-    gameState.stg6Shield = Math.max(0, gameState.stg6Shield - 15);
-    updateShieldDisplay();
+    handleStg6Hit(msg.playerName);
+  } else if (msg.type === 'stg6_final_blow') {
+    handleStg6FinalBlow(msg.playerName);
+  } else if (msg.type === 'armament_final_ready') {
+    const box = document.getElementById('finalBlowMobileBox');
+    if (box) box.style.display = 'block';
+  } else if (msg.type === 'closing_submit') {
+    handleClosingSubmit(msg.slot, msg.cardId, msg.playerName);
   } else if (msg.type === 'submit_vote') {
-    gameState.votes[msg.candidate] = (gameState.votes[msg.candidate] || 0) + 1;
-    updateVoteDisplay();
+    handleVoteSubmitted(msg.candidate, msg.voterId);
+  } else if (msg.type === 'minigame_result') {
+    showMinigameResult(msg.success, msg.title, msg.desc, msg.details);
+  } else if (msg.type === 'close_minigame_result') {
+    closeCourtResultModal();
+  } else if (msg.type === 'execution_cutscene') {
+    triggerMonokumaExecutionCutscene(msg.isVictory);
+  } else if (msg.type === 'close_execution_cutscene') {
+    closeExecutionModal();
   } else if (msg.type === 'verdict') {
     showVerdict(msg.isVictory);
   } else if (msg.type === 'trigger_fx') {
@@ -1757,6 +1792,8 @@ function splitGraphemes(str) {
 function setStage(stage, config) {
   gameState.stage = stage;
   stopTimer();
+  closeCourtResultModal();
+  closeExecutionModal();
 
   if (stage === 'idle') {
     stopTimer();
@@ -1775,6 +1812,9 @@ function setStage(stage, config) {
     const activePlayerCount = Object.keys(gameState.players).length;
     gameState.stg1Required = Math.max(1, Math.min(3, Math.ceil(activePlayerCount * 0.6)));
     gameState.stg1Submissions = 0;
+    gameState.stg1SubmissionsList = [];
+    gameState.stg1Evaluated = false;
+    updateStg1Display();
     if (config) {
       if (config.prompt) gameState.stg1Prompt = config.prompt;
       if (config.correctClueId) gameState.stg1TargetClue = config.correctClueId;
@@ -1790,10 +1830,12 @@ function setStage(stage, config) {
     gameState.stg2Board = gameState.stg2Target.map(c => c === ' ' ? ' ' : '_');
     gameState.stg2Mistakes = 0;
     gameState.stg2MaxMistakes = 5;
+    gameState.hangmanTurnIdx = 0;
     if (config) {
       if (config.prompt) gameState.stg2Prompt = config.prompt;
     }
     updateHangmanHealthDisplay();
+    updateHangmanDisplay();
     startTimer(75);
     playSfx('gavel');
   } else if (stage === 'stage3') {
@@ -1812,6 +1854,11 @@ function setStage(stage, config) {
     autoUnlockTrialClues();
     gameState.stg4Step = 1;
     gameState.stg4Votes = {};
+    const crashNotice = document.getElementById('diveCrashNotice');
+    if (crashNotice) {
+      crashNotice.classList.add('hidden');
+      crashNotice.style.display = 'none';
+    }
     updateLogicDiveDisplay();
     startTimer(45);
     playSfx('gavel');
@@ -1882,10 +1929,22 @@ function startTimer(duration) {
     } else {
       stopTimer();
       logCourt('⌛ [TIME UP]: หมดเวลาสำหรับการพิจารณาคดีช่วงนี้!');
-      if (gameState.stage === 'stage7' && !gameState.votesRevealed) {
-        revealVotes();
+      if (gameState.stage === 'stage1') {
+        evaluateStg1Batch();
+      } else if (gameState.stage === 'stage2') {
+        showMinigameResult(false, "TIME EXHAUSTED!", "หมดเวลาการถอดรหัสคำศัพท์!", "ศาลไม่สามารถถอดรหัสกลไกได้ทันเวลา (-10% Influence)");
+      } else if (gameState.stage === 'stage3') {
+        showMinigameResult(false, "TIME EXHAUSTED!", "หมดเวลาการดวลดาบคำพูด!", "ผู้เล่นไม่สามารถหักล้างข้อโต้แย้งได้ทันเวลา (-15% Influence)");
       } else if (gameState.stage === 'stage4') {
         evaluateLogicDiveMajority();
+      } else if (gameState.stage === 'stage5') {
+        showMinigameResult(false, "⚖️ ไม่สามารถหาข้อสรุปได้ (STALEMATE)", "หมดเวลาการอภิปราย สองขั้วความคิดติดหล่มโดยไม่มีฝ่ายใดชนะ!", "ต้องอภิปรายเพิ่มเติมเพื่อหาข้อสรุปใหม่");
+      } else if (gameState.stage === 'stage6') {
+        showMinigameResult(false, "TIME EXHAUSTED!", "หมดเวลาการทุบทำลายเกราะการปฏิเสธ!", "คนร้ายสามารถหลบหนีข้อกล่าวหาได้");
+      } else if (gameState.stage === 'closing') {
+        showMinigameResult(false, "TIME EXHAUSTED!", "หมดเวลาการปะติดปะต่อมังงะคดีความ!", "ไม่สามารถสรุปคดีได้ทันเวลา");
+      } else if (gameState.stage === 'stage7' && !gameState.votesRevealed) {
+        revealVotes();
       }
     }
   }, 1000);
@@ -2113,52 +2172,232 @@ function autoUnlockTrialClues() {
 }
 
 // ==========================================================
+// UNIVERSAL MINIGAME FINAL RESULT BANNER & EXECUTION MODALS
+// ==========================================================
+function showMinigameResult(success, title, desc, details) {
+  stopTimer();
+  const modal = document.getElementById('courtResultModal');
+  const card = document.getElementById('courtResultCard');
+  const emblem = document.getElementById('resultEmblem');
+  const badge = document.getElementById('resultBadge');
+  const titleEl = document.getElementById('resultTitle');
+  const descEl = document.getElementById('resultDesc');
+  const detailsEl = document.getElementById('resultDetails');
+
+  if (card) {
+    card.className = 'court-result-card ' + (success ? 'victory' : 'defeat');
+  }
+  if (emblem) emblem.innerText = success ? '🏆' : '💀';
+  if (badge) badge.innerText = success ? 'MINI-GAME CLEARED // ผ่านช่วงอภิปราย' : 'MINI-GAME FAILED // โต้แย้งล้มเหลว';
+  if (titleEl) titleEl.innerText = title || (success ? 'VICTORY' : 'DEFEAT');
+  if (descEl) descEl.innerText = desc || '';
+  if (detailsEl) {
+    if (details) {
+      detailsEl.style.display = 'block';
+      detailsEl.innerHTML = details;
+    } else {
+      detailsEl.style.display = 'none';
+    }
+  }
+
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  }
+
+  if (isHost || currentView === 'court') {
+    playSfx(success ? 'point_break' : 'wrong');
+  }
+
+  if (isHost) {
+    broadcast({
+      type: 'minigame_result',
+      success: success,
+      title: title,
+      desc: desc,
+      details: details
+    });
+  }
+
+  logCourt(`📢 [RESULT]: ${title} - ${success ? 'สำเร็จ' : 'ล้มเหลว'}`);
+}
+
+function closeCourtResultModal() {
+  const modal = document.getElementById('courtResultModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+  if (isHost) broadcast({ type: 'close_minigame_result' });
+}
+
+function triggerMonokumaExecutionCutscene(isVictory) {
+  stopTimer();
+  const modal = document.getElementById('monokumaExecutionModal');
+  const nameEl = document.getElementById('executionCulpritName');
+  const verdictEl = document.getElementById('executionVerdictText');
+  const avatarEl = document.getElementById('executionCulpritAvatar');
+
+  if (nameEl) nameEl.innerText = isVictory ? 'NPC B (สุดยอดนักเอาตัวรอด)' : 'นักเรียนทุกคน (โหวตผิดตัว)';
+  if (avatarEl) avatarEl.innerText = isVictory ? '💀' : '⚡';
+  if (verdictEl) {
+    verdictEl.innerHTML = isVictory
+      ? '<p style="color:#00ff88; font-weight:700; margin-bottom:10px;">ถูกต้อง! คนที่ผูกเงื่อนรัดคอตัวเองจนเกิดอุบัติเหตุคอหักตายคือ B (สุดยอดนักเอาตัวรอด)!</p><p>Monokuma หัวเราะเยาะ A (นักมายากล) ที่แผนการพังไม่เป็นท่า และลากร่างศพของ B ไปประหารซ้ำแบบเย้ยหยัน! ผู้เล่นทุกคนรอดชีวิต แต่ A จะถูกเพื่อนร่วมชั้นเกลียดชังและหวาดระแวงตลอดกาล! (TRUE ENDING)</p>'
+      : '<p style="color:#ff2244; font-weight:700; margin-bottom:10px;">โหวตผิด! Blackened ที่แท้จริงคือ B ไม่ใช่คนอื่น!</p><p>ตามกฎศักดิ์สิทธิ์ของโรงเรียน เมื่อลงคะแนนผิด... นักเรียนทุกคนในห้องพิจารณาคดีจะต้องถูกนำตัวเข้าสู่ลานประหารชีวิตหมู่!! ขอต้อนรับสู่ความสิ้นหวังอย่างสมบูรณ์แบบ! (BAD ENDING)</p>';
+  }
+
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  }
+
+  if (isHost || currentView === 'court') {
+    playSfx('gavel');
+    setTimeout(() => {
+      playSfx(isVictory ? 'laugh' : 'wrong');
+    }, 550);
+  }
+
+  if (isHost) {
+    broadcast({ type: 'execution_cutscene', isVictory: isVictory });
+  }
+}
+
+function closeExecutionModal() {
+  const modal = document.getElementById('monokumaExecutionModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+  if (isHost) broadcast({ type: 'close_execution_cutscene' });
+}
+
+// ==========================================================
 // MINI-GAME SPECIFIC LOGIC
 // ==========================================================
-// 1. Evidence Linker
+
+// 1. Evidence Linker (Batch Evaluation without Premature Reveal)
 function handleStg1Submit(clueId, pName) {
-  const target = gameState.stg1TargetClue || 'EVD-01';
-  if (clueId === target || clueId === 'CORE-01') {
-    gameState.stg1Submissions++;
-    playSfx('correct');
-    const clueObj = ALL_CLUES_DATA.find(c => c.id === clueId);
-    const cName = clueObj ? clueObj.name : clueId;
-    logCourt(`🎯 [TRUTH BULLET]: ${pName} ยิงหลักฐาน '${cName}' เข้าเป้าหมาย!`);
-    updateStg1Display();
-    if (gameState.stg1Submissions >= (gameState.stg1Required || 2)) {
-      logCourt(`✨ [CLEARED]: หักล้างข้ออ้างของคนร้ายสำเร็จ!`);
-      playSfx('point_break');
-    }
+  if (gameState.stg1Evaluated) return;
+  if (!gameState.stg1SubmissionsList) gameState.stg1SubmissionsList = [];
+
+  const existingIdx = gameState.stg1SubmissionsList.findIndex(s => s.pName === pName);
+  if (existingIdx >= 0) {
+    gameState.stg1SubmissionsList[existingIdx].clueId = clueId;
   } else {
-    gameState.influence = Math.max(0, gameState.influence - 10);
-    updateInfluenceDisplay();
-    playSfx('wrong');
-    logCourt(`❌ [OBJECTION FAILED]: ${pName} ยิงหลักฐานผิดใบ (-10% Influence)`);
+    gameState.stg1SubmissionsList.push({ pName: pName, clueId: clueId });
+  }
+
+  playSfx('correct');
+  logCourt(`📥 [EVIDENCE SUBMIT]: ${pName} ได้ส่งหลักฐานเข้าสู่ศาลแล้ว`);
+  updateStg1Display();
+
+  const activeCount = Object.keys(gameState.players || {}).length;
+  if (activeCount > 0 && gameState.stg1SubmissionsList.length >= activeCount) {
+    setTimeout(() => {
+      evaluateStg1Batch();
+    }, 600);
+  } else {
+    if (isHost) broadcast({ type: 'sync_state', state: gameState });
   }
 }
 
 function updateStg1Display() {
   const req = gameState.stg1Required || 2;
   const countEl = document.getElementById('stg1Count');
-  if (countEl) countEl.innerText = gameState.stg1Submissions;
-  
+  const subs = gameState.stg1SubmissionsList || [];
+  if (countEl) countEl.innerText = subs.length;
+
   const container = document.getElementById('stg1SlotsDisplay');
   if (!container) return;
   container.innerHTML = '';
 
   const target = gameState.stg1TargetClue || 'EVD-01';
-  const clueObj = ALL_CLUES_DATA.find(c => c.id === target);
-  const targetName = clueObj ? clueObj.name : target;
 
-  for (let idx = 0; idx < req; idx++) {
-    const el = document.createElement('div');
-    el.className = 'clue-card-placeholder' + (idx < gameState.stg1Submissions ? ' active-match' : '');
-    el.innerText = (idx < gameState.stg1Submissions) ? `✅ [${target}] ${targetName}` : `รอหลักฐานชิ้นที่ ${idx + 1}...`;
-    container.appendChild(el);
+  if (!gameState.stg1Evaluated) {
+    subs.forEach((s, idx) => {
+      const el = document.createElement('div');
+      el.className = 'clue-card-placeholder active-match';
+      el.innerText = `📥 [${idx + 1}] ได้รับหลักฐานแล้วจาก ${s.pName}`;
+      container.appendChild(el);
+    });
+    for (let i = subs.length; i < req; i++) {
+      const el = document.createElement('div');
+      el.className = 'clue-card-placeholder';
+      el.innerText = `รอหลักฐานชิ้นที่ ${i + 1}...`;
+      container.appendChild(el);
+    }
+  } else {
+    subs.forEach((s) => {
+      const isCorrect = (s.clueId === target || s.clueId === 'CORE-01');
+      const cObj = ALL_CLUES_DATA.find(c => c.id === s.clueId);
+      const cName = cObj ? cObj.name : s.clueId;
+      const el = document.createElement('div');
+      el.className = 'clue-card-placeholder ' + (isCorrect ? 'active-match' : 'mismatch');
+      el.innerText = isCorrect ? `✅ [${s.pName}] ${cName}` : `❌ [${s.pName}] ${cName} (ไม่ตรงจุดพิรุธ)`;
+      container.appendChild(el);
+    });
   }
 }
 
-// 2. Hangman's Gambit
+function evaluateStg1Batch() {
+  if (gameState.stg1Evaluated) return;
+  gameState.stg1Evaluated = true;
+  stopTimer();
+
+  const subs = gameState.stg1SubmissionsList || [];
+  const target = gameState.stg1TargetClue || 'EVD-01';
+  let correctCount = 0;
+
+  subs.forEach(s => {
+    if (s.clueId === target || s.clueId === 'CORE-01') {
+      correctCount++;
+    }
+  });
+
+  updateStg1Display();
+
+  const clueObj = ALL_CLUES_DATA.find(c => c.id === target);
+  const targetName = clueObj ? clueObj.name : target;
+
+  if (correctCount >= 1) {
+    showMinigameResult(
+      true,
+      "EVIDENCE LINKED!",
+      `หักล้างข้ออ้างของคนร้ายสำเร็จ! หลักฐานที่ถูกต้องคือ [${target}: ${targetName}]`,
+      `มีนักเรียน ${correctCount} คนส่งหลักฐานถูกต้องตรงเป้าหมาย!`
+    );
+  } else {
+    gameState.influence = Math.max(0, gameState.influence - 15);
+    updateInfluenceDisplay();
+    showMinigameResult(
+      false,
+      "OBJECTION FAILED!",
+      `หลักฐานที่ส่งเข้ามาไม่ตรงกับจุดพิรุธ (-15% Influence)`,
+      `ไม่มีใครส่งหลักฐาน [${target}] เลย ศาลสูญเสียความน่าเชื่อถือ`
+    );
+  }
+
+  if (isHost) broadcast({ type: 'sync_state', state: gameState });
+}
+
+function adminEvaluateStage1() {
+  evaluateStg1Batch();
+  broadcast({ type: 'stg1_evaluate' });
+}
+
+// 2. Hangman's Gambit (Round-robin Turn-based & Word Spacing Fix)
+function getActivePlayersList() {
+  return Object.values(gameState.players || {});
+}
+
+function getActiveHangmanPlayer() {
+  const list = getActivePlayersList();
+  if (!list.length) return null;
+  const idx = (gameState.hangmanTurnIdx || 0) % list.length;
+  return list[idx];
+}
+
 function handleStg2Char(char) {
   let matched = false;
   const upChar = char.toUpperCase();
@@ -2173,8 +2412,13 @@ function handleStg2Char(char) {
     playSfx('correct');
     updateHangmanDisplay();
     if (!gameState.stg2Board.includes('_')) {
-      playSfx('point_break');
-      logCourt(`✨ [HANGMAN SOLVED]: ถอดรหัสคำว่า "${gameState.stg2Target.join('')}" สำเร็จ!`);
+      stopTimer();
+      showMinigameResult(
+        true,
+        "WORD DECODED!",
+        `ถอดรหัสคำว่า "${gameState.stg2Target.join('')}" สำเร็จ!`,
+        "กลไกนาฬิกาน้ำปล่อยน้ำถ่วงรอกถูกเปิดโปงอย่างสมบูรณ์แบบ!"
+      );
     }
   } else {
     gameState.stg2Mistakes = (gameState.stg2Mistakes || 0) + 1;
@@ -2182,7 +2426,22 @@ function handleStg2Char(char) {
     updateInfluenceDisplay();
     updateHangmanHealthDisplay();
     playSfx('wrong');
+
+    if (gameState.stg2Mistakes >= (gameState.stg2MaxMistakes || 5)) {
+      stopTimer();
+      showMinigameResult(
+        false,
+        "INTEGRITY EXHAUSTED!",
+        "ศาลหมดความอดทนจากการเดาผิดพลาดหลายครั้ง!",
+        "ศาลสูญเสียความน่าเชื่อถือ ไม่สามารถถอดรหัสคำศัพท์ได้"
+      );
+    }
   }
+
+  // Advance turn to next player
+  gameState.hangmanTurnIdx = (gameState.hangmanTurnIdx || 0) + 1;
+  updateHangmanDisplay();
+  if (isHost) broadcast({ type: 'sync_state', state: gameState });
 }
 
 function updateHangmanDisplay() {
@@ -2191,10 +2450,24 @@ function updateHangmanDisplay() {
   b.innerHTML = '';
   gameState.stg2Board.forEach(c => {
     const tile = document.createElement('div');
-    tile.className = 'hangman-tile' + (c !== '_' && c !== ' ' ? ' revealed' : '') + (c === ' ' ? ' space' : '');
-    tile.innerText = c;
+    if (c === ' ') {
+      tile.className = 'hangman-tile space';
+      tile.innerHTML = '&nbsp;';
+    } else if (c !== '_') {
+      tile.className = 'hangman-tile revealed';
+      tile.innerText = c;
+    } else {
+      tile.className = 'hangman-tile';
+      tile.innerText = '_';
+    }
     b.appendChild(tile);
   });
+
+  const activeP = getActiveHangmanPlayer();
+  const nameEl = document.getElementById('hangmanActivePlayerName');
+  if (nameEl) {
+    nameEl.innerText = activeP ? `${activeP.name} [${activeP.role}]` : 'กำลังเชื่อมต่อผู้เล่น...';
+  }
 }
 
 function updateHangmanHealthDisplay() {
@@ -2211,26 +2484,56 @@ function handleRebuttalSlash(bulletId, pName) {
   const clue = ALL_CLUES_DATA.find(c => c.id === bulletId) || { name: bulletId || 'กระสุนความจริง' };
   playSfx('blade');
   logCourt(`⚔️ [TRUTH BLADE]: ${pName || 'ผู้เล่น'} กวัดแกว่ง [${clue.name}] เข้าปะทะข้อโต้แย้ง!`);
-}
 
-function adminRebuttalVerdict(isWin) {
-  if (isWin) {
-    playSfx('counter');
+  const slashEl = document.getElementById('rebuttalSlashFx');
+  if (slashEl) {
+    slashEl.classList.remove('hidden');
+    slashEl.style.display = 'flex';
     setTimeout(() => {
-      playSfx('point_break');
-      logCourt(`🏆 [REBUTTAL VICTORY]: ฝั่งผู้เล่นฟันทำลายดาบปฏิเสธของคู่ต่อสู้สำเร็จ! "Sore wa Chigau yo!"`);
-    }, 450);
-    broadcast({ type: 'trigger_fx', fx: 'counter' });
-  } else {
-    gameState.influence = Math.max(0, gameState.influence - 15);
-    updateInfluenceDisplay();
-    playSfx('wrong');
-    logCourt(`💀 [REBUTTAL DEFEAT]: ข้อโต้แย้งของผู้เล่นถูกฟันตกสะบั้น! (-15% Influence)`);
-    broadcast({ type: 'trigger_fx', fx: 'wrong' });
+      slashEl.classList.add('hidden');
+      slashEl.style.display = 'none';
+    }, 700);
   }
 }
 
-// 4. Logic Dive
+function adminRebuttalVerdict(isWin) {
+  stopTimer();
+  if (isWin) {
+    playSfx('counter');
+    setTimeout(() => {
+      showMinigameResult(
+        true,
+        "BLADE OF TRUTH!",
+        "ผู้เล่นฟันทำลายดาบปฏิเสธของคู่ต่อสู้สำเร็จ! 'Sore wa Chigau yo!'",
+        "ข้ออ้างของฝ่ายตรงข้ามถูกหักล้างจนหมดสิ้น!"
+      );
+    }, 400);
+    broadcast({ type: 'rebuttal_verdict', isWin: true });
+  } else {
+    gameState.influence = Math.max(0, gameState.influence - 15);
+    updateInfluenceDisplay();
+    showMinigameResult(
+      false,
+      "REBUTTAL DEFEAT!",
+      "ข้อโต้แย้งของผู้เล่นถูกฟันตกสะบั้น! (-15% Influence)",
+      "ฝ่ายตรงข้ามยังคงยืนกรานข้ออ้างต่อไปได้"
+    );
+    broadcast({ type: 'rebuttal_verdict', isWin: false });
+  }
+}
+
+function adminSelectRebuttalChallenger() {
+  const sel = document.getElementById('adminRebuttalChallengerSelect');
+  if (!sel) return;
+  gameState.stg3Challenger = sel.value;
+  const accuserEl = document.getElementById('rebuttalAccuser');
+  if (accuserEl) {
+    accuserEl.innerText = gameState.stg3Challenger ? `ฝ่ายกล่าวหา (${gameState.stg3Challenger})` : 'ฝ่ายกล่าวหา';
+  }
+  broadcast({ type: 'sync_state', state: gameState });
+}
+
+// 4. Logic Dive (Crash Without Revealing Answer + Admin Retry/Skip)
 const LOGIC_DIVE_DATA = [
   {
     step: 1,
@@ -2246,7 +2549,7 @@ const LOGIC_DIVE_DATA = [
     step: 2,
     question: "เชือกที่ผูกกับถังน้ำขาดสะบั้นออกจากกันได้อย่างไร?",
     choices: {
-      A: "B ใช้มีดปอกผลไม้ตัดเชือกเองจนหลุด",
+      A: "เหยื่อ B ใช้มีดปอกผลไม้ตัดเชือกเองจนหลุด",
       B: "เชือกเปื่อยยุ่ยเพราะถูกน้ำแช่เป็นเวลานาน",
       C: "มีดของคนร้ายบาดขาดระหว่างการต่อสู้"
     },
@@ -2254,7 +2557,7 @@ const LOGIC_DIVE_DATA = [
   },
   {
     step: 3,
-    question: "สาเหตุการเสียชีวิตที่แท้จริงของ B คืออะไร?",
+    question: "สาเหตุการเสียชีวิตที่แท้จริงของเหยื่อ B คืออะไร?",
     choices: {
       A: "จมน้ำขาดอากาศหายใจในถัง",
       B: "ถูกกะโหลกแตกด้วยหม้อสตูว์",
@@ -2271,11 +2574,16 @@ function handleLogicDiveVote(qStep, choice, voterId, pName) {
   
   const count = Object.keys(gameState.stg4Votes).length;
   const tallyEl = document.getElementById('diveVotedCount');
-  if (tallyEl) tallyEl.innerText = count;
+  const totalEl = document.getElementById('diveTotalVoters');
+  const activePlayers = Object.keys(gameState.players || {}).length;
 
-  const activePlayers = Object.keys(gameState.players).length;
+  if (tallyEl) tallyEl.innerText = count;
+  if (totalEl) totalEl.innerText = activePlayers;
+
   if (activePlayers > 0 && count >= activePlayers) {
     evaluateLogicDiveMajority();
+  } else {
+    if (isHost) broadcast({ type: 'sync_state', state: gameState });
   }
 }
 
@@ -2297,37 +2605,77 @@ function evaluateLogicDiveMajority() {
     }
   });
 
-  ['A', 'B', 'C'].forEach(ch => {
-    const lane = document.getElementById('lane' + ch);
-    if (lane) {
-      lane.classList.remove('highlight', 'active-match');
-      if (ch === winningChoice) lane.classList.add('highlight');
-      if (ch === currentData.correct) lane.classList.add('active-match');
-    }
-  });
-
   if (winningChoice === currentData.correct) {
     playSfx('correct');
     logCourt(`✨ [LOGIC DIVE]: มติเสียงข้างมากเลือกข้อ [${winningChoice}] ถูกต้อง! สเก็ตบอร์ดพุ่งทะลวงสู่อุโมงค์ถัดไป`);
+
+    const lane = document.getElementById('lane' + winningChoice);
+    if (lane) lane.classList.add('active-match');
+
     setTimeout(() => {
       gameState.stg4Step++;
       gameState.stg4Votes = {};
       if (gameState.stg4Step > 3) {
-        logCourt(`✨ [LOGIC DIVE CLEAR]: ทะลวงตรรกะจนพบความจริง! B ตัดเชือกและผูกบ่วงคอหักตายเอง!`);
-        playSfx('point_break');
+        stopTimer();
+        showMinigameResult(
+          true,
+          "LOGIC DIVE CLEAR!",
+          "ทะลวงตรรกะจนพบความจริง! B ตัดเชือกและผูกบ่วงคอหักตายเอง!",
+          "เส้นทางความคิดทั้งหมดเชื่อมโยงสู่ข้อสรุปที่แท้จริง!"
+        );
       } else {
         updateLogicDiveDisplay();
+        startTimer(45);
         broadcast({ type: 'sync_state', state: gameState });
       }
     }, 1200);
   } else {
+    // Collision crash - DO NOT reveal the correct answer!
+    stopTimer();
     gameState.influence = Math.max(0, gameState.influence - 15);
     updateInfluenceDisplay();
     playSfx('wrong');
+
+    const crashNotice = document.getElementById('diveCrashNotice');
+    if (crashNotice) {
+      crashNotice.classList.remove('hidden');
+      crashNotice.style.display = 'block';
+      crashNotice.innerText = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${winningChoice}] ซึ่งเป็นทางตัน (-15% Influence)`;
+    }
+
     logCourt(`⚠️ [LOGIC DIVE CRASH]: เสียงข้างมากเลือกข้อ [${winningChoice}] ผิดทาง! ชนผนังอุโมงค์ (-15% Influence)`);
-    gameState.stg4Votes = {};
-    const tallyEl = document.getElementById('diveVotedCount');
-    if (tallyEl) tallyEl.innerText = 0;
+    broadcast({ type: 'logic_dive_crash', winningChoice: winningChoice });
+  }
+}
+
+function adminRetryLogicDive() {
+  gameState.stg4Votes = {};
+  const crashNotice = document.getElementById('diveCrashNotice');
+  if (crashNotice) {
+    crashNotice.classList.add('hidden');
+    crashNotice.style.display = 'none';
+  }
+  updateLogicDiveDisplay();
+  startTimer(40);
+  broadcast({ type: 'logic_dive_retry' });
+  showToast('🔄 ให้โอกาสผู้เล่นคิดและเลือกเส้นทางใหม่');
+}
+
+function adminSkipLogicDive() {
+  gameState.stg4Step++;
+  gameState.stg4Votes = {};
+  const crashNotice = document.getElementById('diveCrashNotice');
+  if (crashNotice) {
+    crashNotice.classList.add('hidden');
+    crashNotice.style.display = 'none';
+  }
+  if (gameState.stg4Step > 3) {
+    stopTimer();
+    showMinigameResult(true, "LOGIC DIVE CLEAR!", "ข้ามจนเสร็จสิ้น Logic Dive!");
+  } else {
+    updateLogicDiveDisplay();
+    startTimer(45);
+    broadcast({ type: 'sync_state', state: gameState });
   }
 }
 
@@ -2349,10 +2697,39 @@ function updateLogicDiveDisplay() {
   });
 
   const tallyEl = document.getElementById('diveVotedCount');
+  const totalEl = document.getElementById('diveTotalVoters');
+  const activePlayers = Object.keys(gameState.players || {}).length;
+
   if (tallyEl) tallyEl.innerText = Object.keys(gameState.stg4Votes || {}).length;
+  if (totalEl) totalEl.innerText = activePlayers;
 }
 
-// 5. Debate Scrum
+// 5. Debate Scrum (Auto-Conclude at 100% or 0%)
+function handleStg5Scrum(delta) {
+  gameState.stg5Meter = Math.max(0, Math.min(100, gameState.stg5Meter + delta));
+  updateScrumDisplay();
+
+  if (gameState.stg5Meter >= 100) {
+    stopTimer();
+    showMinigameResult(
+      true,
+      "SCRUM VICTORY!",
+      "ฝ่ายความจริงผลักดันข้อโต้แย้งสำเร็จ 100%!",
+      "ข้อโต้แย้งของฝ่ายตรงข้ามถูกดันจนมุมสิ้นเชิง!"
+    );
+  } else if (gameState.stg5Meter <= 0) {
+    stopTimer();
+    gameState.influence = Math.max(0, gameState.influence - 20);
+    updateInfluenceDisplay();
+    showMinigameResult(
+      false,
+      "SCRUM DEFEAT!",
+      "ฝ่ายคนร้ายกลืนกินข้อโต้แย้งจนหมดสิ้น! (-20% Influence)",
+      "ศาลถูกชักจูงไปในทางที่ผิดพลาด"
+    );
+  }
+}
+
 function updateScrumDisplay() {
   const fill = document.getElementById('courtScrumFill');
   if (fill) fill.style.width = `${gameState.stg5Meter}%`;
@@ -2383,12 +2760,20 @@ function handleStg6Hit(pName) {
 }
 
 function handleStg6FinalBlow(pName) {
+  stopTimer();
   playSfx('counter');
   setTimeout(() => {
     playSfx('point_break');
     logCourt(`🎯 [FINAL TRUTH BULLET]: ${pName || 'ผู้เล่น'} ลั่นไก [มีดปอกผลไม้ในมือ B] ปิดฉากการปฏิเสธของคนร้าย!`);
     const scream = document.getElementById('culpritScreamText');
     if (scream) scream.innerText = `"อ๊ากกกกกกกกกกก!! แผนการของฉัน... พังหมดแล้ว...!!"`;
+
+    showMinigameResult(
+      true,
+      "ARMAMENT BREAK!",
+      "กระสุนความจริงนัดสุดท้ายเจาะทะลวงหัวใจคนร้าย ปิดฉากการปฏิเสธสิ้นเชิง!",
+      `${pName || 'ผู้เล่น'} ลั่นไก [มีดปอกผลไม้ในมือ B] ปิดฉากการดิ้นรนของคนร้าย!`
+    );
   }, 400);
 }
 
@@ -2406,23 +2791,29 @@ function handleClosingSubmit(slot, cardId, pName) {
   if (!gameState.closingSlots) gameState.closingSlots = { 1: false, 2: false };
   let correct = false;
 
-  if (slot === 1 && (cardId === 'EVD-14' || cardId === 'ACTION-CUT')) {
+  if (slot == 1 && (cardId === 'EVD-14' || cardId === 'ACTION-CUT')) {
     gameState.closingSlots[1] = true;
     correct = true;
-    logCourt(`📖 [CLOSING ACT 3]: ${pName} เติมมังงะช่องที่ 1 สำเร็จ! "B ฟื้นสติและใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง"`);
-  } else if (slot === 2 && (cardId === 'EVD-11' || cardId === 'ACTION-NOOSE')) {
+    logCourt(`📖 [CLOSING ACT 3]: ${pName} เติมมังงะช่องที่ 1 สำเร็จ! "เหยื่อ B ฟื้นสติและใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง"`);
+  } else if (slot == 2 && (cardId === 'EVD-11' || cardId === 'ACTION-NOOSE')) {
     gameState.closingSlots[2] = true;
     correct = true;
-    logCourt(`📖 [CLOSING ACT 4]: ${pName} เติมมังงะช่องที่ 2 สำเร็จ! "B นำบ่วงเชือกมาคล้องคอตนเองเพื่อจัดฉากกลั่นแกล้ง"`);
+    logCourt(`📖 [CLOSING ACT 4]: ${pName} เติมมังงะช่องที่ 2 สำเร็จ! "เหยื่อ B นำบ่วงเชือกมาคล้องคอตนเองเพื่อจัดฉากกลั่นแกล้ง"`);
   }
 
   if (correct) {
     playSfx('correct');
     updateClosingDisplay();
     if (gameState.closingSlots[1] && gameState.closingSlots[2]) {
+      stopTimer();
       setTimeout(() => {
         playSfx('point_break');
-        logCourt(`✨ [CLOSING ARGUMENT COMPLETE]: ลำดับเหตุการณ์มังงะสมบูรณ์แบบ 100%! ความจริงทั้งหมดกระจ่างแจ้งแล้ว!`);
+        showMinigameResult(
+          true,
+          "CLOSING ARGUMENT COMPLETE!",
+          "การปะติดปะต่อลำดับเหตุการณ์มังงะคดีความสมบูรณ์แบบ 100%!",
+          "เรื่องราวทั้งหมดของคดีถูกคลี่คลายอย่างสมบูรณ์แบบ!"
+        );
       }, 500);
     }
     broadcast({ type: 'sync_state', state: gameState });
@@ -2443,7 +2834,7 @@ function updateClosingDisplay() {
       const art = document.getElementById('mangaSlot1Art');
       const desc = document.getElementById('mangaSlot1Desc');
       if (art) art.innerText = '🔪';
-      if (desc) desc.innerText = 'B ฟื้นสติขึ้นมา และใช้มีดปอกผลไม้ในกระเป๋าตัดเชือกที่มัดมือออกเองจนหลุด!';
+      if (desc) desc.innerText = 'เหยื่อ B ฟื้นสติขึ้นมา และใช้มีดปอกผลไม้ในกระเป๋าตัดเชือกที่มัดมือออกเองจนหลุด!';
     }
   }
   if (gameState.closingSlots && gameState.closingSlots[2]) {
@@ -2452,12 +2843,30 @@ function updateClosingDisplay() {
       const art = document.getElementById('mangaSlot2Art');
       const desc = document.getElementById('mangaSlot2Desc');
       if (art) art.innerText = '🪢';
-      if (desc) desc.innerText = 'B ผูกบ่วงเชือกเส้นใหม่มาคล้องคอตนเอง หวังจัดฉากฆาตกรรมกลั่นแกล้งคนอื่น!';
+      if (desc) desc.innerText = 'เหยื่อ B ผูกบ่วงเชือกเส้นใหม่มาคล้องคอตนเอง หวังจัดฉากฆาตกรรมกลั่นแกล้งคนอื่น!';
     }
   }
 }
 
 // 8. Voting & Verdict
+function handleVoteSubmitted(candidate, voterId) {
+  if (!gameState.votesCast) gameState.votesCast = {};
+  gameState.votesCast[voterId] = true;
+  gameState.votes[candidate] = (gameState.votes[candidate] || 0) + 1;
+  updateVoteDisplay();
+
+  const activeCount = Object.keys(gameState.players || {}).length;
+  const castCount = Object.keys(gameState.votesCast).length;
+
+  if (activeCount > 0 && castCount >= activeCount) {
+    setTimeout(() => {
+      revealVotes();
+    }, 800);
+  } else {
+    if (isHost) broadcast({ type: 'sync_state', state: gameState });
+  }
+}
+
 function updateVoteDisplay() {
   const container = document.getElementById('courtVoteResults');
   const suspenseBox = document.getElementById('votingSuspenseCard');
@@ -2465,7 +2874,7 @@ function updateVoteDisplay() {
   const votesCastCountEl = document.getElementById('votesCastCount');
   const votesExpectedCountEl = document.getElementById('votesExpectedCount');
 
-  const activePlayers = Object.keys(gameState.players).length;
+  const activePlayers = Object.keys(gameState.players || {}).length;
   const votesCastCount = Object.keys(gameState.votesCast || {}).length;
 
   if (votesCastCountEl) votesCastCountEl.innerText = votesCastCount;
@@ -2507,27 +2916,7 @@ function adminRevealVotes() {
 }
 
 function showVerdict(isVictory) {
-  setStage('verdict');
-  const title = document.getElementById('verdictHeadline');
-  const body = document.getElementById('verdictDetails');
-
-  if (isVictory) {
-    title.className = 'verdict-headline win';
-    title.innerText = '✨ TRUE ENDING: EVERYONE SURVIVES!';
-    body.innerHTML = `
-      <p style="color:#00ff88; font-weight:700; margin-bottom:15px;">ถูกต้อง! คนที่ผูกเงื่อนรัดคอตัวเองจนเกิดอุบัติเหตุคอหักตายคือ B (สุดยอดนักเอาตัวรอด)!</p>
-      <p>Monokuma หัวเราะเยาะ A (นักมายากล) ที่แผนการพังไม่เป็นท่า และลากร่างศพของ B ไปประหารซ้ำแบบเย้ยหยัน! ผู้เล่นทุกคนรอดชีวิต แต่ A จะถูกเพื่อนร่วมชั้นเกลียดชังและหวาดระแวงตลอดกาล!</p>
-    `;
-    playSfx('correct');
-  } else {
-    title.className = 'verdict-headline lose';
-    title.innerText = '💀 BAD ENDING: TOTAL EXECUTION!';
-    body.innerHTML = `
-      <p style="color:#ff2244; font-weight:700; margin-bottom:15px;">โหวตผิด! Blackened ที่แท้จริงคือ B ไม่ใช่ A!</p>
-      <p>ตามกฎศักดิ์สิทธิ์ของโรงเรียน เมื่อลงคะแนนผิด... นักเรียนทุกคนในห้องพิจารณาคดีจะต้องถูกนำตัวเข้าสู่ลานประหารชีวิตหมู่!! ขอต้อนรับสู่ความสิ้นหวังอย่างสมบูรณ์แบบ!</p>
-    `;
-    playSfx('wrong');
-  }
+  triggerMonokumaExecutionCutscene(isVictory);
 }
 
 // ==========================================================
@@ -2675,6 +3064,9 @@ function renderMobileTask(stage) {
       </div>
     `;
   } else if (stage === 'stage2') {
+    const activeP = getActiveHangmanPlayer();
+    const isMyTurn = (!activeP || (myPlayer && myPlayer.id === activeP.id));
+
     // English A-Z Keyboard Layout (QWERTY)
     const row1 = ['Q','W','E','R','T','Y','U','I','O','P'];
     const row2 = ['A','S','D','F','G','H','J','K','L'];
@@ -2682,12 +3074,17 @@ function renderMobileTask(stage) {
 
     const renderRow = (letters) => `
       <div style="display:flex; justify-content:center; gap:5px; margin-bottom:6px;">
-        ${letters.map(ch => `<button class="p-task-btn letter-btn" style="min-width:30px; padding:8px 4px; font-weight:900; font-size:1rem;" onclick="sendStg2Char('${ch}')">${ch}</button>`).join('')}
+        ${letters.map(ch => `<button class="p-task-btn letter-btn" style="min-width:30px; padding:8px 4px; font-weight:900; font-size:1rem; opacity: ${isMyTurn ? '1' : '0.35'};" ${isMyTurn ? '' : 'disabled'} onclick="sendStg2Char('${ch}')">${ch}</button>`).join('')}
       </div>
     `;
 
+    const turnNotice = isMyTurn
+      ? `<div style="background:rgba(0,255,136,0.15); border:1px solid #00ff88; color:#00ff88; padding:8px 12px; border-radius:8px; font-weight:900; margin-bottom:10px;">👉 ถึงตาคุณแล้ว! กดเลือกตัวอักษร 1 ตัวเพื่อทายคำ:</div>`
+      : `<div style="background:rgba(255,230,0,0.1); border:1px solid #ffe600; color:#ffe600; padding:8px 12px; border-radius:8px; font-weight:700; margin-bottom:10px;">⏳ รอคุณ [${activeP ? activeP.name : 'เพื่อน'}] กำลังเลือกตัวอักษร...</div>`;
+
     area.innerHTML = `
-      <h3 style="color:var(--court-gold); margin-bottom:10px; font-weight:900;">ถอดรหัสคำศัพท์ภาษาอังกฤษ (A - Z):</h3>
+      <h3 style="color:var(--court-gold); margin-bottom:8px; font-weight:900;">Hangman's Gambit: ถอดรหัสคำศัพท์</h3>
+      ${turnNotice}
       <div class="hangman-keyboard-container" style="max-width:420px; margin:0 auto;">
         ${renderRow(row1)}
         ${renderRow(row2)}
@@ -2695,33 +3092,44 @@ function renderMobileTask(stage) {
       </div>
     `;
   } else if (stage === 'stage3') {
-    const activeBullets = (gameState.discoveredClues && gameState.discoveredClues.length) ? gameState.discoveredClues : ['CORE-01', 'EVD-01', 'EVD-04', 'EVD-14'];
-    let bulletOptions = activeBullets.map(cid => {
-      const c = ALL_CLUES_DATA.find(x => x.id === cid) || { id: cid, name: cid };
-      return `<option value="${c.id}">[${c.id}] ${c.name}</option>`;
-    }).join('');
+    if (gameState.stg3Challenger && myPlayer && myPlayer.name !== gameState.stg3Challenger) {
+      area.innerHTML = `
+        <div style="background:rgba(20,20,35,0.95); border:2px solid var(--mono-pink); border-radius:10px; padding:20px; text-align:center;">
+          <div style="font-size:3rem; margin-bottom:10px;">⚔️</div>
+          <h3 style="color:var(--mono-pink); font-weight:900;">การดวลดาบคำพูด (Rebuttal Showdown)</h3>
+          <p style="color:#ddd; font-size:0.95rem; margin-top:8px;">คุณ <strong style="color:var(--court-gold);">${gameState.stg3Challenger}</strong> กำลังดวลดาบความจริงกับฝ่ายตรงข้าม!</p>
+          <p style="color:#888; font-size:0.85rem; margin-top:12px;">จับตาดูการฟันฝ่าและลุ้นผลลัพธ์บนจอใหญ่ศาลชั้นเรียน...</p>
+        </div>
+      `;
+    } else {
+      const activeBullets = (gameState.discoveredClues && gameState.discoveredClues.length) ? gameState.discoveredClues : ['CORE-01', 'EVD-01', 'EVD-04', 'EVD-14'];
+      let bulletOptions = activeBullets.map(cid => {
+        const c = ALL_CLUES_DATA.find(x => x.id === cid) || { id: cid, name: cid };
+        return `<option value="${c.id}">[${c.id}] ${c.name}</option>`;
+      }).join('');
 
-    area.innerHTML = `
-      <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">ดวลดาบคำพูด (Rebuttal Showdown)!</h3>
-      <div style="margin-bottom:12px; text-align:left;">
-        <label style="font-size:0.85rem; color:#aaa; font-weight:700; display:block; margin-bottom:4px;">เลือกกระสุนความจริงที่ถือดาบเข้าปะทะ:</label>
-        <select id="rebuttalEquippedBullet" style="width:100%; background:#1a1a2e; color:#fff; border:2px solid var(--mono-pink); padding:8px; border-radius:6px;">
-          ${bulletOptions}
-        </select>
-      </div>
-      <button class="p-task-btn big-action-btn" style="background:#3b141b; border: 3px solid var(--mono-pink); box-shadow: 4px 4px 0 #000;" onclick="sendRebuttalSlash()">
-        ⚔️ ฟันดาบความจริง! (Truth Blade Slash)
-      </button>
-    `;
+      area.innerHTML = `
+        <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">⚔️ คุณคือนักดาบผู้ท้าชิง (Rebuttal Duelist)!</h3>
+        <div style="margin-bottom:12px; text-align:left;">
+          <label style="font-size:0.85rem; color:#aaa; font-weight:700; display:block; margin-bottom:4px;">เลือกกระสุนความจริงที่ถือดาบเข้าปะทะ:</label>
+          <select id="rebuttalEquippedBullet" style="width:100%; background:#1a1a2e; color:#fff; border:2px solid var(--mono-pink); padding:8px; border-radius:6px;">
+            ${bulletOptions}
+          </select>
+        </div>
+        <button class="p-task-btn big-action-btn" style="background:#3b141b; border: 3px solid var(--mono-pink); box-shadow: 4px 4px 0 #000;" onclick="sendRebuttalSlash()">
+          ⚔️ ฟันฝ่าข้อโต้แย้ง! (Truth Blade Slash)
+        </button>
+      `;
+    }
   } else if (stage === 'stage4') {
     const currentData = LOGIC_DIVE_DATA.find(d => d.step === gameState.stg4Step) || LOGIC_DIVE_DATA[0];
     area.innerHTML = `
       <h3 style="color:var(--court-gold); margin-bottom:10px; font-weight:900;">Logic Dive: เลือกทางแยกตรรกะ!</h3>
       <p style="font-size:0.9rem; color:#ddd; margin-bottom:12px;">${currentData.question}</p>
       <div class="mobile-task-grid" id="diveMobileChoices">
-        <button class="p-task-btn" onclick="sendLogicDiveChoice('A')"><strong>A:</strong> ${currentData.choices.A}</button>
-        <button class="p-task-btn" onclick="sendLogicDiveChoice('B')"><strong>B:</strong> ${currentData.choices.B}</button>
-        <button class="p-task-btn" onclick="sendLogicDiveChoice('C')"><strong>C:</strong> ${currentData.choices.C}</button>
+        <button class="p-task-btn" data-choice="A" onclick="sendLogicDiveChoice('A')"><strong>A:</strong> ${currentData.choices.A}</button>
+        <button class="p-task-btn" data-choice="B" onclick="sendLogicDiveChoice('B')"><strong>B:</strong> ${currentData.choices.B}</button>
+        <button class="p-task-btn" data-choice="C" onclick="sendLogicDiveChoice('C')"><strong>C:</strong> ${currentData.choices.C}</button>
       </div>
       <div id="diveChoiceFeedback" style="display:none; margin-top:12px; color:#ffe600; font-weight:700;">
         ⏳ ส่งเสียงโหวตเส้นทางแล้ว รอสรุปมติพร้อมกัน!
@@ -2752,13 +3160,25 @@ function renderMobileTask(stage) {
       </div>
     `;
   } else if (stage === 'closing') {
-    const cards = [
-      { id: 'EVD-14', title: 'B ใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง' },
-      { id: 'EVD-11', title: 'B นำบ่วงเชือกมาคล้องคอตนเองเพื่อจัดฉากกลั่นแกล้ง' },
-      { id: 'ACT-ESCAPE', title: 'B วิ่งหนีขึ้นบันไดไปตามคนมาช่วย' },
+    const allCards = [
+      { id: 'EVD-14', title: 'เหยื่อ B ฟื้นสติและใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง' },
+      { id: 'EVD-11', title: 'เหยื่อ B นำบ่วงเชือกมาคล้องคอตนเองเพื่อจัดฉากกลั่นแกล้ง' },
+      { id: 'ACT-ESCAPE', title: 'เหยื่อ B วิ่งหนีขึ้นบันไดไปตามคนมาช่วย' },
       { id: 'ACT-CHECK', title: 'คนร้ายกลับมาที่ห้องซักรีดเพื่อตรวจผลงาน' }
     ];
-    let cardButtons = cards.map(c => `
+
+    const playersList = getActivePlayersList();
+    let myCards = allCards;
+    if (playersList.length >= 2 && myPlayer) {
+      const myIdx = playersList.findIndex(p => p.id === myPlayer.id);
+      if (myIdx === 0) {
+        myCards = [allCards[0], allCards[2]];
+      } else if (myIdx === 1) {
+        myCards = [allCards[1], allCards[3]];
+      }
+    }
+
+    let cardButtons = myCards.map(c => `
       <div style="background:#19192b; border:2px solid #444; border-radius:8px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
         <span style="font-size:0.85rem; color:#fff; text-align:left;">${c.title}</span>
         <div style="display:flex; gap:4px;">
@@ -2812,8 +3232,19 @@ function sendLogicDiveChoice(ch) {
   });
   const choicesBox = document.getElementById('diveMobileChoices');
   const feedback = document.getElementById('diveChoiceFeedback');
-  if (choicesBox) choicesBox.style.pointerEvents = 'none';
-  if (feedback) feedback.style.display = 'block';
+  if (choicesBox) {
+    Array.from(choicesBox.children).forEach(b => {
+      b.classList.remove('btn-selected');
+      if (b.getAttribute('data-choice') === ch) {
+        b.classList.add('btn-selected');
+      }
+    });
+    choicesBox.style.pointerEvents = 'none';
+  }
+  if (feedback) {
+    feedback.style.display = 'block';
+    feedback.innerHTML = `✅ เลือกข้อ [${ch}] เรียบร้อยแล้ว (รอผลมติพร้อมเพื่อน)`;
+  }
 }
 
 function sendClosingCard(slot, cardId) {
@@ -2993,10 +3424,23 @@ function triggerFx(fx) {
 function updateAdminDisplay() {
   const table = document.getElementById('adminPlayerTable');
   const cnt = document.getElementById('adminPlayerCount');
+  const rebSel = document.getElementById('adminRebuttalChallengerSelect');
   if (!table || !cnt) return;
   table.innerHTML = '';
   const players = Object.values(gameState.players);
   cnt.innerText = players.length;
+
+  if (rebSel) {
+    const currentVal = rebSel.value;
+    rebSel.innerHTML = '<option value="">(ทุกคนในห้อง / อิสระ)</option>';
+    players.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.innerText = `${p.name} [${p.role}]`;
+      if (p.name === currentVal) opt.selected = true;
+      rebSel.appendChild(opt);
+    });
+  }
 
   players.forEach(p => {
     const row = document.createElement('div');

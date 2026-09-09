@@ -326,6 +326,9 @@
         <div class="slanted-banner cyan">MINI-GAME 2: HANGMAN'S GAMBIT</div>
         <h2 class="riddle-title">"ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!"</h2>
         <div class="game-instruction">ผู้เล่นช่วยกันกดเลือกตัวอักษรภาษาอังกฤษ (A-Z) บนมือถือมาประกอบเป็นคำสำคัญ!</div>
+        <div class="hangman-turn-indicator" id="hangmanTurnBadge" style="margin: 10px 0; color: #ffe600; font-weight: 900; font-size: 1.1rem; background: rgba(255,230,0,0.1); padding: 6px 16px; border-radius: 20px; display: inline-block; border: 1px solid #ffe600;">
+          🎯 เทิร์นของ: <span id="hangmanActivePlayerName">กำลังเชื่อมต่อผู้เล่น...</span>
+        </div>
         <div class="hangman-status-bar">
           <div class="hangman-integrity-label">INTEGRITY (ความอดทนของศาล): <span id="hangmanHealthTxt">5 / 5</span></div>
           <div class="hangman-health-track"><div id="hangmanHealthFill" class="hangman-health-fill" style="width:100%;"></div></div>
@@ -334,7 +337,7 @@
       </div>
 
       <!-- STAGE 3: REBUTTAL SHOWDOWN (ดวลดาบคำพูด) -->
-      <div id="courtStage3" class="court-box hidden">
+      <div id="courtStage3" class="court-box hidden" style="position: relative;">
         <div class="slanted-banner red">MINI-GAME 3: REBUTTAL SHOWDOWN</div>
         <div class="rebuttal-arena">
           <div class="fighter-card left">
@@ -352,6 +355,10 @@
         <div class="rebuttal-quote" id="rebuttalStatement">
           "ฉันอยู่แต่ในครัวตลอดเวลา จะไปเอาเวลาที่ไหนไปทำร้ายหมอนั่นได้!?"
         </div>
+        <div id="rebuttalSlashFx" class="rebuttal-slash-fx hidden" style="display:none;">
+          <div class="slash-line"></div>
+          <div class="slash-text">BLADE OF TRUTH!</div>
+        </div>
       </div>
 
       <!-- STAGE 4: LOGIC DIVE (สเก็ตบอร์ดดำดิ่งตรรกะ) -->
@@ -368,7 +375,10 @@
             <div class="choice-lane" id="laneC"><strong>C:</strong> <span class="choice-text">มีคนแอบนำก้อนน้ำแข็งมาวาง</span></div>
           </div>
           <div id="diveVoteTally" class="dive-vote-tally">
-            ⏳ รอผลการลงมติเส้นทางจากนักเรียนทุกคน... (<span id="diveVotedCount">0</span> คนเลือกแล้ว)
+            ⏳ รอผลการลงมติเส้นทางจากนักเรียนทุกคน... (<span id="diveVotedCount">0</span> / <span id="diveTotalVoters">0</span> คนเลือกแล้ว)
+          </div>
+          <div id="diveCrashNotice" class="dive-crash-box hidden" style="display:none; background: rgba(255, 34, 68, 0.2); border: 2px solid #ff2244; color: #ff2244; padding: 10px; border-radius: 8px; font-weight: 900; margin-top: 10px;">
+            💥 ชนผนังอุโมงค์! เส้นทางนี้เป็นทางตัน (-15% Influence)
           </div>
         </div>
       </div>
@@ -426,13 +436,13 @@
             <div class="panel-num">ACT 1</div>
             <div class="panel-tag">17:30 น.</div>
             <div class="panel-art">🍲</div>
-            <div class="panel-desc">นักมายากลเตรียมหม้อสตูว์ในครัว และแอบผูกกลไกถังน้ำถ่วงน้ำหนักในห้องซักรีด</div>
+            <div class="panel-desc">คนร้ายเตรียมหม้อสตูว์ในครัว และแอบผูกกลไกถังน้ำถ่วงน้ำหนักในห้องซักรีด</div>
           </div>
           <div class="manga-panel complete">
             <div class="panel-num">ACT 2</div>
             <div class="panel-tag">18:00 น.</div>
             <div class="panel-art">💥</div>
-            <div class="panel-desc">B เดินลงมาที่ห้องซักรีด ถูกดักทำร้ายด้วยหม้อสตูว์จนสลบและถูกจับมัดไว้กับกลไก</div>
+            <div class="panel-desc">เหยื่อ B เดินลงมาที่ห้องซักรีด ถูกดักทำร้ายด้วยหม้อสตูว์จนสลบและถูกจับมัดไว้กับกลไก</div>
           </div>
           <div class="manga-panel missing" id="mangaSlot1">
             <div class="panel-num">ACT 3</div>
@@ -450,7 +460,7 @@
             <div class="panel-num">ACT 5</div>
             <div class="panel-tag">21:00 น.</div>
             <div class="panel-art">⌛</div>
-            <div class="panel-desc">น้ำไหลเต็มถัง ดึงกลไกรอกจน B คอหักเสียชีวิตจากการกระทำสุดท้ายของตนเอง!</div>
+            <div class="panel-desc">น้ำไหลเต็มถัง ดึงกลไกรอกจนเหยื่อ B คอหักเสียชีวิตจากการกระทำสุดท้ายของตนเอง!</div>
           </div>
         </div>
       </div>
@@ -479,6 +489,53 @@
       <div id="courtVerdict" class="court-box hidden">
         <h1 id="verdictHeadline" class="verdict-headline">VERDICT REACHED</h1>
         <div id="verdictDetails" class="verdict-body"></div>
+      </div>
+
+      <!-- UNIVERSAL MINIGAME FINAL RESULT MODAL OVERLAY -->
+      <div id="courtResultModal" class="court-result-overlay hidden" style="display:none;">
+        <div class="court-result-card" id="courtResultCard">
+          <div class="result-emblem" id="resultEmblem">🏆</div>
+          <div class="result-badge-strip" id="resultBadge">MINI-GAME CLEARED</div>
+          <h1 class="result-title" id="resultTitle">VICTORY</h1>
+          <p class="result-desc" id="resultDesc">คำอธิบายผลลัพธ์มินิเกม</p>
+          <div class="result-details-box" id="resultDetails" style="display:none;"></div>
+          <div class="result-actions">
+            <button class="small-btn yellow" onclick="closeCourtResultModal()" style="font-weight:900; padding:8px 20px;">✕ ปิดหน้าต่างนี้</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MONOKUMA PUNISHMENT EXECUTION CUTSCENE -->
+      <div id="monokumaExecutionModal" class="execution-cutscene-overlay hidden" style="display:none;">
+        <div class="execution-siren-light"></div>
+        <div class="execution-content-box">
+          <div class="execution-top-banner">
+            <span class="slanted-banner pink" style="font-size:1.1rem; padding:6px 20px;">DANGANRONPA EXECUTION</span>
+          </div>
+          <h1 class="punishment-headline">PUNISHMENT TIME</h1>
+          <div class="punishment-sub">ถึงเวลาลงทัณฑ์แห่งความสิ้นหวัง... อุปุ๊ปุ๊!</div>
+          
+          <div class="guilty-stamp-container">
+            <div id="guiltyStamp" class="guilty-rubber-stamp">
+              GUILTY
+              <span class="stamp-sub">มีความผิดจริง</span>
+            </div>
+          </div>
+
+          <div class="culprit-reveal-card" id="executionCulpritCard">
+            <div class="culprit-avatar" id="executionCulpritAvatar">💀</div>
+            <div class="culprit-info">
+              <h2 id="executionCulpritName" style="color:var(--court-gold); margin:0 0 6px 0;">???</h2>
+              <div id="executionVerdictText" style="color:#ddd; font-size:1rem; line-height:1.5;"></div>
+            </div>
+          </div>
+
+          <div class="execution-actions">
+            <button class="small-btn red" onclick="closeExecutionModal()" style="font-weight:900; padding:10px 24px; font-size:1rem;">
+              🏛️ สิ้นสุดการลงทัณฑ์ & กลับสู่ศาล
+            </button>
+          </div>
+        </div>
       </div>
 
     </section>
@@ -539,32 +596,53 @@
               <strong>⚖️ Class Trial (ศาลชั้นเรียน - ช่วงอภิปราย & ไต่สวนทั่วไป)</strong>
               <span>เปิดศาลให้นักเรียนทุกคนอภิปรายถกเถียงอย่างอิสระบนโพเดียม (ยังไม่เริ่มมินิเกม)</span>
             </button>
-            <button class="dm-act-btn pink" onclick="adminSetGame('stage1')">
-              <strong>1. Evidence Linker</strong>
-              <span>ทลายข้ออ้างอาวุธสตูว์</span>
-            </button>
+            <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
+              <button class="dm-act-btn pink" onclick="adminSetGame('stage1')" style="width:100%;">
+                <strong>1. Evidence Linker</strong>
+                <span>ทลายข้ออ้างอาวุธสตูว์</span>
+              </button>
+              <button class="small-btn yellow" onclick="adminEvaluateStage1()" style="padding:6px; font-weight:900; font-size:0.82rem; background:rgba(255,230,0,0.15); border:1px solid #ffe600;">
+                🔍 ตรวจสอบและเฉลยคำตอบ (Batch Review)
+              </button>
+            </div>
             <button class="dm-act-btn cyan" onclick="adminSetGame('stage2')">
               <strong>2. Hangman's Gambit</strong>
               <span>ถอดรหัสคำ "WATER CLOCK"</span>
             </button>
-            <div class="dm-combo-block" style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:6px;">
+            <div class="dm-combo-block" style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:6px; background:rgba(255,0,85,0.06); padding:8px; border:1px solid var(--mono-pink); border-radius:8px;">
               <button class="dm-act-btn red" onclick="adminSetGame('stage3')" style="width:100%;">
                 <strong>3. Rebuttal Showdown</strong>
-                <span>ดวลดาบคำพูด 1 ต่อ 1 กับนักมายากล</span>
+                <span>ดวลดาบคำพูด 1 ต่อ 1 กับฝ่ายตรงข้าม</span>
               </button>
+              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; font-size:0.8rem; color:#ccc;">
+                <span>ผู้ท้าชิง (PC):</span>
+                <select id="adminRebuttalChallengerSelect" onchange="adminSelectRebuttalChallenger()" style="background:#111; color:#fff; border:1px solid #666; padding:3px 6px; border-radius:4px; font-size:0.8rem;">
+                  <option value="">(ทุกคนในห้อง / อิสระ)</option>
+                </select>
+              </div>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                 <button class="small-btn green" onclick="adminRebuttalVerdict(true)" style="padding:8px; font-weight:900; font-size:0.85rem;">
                   🏆 ฝั่งผู้เล่นชนะ (Break Blade)
                 </button>
                 <button class="small-btn red" onclick="adminRebuttalVerdict(false)" style="padding:8px; font-weight:900; font-size:0.85rem;">
-                  💀 คนร้ายฟันตรรกะตก (Fail)
+                  💀 ดวลล้มเหลว (Fail)
                 </button>
               </div>
             </div>
-            <button class="dm-act-btn purple" onclick="adminSetGame('stage4')">
-              <strong>4. Logic Dive</strong>
-              <span>สเก็ตบอร์ดดำดิ่งตรรกะ 3 ด่าน (Blind Vote)</span>
-            </button>
+            <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
+              <button class="dm-act-btn purple" onclick="adminSetGame('stage4')" style="width:100%;">
+                <strong>4. Logic Dive</strong>
+                <span>สเก็ตบอร์ดดำดิ่งตรรกะ 3 ด่าน (Blind Vote)</span>
+              </button>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                <button class="small-btn yellow" onclick="adminRetryLogicDive()" style="padding:6px; font-weight:900; font-size:0.8rem;">
+                  🔄 ให้โอกาสคิดใหม่ (Retry)
+                </button>
+                <button class="small-btn cyan" onclick="adminSkipLogicDive()" style="padding:6px; font-weight:900; font-size:0.8rem;">
+                  ⏭️ ข้ามไปข้อถัดไป (Skip)
+                </button>
+              </div>
+            </div>
             <button class="dm-act-btn green" onclick="adminSetGame('stage5')">
               <strong>5. Debate Scrum</strong>
               <span>ศึก 2 ขั้ว: โหวต A vs B (Auto-Conclude)</span>

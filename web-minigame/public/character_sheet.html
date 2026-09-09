@@ -20,7 +20,7 @@
     }
 
     body {
-      background-color: #0f1017;
+      background-color: #0b0c13;
       color: #111;
       font-family: 'Kanit', sans-serif;
       line-height: 1.25;
@@ -31,15 +31,15 @@
     .screen-toolbar {
       max-width: 210mm;
       margin: 0 auto 20px auto;
-      background: #171822;
+      background: linear-gradient(135deg, #161726 0%, #1a1528 100%);
       border: 2px solid #ff0055;
       border-radius: 8px;
       padding: 14px 18px;
-      box-shadow: 0 4px 25px rgba(255, 0, 85, 0.3);
+      box-shadow: 0 4px 25px rgba(255, 0, 85, 0.35);
       color: #fff;
     }
     .toolbar-title {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: 900;
       color: #ff0055;
       display: flex;
@@ -50,8 +50,8 @@
       letter-spacing: 1px;
     }
     .toolbar-title span.sub {
-      font-size: 0.8rem;
-      color: #bbb;
+      font-size: 0.82rem;
+      color: #d1d5db;
       font-weight: normal;
       font-family: 'Kanit', sans-serif;
     }
@@ -62,12 +62,12 @@
       margin-bottom: 12px;
     }
     .btn-preset {
-      background: #252636;
+      background: #222436;
       color: #eee;
-      border: 1px solid #484a66;
+      border: 1px solid #4a4e69;
       border-radius: 4px;
       padding: 6px 12px;
-      font-size: 0.82rem;
+      font-size: 0.84rem;
       font-family: 'Kanit', sans-serif;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -82,18 +82,18 @@
       color: #fff;
       font-weight: 700;
       border-color: #ff0055;
-      box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+      box-shadow: 0 0 12px rgba(255, 0, 85, 0.6);
     }
     .action-row {
       display: flex;
       gap: 10px;
       align-items: center;
       justify-content: space-between;
-      border-top: 1px solid #33334d;
+      border-top: 1px solid #33364f;
       padding-top: 10px;
     }
     .print-btn {
-      background: #00e5ff;
+      background: #00f2fe;
       color: #000;
       border: none;
       border-radius: 6px;
@@ -102,15 +102,16 @@
       padding: 8px 18px;
       cursor: pointer;
       font-family: 'Kanit', sans-serif;
-      box-shadow: 0 2px 10px rgba(0, 229, 255, 0.4);
+      box-shadow: 0 2px 10px rgba(0, 242, 254, 0.4);
       transition: transform 0.1s ease;
     }
     .print-btn:hover {
       transform: translateY(-2px);
-      background: #33ebff;
+      background: #4facfe;
+      color: #fff;
     }
     .print-all-btn {
-      background: #ffcc00;
+      background: #e5a93b;
       color: #000;
       border: none;
       border-radius: 6px;
@@ -119,12 +120,12 @@
       padding: 8px 18px;
       cursor: pointer;
       font-family: 'Kanit', sans-serif;
-      box-shadow: 0 2px 10px rgba(255, 204, 0, 0.4);
+      box-shadow: 0 2px 10px rgba(229, 169, 59, 0.4);
     }
     .back-btn {
       background: transparent;
-      color: #aaa;
-      border: 1px solid #555;
+      color: #bbb;
+      border: 1px solid #666;
       border-radius: 4px;
       padding: 6px 12px;
       font-size: 0.85rem;
@@ -145,7 +146,7 @@
     }
 
     /* ========================================================= */
-    /* A4 PAGE CONTAINER & AUTHENTIC DOSSIER STYLING             */
+    /* A4 PAGE CONTAINER & FANCY CLASSIFIED DOSSIER STYLING       */
     /* ========================================================= */
     .sheet-page {
       width: 210mm;
@@ -153,24 +154,24 @@
       max-height: 297mm;
       min-height: 297mm;
       background: #ffffff;
-      color: #000000;
+      color: #1a1a24;
       padding: 5mm 6mm;
       position: relative;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
-    /* Subtle Hope's Peak Academy Crest Watermark */
+    /* Subtle Hope's Peak Academy Crest Watermark with Magenta Tint */
     .academy-watermark {
       position: absolute;
-      top: 50%;
+      top: 52%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 145mm;
-      height: 145mm;
-      opacity: 0.045;
+      width: 155mm;
+      height: 155mm;
+      opacity: 0.04;
       pointer-events: none;
       z-index: 1;
     }
@@ -179,53 +180,58 @@
     .dossier-frame {
       width: 100%;
       height: 100%;
-      border: 3px solid #000;
+      border: 3px solid #1a1a24;
       position: relative;
       display: flex;
       flex-direction: column;
-      padding: 5px 7px 5px 7px;
+      padding: 6px 8px 6px 8px;
       z-index: 2;
+      background: #ffffff;
     }
 
-    /* Corner Graphic Accents (Manga / Blueprint Registration Marks) */
+    /* Top Accent Stripe */
     .dossier-frame::before {
-      content: "+";
+      content: "";
       position: absolute;
-      top: -12px;
-      left: -5px;
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: #000;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      height: 4px;
+      background: linear-gradient(90deg, #ff0055 0%, #1a1a24 40%, #e5a93b 80%, #ff0055 100%);
       pointer-events: none;
     }
-    .dossier-frame::after {
-      content: "+";
+
+    /* Corner Accents */
+    .corner-mark {
       position: absolute;
-      bottom: -12px;
-      right: -5px;
       font-size: 1.1rem;
       font-weight: 900;
-      color: #000;
+      color: #e5a93b;
       pointer-events: none;
+      line-height: 1;
     }
+    .corner-tl { top: 2px; left: 4px; }
+    .corner-tr { top: 2px; right: 4px; }
+    .corner-bl { bottom: 2px; left: 4px; }
+    .corner-br { bottom: 2px; right: 4px; }
 
     /* Left and Right Accent Stripes (Vertical lines) */
     .side-stripes-left {
       position: absolute;
-      top: -3px;
-      bottom: -3px;
+      top: 0;
+      bottom: 0;
       left: 4px;
       width: 2px;
-      background: #000;
+      background: #1a1a24;
       pointer-events: none;
     }
     .side-stripes-right {
       position: absolute;
-      top: -3px;
-      bottom: -3px;
+      top: 0;
+      bottom: 0;
       right: 4px;
       width: 2px;
-      background: #000;
+      background: #1a1a24;
       pointer-events: none;
     }
 
@@ -235,47 +241,51 @@
     .dossier-header {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 5px;
-      margin-left: 5px;
-      margin-right: 5px;
+      gap: 10px;
+      margin-bottom: 6px;
+      margin-left: 6px;
+      margin-right: 6px;
       position: relative;
-      border-bottom: 2px solid #000;
-      padding-bottom: 4px;
+      border-bottom: 2px solid #1a1a24;
+      padding-bottom: 5px;
     }
 
-    /* 2d6 Angular Seal */
+    /* 2d6 Angular Seal with Cyber Gold & Slate Styling */
     .d20-seal {
-      width: 62px;
-      height: 42px;
-      border: 3px solid #000;
-      outline: 1.5px solid #000;
+      width: 66px;
+      height: 46px;
+      border: 2.5px solid #1a1a24;
+      outline: 1.5px solid #e5a93b;
       outline-offset: 1.5px;
-      background: #fff;
+      background: linear-gradient(135deg, #1b1d28 0%, #0d0e15 100%);
+      color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       position: relative;
+      box-shadow: 2px 2px 0px rgba(229, 169, 59, 0.3);
     }
     .d20-seal .num {
       font-family: 'Chakra Petch', monospace, sans-serif;
-      font-size: 1.85rem;
+      font-size: 1.95rem;
       font-weight: 900;
       letter-spacing: -1.5px;
       line-height: 0.9;
+      color: #fff;
     }
     .d20-seal .sub {
-      font-size: 0.48rem;
+      font-size: 0.52rem;
       font-weight: 900;
       font-family: 'Chakra Petch', sans-serif;
       letter-spacing: 1px;
       text-transform: uppercase;
-      background: #000;
+      background: #ff0055;
       color: #fff;
       padding: 0 4px;
-      margin-top: 1px;
+      margin-top: 2px;
+      border-radius: 1px;
     }
 
     /* Header Main Center Text */
@@ -289,38 +299,40 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1px;
+      margin-bottom: 2px;
     }
     .school-name-en {
       font-family: 'Chakra Petch', sans-serif;
-      font-size: 1.05rem;
+      font-size: 1.15rem;
       font-weight: 900;
       letter-spacing: 1.5px;
       text-transform: uppercase;
+      color: #111827;
     }
     .dossier-stamp-box {
-      border: 1.5px solid #000;
-      padding: 1px 6px;
+      border: 2px solid #ff0055;
+      padding: 2px 8px;
       font-family: 'Chakra Petch', sans-serif;
-      font-size: 0.65rem;
+      font-size: 0.72rem;
       font-weight: 900;
-      background: #000;
+      background: #ff0055;
       color: #fff;
       letter-spacing: 1px;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.25);
     }
     .school-name-th {
-      font-size: 0.75rem;
+      font-size: 0.82rem;
       font-weight: 700;
-      color: #222;
+      color: #374151;
       display: flex;
       justify-content: space-between;
       align-items: baseline;
     }
     .school-name-th span.code {
       font-family: monospace;
-      font-size: 0.68rem;
+      font-size: 0.72rem;
       font-weight: 700;
-      color: #444;
+      color: #6b7280;
     }
 
     /* ========================================================= */
@@ -328,45 +340,48 @@
     /* ========================================================= */
     .main-grid {
       display: grid;
-      grid-template-columns: 62px 1fr;
+      grid-template-columns: 74px 1fr;
       gap: 8px;
       flex: 1;
-      margin-left: 5px;
-      margin-right: 5px;
+      margin-left: 6px;
+      margin-right: 6px;
     }
 
     /* ========================================================= */
-    /* LEFT COLUMN: 8 Stats, Mental Grid, HP/WP, Languages       */
+    /* LEFT COLUMN: 8 Stats, Mental Grid, HP/WP, Status/Injury   */
     /* ========================================================= */
     .col-left {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
+      justify-content: space-between;
     }
 
     /* 8 Stats Table */
     .stats-card {
-      border: 2px solid #000;
+      border: 2px solid #1a1a24;
       width: 100%;
       background: #fff;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
     }
     .stats-card-header {
-      background: #000;
+      background: #1a1a24;
       color: #fff;
       text-align: center;
-      font-size: 0.6rem;
+      font-size: 0.74rem;
       font-weight: 900;
       font-family: 'Chakra Petch', sans-serif;
-      padding: 1px 0;
-      letter-spacing: 1px;
+      padding: 2px 0;
+      letter-spacing: 1.2px;
+      border-bottom: 2px solid #e5a93b;
     }
     .stat-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1.5px solid #000;
-      height: 23px;
-      padding: 0 3px 0 4px;
+      border-bottom: 1.5px solid #1a1a24;
+      height: 25px;
+      padding: 0 4px;
       position: relative;
     }
     .stat-row:last-child {
@@ -374,77 +389,88 @@
     }
     .stat-title {
       font-family: 'Chakra Petch', sans-serif;
-      font-size: 0.8rem;
+      font-size: 0.88rem;
       font-weight: 900;
       letter-spacing: 0.5px;
+      color: #111827;
     }
     .stat-mod-box {
-      width: 22px;
-      height: 19px;
-      border: 1.5px solid #000;
+      width: 25px;
+      height: 21px;
+      border: 1.5px solid #1a1a24;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.82rem;
+      font-size: 0.86rem;
       font-weight: 900;
       font-family: monospace;
       outline: none;
-      background: #fff;
+      background: #fdfdfd;
+      color: #ff0055;
     }
 
     /* Mental Tracker (Despair & Panic) */
     .mental-card {
-      border: 2px solid #000;
-      padding: 3px 4px 4px 4px;
+      border: 2px solid #1a1a24;
+      padding: 4px 5px;
       background: #fff;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
     }
     .section-tag {
-      background: #000;
+      background: #1a1a24;
       color: #fff;
-      font-size: 0.62rem;
+      font-size: 0.74rem;
       font-weight: 900;
       font-family: 'Chakra Petch', sans-serif;
-      padding: 1px 5px;
+      padding: 2px 6px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       display: inline-block;
+      border-left: 3px solid #ff0055;
     }
     .mental-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 3px;
-      margin-top: 3px;
-      margin-bottom: 4px;
+      margin-top: 4px;
+      margin-bottom: 5px;
     }
     .check-sq {
-      width: 15px;
-      height: 15px;
-      border: 1.5px solid #000;
+      width: 17px;
+      height: 17px;
+      border: 1.5px solid #1a1a24;
       background: #fff;
       cursor: pointer;
       margin: 0 auto;
       transition: background 0.1s ease;
     }
 
-    /* Credibility Hearts Tracker */
+    /* Credibility Hearts Tracker - FIXED NO OVERFLOW */
     .cred-box {
-      border-top: 1.5px dashed #000;
-      padding-top: 3px;
+      border-top: 1.5px dashed #1a1a24;
+      padding-top: 4px;
       text-align: center;
     }
     .cred-label {
-      font-size: 0.52rem;
+      font-size: 0.54rem;
       font-weight: 900;
-      line-height: 1;
-      margin-bottom: 2px;
+      line-height: 1.1;
+      margin-bottom: 3px;
       font-family: 'Chakra Petch', sans-serif;
       text-transform: uppercase;
+      color: #374151;
     }
     .hearts-row {
       display: flex;
-      justify-content: center;
-      gap: 2px;
-      font-size: 0.68rem;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2px;
+      color: #ff0055;
+      font-size: 0.85rem;
+    }
+    .heart-icon {
+      line-height: 1;
+      cursor: pointer;
     }
 
     /* HP & WP Twin Gauges */
@@ -454,97 +480,97 @@
       gap: 4px;
     }
     .gauge-block {
-      border: 2px solid #000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2px 1px 3px 1px;
+      border: 2px solid #1a1a24;
       background: #fff;
+      text-align: center;
+      padding: 2px;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
     }
     .gauge-block .lbl {
-      font-size: 0.7rem;
+      background: #1a1a24;
+      color: #fff;
+      font-size: 0.68rem;
       font-weight: 900;
       font-family: 'Chakra Petch', sans-serif;
+      display: block;
       margin-bottom: 2px;
+      border-bottom: 1.5px solid #e5a93b;
     }
     .gauge-block .val-box {
-      width: 100%;
-      height: 25px;
-      border: 1.5px solid #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.88rem;
+      font-size: 1.05rem;
       font-weight: 900;
       font-family: monospace;
+      min-height: 22px;
       outline: none;
-      background: #fff;
+      color: #111827;
     }
 
-    /* Languages / Specialty Knowledge */
-    .languages-card {
-      border: 2px solid #000;
-      padding: 3px 4px;
+    /* Conditions & Injuries Card (Replaces Languages to balance A4 height) */
+    .conditions-card {
+      border: 2px solid #1a1a24;
+      padding: 4px;
+      background: #fff;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
       flex: 1;
-      min-height: 52px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      background: #fff;
     }
-    .languages-content {
-      font-size: 0.62rem;
-      line-height: 1.25;
-      color: #111;
+    .conditions-content {
+      font-size: 0.65rem;
+      line-height: 1.3;
+      margin-top: 4px;
       outline: none;
       flex: 1;
+      color: #374151;
     }
 
     /* ========================================================= */
-    /* RIGHT AREA: Bio + Talents + Backpack                      */
+    /* RIGHT AREA: Bio + Talents + Backpack + Clues/Notes        */
     /* ========================================================= */
     .col-right {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
+      justify-content: space-between;
     }
 
     /* Top Right: Portrait + Student Bio Group */
     .bio-group-grid {
       display: grid;
-      grid-template-columns: 145px 1fr;
+      grid-template-columns: 150px 1fr;
       gap: 8px;
     }
 
     /* Portrait Box with Mounting Photo Brackets */
     .portrait-card {
-      border: 2px solid #000;
-      height: 185px;
+      border: 2px solid #1a1a24;
+      height: 175px;
       position: relative;
-      background: #fafafa;
+      background: #f9fafb;
       display: flex;
       flex-direction: column;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
     }
     .portrait-tag {
       position: absolute;
-      top: 3px;
-      left: 3px;
+      top: 4px;
+      left: 4px;
       z-index: 3;
     }
     /* Photo Corner Brackets */
     .bracket-tl, .bracket-tr, .bracket-bl, .bracket-br {
       position: absolute;
-      width: 10px;
-      height: 10px;
-      border-color: #000;
+      width: 11px;
+      height: 11px;
+      border-color: #ff0055;
       border-style: solid;
       pointer-events: none;
       z-index: 2;
     }
-    .bracket-tl { top: 3px; left: 3px; border-width: 2.5px 0 0 2.5px; }
-    .bracket-tr { top: 3px; right: 3px; border-width: 2.5px 2.5px 0 0; }
-    .bracket-bl { bottom: 3px; left: 3px; border-width: 0 0 2.5px 2.5px; }
-    .bracket-br { bottom: 3px; right: 3px; border-width: 0 2.5px 2.5px 0; }
+    .bracket-tl { top: 4px; left: 4px; border-width: 2.5px 0 0 2.5px; }
+    .bracket-tr { top: 4px; right: 4px; border-width: 2.5px 2.5px 0 0; }
+    .bracket-bl { bottom: 4px; left: 4px; border-width: 0 0 2.5px 2.5px; }
+    .bracket-br { bottom: 4px; right: 4px; border-width: 0 2.5px 2.5px 0; }
 
     .portrait-body {
       width: 100%;
@@ -566,19 +592,21 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: #666;
+      color: #6b7280;
       text-align: center;
       padding: 10px;
     }
     .portrait-placeholder svg {
       width: 44px;
       height: 44px;
-      opacity: 0.3;
+      opacity: 0.4;
       margin-bottom: 4px;
+      fill: #1a1a24;
     }
     .portrait-placeholder span {
-      font-size: 0.62rem;
+      font-size: 0.65rem;
       font-weight: 700;
+      color: #4b5563;
     }
 
     /* Student Bio Info */
@@ -586,7 +614,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 3px;
+      gap: 4px;
     }
     .bio-row {
       display: flex;
@@ -594,25 +622,26 @@
       gap: 2px;
     }
     .bio-row-label {
-      font-size: 0.72rem;
+      font-size: 0.80rem;
       font-weight: 900;
       font-family: 'Chakra Petch', sans-serif;
       letter-spacing: 0.5px;
       text-transform: uppercase;
       display: flex;
       justify-content: space-between;
+      color: #111827;
     }
     .bio-row-label span.sub {
-      font-size: 0.65rem;
+      font-size: 0.72rem;
       font-weight: normal;
-      color: #555;
+      color: #6b7280;
       font-family: 'Kanit', sans-serif;
     }
     .bio-field-box {
-      border: 2px solid #000;
+      border: 1.5px solid #1a1a24;
       min-height: 25px;
       padding: 2px 7px;
-      font-size: 0.86rem;
+      font-size: 0.88rem;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -621,9 +650,10 @@
     }
     .bio-row.role-row .bio-field-box {
       min-height: 29px;
-      font-size: 0.94rem;
+      font-size: 0.95rem;
       font-weight: 900;
-      border-width: 2.5px;
+      border-width: 2px;
+      color: #111827;
     }
 
     /* 3-Way Grid: Height / Weight / Age */
@@ -635,29 +665,29 @@
     .hwa-grid .bio-field-box {
       justify-content: center;
       text-align: center;
-      font-size: 0.82rem;
+      font-size: 0.84rem;
     }
 
     /* ========================================================= */
     /* TALENTS BOX (Middle Wide Box)                             */
     /* ========================================================= */
     .talents-card {
-      border: 2px solid #000;
-      padding: 4px 8px 6px 8px;
+      border: 2px solid #1a1a24;
+      padding: 5px 8px 6px 8px;
       background: #fff;
       display: flex;
       flex-direction: column;
       gap: 3px;
-      min-height: 175px;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
     }
     .talents-top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
     }
     .talents-content {
-      font-size: 0.74rem;
+      font-size: 0.75rem;
       line-height: 1.35;
       outline: none;
       flex: 1;
@@ -667,43 +697,44 @@
     }
     .talent-feat-title {
       font-weight: 900;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
+      color: #111827;
       text-decoration: underline;
     }
 
     /* 2d6 Rules Quick Reference Grid */
     .rules-grid {
-      border-top: 1.5px dashed #000;
+      border-top: 1.5px dashed #1a1a24;
       padding-top: 4px;
       margin-top: 4px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 6px;
-      font-size: 0.65rem;
-      color: #111;
+      font-size: 0.68rem;
+      color: #1f2937;
     }
     .rule-box {
       line-height: 1.25;
     }
     .rule-box strong {
       font-family: 'Chakra Petch', sans-serif;
+      color: #111827;
     }
 
     /* ========================================================= */
-    /* BACKPACK BOX (Bottom Wide Box)                            */
+    /* BACKPACK BOX                                              */
     /* ========================================================= */
     .backpack-card {
-      border: 2px solid #000;
-      padding: 4px 8px 6px 8px;
+      border: 2px solid #1a1a24;
+      padding: 5px 8px 6px 8px;
       background: #fff;
       display: flex;
       flex-direction: column;
       gap: 3px;
-      min-height: 140px;
-      flex: 1;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
     }
     .backpack-content {
-      font-size: 0.74rem;
+      font-size: 0.75rem;
       line-height: 1.35;
       outline: none;
       flex: 1;
@@ -714,21 +745,43 @@
       gap: 8px;
     }
     .bp-heading {
-      font-size: 0.68rem;
+      font-size: 0.74rem;
       font-weight: 900;
       text-transform: uppercase;
-      margin-bottom: 2px;
-      border-bottom: 1px solid #000;
+      margin-bottom: 3px;
+      border-bottom: 1.5px solid #1a1a24;
       display: inline-block;
       font-family: 'Chakra Petch', sans-serif;
+      color: #111827;
     }
     .bp-list {
       list-style-type: square;
       padding-left: 14px;
-      font-size: 0.72rem;
+      font-size: 0.73rem;
     }
     .bp-list li {
       margin-bottom: 2px;
+    }
+
+    /* ========================================================= */
+    /* CLUES & NOTES BOX (Fills the A4 Height Symmetrically)      */
+    /* ========================================================= */
+    .notes-card {
+      border: 2px solid #1a1a24;
+      padding: 5px 8px 6px 8px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+      flex: 1;
+    }
+    .notes-content {
+      font-size: 0.74rem;
+      line-height: 1.4;
+      outline: none;
+      flex: 1;
+      color: #374151;
     }
 
     /* Bottom Dossier Legal Line */
@@ -736,15 +789,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 3px;
-      padding: 0 4px;
-      font-size: 0.58rem;
+      margin-top: 4px;
+      padding: 2px 6px 0 6px;
+      font-size: 0.62rem;
       font-weight: 700;
-      color: #333;
+      color: #4b5563;
       letter-spacing: 0.5px;
       font-family: 'Chakra Petch', sans-serif;
-      border-top: 1px solid #000;
-      padding-top: 2px;
+      border-top: 1.5px solid #1a1a24;
     }
 
     /* ========================================================= */
@@ -796,7 +848,7 @@
       <span class="sub">แบบฟอร์มแฟ้มประวัตินักเรียนขนาด A4 พร้อมสั่งพิมพ์ (2d6 System)</span>
     </div>
 
-    <div style="font-size:0.8rem; color:#aaa; margin-bottom:6px;">
+    <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:6px;">
       เลือกโหลดพรีเซ็ตข้อมูลตัวละครสำเร็จรูป (Presets) หรือเลือกแผ่นเปล่าสำหรับเขียนด้วยดินสอบนกระดาษ:
     </div>
     <div class="preset-buttons">
@@ -830,15 +882,19 @@
       
       <!-- Vector Watermark Crest -->
       <svg class="academy-watermark" viewBox="0 0 200 200">
-        <circle cx="100" cy="100" r="90" fill="none" stroke="#000" stroke-width="4"/>
-        <circle cx="100" cy="100" r="80" fill="none" stroke="#000" stroke-width="2"/>
-        <path d="M100 25 L120 70 L175 70 L130 105 L150 160 L100 125 L50 160 L70 105 L25 70 L80 70 Z" fill="none" stroke="#000" stroke-width="3"/>
-        <circle cx="100" cy="100" r="25" fill="#000"/>
+        <circle cx="100" cy="100" r="90" fill="none" stroke="#ff0055" stroke-width="4"/>
+        <circle cx="100" cy="100" r="80" fill="none" stroke="#1a1a24" stroke-width="2"/>
+        <path d="M100 25 L120 70 L175 70 L130 105 L150 160 L100 125 L50 160 L70 105 L25 70 L80 70 Z" fill="none" stroke="#1a1a24" stroke-width="3"/>
+        <circle cx="100" cy="100" r="25" fill="#1a1a24"/>
         <text x="100" y="106" font-family="'Chakra Petch', sans-serif" font-weight="900" font-size="16" fill="#fff" text-anchor="middle">78</text>
       </svg>
 
       <!-- Outer Frame -->
       <div class="dossier-frame">
+        <span class="corner-mark corner-tl">+</span>
+        <span class="corner-mark corner-tr">+</span>
+        <span class="corner-mark corner-bl">+</span>
+        <span class="corner-mark corner-br">+</span>
         <div class="side-stripes-left"></div>
         <div class="side-stripes-right"></div>
 
@@ -864,7 +920,7 @@
         <!-- Main Content 2-Column Grid -->
         <div class="main-grid">
           
-          <!-- LEFT COLUMN: 8 Stats, Mental, HP/WP, Languages -->
+          <!-- LEFT COLUMN: 8 Stats, Mental, HP/WP, Status/Injuries -->
           <div class="col-left">
             
             <!-- 8 Stats Table -->
@@ -872,35 +928,35 @@
               <div class="stats-card-header">CORE STATS</div>
               <div class="stat-row">
                 <span class="stat-title">STR</span>
-                <div class="stat-mod-box" contenteditable="true" id="statSTR">+0</div>
+                <div class="stat-mod-box" contenteditable="true" id="statSTR"></div>
               </div>
               <div class="stat-row">
                 <span class="stat-title">AGI</span>
-                <div class="stat-mod-box" contenteditable="true" id="statAGI">+0</div>
+                <div class="stat-mod-box" contenteditable="true" id="statAGI"></div>
               </div>
               <div class="stat-row">
                 <span class="stat-title">DEX</span>
-                <div class="stat-mod-box" contenteditable="true" id="statDEX">+0</div>
+                <div class="stat-mod-box" contenteditable="true" id="statDEX"></div>
               </div>
               <div class="stat-row">
                 <span class="stat-title">TOU</span>
-                <div class="stat-mod-box" contenteditable="true" id="statTOU">+0</div>
+                <div class="stat-mod-box" contenteditable="true" id="statTOU"></div>
               </div>
               <div class="stat-row">
                 <span class="stat-title">INT</span>
-                <div class="stat-mod-box" contenteditable="true" id="statINT">+0</div>
+                <div class="stat-mod-box" contenteditable="true" id="statINT"></div>
               </div>
               <div class="stat-row">
                 <span class="stat-title">WIS</span>
-                <div class="stat-mod-box" contenteditable="true" id="statWIS">+0</div>
+                <div class="stat-mod-box" contenteditable="true" id="statWIS"></div>
               </div>
               <div class="stat-row">
                 <span class="stat-title">CHA</span>
-                <div class="stat-mod-box" contenteditable="true" id="statCHA">+0</div>
+                <div class="stat-mod-box" contenteditable="true" id="statCHA"></div>
               </div>
               <div class="stat-row">
                 <span class="stat-title">EGO</span>
-                <div class="stat-mod-box" contenteditable="true" id="statEGO">+0</div>
+                <div class="stat-mod-box" contenteditable="true" id="statEGO"></div>
               </div>
             </div>
 
@@ -908,29 +964,29 @@
             <div class="mental-card">
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="section-tag">Mental</span>
-                <span style="font-size:0.52rem; font-weight:700; font-family:'Chakra Petch';">DESPAIR</span>
+                <span style="font-size:0.56rem; font-weight:700; font-family:'Chakra Petch'; color:#ff0055;">DESPAIR</span>
               </div>
               <div class="mental-grid">
                 <div class="check-sq" onclick="toggleCheck(this)" title="ปกติ"></div>
                 <div class="check-sq" onclick="toggleCheck(this)" title="ปกติ"></div>
                 <div class="check-sq" onclick="toggleCheck(this)" title="ปกติ"></div>
-                <div class="check-sq" onclick="toggleCheck(this)" title="เริ่มสับสน"></div>
-                <div class="check-sq" onclick="toggleCheck(this)" title="เริ่มสับสน"></div>
-                <div class="check-sq" onclick="toggleCheck(this)" title="เริ่มสับสน"></div>
-                <div class="check-sq" onclick="toggleCheck(this)" title="สิ้นหวัง"></div>
-                <div class="check-sq" onclick="toggleCheck(this)" title="สิ้นหวัง"></div>
-                <div class="check-sq" onclick="toggleCheck(this)" title="Panic State"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="เริ่มสับสน (-1)"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="เริ่มสับสน (-1)"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="เริ่มสับสน (-2)"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="สิ้นหวัง (-2)"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="สิ้นหวัง (-2)"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="Panic State (Ultimatum)"></div>
               </div>
               
-              <!-- Personal Credibility Gauge (5 Hearts) -->
+              <!-- Personal Credibility Gauge (5 Hearts) - FIXED NO OVERFLOW -->
               <div class="cred-box">
                 <div class="cred-label">CREDIBILITY (ความน่าเชื่อถือ)</div>
                 <div class="hearts-row">
-                  <span>[♥]</span>
-                  <span>[♥]</span>
-                  <span>[♥]</span>
-                  <span>[♥]</span>
-                  <span>[♥]</span>
+                  <span class="heart-icon">♥</span>
+                  <span class="heart-icon">♥</span>
+                  <span class="heart-icon">♥</span>
+                  <span class="heart-icon">♥</span>
+                  <span class="heart-icon">♥</span>
                 </div>
               </div>
             </div>
@@ -939,26 +995,27 @@
             <div class="hp-wp-grid">
               <div class="gauge-block">
                 <span class="lbl">HP</span>
-                <div class="val-box" contenteditable="true" id="valHP">10</div>
+                <div class="val-box" contenteditable="true" id="valHP"></div>
               </div>
               <div class="gauge-block">
                 <span class="lbl">WP</span>
-                <div class="val-box" contenteditable="true" id="valWP">10</div>
+                <div class="val-box" contenteditable="true" id="valWP"></div>
               </div>
             </div>
 
-            <!-- Languages & Specialty Knowledge -->
-            <div class="languages-card">
-              <span class="section-tag">Languages</span>
-              <div class="languages-content" contenteditable="true" id="txtLanguages">
-                ภาษาญี่ปุ่น (Japanese)<br>
-                ภาษาอังกฤษ (English)
+            <!-- Conditions & Injuries Card (Replaces Languages to balance A4 height) -->
+            <div class="conditions-card">
+              <span class="section-tag">Status</span>
+              <div class="conditions-content" contenteditable="true" id="txtConditions">
+                [ ] สภาพปกติ (Healthy)<br>
+                [ ] บาดเจ็บทางกาย (Physical)<br>
+                [ ] เสียสติชั่วคราว (Panic)
               </div>
             </div>
 
           </div>
 
-          <!-- RIGHT AREA: Bio Top + Talents Middle + Backpack Bottom -->
+          <!-- RIGHT AREA: Bio Top + Talents Middle + Backpack Bottom + Clues/Notes -->
           <div class="col-right">
             
             <!-- Top Right: Portrait + Student Bio Details -->
@@ -974,10 +1031,10 @@
 
                 <div class="portrait-body" id="portraitContainer" onclick="document.getElementById('portraitUploader').click()">
                   <div class="portrait-placeholder" id="portraitPlaceholder">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    <svg viewBox="0 0 24 24">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                     </svg>
-                    <span>คลิกเพื่อใส่ภาพถ่ายตัวละคร<br>(Upload Sprite)</span>
+                    <span>คลิกเพื่อใส่รูปถ่าย<br>(Upload Sprite)</span>
                   </div>
                   <img id="portraitImg" class="portrait-preview-img" style="display:none;" alt="Character Portrait">
                 </div>
@@ -1004,15 +1061,15 @@
                 <div class="hwa-grid">
                   <div class="bio-row">
                     <div class="bio-row-label"><span>Height</span></div>
-                    <div class="bio-field-box" contenteditable="true" id="bioHeight">--- cm</div>
+                    <div class="bio-field-box" contenteditable="true" id="bioHeight"></div>
                   </div>
                   <div class="bio-row">
                     <div class="bio-row-label"><span>Weight</span></div>
-                    <div class="bio-field-box" contenteditable="true" id="bioWeight">--- kg</div>
+                    <div class="bio-field-box" contenteditable="true" id="bioWeight"></div>
                   </div>
                   <div class="bio-row">
                     <div class="bio-row-label"><span>Age</span></div>
-                    <div class="bio-field-box" contenteditable="true" id="bioAge">17 ปี</div>
+                    <div class="bio-field-box" contenteditable="true" id="bioAge"></div>
                   </div>
                 </div>
 
@@ -1021,7 +1078,7 @@
                     <span>Status</span>
                     <span class="sub">สถานะการพิจารณาคดี</span>
                   </div>
-                  <div class="bio-field-box" contenteditable="true" id="bioStatus">ปกติ (Innocent)</div>
+                  <div class="bio-field-box" contenteditable="true" id="bioStatus"></div>
                 </div>
               </div>
 
@@ -1031,13 +1088,14 @@
             <div class="talents-card">
               <div class="talents-top-bar">
                 <span class="section-tag">Talents</span>
-                <span style="font-size:0.62rem; font-weight:700; color:#333;">ความสามารถพิเศษระดับมัธยมปลาย & การทอยเต๋า 2d6 ในศาล</span>
+                <span style="font-size:0.70rem; font-weight:700; color:#374151;">ความสามารถพิเศษระดับมัธยมปลาย & การทอยเต๋า 2d6 ในศาล</span>
               </div>
 
               <div class="talents-content" contenteditable="true" id="txtTalents">
                 <div class="talent-feat">
                   <span class="talent-feat-title">ความสามารถพิเศษประจำตัว (Ultimate Feat):</span>
-                  <p>ระบุความเชี่ยวชาญพิเศษของตัวละครที่ได้เปรียบในการสืบสวน การพูดคุย หรือการกระทำทางกายภาพ...</p>
+                  <p>......................................................................................................................................................................................</p>
+                  <p>......................................................................................................................................................................................</p>
                 </div>
 
                 <div class="rules-grid">
@@ -1061,11 +1119,11 @@
               </div>
             </div>
 
-            <!-- Bottom Wide: Backpack Card -->
+            <!-- Bottom Wide: Backpack Card (Keep 3 Truth Bullets) -->
             <div class="backpack-card">
               <div class="talents-top-bar">
                 <span class="section-tag">Backpack</span>
-                <span style="font-size:0.62rem; font-weight:700; color:#333;">สัมภาระติดตัว, บัตรนักเรียน Monopad & กระสุนความจริง (Truth Bullets)</span>
+                <span style="font-size:0.70rem; font-weight:700; color:#374151;">สัมภาระติดตัว, บัตรนักเรียน Monopad & กระสุนความจริง (Truth Bullets)</span>
               </div>
 
               <div class="backpack-content" contenteditable="true" id="txtBackpack">
@@ -1075,18 +1133,32 @@
                     <ul class="bp-list">
                       <li>Monopad โรงเรียนคิโบกามิเนะ (Student Digital ID)</li>
                       <li>กุญแจห้องพักนักเรียนส่วนตัว</li>
-                      <li>ของใช้ประจำตัว: ............................................</li>
+                      <li>ของใช้ประจำตัว: .....................................................</li>
+                      <li>............................................................................</li>
                     </ul>
                   </div>
                   <div>
                     <span class="bp-heading">กระสุนความจริง & บันทึก (Truth Bullets):</span>
                     <ul class="bp-list">
-                      <li>[ ] ................................................................</li>
-                      <li>[ ] ................................................................</li>
-                      <li>[ ] ................................................................</li>
+                      <li>[ ] ........................................................................</li>
+                      <li>[ ] ........................................................................</li>
+                      <li>[ ] ........................................................................</li>
                     </ul>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Bottom Wide: Clues & Investigation Notes (Fills the A4 height symmetrically) -->
+            <div class="notes-card">
+              <div class="talents-top-bar">
+                <span class="section-tag">Clues & Notes</span>
+                <span style="font-size:0.70rem; font-weight:700; color:#374151;">บันทึกเบาะแส ความเชื่อมโยง และข้อสังเกตในคดี (Investigation Notes)</span>
+              </div>
+              <div class="notes-content" contenteditable="true" id="txtNotes">
+                <p>......................................................................................................................................................................................</p>
+                <p>......................................................................................................................................................................................</p>
+                <p>......................................................................................................................................................................................</p>
               </div>
             </div>
 
@@ -1112,29 +1184,34 @@
       blank: {
         player: "",
         character: "",
-        height: "--- cm",
-        weight: "--- kg",
-        age: "17 ปี",
-        status: "ปกติ (Innocent)",
-        str: "+0", agi: "+0", dex: "+0", tou: "+0", int: "+0", wis: "+0", cha: "+0", ego: "+0",
-        hp: "10", wp: "10",
-        languages: "ภาษาญี่ปุ่น (Japanese)<br>ภาษาอังกฤษ (English)",
+        height: "",
+        weight: "",
+        age: "",
+        status: "",
+        str: "", agi: "", dex: "", tou: "", int: "", wis: "", cha: "", ego: "",
+        hp: "", wp: "",
+        conditions: `
+          [ ] สภาพปกติ (Healthy)<br>
+          [ ] บาดเจ็บทางกาย (Physical)<br>
+          [ ] เสียสติชั่วคราว (Panic)
+        `,
         talents: `
           <div class="talent-feat">
             <span class="talent-feat-title">ความสามารถพิเศษประจำตัว (Ultimate Feat):</span>
-            <p>ระบุความเชี่ยวชาญพิเศษของตัวละครที่ได้เปรียบในการสืบสวน การพูดคุย หรือการกระทำทางกายภาพ...</p>
+            <p>......................................................................................................................................................................................</p>
+            <p>......................................................................................................................................................................................</p>
           </div>
           <div class="rules-grid">
             <div class="rule-box">
-              <strong>🔍 สืบสวนหาเบาะแส (Investigation):</strong><br>
+              <strong>🔍 สืบสวนหาเบาะแส (Investigation Check):</strong><br>
               ทอย 2d6 + INT หรือ WIS vs DC (ง่าย 6 / ปานกลาง 8 / ยาก 10 / เชิงลึก 12)
             </div>
             <div class="rule-box">
-              <strong>⚖️ ดีเบต & หักล้าง (Contested Debate):</strong><br>
+              <strong>⚖️ ดีเบต & หักล้าง (Contested Debate Roll):</strong><br>
               ทอย 2d6 + CHA หรือ INT ปะทะ 2d6 + WIS หรือ EGO ของฝ่ายตรงข้าม
             </div>
             <div class="rule-box">
-              <strong>👁️ จับโกหก & สังเกตพิรุธ (Detect Lie):</strong><br>
+              <strong>👁️ จับโกหก & สังเกตพิรุธ (Detect Lie / Insight):</strong><br>
               ทอย 2d6 + WIS หรือ EGO vs DC 8
             </div>
             <div class="rule-box">
@@ -1150,18 +1227,24 @@
               <ul class="bp-list">
                 <li>Monopad โรงเรียนคิโบกามิเนะ (Student Digital ID)</li>
                 <li>กุญแจห้องพักนักเรียนส่วนตัว</li>
-                <li>ของใช้ประจำตัว: ............................................</li>
+                <li>ของใช้ประจำตัว: .....................................................</li>
+                <li>............................................................................</li>
               </ul>
             </div>
             <div>
               <span class="bp-heading">กระสุนความจริง & บันทึก (Truth Bullets):</span>
               <ul class="bp-list">
-                <li>[ ] ................................................................</li>
-                <li>[ ] ................................................................</li>
-                <li>[ ] ................................................................</li>
+                <li>[ ] ........................................................................</li>
+                <li>[ ] ........................................................................</li>
+                <li>[ ] ........................................................................</li>
               </ul>
             </div>
           </div>
+        `,
+        notes: `
+          <p>......................................................................................................................................................................................</p>
+          <p>......................................................................................................................................................................................</p>
+          <p>......................................................................................................................................................................................</p>
         `
       },
       novelist: {
@@ -1173,7 +1256,11 @@
         status: "ปกติ (Innocent)",
         str: "-1", agi: "+0", dex: "+1", tou: "+0", int: "+3", wis: "+2", cha: "+1", ego: "+1",
         hp: "10", wp: "14",
-        languages: "ภาษาญี่ปุ่น, ภาษาอังกฤษ, ละตินโบราณ (สำหรับแปลรหัสวรรณกรรม)",
+        conditions: `
+          [✔] สภาพปกติ (Healthy)<br>
+          [ ] บาดเจ็บทางกาย (Physical)<br>
+          [ ] เสียสติชั่วคราว (Panic)
+        `,
         talents: `
           <div class="talent-feat">
             <span class="talent-feat-title">📖 สุดยอดนักแต่งนิยาย (Plot Deduction):</span>
@@ -1187,7 +1274,7 @@
             </div>
             <div class="rule-box">
               <strong>👁️ สังเกตพิรุธ & เจตนา:</strong> 2d6 + 2 (WIS)<br>
-              <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
+              <strong>💔 Credibility Gauge:</strong> ♥ ♥ ♥ ♥ ♥
             </div>
           </div>
         `,
@@ -1203,14 +1290,19 @@
               </ul>
             </div>
             <div>
-              <span class="bp-heading">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
+              <span class="bp-heading">กระสุนความจริง:</span>
               <ul class="bp-list">
-                <li>17:30 - 18:30 น. เห็นนักมายากลเดินเข้าออกครัวกับใต้ดิน 2-3 รอบ</li>
-                <li>19:00 - 20:00 น. กินสตูว์เนื้อร่วมกับทุกคน</li>
-                <li>20:00 - 21:00 น. นั่งอ่านสมุดที่ห้องนั่งเล่น ไม่ได้ลงใต้ดิน</li>
+                <li>[✔] บันทึกเวลาที่นักมายากลง่วนในครัว (17:30 น.)</li>
+                <li>[✔] สภาพกลิ่นคาวเลือดจางๆ ในหม้อสตูว์</li>
+                <li>[ ] ........................................................................</li>
               </ul>
             </div>
           </div>
+        `,
+        notes: `
+          <p><strong>ไทม์ไลน์สังเกตการณ์:</strong></p>
+          <p>17:30 - 18:30 น. เห็นนักมายากลเดินเข้าออกครัวกับห้องใต้ดิน 2-3 รอบ</p>
+          <p>19:00 - 20:00 น. กินสตูว์เนื้อร่วมกับทุกคน / 20:00 น. อยู่ห้องนั่งเล่น</p>
         `
       },
       athlete: {
@@ -1222,12 +1314,16 @@
         status: "ปกติ (Innocent)",
         str: "+3", agi: "+3", dex: "+1", tou: "+2", int: "-1", wis: "+0", cha: "+1", ego: "+2",
         hp: "16", wp: "10",
-        languages: "ภาษาญี่ปุ่น, ภาษามือสากล (สำหรับสื่อสารในสนามกีฬา)",
+        conditions: `
+          [✔] สภาพปกติ (Healthy)<br>
+          [ ] กล้ามเนื้อตึง (Muscle Strain)<br>
+          [ ] เสียสติชั่วคราว (Panic)
+        `,
         talents: `
           <div class="talent-feat">
             <span class="talent-feat-title">⚡ สุดยอดนักกีฬา (Iron Muscle & Dash):</span>
             <p><strong>ความสามารถพิเศษ:</strong> สามารถพังประตู ยกของหนัก หรือวิ่งฝ่าอุปสรรคได้ทันทีด้วย <strong>2d6 + STR/AGI</strong> และเป็นคนแรกที่ไปถึงห้องเกิดเหตุเสมอ</p>
-            <p><strong>Roleplay Hook:</strong> พลังล้นเหลือ ชอบชวนเพื่อนขยับตัว และบ่นตามหา "ลูกตุ้มเหล็ก 68 กก." ที่หายไปจากยิม</p>
+            <p><strong>Roleplay Hook:</strong> พลังล้นเหลือ ชอบชวนเพื่อนขยับตัว และตามหา "ลูกตุ้มเหล็ก 68 กก." ที่หายไปจากยิม</p>
           </div>
           <div class="rules-grid">
             <div class="rule-box">
@@ -1236,7 +1332,7 @@
             </div>
             <div class="rule-box">
               <strong>⚖️ ดีเบตในศาล:</strong> 2d6 + 2 (EGO) หรือ + 1 (CHA)<br>
-              <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
+              <strong>💔 Credibility Gauge:</strong> ♥ ♥ ♥ ♥ ♥
             </div>
           </div>
         `,
@@ -1248,18 +1344,23 @@
                 <li>Monopad คิโบกามิเนะ</li>
                 <li>ผ้าขนหนูซับเหงื่อประจำตัว</li>
                 <li>กระบอกน้ำเกลือแร่สแตนเลส</li>
-                <li>นาฬิกาจับเวลาดิจิทัลระดับมิลลิวินาที</li>
+                <li>นาฬิกาจับเวลาดิจิทัล</li>
               </ul>
             </div>
             <div>
-              <span class="bp-heading">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
+              <span class="bp-heading">กระสุนความจริง:</span>
               <ul class="bp-list">
-                <li>ลูกตุ้มเหล็กถ่วงน้ำหนัก 68 กก. และดัมเบลหายไปตอนบ่าย</li>
-                <li>19:00 - 20:00 น. ซดสตูว์เนื้อหลายชามที่ห้องอาหาร</li>
-                <li>20:00 - 21:00 น. นั่งคุยกับช่างกลที่ห้องนั่งเล่น</li>
+                <li>[✔] ลูกตุ้มเหล็กถ่วงน้ำหนัก 68 กก. หายไปจากยิม</li>
+                <li>[✔] รอยขีดลากของหนักบนพื้นหน้าห้องซักรีด</li>
+                <li>[ ] ........................................................................</li>
               </ul>
             </div>
           </div>
+        `,
+        notes: `
+          <p><strong>ไทม์ไลน์สังเกตการณ์:</strong></p>
+          <p>19:00 - 20:00 น. ซดสตูว์เนื้อหลายชามที่ห้องอาหารกับทุกคน</p>
+          <p>20:00 - 21:00 น. นั่งคุยกับช่างกลที่ห้องนั่งเล่น</p>
         `
       },
       magician: {
@@ -1271,7 +1372,11 @@
         status: "ปกติ (Innocent)",
         str: "-1", agi: "+1", dex: "+3", tou: "+0", int: "+2", wis: "+1", cha: "+2", ego: "+1",
         hp: "10", wp: "12",
-        languages: "ภาษาญี่ปุ่น, ฝรั่งเศส (ศัพท์เฉพาะทางมายากล)",
+        conditions: `
+          [✔] สภาพปกติ (Healthy)<br>
+          [ ] รอยถลอกที่ข้อมือ (Hidden)<br>
+          [ ] เสียสติชั่วคราว (Panic)
+        `,
         talents: `
           <div class="talent-feat">
             <span class="talent-feat-title">🎩 สุดยอดนักมายากล (Misdirection & Sleight):</span>
@@ -1285,7 +1390,7 @@
             </div>
             <div class="rule-box">
               <strong>🔍 ตรรกะวิเคราะห์:</strong> 2d6 + 2 (INT)<br>
-              <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
+              <strong>💔 Credibility Gauge:</strong> ♥ ♥ ♥ ♥ ♥
             </div>
           </div>
         `,
@@ -1301,14 +1406,19 @@
               </ul>
             </div>
             <div>
-              <span class="bp-heading">ความลับส่วนตัว (ห้ามให้ใครเห็น):</span>
+              <span class="bp-heading">กระสุนความจริง:</span>
               <ul class="bp-list">
-                <li>17:30 น. ใช้กระดูกขาหมูฟาด B สลบ แล้วต้มลงหม้อสตูว์</li>
-                <li>18:00 น. ผูกรอกสายยางน้ำถ่วงน้ำหนักแขวนคอ B ตอน 21:00 น.</li>
-                <li>19:00 - 21:00 น. นั่งคุยกับทุกคนในห้องนั่งเล่น มี Alibi ชัดเจน!</li>
+                <li>[✔] ทริกน้ำหนักของลูกตุ้มและสายยางน้ำถ่วงเวลา</li>
+                <li>[✔] Alibi สมบูรณ์แบบที่โต๊ะอาหารช่วง 21:00 น.</li>
+                <li>[ ] ........................................................................</li>
               </ul>
             </div>
           </div>
+        `,
+        notes: `
+          <p><strong>ความลับส่วนตัว (ห้ามเปิดเผยเด็ดขาด):</strong></p>
+          <p>17:30 น. ทำร้ายคนร้าย B สลบ แล้วต้มกระดูกลงหม้อสตูว์</p>
+          <p>18:00 น. ผูกกลไกสายยางน้ำถ่วงน้ำหนักแขวนคอ B ตอน 21:00 น. อัตโนมัติ</p>
         `
       },
       gourmet: {
@@ -1320,7 +1430,11 @@
         status: "ปกติ (Innocent)",
         str: "+0", agi: "-1", dex: "+0", tou: "+3", int: "+1", wis: "+2", cha: "+1", ego: "+2",
         hp: "14", wp: "12",
-        languages: "ภาษาญี่ปุ่น, อิตาเลียน, ฝรั่งเศส (คำศัพท์อาหารและไวน์)",
+        conditions: `
+          [✔] สภาพปกติ (Healthy)<br>
+          [ ] แน่นท้อง (Full Stomach)<br>
+          [ ] เสียสติชั่วคราว (Panic)
+        `,
         talents: `
           <div class="talent-feat">
             <span class="talent-feat-title">🍖 สุดยอดนักชิม (Super Palate & Iron Stomach):</span>
@@ -1334,7 +1448,7 @@
             </div>
             <div class="rule-box">
               <strong>⚖️ ดีเบตจุดยืน:</strong> 2d6 + 2 (EGO)<br>
-              <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
+              <strong>💔 Credibility Gauge:</strong> ♥ ♥ ♥ ♥ ♥
             </div>
           </div>
         `,
@@ -1344,20 +1458,25 @@
               <span class="bp-heading">สัมภาระติดตัว:</span>
               <ul class="bp-list">
                 <li>Monopad คิโบกามิเนะ</li>
-                <li>ชุดช้อนส้อมเงินแท้พกพา (ตรวจจับสารพิษ)</li>
+                <li>ชุดช้อนส้อมเงินแท้พกพา</li>
                 <li>ขนมอบแห้งฉุกเฉิน 3 ซอง</li>
-                <li>สเปรย์ดับกลิ่นปากมิ้นต์เข้มข้น</li>
+                <li>สเปรย์ดับกลิ่นปากมิ้นต์</li>
               </ul>
             </div>
             <div>
-              <span class="bp-heading">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
+              <span class="bp-heading">กระสุนความจริง:</span>
               <ul class="bp-list">
-                <li>17:30 - 18:30 น. เห็นนักมายากลง่วนกับการต้มน้ำซุปคนเดียว</li>
-                <li>19:00 น. ซดสตูว์พบว่ามี "กลิ่นคาวสนิมเหล็กของเลือดสดมนุษย์ปนเปื้อน!"</li>
-                <li>20:00 - 21:00 น. อิ่มจนหลับสัปหงกอยู่บนโซฟาห้องนั่งเล่น</li>
+                <li>[✔] กลิ่นคาวสนิมเหล็กในน้ำซุปสตูว์ (เลือดสด)</li>
+                <li>[✔] กระดูกชิ้นใหญ่ที่ก้นหม้อไม่ใช่กระดูกวัว</li>
+                <li>[ ] ........................................................................</li>
               </ul>
             </div>
           </div>
+        `,
+        notes: `
+          <p><strong>ไทม์ไลน์สังเกตการณ์:</strong></p>
+          <p>17:30 - 18:30 น. เห็นนักมายากลง่วนกับการต้มน้ำซุปคนเดียว</p>
+          <p>19:00 น. ซดสตูว์พบรสชาติประหลาด / 20:00 น. อิ่มหลับบนโซฟา</p>
         `
       },
       stuntman: {
@@ -1369,12 +1488,16 @@
         status: "ปกติ (Innocent)",
         str: "+1", agi: "+3", dex: "+2", tou: "+2", int: "+0", wis: "+1", cha: "+0", ego: "+2",
         hp: "14", wp: "12",
-        languages: "ภาษาญี่ปุ่น, ภาษาอังกฤษสากล",
+        conditions: `
+          [✔] สภาพปกติ (Healthy)<br>
+          [ ] รอยฟกช้ำเก่า (Bruised)<br>
+          [ ] เสียสติชั่วคราว (Panic)
+        `,
         talents: `
           <div class="talent-feat">
             <span class="talent-feat-title">🧗 สุดยอดนักแสดงผาดโผน (Acrobatic Fall & Rigging):</span>
             <p><strong>ความสามารถพิเศษ:</strong> ทอย <strong>2d6 + AGI/DEX</strong> เพื่อปีนป่าย โรยตัว หรือกระโดดจากที่สูงโดยไม่บาดเจ็บ และเชี่ยวชาญเรื่องคาน รอก สลิง และเงื่อนนิรภัย</p>
-            <p><strong>Roleplay Hook:</strong> บ่นเรื่องความปลอดภัยของโครงสร้างอาคาร และตามหา "รองเท้าบูทสำหรับสตั๊นต์คู่หนักพิเศษ" ที่หายไป</p>
+            <p><strong>Roleplay Hook:</strong> บ่นเรื่องความปลอดภัยของโครงสร้างอาคาร และตามหา "รองเท้าบูทคู่หนักพิเศษ" ที่หายไป</p>
           </div>
           <div class="rules-grid">
             <div class="rule-box">
@@ -1383,7 +1506,7 @@
             </div>
             <div class="rule-box">
               <strong>⚖️ ดีเบตในศาล:</strong> 2d6 + 2 (EGO)<br>
-              <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
+              <strong>💔 Credibility Gauge:</strong> ♥ ♥ ♥ ♥ ♥
             </div>
           </div>
         `,
@@ -1395,18 +1518,23 @@
                 <li>Monopad คิโบกามิเนะ</li>
                 <li>สายรัดนิรภัยปีนป่าย (Harness)</li>
                 <li>คาราบิเนอร์เหล็กกล้า 2 ตัว</li>
-                <li>ผ้าพันเคล็ดกล้ามเนื้อ & ยาทาแก้ฟกช้ำ</li>
+                <li>ผ้าพันเคล็ดกล้ามเนื้อ</li>
               </ul>
             </div>
             <div>
-              <span class="bp-heading">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
+              <span class="bp-heading">กระสุนความจริง:</span>
               <ul class="bp-list">
-                <li>รองเท้าสตั๊นต์คู่หนักพิเศษหายไปในช่วงบ่าย</li>
-                <li>19:00 - 20:00 น. กินสตูว์ร่วมกับทุกคน</li>
-                <li>21:00 น. พบ "รองเท้าบูทของตนเอง" อยู่ในเครื่องอบผ้าที่เกิดเหตุ!</li>
+                <li>[✔] รองเท้าสตั๊นต์คู่หนักพิเศษหายไปช่วงบ่าย</li>
+                <li>[✔] พบรองเท้าสตั๊นต์ในเครื่องอบผ้าที่เกิดเหตุ</li>
+                <li>[ ] ........................................................................</li>
               </ul>
             </div>
           </div>
+        `,
+        notes: `
+          <p><strong>ไทม์ไลน์สังเกตการณ์:</strong></p>
+          <p>19:00 - 20:00 น. กินสตูว์ร่วมกับทุกคนในห้องอาหาร</p>
+          <p>21:00 น. ได้ยินเสียงเครื่องอบผ้าทำงานผิดปกติ จึงชวนทุกคนไปดู</p>
         `
       },
       mechanic: {
@@ -1418,7 +1546,11 @@
         status: "ปกติ (Innocent)",
         str: "+1", agi: "+0", dex: "+3", tou: "+1", int: "+3", wis: "+1", cha: "-1", ego: "+1",
         hp: "12", wp: "12",
-        languages: "ภาษาญี่ปุ่น, รหัสวงจรไฟฟ้า & แบบแปลนเครื่องกล",
+        conditions: `
+          [✔] สภาพปกติ (Healthy)<br>
+          [ ] คราบน้ำมันเปื้อนมือ (Grease)<br>
+          [ ] เสียสติชั่วคราว (Panic)
+        `,
         talents: `
           <div class="talent-feat">
             <span class="talent-feat-title">🔧 สุดยอดช่างกล (Master Tinkerer & Circuitry):</span>
@@ -1432,7 +1564,7 @@
             </div>
             <div class="rule-box">
               <strong>👁️ สังเกตความผิดปกติ:</strong> 2d6 + 1 (WIS)<br>
-              <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
+              <strong>💔 Credibility Gauge:</strong> ♥ ♥ ♥ ♥ ♥
             </div>
           </div>
         `,
@@ -1444,18 +1576,23 @@
                 <li>Monopad คิโบกามิเนะ</li>
                 <li>ชุดไขควงมัลติทูล 12 หัว</li>
                 <li>มัลติมิเตอร์วัดกระแสไฟดิจิทัล</li>
-                <li>เทปพันสายไฟ & น้ำมันหล่อลื่นกระป๋องเล็ก</li>
+                <li>เทปพันสายไฟ & น้ำมันหล่อลื่น</li>
               </ul>
             </div>
             <div>
-              <span class="bp-heading">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
+              <span class="bp-heading">กระสุนความจริง:</span>
               <ul class="bp-list">
-                <li>17:30 - 18:30 น. ตรวจมิเตอร์น้ำพบว่า มีก๊อกน้ำตัวหนึ่งถูกเปิดทิ้งไว้เอื่อยๆ</li>
-                <li>20:00 - 21:00 น. นั่งคุยกับนักกีฬาในห้องนั่งเล่น</li>
-                <li>21:00 น. เห็นสายยางพ่วงจากก๊อกน้ำห้องซักรีดออกไปนอกหน้าต่าง!</li>
+                <li>[✔] มิเตอร์น้ำหมุนผิดปกติ มีก๊อกเปิดทิ้งไว้เอื่อยๆ</li>
+                <li>[✔] สายยางเชื่อมจากก๊อกน้ำห้องซักรีดออกไปนอกหน้าต่าง</li>
+                <li>[ ] ........................................................................</li>
               </ul>
             </div>
           </div>
+        `,
+        notes: `
+          <p><strong>ไทม์ไลน์สังเกตการณ์:</strong></p>
+          <p>17:30 - 18:30 น. ตรวจมิเตอร์น้ำพบการใช้น้ำผิดปกติ</p>
+          <p>20:00 - 21:00 น. นั่งคุยกับนักกีฬาในห้องนั่งเล่น</p>
         `
       }
     };
@@ -1485,16 +1622,17 @@
       document.getElementById('valHP').innerText = data.hp;
       document.getElementById('valWP').innerText = data.wp;
 
-      document.getElementById('txtLanguages').innerHTML = data.languages;
+      document.getElementById('txtConditions').innerHTML = data.conditions;
       document.getElementById('txtTalents').innerHTML = data.talents;
       document.getElementById('txtBackpack').innerHTML = data.backpack;
+      document.getElementById('txtNotes').innerHTML = data.notes;
     }
 
     function toggleCheck(el) {
-      if (el.style.backgroundColor === 'black' || el.style.backgroundColor === 'rgb(0, 0, 0)') {
+      if (el.style.backgroundColor === 'rgb(255, 0, 85)' || el.style.backgroundColor === '#ff0055') {
         el.style.backgroundColor = 'white';
       } else {
-        el.style.backgroundColor = 'black';
+        el.style.backgroundColor = '#ff0055';
       }
     }
 
@@ -1523,13 +1661,17 @@
         allSheetsHTML += `
           <div class="sheet-page">
             <svg class="academy-watermark" viewBox="0 0 200 200">
-              <circle cx="100" cy="100" r="90" fill="none" stroke="#000" stroke-width="4"/>
-              <circle cx="100" cy="100" r="80" fill="none" stroke="#000" stroke-width="2"/>
-              <path d="M100 25 L120 70 L175 70 L130 105 L150 160 L100 125 L50 160 L70 105 L25 70 L80 70 Z" fill="none" stroke="#000" stroke-width="3"/>
-              <circle cx="100" cy="100" r="25" fill="#000"/>
+              <circle cx="100" cy="100" r="90" fill="none" stroke="#ff0055" stroke-width="4"/>
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#1a1a24" stroke-width="2"/>
+              <path d="M100 25 L120 70 L175 70 L130 105 L150 160 L100 125 L50 160 L70 105 L25 70 L80 70 Z" fill="none" stroke="#1a1a24" stroke-width="3"/>
+              <circle cx="100" cy="100" r="25" fill="#1a1a24"/>
               <text x="100" y="106" font-family="'Chakra Petch', sans-serif" font-weight="900" font-size="16" fill="#fff" text-anchor="middle">78</text>
             </svg>
             <div class="dossier-frame">
+              <span class="corner-mark corner-tl">+</span>
+              <span class="corner-mark corner-tr">+</span>
+              <span class="corner-mark corner-bl">+</span>
+              <span class="corner-mark corner-br">+</span>
               <div class="side-stripes-left"></div>
               <div class="side-stripes-right"></div>
               <header class="dossier-header">
@@ -1561,7 +1703,7 @@
                   <div class="mental-card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                       <span class="section-tag">Mental</span>
-                      <span style="font-size:0.52rem; font-weight:700; font-family:'Chakra Petch';">DESPAIR</span>
+                      <span style="font-size:0.56rem; font-weight:700; font-family:'Chakra Petch'; color:#ff0055;">DESPAIR</span>
                     </div>
                     <div class="mental-grid">
                       <div class="check-sq"></div><div class="check-sq"></div><div class="check-sq"></div>
@@ -1570,16 +1712,22 @@
                     </div>
                     <div class="cred-box">
                       <div class="cred-label">CREDIBILITY (ความน่าเชื่อถือ)</div>
-                      <div class="hearts-row"><span>[♥]</span><span>[♥]</span><span>[♥]</span><span>[♥]</span><span>[♥]</span></div>
+                      <div class="hearts-row">
+                        <span class="heart-icon">♥</span>
+                        <span class="heart-icon">♥</span>
+                        <span class="heart-icon">♥</span>
+                        <span class="heart-icon">♥</span>
+                        <span class="heart-icon">♥</span>
+                      </div>
                     </div>
                   </div>
                   <div class="hp-wp-grid">
                     <div class="gauge-block"><span class="lbl">HP</span><div class="val-box">${d.hp}</div></div>
                     <div class="gauge-block"><span class="lbl">WP</span><div class="val-box">${d.wp}</div></div>
                   </div>
-                  <div class="languages-card">
-                    <span class="section-tag">Languages</span>
-                    <div class="languages-content">${d.languages}</div>
+                  <div class="conditions-card">
+                    <span class="section-tag">Status</span>
+                    <div class="conditions-content">${d.conditions}</div>
                   </div>
                 </div>
                 <div class="col-right">
@@ -1589,7 +1737,7 @@
                       <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
                       <div class="portrait-body">
                         <div class="portrait-placeholder">
-                          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                           <span>Hope's Peak File</span>
                         </div>
                       </div>
@@ -1606,12 +1754,16 @@
                     </div>
                   </div>
                   <div class="talents-card">
-                    <div class="talents-top-bar"><span class="section-tag">Talents</span><span style="font-size:0.62rem; font-weight:700;">ความสามารถ & การกระทำในศาล</span></div>
+                    <div class="talents-top-bar"><span class="section-tag">Talents</span><span style="font-size:0.70rem; font-weight:700;">ความสามารถ & การกระทำในศาล</span></div>
                     <div class="talents-content">${d.talents}</div>
                   </div>
                   <div class="backpack-card">
-                    <div class="talents-top-bar"><span class="section-tag">Backpack</span><span style="font-size:0.62rem; font-weight:700;">สัมภาระ & บันทึกส่วนตัว</span></div>
+                    <div class="talents-top-bar"><span class="section-tag">Backpack</span><span style="font-size:0.70rem; font-weight:700;">สัมภาระ & บันทึกส่วนตัว</span></div>
                     <div class="backpack-content">${d.backpack}</div>
+                  </div>
+                  <div class="notes-card">
+                    <div class="talents-top-bar"><span class="section-tag">Clues & Notes</span><span style="font-size:0.70rem; font-weight:700;">บันทึกเบาะแส & ข้อสังเกต</span></div>
+                    <div class="notes-content">${d.notes}</div>
                   </div>
                 </div>
               </div>
