@@ -2298,6 +2298,12 @@ body.dangan-body {
 /* ==========================================================
    INVESTIGATION PHASE (COURT SCREEN)
    ========================================================== */
+#courtInvestigation {
+  justify-content: flex-start !important;
+  overflow-y: auto !important;
+  padding: 40px 24px 60px 24px !important;
+}
+
 .court-investigation-box {
   display: flex;
   flex-direction: column;
@@ -2319,6 +2325,9 @@ body.dangan-body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  max-width: 950px;
+  margin: 15px auto 25px auto;
 }
 
 .discovery-tracker-top {
@@ -2369,6 +2378,8 @@ body.dangan-body {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
   width: 100%;
+  max-width: 950px;
+  margin: 0 auto 30px auto;
 }
 
 .investigation-loc-card {

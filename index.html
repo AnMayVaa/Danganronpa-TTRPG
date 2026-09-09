@@ -182,16 +182,7 @@
             
             <!-- Court Control Action Buttons -->
             <div class="court-lobby-actions">
-              <button class="small-btn green" onclick="setStage('trial')" style="font-weight:900; padding:8px 16px;">
-                🚀 เริ่มศาลชั้นเรียน (Start Trial)
-              </button>
-              <button class="small-btn yellow" onclick="setStage('investigation')" style="font-weight:900; padding:8px 16px;">
-                🔍 ช่วงสืบสวน (Investigation)
-              </button>
-              <button class="small-btn cyan" onclick="window.open('/admin?room=' + roomCode, '_blank')" style="font-weight:900; padding:8px 16px;">
-                🎛️ เปิดจอควบคุม Admin
-              </button>
-              <button class="small-btn red" onclick="courtTerminateSession()" style="font-weight:900; padding:8px 16px;">
+              <button class="small-btn red" onclick="courtTerminateSession()" style="font-weight:900; padding:10px 20px; font-size:1rem;">
                 🚪 จบ Session & เตะทุกคนออก
               </button>
             </div>
@@ -210,16 +201,7 @@
 
         <!-- Court Quick Actions in Trial View -->
         <div class="court-lobby-actions" style="margin-bottom:24px;">
-          <button class="small-btn cyan" onclick="window.open('/admin?room=' + roomCode, '_blank')" style="font-weight:900; padding:8px 16px;">
-            🎛️ เปิดจอควบคุม Admin (เลือกมินิเกม)
-          </button>
-          <button class="small-btn yellow" onclick="setStage('investigation')" style="font-weight:900; padding:8px 16px;">
-            🔍 สลับไปช่วงสืบสวน (Investigation)
-          </button>
-          <button class="small-btn grey" onclick="setStage('lobby')" style="font-weight:900; padding:8px 16px;">
-            🏛️ กลับสู่หน้า Lobby (แสดง QR / PIN)
-          </button>
-          <button class="small-btn red" onclick="courtTerminateSession()" style="font-weight:900; padding:8px 16px;">
+          <button class="small-btn red" onclick="courtTerminateSession()" style="font-weight:900; padding:10px 20px; font-size:1rem;">
             🚪 จบ Session & เตะทุกคนออก
           </button>
         </div>
@@ -549,13 +531,17 @@
         <div class="admin-card">
           <h2 class="admin-card-title">📢 Monokuma Soundboard & SFX</h2>
           <div class="soundboard-grid">
-            <button class="sound-btn" onclick="triggerFx('gavel')">🔨 เคาะค้อนศาล</button>
-            <button class="sound-btn" onclick="triggerFx('laugh')">🐻 เสียงหัวเราะ Upupupu</button>
-            <button class="sound-btn" onclick="triggerFx('blade')">🗡️ ดาบความจริง</button>
-            <button class="sound-btn" onclick="triggerFx('break')">💥 ทลายคำให้การ</button>
+            <button class="sound-btn" onclick="triggerFx('laugh')">🐻 หัวเราะ Upupupu</button>
+            <button class="sound-btn" onclick="triggerFx('chime')">🔔 ระฆัง Ding Dong</button>
+            <button class="sound-btn" onclick="triggerFx('bda')">💀 ประกาศพบศพ (BDA)</button>
+            <button class="sound-btn" onclick="triggerFx('counter')">🔫 Sore wa Chigau yo!</button>
+            <button class="sound-btn" onclick="triggerFx('break')">💥 ทลายคำให้การ (BREAK)</button>
+            <button class="sound-btn" onclick="triggerFx('blade')">🗡️ ดวลดาบความจริง</button>
+            <button class="sound-btn" onclick="triggerFx('rebuttal')">⚔️ Rebuttal Showdown</button>
+            <button class="sound-btn" onclick="triggerFx('vote_intro')">🗳️ ดนตรีตัดสินคดี</button>
             <button class="sound-btn" onclick="triggerFx('correct')">✨ ตรรกะถูกต้อง</button>
             <button class="sound-btn" onclick="triggerFx('wrong')">💀 เสียงลงทัณฑ์</button>
-            <button class="sound-btn" onclick="triggerFx('siren')">🚨 ไซเรนเตือนภัย</button>
+            <button class="sound-btn" onclick="triggerFx('gavel')">🔨 เคาะค้อนศาล</button>
             <button class="sound-btn" onclick="triggerFx('glitch')">⚡ สัญญาณรบกวน</button>
           </div>
         </div>

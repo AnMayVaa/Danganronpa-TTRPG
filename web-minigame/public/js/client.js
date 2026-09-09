@@ -178,8 +178,34 @@ let gameState = {
 let timerInterval = null;
 
 // ==========================================================
-// WEB AUDIO SYNTHESIZER (DANGANRONPA SFX)
+// AUTHENTIC DANGANRONPA AUDIO & SFX ENGINE
 // ==========================================================
+const SOUND_FILES = {
+  gavel: '/sounds/minigame_start.wav',
+  laugh: '/sounds/monokuma_laugh1.wav',
+  laugh1: '/sounds/monokuma_laugh1.wav',
+  laugh2: '/sounds/monokuma_laugh2.wav',
+  laugh3: '/sounds/monokuma_laugh3.wav',
+  blade: '/sounds/sword_clash.wav',
+  slash: '/sounds/sword_swing.wav',
+  break: '/sounds/screenbreak.mp3',
+  point_break: '/sounds/screenbreak.mp3',
+  chime: '/sounds/dingdongbingbong.mp3',
+  bda: '/sounds/bda_announ.mp3',
+  bda_bell: '/sounds/bda_bell.mp3',
+  counter: '/sounds/countersfx.mp3',
+  shoot: '/sounds/shoottb.mp3',
+  rebuttal: '/sounds/rebuttal_intro.wav',
+  vote_intro: '/sounds/vote_intro.wav',
+  vote_music: '/sounds/vote_intro.wav',
+  correct: '/sounds/vote_correct.wav',
+  wrong: '/sounds/vote_incorrect.wav',
+  clue_get: '/sounds/bullet_get.mp3',
+  bullet_get: '/sounds/bullet_get.mp3',
+  glitch: '/sounds/static.mp3',
+  despair: '/sounds/despairnoise.mp3'
+};
+
 let audioCtx = null;
 
 function getAudio() {
@@ -189,6 +215,33 @@ function getAudio() {
 }
 
 function playSfx(type) {
+  let soundKey = type;
+  if (type === 'laugh') {
+    const laughs = ['laugh1', 'laugh2', 'laugh3'];
+    soundKey = laughs[Math.floor(Math.random() * laughs.length)];
+  }
+
+  const file = SOUND_FILES[soundKey] || SOUND_FILES[type];
+  if (file) {
+    try {
+      const audio = new Audio(file);
+      audio.volume = 0.85;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          playSynthSfx(type);
+        });
+      }
+      return;
+    } catch (e) {
+      playSynthSfx(type);
+    }
+  } else {
+    playSynthSfx(type);
+  }
+}
+
+function playSynthSfx(type) {
   try {
     const ctx = getAudio();
     const now = ctx.currentTime;
@@ -412,13 +465,14 @@ function initRealtime() {
 function setupPeerJS() {
   if (currentView === 'hub') return;
   if (!roomCode) return;
-  if (myPeer && !myPeer.destroyed) return;
 
   const hostPeerId = `dangan-court-${roomCode.toLowerCase()}`;
 
-  // If Courtroom or Admin screen, register as Host or connect
-  if (currentView === 'court' || currentView === 'admin') {
+  // ONLY Courtroom main projector screen is Host!
+  if (currentView === 'court') {
     isHost = true;
+    if (myPeer && !myPeer.destroyed) return;
+
     myPeer = new Peer(hostPeerId, { debug: 1 });
 
     myPeer.on('open', (id) => {
@@ -428,12 +482,12 @@ function setupPeerJS() {
 
     myPeer.on('connection', (conn) => {
       peerConnections.push(conn);
-      console.log('[WEBRTC] Player connected:', conn.peer);
+      console.log('[WEBRTC] Client connected to Host:', conn.peer);
       
       conn.on('data', (data) => {
         handleIncomingMessage(data, conn);
         // STAR-RELAY: Forward message to all other connected peers immediately!
-        if (isHost && data.type !== 'request_claim_character') {
+        if (isHost && data.type !== 'request_claim_character' && data.type !== 'request_sync_state') {
           peerConnections.forEach(c => {
             if (c !== conn && c.open) {
               try { c.send(data); } catch(e) {}
@@ -446,56 +500,87 @@ function setupPeerJS() {
         peerConnections = peerConnections.filter(c => c !== conn);
       });
 
-      // Send initial state & claimed roles to newly joined player
+      // Send initial state & claimed roles to newly joined peer
       setTimeout(() => {
-        conn.send({ type: 'sync_state', state: gameState });
-        if (gameState && gameState.players) {
-          Object.values(gameState.players).forEach(p => {
-            conn.send({
-              type: 'character_claimed',
-              role: p.role,
-              playerName: p.name,
-              peerId: p.id
+        if (conn.open) {
+          conn.send({ type: 'sync_state', state: gameState });
+          if (gameState && gameState.players) {
+            Object.values(gameState.players).forEach(p => {
+              conn.send({
+                type: 'character_claimed',
+                role: p.role,
+                playerName: p.name,
+                peerId: p.id
+              });
             });
-          });
+          }
         }
       }, 350);
     });
 
     myPeer.on('error', (err) => {
-      // If host ID is already taken, this might be a secondary screen (e.g. Admin screen connecting to Court screen)
-      if (err.type === 'unavailable-id') {
-        console.log('[WEBRTC] Host ID in use, connecting as Client to Host:', hostPeerId);
-        isHost = false;
-        connectToHostPeer(hostPeerId);
-      }
+      console.warn('[WEBRTC Host Error]:', err);
     });
-  } else if (currentView === 'player') {
-    // Player mobile connects to Host
+  } else if (currentView === 'admin' || currentView === 'player') {
+    // Admin DM panel and Player mobile connect to Host
+    isHost = false;
     connectToHostPeer(hostPeerId);
   }
 }
 
 function connectToHostPeer(hostId, onConnected) {
-  if (myPeer && !myPeer.destroyed) {
-    if (hostPeer && hostPeer.open) {
-      if (onConnected) onConnected();
-      return;
-    }
-  } else {
-    myPeer = new Peer();
-  }
+  isHost = false;
 
-  myPeer.on('open', () => {
-    hostPeer = myPeer.connect(hostId, { reliable: true });
-    hostPeer.on('open', () => {
-      console.log('[WEBRTC] Connected to Host:', hostId);
-      if (onConnected) onConnected();
+  const attemptConnect = () => {
+    if (!myPeer || myPeer.destroyed) return;
+    try {
+      console.log('[WEBRTC] Connecting to Host Peer:', hostId);
+      hostPeer = myPeer.connect(hostId, { reliable: true });
+
+      hostPeer.on('open', () => {
+        console.log('[WEBRTC] Successfully connected to Host:', hostId);
+        if (onConnected) onConnected();
+        // Request latest sync state from Host
+        hostPeer.send({ type: 'request_sync_state' });
+      });
+
+      hostPeer.on('data', (data) => {
+        handleIncomingMessage(data, hostPeer);
+      });
+
+      hostPeer.on('close', () => {
+        console.warn('[WEBRTC] Host connection closed. Reconnecting in 3s...');
+        setTimeout(() => {
+          if (currentView !== 'hub' && (!hostPeer || !hostPeer.open)) {
+            attemptConnect();
+          }
+        }, 3000);
+      });
+
+      hostPeer.on('error', (err) => {
+        console.warn('[WEBRTC] Host connection error:', err);
+      });
+    } catch (e) {
+      console.error('[WEBRTC] Exception during host connection:', e);
+    }
+  };
+
+  if (!myPeer || myPeer.destroyed) {
+    myPeer = new Peer(null, { debug: 1 });
+    myPeer.on('open', (id) => {
+      console.log('[WEBRTC Client Peer Open]:', id);
+      attemptConnect();
     });
-    hostPeer.on('data', (data) => {
-      handleIncomingMessage(data, hostPeer);
+    myPeer.on('error', (err) => {
+      console.warn('[WEBRTC Client Peer Error]:', err);
     });
-  });
+  } else if (myPeer.open) {
+    attemptConnect();
+  } else {
+    myPeer.once('open', () => {
+      attemptConnect();
+    });
+  }
 }
 
 function broadcast(msg) {
@@ -662,6 +747,20 @@ function handleIncomingMessage(msg, senderConn) {
     updatePlayerDisplays();
     logCourt(`👤 [JOIN]: ${msg.player.name} (${msg.player.role}) ยืนประจำโพเดียม`);
     if (isHost) broadcast({ type: 'sync_state', state: gameState });
+  } else if (msg.type === 'request_sync_state') {
+    if (isHost && senderConn && senderConn.open) {
+      senderConn.send({ type: 'sync_state', state: gameState });
+      if (gameState && gameState.players) {
+        Object.values(gameState.players).forEach(p => {
+          senderConn.send({
+            type: 'character_claimed',
+            role: p.role,
+            playerName: p.name,
+            peerId: p.id
+          });
+        });
+      }
+    }
   } else if (msg.type === 'admin_reset_session' || msg.type === 'reset_session') {
     handleResetSession();
   } else if (msg.type === 'kick_player') {
@@ -670,13 +769,28 @@ function handleIncomingMessage(msg, senderConn) {
     handleClueDiscovered(msg.clueId, msg.clueName, msg.playerName);
   } else if (msg.type === 'set_stage') {
     setStage(msg.stage, msg.config);
+  } else if (msg.type === 'admin_adjust_timer') {
+    gameState.timeRemaining = Math.max(0, gameState.timeRemaining + (msg.secs || 0));
+    updateTimerDisplay();
+    if (isHost) broadcast({ type: 'timer_tick', time: gameState.timeRemaining });
+  } else if (msg.type === 'admin_timer_stop') {
+    stopTimer();
+  } else if (msg.type === 'admin_timer_start') {
+    startTimer(msg.duration || gameState.timeRemaining || 60);
   } else if (msg.type === 'timer_tick') {
     gameState.timeRemaining = msg.time;
     updateTimerDisplay();
   } else if (msg.type === 'adjust_influence') {
-    gameState.influence = Math.max(0, Math.min(100, gameState.influence + msg.delta));
+    if (msg.reset) {
+      gameState.influence = (msg.value !== undefined) ? msg.value : 100;
+    } else if (msg.value !== undefined) {
+      gameState.influence = msg.value;
+    } else {
+      gameState.influence = Math.max(0, Math.min(100, gameState.influence + (msg.delta || 0)));
+    }
     updateInfluenceDisplay();
-    playSfx('wrong');
+    if (msg.delta < 0) playSfx('wrong');
+    else if (msg.delta > 0) playSfx('correct');
   } else if (msg.type === 'sabotage') {
     handleSabotage(msg.sabType, msg.playerName);
   } else if (msg.type === 'stg1_submit') {
@@ -1256,7 +1370,7 @@ function unlockClue(rawCode) {
   if (!unlocked.includes(clue.id)) {
     unlocked.push(clue.id);
     localStorage.setItem('dangan_unlocked_' + (currentUserHash || 'guest'), JSON.stringify(unlocked));
-    playSfx('correct');
+    playSfx('clue_get');
     showToast(`✨ ค้นพบหลักฐานใหม่: [${clue.name}] บันทึกลงใน Monopad แล้ว!`);
     broadcast({
       type: 'clue_discovered',
@@ -1458,7 +1572,7 @@ function setStage(stage, config) {
     const stmtEl = document.getElementById('rebuttalStatement');
     if (stmtEl && gameState.stg3Argument) stmtEl.innerText = `"${gameState.stg3Argument}"`;
     startTimer(45);
-    playSfx('gavel');
+    playSfx('rebuttal');
   } else if (stage === 'stage4') {
     gameState.stg4Step = 1;
     startTimer(60);
@@ -1491,7 +1605,7 @@ function setStage(stage, config) {
     gameState.votingOpen = true;
     gameState.votes = {};
     startTimer(60);
-    playSfx('siren');
+    playSfx('vote_intro');
   } else if (stage === 'lobby') {
     logCourt(`🏛️ [LOBBY]: กลับสู่ห้องพิจารณาคดีหลัก`);
   }
@@ -1643,7 +1757,7 @@ function handleClueDiscovered(clueId, clueName, playerName) {
     updateDiscoveredCluesDisplay();
     logCourt(`🔎 [DISCOVERY]: ${playerName || 'นักเรียน'} สแกนพบหลักฐาน [${clueName || clueId}]!`);
     if (currentView === 'court') {
-      playSfx('correct');
+      playSfx('clue_get');
     }
   }
 }
@@ -2142,33 +2256,42 @@ function handleSabotage(type, pName) {
 // ==========================================================
 // DM / ADMIN CONTROLS
 // ==========================================================
-function adminSetGame(stage) {
-  setStage(stage);
+function adminSetGame(stage, config) {
+  setStage(stage, config);
+  broadcast({ type: 'set_stage', stage: stage, config: config });
 }
 
 function adminAdjustTimer(secs) {
   gameState.timeRemaining = Math.max(0, gameState.timeRemaining + secs);
   updateTimerDisplay();
-  if (isHost) broadcast({ type: 'timer_tick', time: gameState.timeRemaining });
+  broadcast({ type: 'admin_adjust_timer', secs: secs, time: gameState.timeRemaining });
 }
 
 function adminToggleTimer() {
-  if (gameState.timerRunning) stopTimer();
-  else startTimer(gameState.timeRemaining || 60);
+  if (gameState.timerRunning) {
+    stopTimer();
+    broadcast({ type: 'admin_timer_stop' });
+  } else {
+    const dur = gameState.timeRemaining || 60;
+    startTimer(dur);
+    broadcast({ type: 'admin_timer_start', duration: dur });
+  }
 }
 
 function adminAdjustInfluence(amount, reset) {
   if (reset) gameState.influence = amount;
   else gameState.influence = Math.max(0, Math.min(100, gameState.influence + amount));
   updateInfluenceDisplay();
-  broadcast({ type: 'adjust_influence', delta: amount });
+  broadcast({ type: 'adjust_influence', delta: amount, reset: reset, value: gameState.influence });
 }
 
 function adminTriggerVerdict(isVictory) {
+  showVerdict(isVictory);
   broadcast({ type: 'verdict', isVictory: isVictory });
 }
 
 function triggerFx(fx) {
+  playSfx(fx);
   broadcast({ type: 'trigger_fx', fx: fx });
 }
 
