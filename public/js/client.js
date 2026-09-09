@@ -16,9 +16,10 @@ let isHost = false;
 let socket = null;
 
 // Universal Real-Time Multi-Transport Layer:
-// Layer 1: Native In-Browser BroadcastChannel & Inter-Frame Messaging (0ms local speed, works offline/static)
-// Layer 2: Server-Sent Events (SSE) Stream Bus & HTTP Relay (for multi-device cross-network)
+// Layer 1: Native In-Browser BroadcastChannel (0ms local speed across tabs/iframes)
+// Layer 2: Server-Sent Events (SSE) Stream Bus & HTTP Relay (cross-network devices)
 // Layer 3: WebRTC DataChannel (PeerJS P2P fallback)
+const myClientId = 'cid_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
 let localRoomChannel = null;
 let serverStreamSource = null;
 let activeServerRoomCode = null;
@@ -39,6 +40,9 @@ function setupLocalChannel(code) {
         if (!evt.data) return;
         const msg = evt.data;
         if (!msg || !msg.type) return;
+
+        // Anti-Echo: drop self-originating messages
+        if (msg._sender === myClientId) return;
 
         // Deduplication
         if (msg._id) {
@@ -68,6 +72,7 @@ function setupLocalChannel(code) {
 window.addEventListener('message', (evt) => {
   if (!evt.data || typeof evt.data !== 'object' || !evt.data.type) return;
   const msg = evt.data;
+  if (msg._sender === myClientId) return;
   if (msg._id) {
     if (processedMessageIds.has(msg._id)) return;
     processedMessageIds.add(msg._id);
@@ -291,6 +296,7 @@ const SOUND_FILES = {
 
 let audioCtx = null;
 let activeSfxAudio = null;
+const lastSfxPlayTimes = {};
 
 function getAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -299,6 +305,28 @@ function getAudio() {
 }
 
 function playSfx(type) {
+  // 1. Check if muted via URL query parameter (?muted=1)
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('muted') === '1') return;
+  } catch(e) {}
+
+  // 2. If inside an iframe (like Simulation multi-device panel), ONLY Court screen plays audio!
+  // In a classroom/TTRPG session, the Court screen/projector connects to room speakers.
+  try {
+    if (window !== window.top) {
+      const isCourt = window.location.search.includes('view=court') || window.location.pathname.includes('/court');
+      if (!isCourt) return;
+    }
+  } catch(e) {}
+
+  // 3. Audio debounce: prevent identical SFX from firing faster than 250ms (stops rapid-fire stutter)
+  const now = Date.now();
+  if (lastSfxPlayTimes[type] && (now - lastSfxPlayTimes[type] < 250)) {
+    return;
+  }
+  lastSfxPlayTimes[type] = now;
+
   // Prevent audio overlapping: stop previous soundboard SFX immediately
   if (activeSfxAudio) {
     try {
@@ -333,6 +361,14 @@ function playSfx(type) {
 }
 
 function playSynthSfx(type) {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('muted') === '1') return;
+    if (window !== window.top) {
+      const isCourt = window.location.search.includes('view=court') || window.location.pathname.includes('/court');
+      if (!isCourt) return;
+    }
+  } catch(e) {}
   try {
     const ctx = getAudio();
     const now = ctx.currentTime;
@@ -780,7 +816,8 @@ function setupServerStream(code) {
         const msg = JSON.parse(event.data);
         if (!msg || !msg.type) return;
 
-        // Deduplication: skip if already handled
+        // Anti-Echo & Deduplication
+        if (msg._sender === myClientId) return;
         if (msg._id) {
           if (processedMessageIds.has(msg._id)) return;
           processedMessageIds.add(msg._id);
@@ -808,7 +845,10 @@ function setupServerStream(code) {
 function broadcast(msg) {
   if (!msg || !msg.type) return;
 
-  // 1. Assign unique message ID for cross-transport deduplication
+  // 1. Assign unique message ID and sender ID for cross-transport deduplication
+  if (!msg._sender) {
+    msg._sender = myClientId;
+  }
   if (!msg._id) {
     const senderTag = (myPlayer && myPlayer.id) ? myPlayer.id : (currentUserHash || (isHost ? 'court_host' : 'anon'));
     msg._id = senderTag + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
@@ -826,23 +866,24 @@ function broadcast(msg) {
   // 2. LAYER 1: Native In-Browser BroadcastChannel (0ms speed, works on static hosts without server)
   if (localRoomChannel) {
     try { localRoomChannel.postMessage(msg); } catch(e) {}
+  } else {
+    // Fallback only if BroadcastChannel is not available
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(msg, '*');
+      }
+    } catch(e) {}
+    try {
+      const iframes = document.querySelectorAll('iframe');
+      if (iframes && iframes.length > 0) {
+        iframes.forEach(f => {
+          if (f.contentWindow) {
+            try { f.contentWindow.postMessage(msg, '*'); } catch(err) {}
+          }
+        });
+      }
+    } catch(e) {}
   }
-  // Also post directly to parent window (if inside iframe) and child iframes
-  try {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage(msg, '*');
-    }
-  } catch(e) {}
-  try {
-    const iframes = document.querySelectorAll('iframe');
-    if (iframes && iframes.length > 0) {
-      iframes.forEach(f => {
-        if (f.contentWindow) {
-          try { f.contentWindow.postMessage(msg, '*'); } catch(err) {}
-        }
-      });
-    }
-  } catch(e) {}
 
   // 3. LAYER 2: Server-Sent Events / HTTP Relay (for multi-device cross-network)
   if (activeRoom) {
@@ -869,8 +910,15 @@ function broadcast(msg) {
     try { hostPeer.send(msg); } catch(e) {}
   }
 
-  // 5. Also broadcast locally to this browser tab ONLY if it shouldn't be excluded
-  if (msg.type !== 'trigger_fx' && msg.type !== 'request_claim_character' && msg.type !== 'player_leave') {
+  // 5. Local execution filter: Do NOT re-handle locally if already executed by the calling function!
+  const alreadyHandledLocally = [
+    'trigger_fx', 'request_claim_character', 'player_leave',
+    'set_stage', 'admin_adjust_timer', 'admin_timer_stop', 'admin_timer_start',
+    'adjust_influence', 'verdict', 'minigame_result', 'close_minigame_result',
+    'execution_cutscene', 'close_execution_cutscene', 'stg1_evaluate',
+    'reveal_votes', 'sync_state', 'rebuttal_verdict'
+  ];
+  if (!alreadyHandledLocally.includes(msg.type)) {
     handleIncomingMessage(msg, null);
   }
 
@@ -1092,7 +1140,7 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'rebuttal_slash') {
     handleRebuttalSlash(msg.bullet, msg.playerName);
   } else if (msg.type === 'rebuttal_verdict') {
-    // Rebuttal verdict already handled
+    triggerRebuttalVerdict(msg.isWin, true);
   } else if (msg.type === 'logic_dive_vote') {
     handleLogicDiveVote(msg.question, msg.choice, msg.voterId, msg.playerName);
   } else if (msg.type === 'logic_dive_crash') {
@@ -1124,13 +1172,13 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'submit_vote') {
     handleVoteSubmitted(msg.candidate, msg.voterId);
   } else if (msg.type === 'minigame_result') {
-    showMinigameResult(msg.success, msg.title, msg.desc, msg.details);
+    showMinigameResult(msg.success, msg.title, msg.desc, msg.details, true);
   } else if (msg.type === 'close_minigame_result') {
-    closeCourtResultModal();
+    closeCourtResultModal(true);
   } else if (msg.type === 'execution_cutscene') {
-    triggerMonokumaExecutionCutscene(msg.isVictory);
+    triggerMonokumaExecutionCutscene(msg.isVictory, true);
   } else if (msg.type === 'close_execution_cutscene') {
-    closeExecutionModal();
+    closeExecutionModal(true);
   } else if (msg.type === 'verdict') {
     showVerdict(msg.isVictory);
   } else if (msg.type === 'trigger_fx') {
@@ -2010,8 +2058,8 @@ function splitGraphemes(str) {
 function setStage(stage, config) {
   gameState.stage = stage;
   stopTimer();
-  closeCourtResultModal();
-  closeExecutionModal();
+  closeCourtResultModal(true);
+  closeExecutionModal(true);
 
   if (stage === 'idle') {
     stopTimer();
@@ -2392,7 +2440,7 @@ function autoUnlockTrialClues() {
 // ==========================================================
 // UNIVERSAL MINIGAME FINAL RESULT BANNER & EXECUTION MODALS
 // ==========================================================
-function showMinigameResult(success, title, desc, details) {
+function showMinigameResult(success, title, desc, details, skipBroadcast = false) {
   stopTimer();
   const modal = document.getElementById('courtResultModal');
   const card = document.getElementById('courtResultCard');
@@ -2427,7 +2475,7 @@ function showMinigameResult(success, title, desc, details) {
     playSfx(success ? 'point_break' : 'wrong');
   }
 
-  if (isHost) {
+  if (!skipBroadcast && isHost) {
     broadcast({
       type: 'minigame_result',
       success: success,
@@ -2440,16 +2488,16 @@ function showMinigameResult(success, title, desc, details) {
   logCourt(`📢 [RESULT]: ${title} - ${success ? 'สำเร็จ' : 'ล้มเหลว'}`);
 }
 
-function closeCourtResultModal() {
+function closeCourtResultModal(skipBroadcast = false) {
   const modal = document.getElementById('courtResultModal');
   if (modal) {
     modal.classList.add('hidden');
     modal.style.display = 'none';
   }
-  if (isHost) broadcast({ type: 'close_minigame_result' });
+  if (!skipBroadcast && isHost) broadcast({ type: 'close_minigame_result' });
 }
 
-function triggerMonokumaExecutionCutscene(isVictory) {
+function triggerMonokumaExecutionCutscene(isVictory, skipBroadcast = false) {
   stopTimer();
   const modal = document.getElementById('monokumaExecutionModal');
   const nameEl = document.getElementById('executionCulpritName');
@@ -2476,18 +2524,18 @@ function triggerMonokumaExecutionCutscene(isVictory) {
     }, 550);
   }
 
-  if (isHost) {
+  if (!skipBroadcast && isHost) {
     broadcast({ type: 'execution_cutscene', isVictory: isVictory });
   }
 }
 
-function closeExecutionModal() {
+function closeExecutionModal(skipBroadcast = false) {
   const modal = document.getElementById('monokumaExecutionModal');
   if (modal) {
     modal.classList.add('hidden');
     modal.style.display = 'none';
   }
-  if (isHost) broadcast({ type: 'close_execution_cutscene' });
+  if (!skipBroadcast && isHost) broadcast({ type: 'close_execution_cutscene' });
 }
 
 // ==========================================================
@@ -2714,7 +2762,7 @@ function handleRebuttalSlash(bulletId, pName) {
   }
 }
 
-function adminRebuttalVerdict(isWin) {
+function triggerRebuttalVerdict(isWin, skipBroadcast = false) {
   stopTimer();
   if (isWin) {
     playSfx('counter');
@@ -2722,22 +2770,26 @@ function adminRebuttalVerdict(isWin) {
       showMinigameResult(
         true,
         "BLADE OF TRUTH!",
-        "ผู้เล่นฟันทำลายดาบปฏิเสธของคู่ต่อสู้สำเร็จ! 'Sore wa Chigau yo!'",
-        "ข้ออ้างของฝ่ายตรงข้ามถูกหักล้างจนหมดสิ้น!"
+        "คุณได้ฟันทำลายดาบปฏิเสธของคนร้ายสำเร็จ! 'Sore wa Chigau yo!'",
+        "ข้ออ้างของคนร้ายถูกหักล้างอย่างสิ้นเชิง!"
       );
     }, 400);
-    broadcast({ type: 'rebuttal_verdict', isWin: true });
+    if (!skipBroadcast && isHost) broadcast({ type: 'rebuttal_verdict', isWin: true });
   } else {
     gameState.influence = Math.max(0, gameState.influence - 15);
     updateInfluenceDisplay();
     showMinigameResult(
       false,
       "REBUTTAL DEFEAT!",
-      "ข้อโต้แย้งของผู้เล่นถูกฟันตกสะบั้น! (-15% Influence)",
-      "ฝ่ายตรงข้ามยังคงยืนกรานข้ออ้างต่อไปได้"
+      "ข้อโต้แย้งถูกฟันกลับจนกระเด็น! (-15% Influence)",
+      "ศาลเสียความน่าเชื่อถือจากการถูกบดขยี้ในดาบปะทะ"
     );
-    broadcast({ type: 'rebuttal_verdict', isWin: false });
+    if (!skipBroadcast && isHost) broadcast({ type: 'rebuttal_verdict', isWin: false });
   }
+}
+
+function adminRebuttalVerdict(isWin) {
+  triggerRebuttalVerdict(isWin, false);
 }
 
 function adminSelectRebuttalChallenger() {
@@ -2924,25 +2976,28 @@ function updateLogicDiveDisplay() {
 
 // 5. Debate Scrum (Auto-Conclude at 100% or 0%)
 function handleStg5Scrum(delta) {
-  gameState.stg5Meter = Math.max(0, Math.min(100, gameState.stg5Meter + delta));
+  if (gameState.stg5Finished) return;
+  gameState.stg5Meter = Math.max(0, Math.min(100, (gameState.stg5Meter !== undefined ? gameState.stg5Meter : 50) + delta));
   updateScrumDisplay();
 
   if (gameState.stg5Meter >= 100) {
+    gameState.stg5Finished = true;
     stopTimer();
     showMinigameResult(
       true,
       "SCRUM VICTORY!",
-      "ฝ่ายความจริงผลักดันข้อโต้แย้งสำเร็จ 100%!",
-      "ข้อโต้แย้งของฝ่ายตรงข้ามถูกดันจนมุมสิ้นเชิง!"
+      "ผลักดันตรรกะสำเร็จ 100%!",
+      "ข้อโต้แย้งของฝ่ายตรงข้ามถูกบดขยี้จนสิ้นเชิง!"
     );
   } else if (gameState.stg5Meter <= 0) {
+    gameState.stg5Finished = true;
     stopTimer();
     gameState.influence = Math.max(0, gameState.influence - 20);
     updateInfluenceDisplay();
     showMinigameResult(
       false,
       "SCRUM DEFEAT!",
-      "ฝ่ายคนร้ายกลืนกินข้อโต้แย้งจนหมดสิ้น! (-20% Influence)",
+      "ฝ่ายตรงข้ามดันตรรกะจนชนะ! (-20% Influence)",
       "ศาลถูกชักจูงไปในทางที่ผิดพลาด"
     );
   }
@@ -4208,9 +4263,9 @@ function initSimulationLab() {
   const pathPrefix = loc.pathname.endsWith('.html') ? loc.pathname : (loc.pathname === '/' ? '/index.html' : loc.pathname.replace(/\/simulation\/?$/, '') + '/index.html');
 
   const courtUrl = baseUrl + pathPrefix + '?view=court&room=' + simRoomCode;
-  const adminUrl = baseUrl + pathPrefix + '?view=admin&room=' + simRoomCode + '&pin=295437';
-  const p1Url = baseUrl + pathPrefix + '?view=player&user=sim_naegi&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย');
-  const p2Url = baseUrl + pathPrefix + '?view=player&user=sim_kyoko&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา');
+  const adminUrl = baseUrl + pathPrefix + '?view=admin&room=' + simRoomCode + '&pin=295437&muted=1';
+  const p1Url = baseUrl + pathPrefix + '?view=player&user=sim_naegi&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย') + '&muted=1';
+  const p2Url = baseUrl + pathPrefix + '?view=player&user=sim_kyoko&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา') + '&muted=1';
 
   if (fCourt && (!fCourt.src || fCourt.src === 'about:blank' || !fCourt.src.includes(simRoomCode))) {
     fCourt.src = courtUrl;
@@ -4228,9 +4283,19 @@ function initSimulationLab() {
   setTimeout(() => { simProbePing(); }, 400);
 }
 
+const loggedSimMessageIds = new Set();
 function logSimEvent(msg) {
   const consoleEl = document.getElementById('simEventLogConsole');
-  if (!consoleEl) return;
+  if (!consoleEl || !msg) return;
+
+  if (msg._id) {
+    if (loggedSimMessageIds.has(msg._id)) return;
+    loggedSimMessageIds.add(msg._id);
+    if (loggedSimMessageIds.size > 300) {
+      const oldest = loggedSimMessageIds.values().next().value;
+      loggedSimMessageIds.delete(oldest);
+    }
+  }
 
   const now = new Date();
   const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
@@ -4306,6 +4371,7 @@ function clearSimLogs() {
 }
 
 async function simPost(msg) {
+  if (!msg._sender) msg._sender = 'sim_monitor';
   if (!msg._id) {
     msg._id = 'sim_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
   }
@@ -4313,20 +4379,20 @@ async function simPost(msg) {
   // 1. Dispatch through BroadcastChannel for zero-latency local delivery
   if (localRoomChannel) {
     try { localRoomChannel.postMessage(msg); } catch(e) {}
+  } else {
+    // 2. Dispatch directly into child iframes via postMessage only if no BroadcastChannel
+    const iframes = [
+      document.getElementById('simFrameCourt'),
+      document.getElementById('simFrameAdmin'),
+      document.getElementById('simFramePlayer1'),
+      document.getElementById('simFramePlayer2')
+    ];
+    iframes.forEach(f => {
+      if (f && f.contentWindow) {
+        try { f.contentWindow.postMessage(msg, '*'); } catch(e) {}
+      }
+    });
   }
-
-  // 2. Dispatch directly into child iframes via postMessage
-  const iframes = [
-    document.getElementById('simFrameCourt'),
-    document.getElementById('simFrameAdmin'),
-    document.getElementById('simFramePlayer1'),
-    document.getElementById('simFramePlayer2')
-  ];
-  iframes.forEach(f => {
-    if (f && f.contentWindow) {
-      try { f.contentWindow.postMessage(msg, '*'); } catch(e) {}
-    }
-  });
 
   // Log in Simulation Monitor
   logSimEvent(msg);
@@ -4373,7 +4439,31 @@ async function simProbePing() {
   simPost({ type: 'sim_ping', pingId: pingId, t: t0 });
 }
 
-async function simJoinPlayers() {
+let isSimActionRunning = false;
+
+async function runSimGuarded(actionName, actionFn) {
+  if (isSimActionRunning) {
+    logSimEvent({ type: 'sim_info', text: `⏳ [BUSY]: กำลังประมวลผลคำสั่งจำลองอื่นอยู่ กรุณารอสักครู่...` });
+    return;
+  }
+  isSimActionRunning = true;
+  const buttons = document.querySelectorAll('.sim-btn');
+  buttons.forEach(b => {
+    if (!b.classList.contains('reset')) b.disabled = true;
+  });
+
+  try {
+    await actionFn();
+  } catch (err) {
+    console.error('Simulation step error:', err);
+    logSimEvent({ type: 'sim_info', text: `❌ [ERROR]: การจำลองเกิดข้อผิดพลาด: ${err.message}` });
+  } finally {
+    isSimActionRunning = false;
+    buttons.forEach(b => b.disabled = false);
+  }
+}
+
+async function simJoinPlayersRaw() {
   logSimEvent({ type: 'sim_info', text: '👤 [ACTION]: จำลองส่งคำขอสวมบทบาท: นาเอกิ (นักแต่งนิยาย) และ เคียวโกะ (นักกีฬา)...' });
   await simPost({
     type: 'request_claim_character',
@@ -4381,7 +4471,7 @@ async function simJoinPlayers() {
     playerName: 'นาเอกิ',
     userHash: 'sim_naegi'
   });
-  await new Promise(r => setTimeout(r, 150));
+  await new Promise(r => setTimeout(r, 250));
   await simPost({
     type: 'request_claim_character',
     role: 'นักกีฬา',
@@ -4390,122 +4480,154 @@ async function simJoinPlayers() {
   });
 }
 
-async function simStage1Evidence() {
+async function simJoinPlayers() {
+  return runSimGuarded('เข้าห้องสวมบท', simJoinPlayersRaw);
+}
+
+async function simStage1EvidenceRaw() {
   logSimEvent({ type: 'sim_info', text: '🔍 [ACTION]: เริ่ม Stage 1 (Evidence Linker) และส่งหลักฐาน...' });
   await simPost({ type: 'set_stage', stage: 'stage1' });
-  await new Promise(r => setTimeout(r, 250));
+  await new Promise(r => setTimeout(r, 450));
   await simPost({ type: 'stg1_submit', clueId: 'EVD-01', playerName: 'นาเอกิ' });
-  await new Promise(r => setTimeout(r, 200));
+  await new Promise(r => setTimeout(r, 350));
   await simPost({ type: 'stg1_submit', clueId: 'EVD-04', playerName: 'เคียวโกะ' });
-  await new Promise(r => setTimeout(r, 500));
+  await new Promise(r => setTimeout(r, 600));
   await simPost({ type: 'stg1_evaluate' });
 }
 
-async function simStage2Hangman() {
-  logSimEvent({ type: 'sim_info', text: '🔤 [ACTION]: เริ่ม Stage 2 (Hangman\'s Gambit) ทายตัวอักษร "นาฬิกาน้ำ"...' });
+async function simStage1Evidence() {
+  return runSimGuarded('สเตจ 1: Evidence Linker', simStage1EvidenceRaw);
+}
+
+async function simStage2HangmanRaw() {
+  logSimEvent({ type: 'sim_info', text: "🔤 [ACTION]: เริ่ม Stage 2 (Hangman's Gambit) ทายตัวอักษร \"WATER CLOCK\"..." });
   await simPost({ type: 'set_stage', stage: 'stage2' });
-  const letters = ['น', 'า', 'ฬ', 'ิ', 'ก', 'า', 'น', '้', 'ำ'];
+  const letters = ['W', 'A', 'T', 'E', 'R', 'C', 'L', 'O', 'C', 'K'];
   for (const ch of letters) {
-    await new Promise(r => setTimeout(r, 180));
+    await new Promise(r => setTimeout(r, 250));
     await simPost({ type: 'stg2_char', char: ch });
   }
 }
 
-async function simStage3Rebuttal() {
+async function simStage2Hangman() {
+  return runSimGuarded("สเตจ 2: Hangman's Gambit", simStage2HangmanRaw);
+}
+
+async function simStage3RebuttalRaw() {
   logSimEvent({ type: 'sim_info', text: '🗡️ [ACTION]: เริ่ม Stage 3 (Rebuttal Showdown) ฟันดาบความจริง...' });
   await simPost({ type: 'set_stage', stage: 'stage3' });
-  await new Promise(r => setTimeout(r, 300));
+  await new Promise(r => setTimeout(r, 450));
   await simPost({ type: 'rebuttal_slash', bullet: 'EVD-01', playerName: 'นาเอกิ' });
-  await new Promise(r => setTimeout(r, 500));
+  await new Promise(r => setTimeout(r, 600));
   await simPost({ type: 'rebuttal_verdict', isWin: true });
 }
 
-async function simStage4LogicDive() {
+async function simStage3Rebuttal() {
+  return runSimGuarded('สเตจ 3: Rebuttal Showdown', simStage3RebuttalRaw);
+}
+
+async function simStage4LogicDiveRaw() {
   logSimEvent({ type: 'sim_info', text: '🛹 [ACTION]: เริ่ม Stage 4 (Logic Dive) โหวตทางเลือกตรรกะ...' });
   await simPost({ type: 'set_stage', stage: 'stage4' });
-  await new Promise(r => setTimeout(r, 250));
+  await new Promise(r => setTimeout(r, 350));
   await simPost({ type: 'logic_dive_vote', question: 1, choice: 'A', voterId: 'sim_naegi', playerName: 'นาเอกิ' });
-  await new Promise(r => setTimeout(r, 180));
+  await new Promise(r => setTimeout(r, 250));
   await simPost({ type: 'logic_dive_vote', question: 1, choice: 'A', voterId: 'sim_kyoko', playerName: 'เคียวโกะ' });
 }
 
-async function simStage5Scrum() {
-  logSimEvent({ type: 'sim_info', text: '🔥 [ACTION]: เริ่ม Stage 5 (Debate Scrum) รัวปุ่มดันตรรกะ (+8% per hit)...' });
+async function simStage4LogicDive() {
+  return runSimGuarded('สเตจ 4: Logic Dive', simStage4LogicDiveRaw);
+}
+
+async function simStage5ScrumRaw() {
+  logSimEvent({ type: 'sim_info', text: '🔥 [ACTION]: เริ่ม Stage 5 (Debate Scrum) ดันเกจตรรกะ (+10% per hit)...' });
   await simPost({ type: 'set_stage', stage: 'stage5' });
-  for (let i = 0; i < 7; i++) {
-    await new Promise(r => setTimeout(r, 120));
-    await simPost({ type: 'stg5_scrum', delta: 8 });
+  for (let i = 0; i < 6; i++) {
+    await new Promise(r => setTimeout(r, 180));
+    await simPost({ type: 'stg5_scrum', delta: 10 });
   }
 }
 
-async function simStage6Armament() {
+async function simStage5Scrum() {
+  return runSimGuarded('สเตจ 5: Debate Scrum', simStage5ScrumRaw);
+}
+
+async function simStage6ArmamentRaw() {
   logSimEvent({ type: 'sim_info', text: '🔨 [ACTION]: เริ่ม Stage 6 (Argument Armament) ทุบเกราะความจริง...' });
   await simPost({ type: 'set_stage', stage: 'stage6' });
-  for (let i = 0; i < 5; i++) {
-    await new Promise(r => setTimeout(r, 120));
+  for (let i = 0; i < 4; i++) {
+    await new Promise(r => setTimeout(r, 200));
     await simPost({ type: 'stg6_hit', playerName: 'นาเอกิ' });
   }
-  await new Promise(r => setTimeout(r, 350));
+  await new Promise(r => setTimeout(r, 450));
   await simPost({ type: 'stg6_final_blow', playerName: 'นาเอกิ' });
 }
 
-async function simClosingArgument() {
+async function simStage6Armament() {
+  return runSimGuarded('สเตจ 6: Argument Armament', simStage6ArmamentRaw);
+}
+
+async function simClosingArgumentRaw() {
   logSimEvent({ type: 'sim_info', text: '📖 [ACTION]: เริ่ม Closing Argument วางการ์ดมังงะสรุปคดี...' });
   await simPost({ type: 'set_stage', stage: 'closing' });
-  await new Promise(r => setTimeout(r, 200));
+  await new Promise(r => setTimeout(r, 350));
   await simPost({ type: 'closing_submit', slot: 1, cardId: 'EVD-14', playerName: 'นาเอกิ' });
-  await new Promise(r => setTimeout(r, 200));
+  await new Promise(r => setTimeout(r, 350));
   await simPost({ type: 'closing_submit', slot: 2, cardId: 'EVD-11', playerName: 'เคียวโกะ' });
 }
 
-async function simStage7Vote() {
+async function simClosingArgument() {
+  return runSimGuarded('Closing Argument', simClosingArgumentRaw);
+}
+
+async function simStage7VoteRaw() {
   logSimEvent({ type: 'sim_info', text: '🗳️ [ACTION]: เริ่ม Stage 7 (Voting Time) ลงคะแนนโหวตหา Blackened...' });
   await simPost({ type: 'set_stage', stage: 'stage7' });
+  await new Promise(r => setTimeout(r, 350));
+  await simPost({ type: 'submit_vote', candidate: 'PC 3 (นักมายากล)', voterId: 'sim_naegi' });
   await new Promise(r => setTimeout(r, 250));
-  await simPost({ type: 'submit_vote', candidate: 'นักมายากล', voterId: 'sim_naegi' });
-  await new Promise(r => setTimeout(r, 180));
-  await simPost({ type: 'submit_vote', candidate: 'นักมายากล', voterId: 'sim_kyoko' });
-  await new Promise(r => setTimeout(r, 450));
+  await simPost({ type: 'submit_vote', candidate: 'PC 3 (นักมายากล)', voterId: 'sim_kyoko' });
+  await new Promise(r => setTimeout(r, 600));
   await simPost({ type: 'reveal_votes' });
 }
 
+async function simStage7Vote() {
+  return runSimGuarded('สเตจ 7: Voting Time', simStage7VoteRaw);
+}
+
 async function runSimFullSequence() {
-  if (simAutoRunning) return;
-  simAutoRunning = true;
-  logSimEvent({ type: 'sim_info', text: '🚀 [FULL AUTO]: เริ่มการทดสอบอัตโนมัติครบ 8 สเตจแบบต่อเนื่อง...' });
+  return runSimGuarded('Full Auto (8 สเตจ)', async () => {
+    logSimEvent({ type: 'sim_info', text: '🚀 [FULL AUTO]: เริ่มการทดสอบอัตโนมัติครบ 8 สเตจแบบต่อเนื่อง...' });
 
-  try {
-    await simJoinPlayers();
+    await simJoinPlayersRaw();
     await new Promise(r => setTimeout(r, 1200));
 
-    await simStage1Evidence();
-    await new Promise(r => setTimeout(r, 1500));
+    await simStage1EvidenceRaw();
+    await new Promise(r => setTimeout(r, 1800));
 
-    await simStage2Hangman();
-    await new Promise(r => setTimeout(r, 1500));
+    await simStage2HangmanRaw();
+    await new Promise(r => setTimeout(r, 1800));
 
-    await simStage3Rebuttal();
-    await new Promise(r => setTimeout(r, 1500));
+    await simStage3RebuttalRaw();
+    await new Promise(r => setTimeout(r, 1800));
 
-    await simStage4LogicDive();
-    await new Promise(r => setTimeout(r, 1500));
+    await simStage4LogicDiveRaw();
+    await new Promise(r => setTimeout(r, 1800));
 
-    await simStage5Scrum();
-    await new Promise(r => setTimeout(r, 1500));
+    await simStage5ScrumRaw();
+    await new Promise(r => setTimeout(r, 1800));
 
-    await simStage6Armament();
-    await new Promise(r => setTimeout(r, 1500));
+    await simStage6ArmamentRaw();
+    await new Promise(r => setTimeout(r, 1800));
 
-    await simClosingArgument();
-    await new Promise(r => setTimeout(r, 1500));
+    await simClosingArgumentRaw();
+    await new Promise(r => setTimeout(r, 1800));
 
-    await simStage7Vote();
-    await new Promise(r => setTimeout(r, 1200));
+    await simStage7VoteRaw();
+    await new Promise(r => setTimeout(r, 1400));
 
     logSimEvent({ type: 'sim_info', text: '🎉 [COMPLETE]: การจำลอง Full Sequence เสร็จสมบูรณ์ ทุกมินิเกมตอบสนอง Real-Time 100%!' });
-  } finally {
-    simAutoRunning = false;
-  }
+  });
 }
 
 function simResetRoom() {
@@ -4515,3 +4637,4 @@ function simResetRoom() {
     initSimulationLab();
   }, 300);
 }
+
