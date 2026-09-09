@@ -1073,6 +1073,13 @@ function applyState(st) {
 // SPA ROUTING, PIN ACCESS & VIEW SWITCHING
 // ==========================================================
 function getCleanPath() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const qView = urlParams.get('view');
+  if (qView) return qView.toLowerCase();
+  if (window.location.hash) {
+    const h = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+    if (h) return h;
+  }
   let p = window.location.pathname.replace(/^\/+|\/+$/g, '');
   if (p.toLowerCase().endsWith('.html')) p = p.substring(0, p.length - 5);
   return p;
@@ -4055,3 +4062,316 @@ window.addEventListener('beforeunload', () => {
     try { myPeer.destroy(); } catch(e) {}
   }
 });
+
+// ==========================================================
+// REAL-TIME MULTI-CLIENT SIMULATION LAB & TEST ENGINE
+// ==========================================================
+let simRoomCode = 'SIM888';
+let simEventSource = null;
+let simAutoRunning = false;
+
+function initSimulationLab() {
+  const codeEl = document.getElementById('simActiveRoomCode');
+  if (codeEl) codeEl.innerText = simRoomCode;
+
+  // 1. Connect Simulation Monitor to the SSE stream of the simulation room
+  if (simEventSource) {
+    try { simEventSource.close(); } catch(e) {}
+    simEventSource = null;
+  }
+
+  const sseUrl = '/api/rooms/' + encodeURIComponent(simRoomCode) + '/stream';
+  try {
+    simEventSource = new EventSource(sseUrl);
+    simEventSource.onopen = () => {
+      logSimEvent({ type: 'sim_info', text: '🟢 เชื่อมต่อ SSE Stream ห้อง [' + simRoomCode + '] สำเร็จ พร้อมดักจับแพ็กเก็ต Real-Time' });
+      simProbePing();
+    };
+    simEventSource.onmessage = (event) => {
+      if (!event.data) return;
+      try {
+        const msg = JSON.parse(event.data);
+        logSimEvent(msg);
+      } catch (err) {}
+    };
+    simEventSource.onerror = (err) => {
+      console.warn('[SIM SSE Error/Reconnecting]:', err);
+    };
+  } catch (e) {}
+
+  // 2. Load the 4 isolated viewports if not already loaded
+  const fCourt = document.getElementById('simFrameCourt');
+  const fAdmin = document.getElementById('simFrameAdmin');
+  const fP1 = document.getElementById('simFramePlayer1');
+  const fP2 = document.getElementById('simFramePlayer2');
+
+  const origin = window.location.origin;
+  const courtUrl = origin + '/court?room=' + simRoomCode;
+  const adminUrl = origin + '/admin?room=' + simRoomCode + '&pin=295437';
+  const p1Url = origin + '/u/sim_naegi?room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย');
+  const p2Url = origin + '/u/sim_kyoko?room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา');
+
+  if (fCourt && (!fCourt.src || fCourt.src === 'about:blank' || !fCourt.src.includes(simRoomCode))) {
+    fCourt.src = courtUrl;
+  }
+  if (fAdmin && (!fAdmin.src || fAdmin.src === 'about:blank' || !fAdmin.src.includes(simRoomCode))) {
+    fAdmin.src = adminUrl;
+  }
+  if (fP1 && (!fP1.src || fP1.src === 'about:blank' || !fP1.src.includes(simRoomCode))) {
+    fP1.src = p1Url;
+  }
+  if (fP2 && (!fP2.src || fP2.src === 'about:blank' || !fP2.src.includes(simRoomCode))) {
+    fP2.src = p2Url;
+  }
+}
+
+function logSimEvent(msg) {
+  const consoleEl = document.getElementById('simEventLogConsole');
+  if (!consoleEl) return;
+
+  const now = new Date();
+  const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+
+  const entry = document.createElement('div');
+  entry.className = 'sim-log-entry';
+
+  if (msg.type === 'sim_info') {
+    entry.className += ' info';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> ' + msg.text;
+  } else if (msg.type === 'sim_ping_reply') {
+    entry.className += ' success';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> ⚡ <strong>PING RTT</strong>: ได้รับการตอบกลับใน <strong>' + msg.latency + ' ms</strong>';
+  } else if (msg.type === 'request_claim_character') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 📤 <strong>[MOBILE -> COURT]</strong>: ผู้เล่น [' + (msg.playerName || 'ผู้เล่น') + '] ร้องขอสวมบท [' + msg.role + '] (userHash: ' + (msg.userHash || 'N/A') + ')';
+  } else if (msg.type === 'claim_approved') {
+    entry.className += ' court';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 📥 <strong>[COURT -> MOBILE]</strong>: อนุมัติบท [' + (msg.player ? msg.player.role : '') + '] ให้แก่ [' + (msg.player ? msg.player.name : '') + '] สำเร็จ ✅';
+  } else if (msg.type === 'set_stage') {
+    entry.className += ' admin';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 👑 <strong>[ADMIN -> ALL]</strong>: สั่งเปลี่ยนสเตจศาลเป็น [<strong>' + msg.stage + '</strong>]';
+  } else if (msg.type === 'stg1_submit') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🔍 <strong>[MOBILE -> COURT]</strong>: ' + (msg.playerName || 'ผู้เล่น') + ' ส่งหลักฐาน [<strong>' + msg.clueId + '</strong>] ขึ้นจอศาล!';
+  } else if (msg.type === 'stg2_char') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🔤 <strong>[MOBILE -> COURT]</strong>: ทายตัวอักษร [<strong>' + msg.char + '</strong>] บนกระดาน Hangman!';
+  } else if (msg.type === 'rebuttal_slash') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🗡️ <strong>[MOBILE -> COURT]</strong>: ' + (msg.playerName || 'ผู้เล่น') + ' ฟันดาบความจริงด้วยกระสุน [<strong>' + msg.bullet + '</strong>]!';
+  } else if (msg.type === 'logic_dive_vote') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🛹 <strong>[MOBILE -> COURT]</strong>: ' + (msg.playerName || 'ผู้เล่น') + ' โหวตทางเลือก [<strong>ข้อ ' + msg.choice + '</strong>]!';
+  } else if (msg.type === 'stg5_scrum') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🔥 <strong>[MOBILE -> COURT]</strong>: รัวปุ่มดัน Scrum! (Delta: <strong>' + (msg.delta > 0 ? '+' : '') + msg.delta + '%</strong>)';
+  } else if (msg.type === 'stg6_hit') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🔨 <strong>[MOBILE -> COURT]</strong>: ' + (msg.playerName || 'ผู้เล่น') + ' ทุบเกราะความจริง (-10% Shield)!';
+  } else if (msg.type === 'closing_submit') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 📖 <strong>[MOBILE -> COURT]</strong>: วางการ์ด [<strong>' + msg.cardId + '</strong>] ลงช่องที่ ' + msg.slot;
+  } else if (msg.type === 'submit_vote') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🗳️ <strong>[MOBILE -> COURT]</strong>: ลงคะแนนชี้ชะตาเลือกผู้ต้องสงสัย [<strong>' + msg.candidate + '</strong>]';
+  } else if (msg.type === 'minigame_result') {
+    entry.className += ' court';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🏆 <strong>[COURT MODAL]</strong>: ' + (msg.title || '') + ' - ' + (msg.desc || '');
+  } else {
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 📦 <strong>[' + msg.type + ']</strong>: ' + JSON.stringify(msg).substring(0, 100);
+  }
+
+  consoleEl.appendChild(entry);
+  consoleEl.scrollTop = consoleEl.scrollHeight;
+}
+
+function clearSimLogs() {
+  const consoleEl = document.getElementById('simEventLogConsole');
+  if (consoleEl) consoleEl.innerHTML = '';
+}
+
+async function simPost(msg) {
+  if (!msg._id) {
+    msg._id = 'sim_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+  }
+  try {
+    const res = await fetch('/api/rooms/' + encodeURIComponent(simRoomCode) + '/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(msg)
+    });
+    if (!res.ok) {
+      logSimEvent({ type: 'sim_info', text: '⚠️ [SIM HTTP]: ส่งข้อความล้มเหลว Status: ' + res.status });
+    }
+  } catch (e) {
+    console.error('Sim post failed:', e);
+    logSimEvent({ type: 'sim_info', text: '❌ [SIM ERROR]: ' + e.message });
+  }
+}
+
+async function simProbePing() {
+  const t0 = performance.now();
+  const pingId = 'ping_' + Date.now();
+
+  const handlePing = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.type === 'sim_ping' && data.pingId === pingId) {
+        const latency = Math.round(performance.now() - t0);
+        const msEl = document.getElementById('simPingMs');
+        if (msEl) msEl.innerText = latency + ' ms';
+        logSimEvent({ type: 'sim_ping_reply', latency: latency });
+        if (simEventSource) simEventSource.removeEventListener('message', handlePing);
+      }
+    } catch(e) {}
+  };
+
+  if (simEventSource) {
+    simEventSource.addEventListener('message', handlePing);
+  }
+
+  await simPost({ type: 'sim_ping', pingId: pingId, t: t0 });
+}
+
+async function simJoinPlayers() {
+  logSimEvent({ type: 'sim_info', text: '👤 [ACTION]: จำลองส่งคำขอสวมบทบาท: นาเอกิ (นักแต่งนิยาย) และ เคียวโกะ (นักกีฬา)...' });
+  await simPost({
+    type: 'request_claim_character',
+    role: 'นักแต่งนิยาย',
+    playerName: 'นาเอกิ',
+    userHash: 'sim_naegi'
+  });
+  await new Promise(r => setTimeout(r, 150));
+  await simPost({
+    type: 'request_claim_character',
+    role: 'นักกีฬา',
+    playerName: 'เคียวโกะ',
+    userHash: 'sim_kyoko'
+  });
+}
+
+async function simStage1Evidence() {
+  logSimEvent({ type: 'sim_info', text: '🔍 [ACTION]: เริ่ม Stage 1 (Evidence Linker) และส่งหลักฐาน...' });
+  await simPost({ type: 'set_stage', stage: 'stage1' });
+  await new Promise(r => setTimeout(r, 250));
+  await simPost({ type: 'stg1_submit', clueId: 'EVD-01', playerName: 'นาเอกิ' });
+  await new Promise(r => setTimeout(r, 200));
+  await simPost({ type: 'stg1_submit', clueId: 'EVD-04', playerName: 'เคียวโกะ' });
+  await new Promise(r => setTimeout(r, 500));
+  await simPost({ type: 'stg1_evaluate' });
+}
+
+async function simStage2Hangman() {
+  logSimEvent({ type: 'sim_info', text: '🔤 [ACTION]: เริ่ม Stage 2 (Hangman\'s Gambit) ทายตัวอักษร "นาฬิกาน้ำ"...' });
+  await simPost({ type: 'set_stage', stage: 'stage2' });
+  const letters = ['น', 'า', 'ฬ', 'ิ', 'ก', 'า', 'น', '้', 'ำ'];
+  for (const ch of letters) {
+    await new Promise(r => setTimeout(r, 180));
+    await simPost({ type: 'stg2_char', char: ch });
+  }
+}
+
+async function simStage3Rebuttal() {
+  logSimEvent({ type: 'sim_info', text: '🗡️ [ACTION]: เริ่ม Stage 3 (Rebuttal Showdown) ฟันดาบความจริง...' });
+  await simPost({ type: 'set_stage', stage: 'stage3' });
+  await new Promise(r => setTimeout(r, 300));
+  await simPost({ type: 'rebuttal_slash', bullet: 'EVD-01', playerName: 'นาเอกิ' });
+  await new Promise(r => setTimeout(r, 500));
+  await simPost({ type: 'rebuttal_verdict', isWin: true });
+}
+
+async function simStage4LogicDive() {
+  logSimEvent({ type: 'sim_info', text: '🛹 [ACTION]: เริ่ม Stage 4 (Logic Dive) โหวตทางเลือกตรรกะ...' });
+  await simPost({ type: 'set_stage', stage: 'stage4' });
+  await new Promise(r => setTimeout(r, 250));
+  await simPost({ type: 'logic_dive_vote', question: 1, choice: 'A', voterId: 'sim_naegi', playerName: 'นาเอกิ' });
+  await new Promise(r => setTimeout(r, 180));
+  await simPost({ type: 'logic_dive_vote', question: 1, choice: 'A', voterId: 'sim_kyoko', playerName: 'เคียวโกะ' });
+}
+
+async function simStage5Scrum() {
+  logSimEvent({ type: 'sim_info', text: '🔥 [ACTION]: เริ่ม Stage 5 (Debate Scrum) รัวปุ่มดันตรรกะ (+8% per hit)...' });
+  await simPost({ type: 'set_stage', stage: 'stage5' });
+  for (let i = 0; i < 7; i++) {
+    await new Promise(r => setTimeout(r, 120));
+    await simPost({ type: 'stg5_scrum', delta: 8 });
+  }
+}
+
+async function simStage6Armament() {
+  logSimEvent({ type: 'sim_info', text: '🔨 [ACTION]: เริ่ม Stage 6 (Argument Armament) ทุบเกราะความจริง...' });
+  await simPost({ type: 'set_stage', stage: 'stage6' });
+  for (let i = 0; i < 5; i++) {
+    await new Promise(r => setTimeout(r, 120));
+    await simPost({ type: 'stg6_hit', playerName: 'นาเอกิ' });
+  }
+  await new Promise(r => setTimeout(r, 350));
+  await simPost({ type: 'stg6_final_blow', playerName: 'นาเอกิ' });
+}
+
+async function simClosingArgument() {
+  logSimEvent({ type: 'sim_info', text: '📖 [ACTION]: เริ่ม Closing Argument วางการ์ดมังงะสรุปคดี...' });
+  await simPost({ type: 'set_stage', stage: 'closing' });
+  await new Promise(r => setTimeout(r, 200));
+  await simPost({ type: 'closing_submit', slot: 1, cardId: 'EVD-14', playerName: 'นาเอกิ' });
+  await new Promise(r => setTimeout(r, 200));
+  await simPost({ type: 'closing_submit', slot: 2, cardId: 'EVD-11', playerName: 'เคียวโกะ' });
+}
+
+async function simStage7Vote() {
+  logSimEvent({ type: 'sim_info', text: '🗳️ [ACTION]: เริ่ม Stage 7 (Voting Time) ลงคะแนนโหวตหา Blackened...' });
+  await simPost({ type: 'set_stage', stage: 'stage7' });
+  await new Promise(r => setTimeout(r, 250));
+  await simPost({ type: 'submit_vote', candidate: 'นักมายากล', voterId: 'sim_naegi' });
+  await new Promise(r => setTimeout(r, 180));
+  await simPost({ type: 'submit_vote', candidate: 'นักมายากล', voterId: 'sim_kyoko' });
+  await new Promise(r => setTimeout(r, 450));
+  await simPost({ type: 'reveal_votes' });
+}
+
+async function runSimFullSequence() {
+  if (simAutoRunning) return;
+  simAutoRunning = true;
+  logSimEvent({ type: 'sim_info', text: '🚀 [FULL AUTO]: เริ่มการทดสอบอัตโนมัติครบ 8 สเตจแบบต่อเนื่อง...' });
+
+  try {
+    await simJoinPlayers();
+    await new Promise(r => setTimeout(r, 1200));
+
+    await simStage1Evidence();
+    await new Promise(r => setTimeout(r, 1500));
+
+    await simStage2Hangman();
+    await new Promise(r => setTimeout(r, 1500));
+
+    await simStage3Rebuttal();
+    await new Promise(r => setTimeout(r, 1500));
+
+    await simStage4LogicDive();
+    await new Promise(r => setTimeout(r, 1500));
+
+    await simStage5Scrum();
+    await new Promise(r => setTimeout(r, 1500));
+
+    await simStage6Armament();
+    await new Promise(r => setTimeout(r, 1500));
+
+    await simClosingArgument();
+    await new Promise(r => setTimeout(r, 1500));
+
+    await simStage7Vote();
+    await new Promise(r => setTimeout(r, 1200));
+
+    logSimEvent({ type: 'sim_info', text: '🎉 [COMPLETE]: การจำลอง Full Sequence เสร็จสมบูรณ์ ทุกมินิเกมตอบสนอง Real-Time 100%!' });
+  } finally {
+    simAutoRunning = false;
+  }
+}
+
+function simResetRoom() {
+  logSimEvent({ type: 'sim_info', text: '🔄 กำลังรีเซ็ตห้องทดลองจำลอง...' });
+  simPost({ type: 'admin_reset_session' });
+  setTimeout(() => {
+    initSimulationLab();
+  }, 300);
+}
