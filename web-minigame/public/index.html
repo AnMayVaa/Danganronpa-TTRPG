@@ -152,6 +152,27 @@
     <!-- Stage Projection Arena -->
     <section class="court-stage-arena">
 
+      <!-- STAGE: IDLE SPLASH SCREEN -->
+      <div id="courtIdle" class="court-box hidden">
+        <div class="idle-splash-container">
+          <div class="idle-crest-circle">
+            <span style="font-size:3.8rem; filter: drop-shadow(0 0 12px var(--court-gold));">⚖️</span>
+          </div>
+          <div class="idle-badge-dangan">DANGANRONPA: HOPE'S PEAK ACADEMY TRPG</div>
+          <h1 class="idle-main-title">CLASS TRIAL</h1>
+          <div class="idle-sub-banner">ศาลชั้นเรียนแห่งความหวังและความสิ้นหวัง</div>
+          <p class="idle-flavor">"ยินดีต้อนรับสู่ศาลชั้นเรียน... การไต่สวนเพื่อชี้ชะตากำลังจะเริ่มต้นขึ้น!"</p>
+          <div class="idle-status-box">
+            <span class="idle-pulse-dot"></span>
+            <span>รอประธาน Monokuma และ DM เริ่มต้นการไต่สวน...</span>
+          </div>
+          <div class="idle-room-strip">
+            <span class="idle-strip-pill">ROOM CODE: <strong id="courtIdleRoomCode">------</strong></span>
+            <span class="idle-strip-pill">ผู้เล่นประจำโพเดียม: <strong id="courtIdlePlayerCount">0</strong> คน</span>
+          </div>
+        </div>
+      </div>
+
       <!-- STAGE 0: LOBBY & PODIUMS -->
       <div id="courtLobby" class="court-box">
         <!-- Splash Cover Banner -->
@@ -304,7 +325,11 @@
       <div id="courtStage2" class="court-box hidden">
         <div class="slanted-banner cyan">MINI-GAME 2: HANGMAN'S GAMBIT</div>
         <h2 class="riddle-title">"ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!"</h2>
-        <div class="game-instruction">ผู้เล่นช่วยกันกดเลือกตัวอักษรบนมือถือมาประกอบเป็นคำสำคัญ!</div>
+        <div class="game-instruction">ผู้เล่นช่วยกันกดเลือกตัวอักษรภาษาอังกฤษ (A-Z) บนมือถือมาประกอบเป็นคำสำคัญ!</div>
+        <div class="hangman-status-bar">
+          <div class="hangman-integrity-label">INTEGRITY (ความอดทนของศาล): <span id="hangmanHealthTxt">5 / 5</span></div>
+          <div class="hangman-health-track"><div id="hangmanHealthFill" class="hangman-health-fill" style="width:100%;"></div></div>
+        </div>
         <div id="hangmanBoard" class="hangman-board"></div>
       </div>
 
@@ -320,7 +345,7 @@
           <div class="vs-emblem">VS</div>
           <div class="fighter-card right">
             <div class="fighter-tag">BLADE OF DENIAL</div>
-            <h3 id="rebuttalSuspect">นักมายากล (A)</h3>
+            <h3 id="rebuttalSuspect">สุดยอดนักมายากล</h3>
             <div class="score-pips" id="suspectPips">● ○ ○</div>
           </div>
         </div>
@@ -335,11 +360,15 @@
         <div class="logic-dive-display">
           <div class="tube-stage" id="diveStageNum">STAGE 1 / 3</div>
           <h2 class="tube-question" id="diveQuestion">
-            "มีดพกเปื้อนใยเชือกในกระเป๋าเสื้อของ B หมายความว่าอย่างไร?"
+            "สาเหตุที่น้ำในถังหนักขึ้นเรื่อยๆ จนกระชากกลไกรอกเกิดจากอะไร?"
           </h2>
-          <div class="tube-choices">
-            <div class="choice-lane" id="laneA">A: คนร้ายใช้มีดอำพราง</div>
-            <div class="choice-lane highlight" id="laneB">B: ตัวเหยื่อตัดเชือกเองจนรอดแล้ว!</div>
+          <div class="tube-choices" id="diveTubeChoices">
+            <div class="choice-lane" id="laneA"><strong>A:</strong> <span class="choice-text">ฝนตกลงมาจากช่องระบายอากาศ</span></div>
+            <div class="choice-lane" id="laneB"><strong>B:</strong> <span class="choice-text">น้ำจากก๊อกที่เปิดไหลทิ้งไว้</span></div>
+            <div class="choice-lane" id="laneC"><strong>C:</strong> <span class="choice-text">มีคนแอบนำก้อนน้ำแข็งมาวาง</span></div>
+          </div>
+          <div id="diveVoteTally" class="dive-vote-tally">
+            ⏳ รอผลการลงมติเส้นทางจากนักเรียนทุกคน... (<span id="diveVotedCount">0</span> คนเลือกแล้ว)
           </div>
         </div>
       </div>
@@ -350,7 +379,7 @@
         <h2 class="riddle-title">"ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?"</h2>
         <div class="scrum-container">
           <div class="scrum-side left">
-            <h3>🔴 โหวต A (นักมายากล)</h3>
+            <h3>🔴 ฝั่ง A (นักมายากล)</h3>
             <p>คนวางกับดักต้องรับผิดชอบ!</p>
           </div>
           <div class="scrum-gauge-box">
@@ -358,7 +387,7 @@
             <div id="courtScrumFill" class="scrum-fill-bar" style="width: 50%;"></div>
           </div>
           <div class="scrum-side right">
-            <h3>🟢 โหวต B (ตัวเหยื่อเอง)</h3>
+            <h3>🟢 ฝั่ง B (ตัวเหยื่อเอง)</h3>
             <p>B ตัดเชือกแล้วผูกคอตายเอง!</p>
           </div>
         </div>
@@ -369,6 +398,9 @@
         <div class="slanted-banner red">MINI-GAME 6: ARGUMENT ARMAMENT</div>
         <h2 class="riddle-title">"ทุบทำลายเกราะการปฏิเสธครั้งสุดท้ายของคนร้าย!"</h2>
         <div class="armament-target">
+          <div class="wave-indicator-bar">
+            <span>DENIAL WAVE: <strong id="armamentWaveTxt" style="color:var(--dr-red); font-size:1.15rem;">1 / 4</strong></span>
+          </div>
           <div class="shield-meter">
             <span>ARMAMENT SHIELD:</span>
             <div class="shield-track">
@@ -376,24 +408,74 @@
             </div>
           </div>
           <div class="culprit-scream" id="culpritScreamText">
-            "ไม่มีทาง! แผนการมายากลอันสมบูรณ์แบบของฉันไม่มีวันล้มเหลวเด็ดขาด!!"
+            "ฉันไม่ได้ทำอะไรทั้งนั้น! ตอนนั้นฉันต้มน้ำซุปอยู่ในครัวคนเดียว!!"
+          </div>
+          <div id="armamentFinalBlowBanner" class="armament-final-banner hidden">
+            💥 เกราะการปฏิเสธแตกสะบั้นแล้ว! ผู้เล่นทุกคนกดยิงกระสุนความจริงนัดสุดท้ายพร้อมกัน!!
           </div>
         </div>
       </div>
 
-      <!-- STAGE 7: VOTING TIME (ห้องลงคะแนนตัดสินชี้ชะตา) -->
+      <!-- MINI-GAME 7: CLOSING ARGUMENT (เรียงลำดับเหตุการณ์มังงะ) -->
+      <div id="courtClosing" class="court-box hidden">
+        <div class="slanted-banner cyan">MINI-GAME 7: CLOSING ARGUMENT</div>
+        <h2 class="riddle-title">"ปะติดปะต่อลำดับเหตุการณ์ในหนังสือมังงะคดีความ!"</h2>
+        <div class="game-instruction">เติมเต็มช่องว่างของเหตุการณ์ที่ขาดหายไป เพื่อสรุปคดีและเปิดเผยการกระทำของคนร้าย (The Culprit)!</div>
+        <div class="manga-timeline-grid" id="mangaTimelineGrid">
+          <div class="manga-panel complete">
+            <div class="panel-num">ACT 1</div>
+            <div class="panel-tag">17:30 น.</div>
+            <div class="panel-art">🍲</div>
+            <div class="panel-desc">นักมายากลเตรียมหม้อสตูว์ในครัว และแอบผูกกลไกถังน้ำถ่วงน้ำหนักในห้องซักรีด</div>
+          </div>
+          <div class="manga-panel complete">
+            <div class="panel-num">ACT 2</div>
+            <div class="panel-tag">18:00 น.</div>
+            <div class="panel-art">💥</div>
+            <div class="panel-desc">B เดินลงมาที่ห้องซักรีด ถูกดักทำร้ายด้วยหม้อสตูว์จนสลบและถูกจับมัดไว้กับกลไก</div>
+          </div>
+          <div class="manga-panel missing" id="mangaSlot1">
+            <div class="panel-num">ACT 3</div>
+            <div class="panel-tag">??? ปริศนาช่องที่ 1</div>
+            <div class="panel-art" id="mangaSlot1Art">❓</div>
+            <div class="panel-desc" id="mangaSlot1Desc">รอผู้เล่นส่งการ์ดเหตุการณ์ที่ถูกต้องผ่านมือถือ...</div>
+          </div>
+          <div class="manga-panel missing" id="mangaSlot2">
+            <div class="panel-num">ACT 4</div>
+            <div class="panel-tag">??? ปริศนาช่องที่ 2</div>
+            <div class="panel-art" id="mangaSlot2Art">❓</div>
+            <div class="panel-desc" id="mangaSlot2Desc">รอผู้เล่นส่งการ์ดเหตุการณ์ที่ถูกต้องผ่านมือถือ...</div>
+          </div>
+          <div class="manga-panel complete">
+            <div class="panel-num">ACT 5</div>
+            <div class="panel-tag">21:00 น.</div>
+            <div class="panel-art">⌛</div>
+            <div class="panel-desc">น้ำไหลเต็มถัง ดึงกลไกรอกจน B คอหักเสียชีวิตจากการกระทำสุดท้ายของตนเอง!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 8: VOTING TIME (ห้องลงคะแนนตัดสินชี้ชะตา) -->
       <div id="courtStage7" class="court-box hidden">
         <div class="slanted-banner yellow">CLASS TRIAL: VOTING TIME</div>
         <h1 class="neon-heading">ถึงเวลาลงคะแนนเสียงตัดสินชี้ชะตา!</h1>
         <p class="sub-guide">หยิบมือถือของคุณขึ้นมา แล้วกดโหวตผู้ต้องสงสัยที่แท่นโพเดียม!</p>
         
         <div class="voting-tally-container">
-          <h3>ผลคะแนนโหวตสด (Live Vote Tally):</h3>
-          <div id="courtVoteResults" class="vote-results-grid"></div>
+          <div id="votingSuspenseCard" class="voting-suspense-box">
+            <div class="suspense-pulse-icon">🗳️</div>
+            <h3 style="color:#fff; margin-bottom:8px;">การลงคะแนนกำลังดำเนินอยู่ (กำลังรวบรวมบัตรลงคะแนน)...</h3>
+            <div class="ballots-cast-stat">หย่อนบัตรแล้ว: <span id="votesCastCount" style="color:var(--court-gold); font-weight:900;">0</span> / <span id="votesExpectedCount">0</span> คน</div>
+            <p style="color:#888; font-size:0.85rem; margin-top:8px;">ผลคะแนนจะถูกปิดเป็นความลับจนกว่าทุกคนจะลงคะแนนเสร็จสิ้น หรือหมดเวลา!</p>
+          </div>
+          <div id="courtVoteResultsWrapper" class="hidden">
+            <h3 style="color:var(--mono-yellow); font-size:1.3rem; margin-bottom:12px;">🏆 ผลการลงคะแนนตัดสินชี้ชะตาอย่างเป็นทางการ:</h3>
+            <div id="courtVoteResults" class="vote-results-grid"></div>
+          </div>
         </div>
       </div>
 
-      <!-- STAGE 8: VERDICT EXECUTION (ฉากคำตัดสิน) -->
+      <!-- STAGE 9: VERDICT EXECUTION (ฉากคำตัดสิน) -->
       <div id="courtVerdict" class="court-box hidden">
         <h1 id="verdictHeadline" class="verdict-headline">VERDICT REACHED</h1>
         <div id="verdictDetails" class="verdict-body"></div>
@@ -445,8 +527,12 @@
             </button>
           </div>
           <div class="minigame-btn-grid">
+            <button class="dm-act-btn grey" onclick="adminSetGame('idle')" style="grid-column: 1 / -1; border: 2px dashed #888; background: #1a1a2e;">
+              <strong>🎬 หน้าพัก / ปกศาลชั้นเรียน (Idle Screen)</strong>
+              <span>แสดงปกศาลชั้นเรียน & Game PIN รอเริ่มต้นการไต่สวน</span>
+            </button>
             <button class="dm-act-btn cyan" onclick="adminSetGame('investigation')" style="grid-column: 1 / -1;">
-              <strong>🔍 0. Investigation Phase (ช่วงเวลาสืบสวนหาหลักฐาน - Turn-Based)</strong>
+              <strong>🔍 Investigation Phase (ช่วงเวลาสืบสวนหาหลักฐาน - Turn-Based)</strong>
               <span>เปิดระบบสำรวจ รวบรวมเบาะแส และให้ผู้เล่นใช้มือถือสแกน QR Code (ไม่จับเวลา / ผลัดกันเล่น)</span>
             </button>
             <button class="dm-act-btn gold" onclick="adminSetGame('trial')" style="grid-column: 1 / -1; background:#2a200a; border:2px solid #ffe600;">
@@ -459,30 +545,49 @@
             </button>
             <button class="dm-act-btn cyan" onclick="adminSetGame('stage2')">
               <strong>2. Hangman's Gambit</strong>
-              <span>ถอดรหัสคำ "นาฬิกาน้ำ"</span>
+              <span>ถอดรหัสคำ "WATER CLOCK"</span>
             </button>
-            <button class="dm-act-btn red" onclick="adminSetGame('stage3')">
-              <strong>3. Rebuttal Showdown</strong>
-              <span>ดวลดาบคำพูด 1 ต่อ 1</span>
-            </button>
+            <div class="dm-combo-block" style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:6px;">
+              <button class="dm-act-btn red" onclick="adminSetGame('stage3')" style="width:100%;">
+                <strong>3. Rebuttal Showdown</strong>
+                <span>ดวลดาบคำพูด 1 ต่อ 1 กับนักมายากล</span>
+              </button>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                <button class="small-btn green" onclick="adminRebuttalVerdict(true)" style="padding:8px; font-weight:900; font-size:0.85rem;">
+                  🏆 ฝั่งผู้เล่นชนะ (Break Blade)
+                </button>
+                <button class="small-btn red" onclick="adminRebuttalVerdict(false)" style="padding:8px; font-weight:900; font-size:0.85rem;">
+                  💀 คนร้ายฟันตรรกะตก (Fail)
+                </button>
+              </div>
+            </div>
             <button class="dm-act-btn purple" onclick="adminSetGame('stage4')">
               <strong>4. Logic Dive</strong>
-              <span>สเก็ตบอร์ดดำดิ่งตรรกะ 3 ด่าน</span>
+              <span>สเก็ตบอร์ดดำดิ่งตรรกะ 3 ด่าน (Blind Vote)</span>
             </button>
             <button class="dm-act-btn green" onclick="adminSetGame('stage5')">
               <strong>5. Debate Scrum</strong>
-              <span>ศึก 2 ขั้ว: โหวต A vs B</span>
+              <span>ศึก 2 ขั้ว: โหวต A vs B (Auto-Conclude)</span>
             </button>
             <button class="dm-act-btn orange" onclick="adminSetGame('stage6')">
               <strong>6. Argument Armament</strong>
-              <span>ทุบเกราะความจริงคนร้าย</span>
+              <span>4 คลื่นปฏิเสธ & กระสุนนัดสุดท้าย</span>
             </button>
-            <button class="dm-act-btn yellow" onclick="adminSetGame('stage7')">
-              <strong>🗳️ เริ่มเปิดการโหวต (Voting Time)</strong>
-              <span>ส่งหน้าจอโหวตเข้ามือถือทุกคน</span>
+            <button class="dm-act-btn cyan" onclick="adminSetGame('closing')">
+              <strong>7. Closing Argument</strong>
+              <span>มังงะสรุปคดี (Culprit B Timeline)</span>
             </button>
-            <button class="dm-act-btn grey" onclick="adminSetGame('lobby')">
-              <strong>🏛️ กลับสู่หน้า Lobby</strong>
+            <div class="dm-combo-block" style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:6px;">
+              <button class="dm-act-btn yellow" onclick="adminSetGame('stage7')" style="width:100%;">
+                <strong>🗳️ 8. เริ่มเปิดการโหวต (Voting Time)</strong>
+                <span>ส่งหน้าจอโหวตเข้ามือถือทุกคน (ซ่อนผลสดจนครบ)</span>
+              </button>
+              <button class="small-btn yellow" onclick="adminRevealVotes()" style="padding:8px; font-weight:900; font-size:0.88rem; background:#3d360a; border:2px solid #ffe600;">
+                👁️ เปิดเผยผลคะแนนโหวตบนจอใหญ่ (Reveal Votes)
+              </button>
+            </div>
+            <button class="dm-act-btn grey" onclick="adminSetGame('lobby')" style="grid-column: 1 / -1;">
+              <strong>🏛️ กลับสู่หน้า Lobby โพเดียม</strong>
               <span>พักเบรก / รอเริ่มฉาก</span>
             </button>
           </div>
@@ -598,7 +703,7 @@
         <select id="mobileRoleSelect">
           <option value="นักแต่งนิยาย" id="optRole_นักแต่งนิยาย">PC 1: สุดยอดนักแต่งนิยาย</option>
           <option value="นักกีฬา" id="optRole_นักกีฬา">PC 2: สุดยอดนักกีฬา</option>
-          <option value="นักมายากล" id="optRole_นักมายากล">PC 3: สุดยอดนักมายากล (A)</option>
+          <option value="นักมายากล" id="optRole_นักมายากล">PC 3: สุดยอดนักมายากล</option>
           <option value="นักชิม" id="optRole_นักชิม">PC 4: สุดยอดนักชิม</option>
           <option value="นักแสดงผาดโผน" id="optRole_นักแสดงผาดโผน">PC 5: สุดยอดนักแสดงผาดโผน</option>
           <option value="ช่างกล" id="optRole_ช่างกล">PC 6: สุดยอดช่างกล</option>

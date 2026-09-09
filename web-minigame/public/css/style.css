@@ -731,11 +731,6 @@ body.dangan-body {
   color: #fff;
 }
 
-.podium-seat.killer-badge {
-  border-color: var(--mono-red);
-  box-shadow: 4px 4px 0px var(--mono-red);
-}
-
 .podium-role {
   font-size: 0.85rem;
   color: var(--court-gold);
@@ -3026,5 +3021,322 @@ body.dangan-body {
 select option:disabled {
   color: #555 !important;
   background: #222 !important;
+}
+
+/* ==========================================================
+   STAGE: IDLE SPLASH SCREEN
+   ========================================================== */
+.idle-splash-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  animation: fadeInCourt 0.6s ease;
+}
+
+.idle-crest-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,230,0,0.15) 0%, rgba(0,0,0,0.5) 70%);
+  border: 3px solid var(--court-gold);
+  box-shadow: 0 0 25px rgba(255,230,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.idle-badge-dangan {
+  display: inline-block;
+  background: var(--mono-pink);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  padding: 4px 18px;
+  border-radius: 4px;
+  box-shadow: 0 0 14px rgba(255, 43, 112, 0.6);
+  margin-bottom: 14px;
+}
+
+.idle-main-title {
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: #fff;
+  text-shadow: 0 0 25px rgba(255, 43, 112, 0.7), 4px 4px 0 #000;
+  margin: 0 0 8px 0;
+  line-height: 1.1;
+}
+
+.idle-sub-banner {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--court-gold);
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0 #000;
+  margin-bottom: 14px;
+}
+
+.idle-flavor {
+  font-size: 1.05rem;
+  color: #aaa;
+  font-style: italic;
+  max-width: 600px;
+  margin: 0 auto 24px auto;
+}
+
+.idle-status-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 15, 28, 0.9);
+  border: 2px solid var(--court-gold);
+  border-radius: 30px;
+  padding: 10px 24px;
+  color: #ffe600;
+  font-weight: 800;
+  font-size: 1rem;
+  box-shadow: 0 0 16px rgba(255, 230, 0, 0.25);
+  margin-bottom: 24px;
+}
+
+.idle-pulse-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #00ff88;
+  box-shadow: 0 0 8px #00ff88;
+  animation: pulseDot 1.4s infinite alternate;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(1.3); opacity: 1; }
+}
+
+.idle-room-strip {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.idle-strip-pill {
+  background: #111122;
+  border: 1px solid #333355;
+  padding: 6px 16px;
+  border-radius: 6px;
+  color: #bbb;
+  font-size: 0.92rem;
+}
+
+.idle-strip-pill strong {
+  color: var(--mono-pink);
+  font-family: monospace;
+  font-size: 1.1rem;
+  margin-left: 4px;
+}
+
+/* ==========================================================
+   MINI-GAME 2: HANGMAN HEALTH BAR
+   ========================================================== */
+.hangman-status-bar {
+  max-width: 500px;
+  margin: 0 auto 16px auto;
+  background: rgba(15, 15, 25, 0.9);
+  border: 2px solid #333;
+  padding: 10px 16px;
+  border-radius: 8px;
+}
+
+.hangman-integrity-label {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--mono-yellow);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.hangman-health-track {
+  width: 100%;
+  height: 14px;
+  background: #200;
+  border: 2px solid #500;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.hangman-health-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff2244 0%, #ff8800 50%, #00ff88 100%);
+  transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 0 10px #00ff88;
+}
+
+/* ==========================================================
+   MINI-GAME 4: LOGIC DIVE 3-LANE DISPLAY
+   ========================================================== */
+#diveTubeChoices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 18px;
+}
+
+@media (max-width: 768px) {
+  #diveTubeChoices {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dive-vote-tally {
+  background: rgba(15, 15, 30, 0.85);
+  border: 1px solid #3d3d5a;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 700;
+  margin-top: 14px;
+  color: #ccc;
+}
+
+/* ==========================================================
+   MINI-GAME 6: ARGUMENT ARMAMENT 4 WAVES
+   ========================================================== */
+.wave-indicator-bar {
+  background: #19090c;
+  border: 2px solid var(--dr-red);
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #fff;
+  display: inline-block;
+  margin-bottom: 12px;
+  box-shadow: 0 0 12px rgba(235, 60, 0, 0.4);
+}
+
+.armament-final-banner {
+  margin-top: 16px;
+  padding: 14px 20px;
+  background: radial-gradient(circle, #5e111a 0%, #1a0507 100%);
+  border: 3px solid var(--mono-pink);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 900;
+  text-shadow: 0 0 10px var(--mono-pink);
+  animation: pulseDot 0.8s infinite alternate;
+}
+
+/* ==========================================================
+   MINI-GAME 7: CLOSING ARGUMENT MANGA TIMELINE
+   ========================================================== */
+.manga-timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  max-width: 1100px;
+  margin: 20px auto 0 auto;
+}
+
+@media (max-width: 900px) {
+  .manga-timeline-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.manga-panel {
+  background: #13131c;
+  border: 3px solid #33334d;
+  border-radius: 8px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 4px 4px 0 #000;
+  transition: all 0.3s ease;
+  min-height: 210px;
+}
+
+.manga-panel.complete {
+  border-color: var(--court-gold);
+  background: linear-gradient(180deg, #1f1f2e 0%, #12121c 100%);
+}
+
+.manga-panel.missing {
+  border-color: var(--mono-pink);
+  border-style: dashed;
+  background: #1a0a14;
+  animation: pulseDot 2s infinite alternate;
+}
+
+.manga-panel.solved {
+  border-color: #00ff88;
+  border-style: solid;
+  background: #0d2116;
+  box-shadow: 0 0 18px rgba(0, 255, 136, 0.4);
+}
+
+.panel-num {
+  font-size: 0.75rem;
+  font-weight: 900;
+  background: #000;
+  color: var(--court-gold);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.panel-tag {
+  font-size: 0.8rem;
+  color: #fff;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.panel-art {
+  font-size: 2.8rem;
+  margin: 6px 0 10px 0;
+  filter: drop-shadow(2px 2px 0 #000);
+}
+
+.panel-desc {
+  font-size: 0.8rem;
+  color: #bbb;
+  line-height: 1.35;
+  margin-top: auto;
+}
+
+/* ==========================================================
+   VOTING SUSPENSE CARD
+   ========================================================== */
+.voting-suspense-box {
+  background: radial-gradient(circle, #1a1a2e 0%, #0c0c14 100%);
+  border: 3px solid var(--court-gold);
+  border-radius: 12px;
+  padding: 30px 20px;
+  text-align: center;
+  box-shadow: 0 0 25px rgba(255, 230, 0, 0.25);
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+.suspense-pulse-icon {
+  font-size: 3.5rem;
+  margin-bottom: 12px;
+  animation: pulseDot 1s infinite alternate;
+}
+
+.ballots-cast-stat {
+  font-size: 1.35rem;
+  color: #fff;
+  font-weight: 800;
+  margin: 12px 0;
 }
 

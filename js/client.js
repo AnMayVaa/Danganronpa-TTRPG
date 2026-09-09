@@ -143,36 +143,52 @@ let gameState = {
   stg1TargetClue: 'EVD-01',
   stg1Prompt: "อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?",
 
-  // Stage 2: Hangman's Gambit
-  stg2Word: "นาฬิกาน้ำ",
-  stg2Prompt: "ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!",
-  stg2Target: ["น", "า", "ฬิ", "ก", "า", "น้", "ำ"],
-  stg2Board: ["_", "_", "_", "_", "_", "_", "_"],
+  // Stage 2: Hangman's Gambit (English Only)
+  stg2Word: "WATER CLOCK",
+  stg2Prompt: "ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ (ภาษาอังกฤษ)!",
+  stg2Target: ["W", "A", "T", "E", "R", " ", "C", "L", "O", "C", "K"],
+  stg2Board: ["_", "_", "_", "_", "_", " ", "_", "_", "_", "_", "_"],
+  stg2Mistakes: 0,
+  stg2MaxMistakes: 5,
 
   // Stage 3: Rebuttal Showdown
-  stg3Opponent: "นักมายากล (A)",
+  stg3Opponent: "สุดยอดนักมายากล",
   stg3Argument: "ฉันอยู่แต่ในครัวตลอดเวลา จะไปเอาเวลาที่ไหนไปทำร้ายหมอนั่นได้!?",
   stg3AccuserScore: 0,
   stg3SuspectScore: 0,
   stg3ClashRound: 1,
 
-  // Stage 4: Logic Dive
+  // Stage 4: Logic Dive (3 Questions, 3 Lanes)
   stg4Step: 1, // 1 to 3
+  stg4Votes: {},
 
   // Stage 5: Debate Scrum
   stg5Topic: "ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?",
-  stg5LeftTeam: "🔴 โหวต A (นักมายากล)",
-  stg5RightTeam: "🟢 โหวต B (ตัวเหยื่อเอง)",
+  stg5LeftTeam: "🔴 ฝั่ง A (นักมายากล)",
+  stg5RightTeam: "🟢 ฝั่ง B (ตัวเหยื่อเอง)",
   stg5Meter: 50, // 0 to 100
 
-  // Stage 6: Argument Armament
-  stg6Opponent: "นักมายากล (A)",
-  stg6Statement: "ไม่มีทาง! แผนการมายากลอันสมบูรณ์แบบของฉันไม่มีวันล้มเหลวเด็ดขาด!!",
+  // Stage 6: Argument Armament (4 Waves)
+  stg6Opponent: "สุดยอดนักมายากล",
+  stg6Wave: 1,
+  stg6MaxWave: 4,
   stg6Shield: 100,
+  stg6Statement: "ฉันไม่ได้ทำอะไรทั้งนั้น! ตอนนั้นฉันต้มน้ำซุปอยู่ในครัวคนเดียว!!",
+  stg6Denials: [
+    "ฉันไม่ได้ทำอะไรทั้งนั้น! ตอนนั้นฉันต้มน้ำซุปอยู่ในครัวคนเดียว!!",
+    "แล้วเชือกนั่นล่ะ? ถ้าไม่มีใครตัด เชือกมันจะขาดสะบั้นเองได้ยังไง?!",
+    "หม้อสตูว์ใบนั้นไม่มีรอยเลือดของฉันสักหยดเดียวเลยนะ!!",
+    "พวกแกไม่มีหลักฐานชิ้นสุดท้ายที่จะพิสูจน์การกระทำของฉันหรอก!!"
+  ],
 
-  // Stage 7: Voting Time
+  // Mini-Game 7: Closing Argument
+  closingSlots: { 1: false, 2: false },
+
+  // Stage 8: Voting Time
   votingOpen: false,
-  votes: {} // candidate -> count
+  votes: {}, // candidate -> count
+  votesCast: {}, // voterId -> candidate (1 vote per player)
+  votesRevealed: false
 };
 
 let timerInterval = null;
@@ -421,7 +437,32 @@ function initRealtime() {
     }
   } else if (currentView === 'admin') {
     const target = sessionStorage.getItem('dangan_target_room');
-    if (target) roomCode = target.toUpperCase();
+    if (target) {
+      roomCode = target.toUpperCase();
+    } else {
+      const courtRoom = sessionStorage.getItem('dangan_court_room_code');
+      if (courtRoom) {
+        roomCode = courtRoom.toUpperCase();
+      } else {
+        try {
+          const localActive = JSON.parse(localStorage.getItem('dangan_local_active_room') || '{}');
+          if (localActive && localActive.roomCode) roomCode = localActive.roomCode.toUpperCase();
+        } catch(e) {}
+      }
+    }
+    if (!roomCode) {
+      fetch('/api/rooms').then(r => r.json()).then(data => {
+        if (data && data.rooms && data.rooms.length > 0) {
+          const latest = data.rooms[data.rooms.length - 1];
+          if (latest && latest.roomCode && !roomCode) {
+            roomCode = latest.roomCode.toUpperCase();
+            const dRoom = document.getElementById('displayRoomCode');
+            if (dRoom) dRoom.innerText = roomCode;
+            connectToHostPeer('dr-court-host-' + roomCode);
+          }
+        }
+      }).catch(() => {});
+    }
   } else if (currentView === 'player') {
     const savedPlayerRoom = localStorage.getItem('dangan_current_room');
     if (savedPlayerRoom) {
@@ -433,6 +474,8 @@ function initRealtime() {
   if (dispRoom) dispRoom.innerText = roomCode || '------';
   const courtRoom = document.getElementById('courtLobbyRoomCode');
   if (courtRoom) courtRoom.innerText = roomCode || '------';
+  const idleRoom = document.getElementById('courtIdleRoomCode');
+  if (idleRoom) idleRoom.innerText = roomCode || '------';
   const mobRoom = document.getElementById('mobileRoomInput');
   if (mobRoom && roomCode) mobRoom.value = roomCode;
   const joinUrl = document.getElementById('courtJoinUrl');
@@ -732,6 +775,10 @@ function handleIncomingMessage(msg, senderConn) {
         } catch(e) {}
       }
     });
+
+    if (isHost) {
+      broadcast({ type: 'sync_state', state: gameState });
+    }
 
     logCourt(`👤 [PODIUM]: ${reqName} ยืนประจำแท่น [${reqRole}]`);
   } else if (msg.type === 'claim_approved') {
@@ -1711,14 +1758,22 @@ function setStage(stage, config) {
   gameState.stage = stage;
   stopTimer();
 
-  if (stage === 'investigation') {
+  if (stage === 'idle') {
+    stopTimer();
+    playSfx('chime');
+    logCourt(`🎬 [IDLE]: แสดงหน้าจอพักศาลชั้นเรียน รอประธาน Monokuma เริ่มการไต่สวน`);
+  } else if (stage === 'investigation') {
     stopTimer();
     playSfx('gavel');
     logCourt(`🔍 [INVESTIGATION]: เริ่มต้นช่วงเวลาสืบสวนหาหลักฐาน (Turn-Based)! ออกค้นหาและสแกน QR Code`);
   } else if (stage === 'trial') {
+    autoUnlockTrialClues();
     playSfx('gavel');
     logCourt(`⚖️ [CLASS TRIAL]: เริ่มต้นศาลชั้นเรียน! เข้าสู่ช่วงอภิปรายและไต่สวนคดี`);
   } else if (stage === 'stage1') {
+    autoUnlockTrialClues();
+    const activePlayerCount = Object.keys(gameState.players).length;
+    gameState.stg1Required = Math.max(1, Math.min(3, Math.ceil(activePlayerCount * 0.6)));
     gameState.stg1Submissions = 0;
     if (config) {
       if (config.prompt) gameState.stg1Prompt = config.prompt;
@@ -1729,32 +1784,36 @@ function setStage(stage, config) {
     startTimer(60);
     playSfx('gavel');
   } else if (stage === 'stage2') {
+    autoUnlockTrialClues();
+    gameState.stg2Word = "WATER CLOCK";
+    gameState.stg2Target = ["W", "A", "T", "E", "R", " ", "C", "L", "O", "C", "K"];
+    gameState.stg2Board = gameState.stg2Target.map(c => c === ' ' ? ' ' : '_');
+    gameState.stg2Mistakes = 0;
+    gameState.stg2MaxMistakes = 5;
     if (config) {
-      if (config.targetWord) {
-        gameState.stg2Word = config.targetWord;
-        gameState.stg2Target = splitGraphemes(config.targetWord);
-      }
       if (config.prompt) gameState.stg2Prompt = config.prompt;
     }
-    gameState.stg2Board = Array(gameState.stg2Target.length).fill("_");
-    const rTitle = document.querySelector('#courtStage2 .riddle-title');
-    if (rTitle && gameState.stg2Prompt) rTitle.innerText = `"${gameState.stg2Prompt}"`;
+    updateHangmanHealthDisplay();
     startTimer(75);
     playSfx('gavel');
   } else if (stage === 'stage3') {
+    autoUnlockTrialClues();
+    gameState.stg3Opponent = "สุดยอดนักมายากล";
     if (config) {
-      if (config.opponent) gameState.stg3Opponent = config.opponent;
       if (config.argument) gameState.stg3Argument = config.argument;
     }
     const oppEl = document.getElementById('rebuttalSuspect');
-    if (oppEl && gameState.stg3Opponent) oppEl.innerText = gameState.stg3Opponent;
+    if (oppEl) oppEl.innerText = gameState.stg3Opponent;
     const stmtEl = document.getElementById('rebuttalStatement');
     if (stmtEl && gameState.stg3Argument) stmtEl.innerText = `"${gameState.stg3Argument}"`;
-    startTimer(45);
+    startTimer(60);
     playSfx('rebuttal');
   } else if (stage === 'stage4') {
+    autoUnlockTrialClues();
     gameState.stg4Step = 1;
-    startTimer(60);
+    gameState.stg4Votes = {};
+    updateLogicDiveDisplay();
+    startTimer(45);
     playSfx('gavel');
   } else if (stage === 'stage5') {
     if (config) {
@@ -1772,17 +1831,32 @@ function setStage(stage, config) {
     startTimer(60);
     playSfx('gavel');
   } else if (stage === 'stage6') {
-    if (config && config.statement) {
-      gameState.stg6Statement = config.statement;
-    }
-    const scEl = document.getElementById('culpritScreamText');
-    if (scEl && gameState.stg6Statement) scEl.innerText = `"${gameState.stg6Statement}"`;
+    autoUnlockTrialClues();
+    gameState.stg6Wave = 1;
+    gameState.stg6MaxWave = 4;
     gameState.stg6Shield = 100;
-    startTimer(45);
+    gameState.stg6Statement = gameState.stg6Denials[0];
+    const waveEl = document.getElementById('armamentWaveTxt');
+    if (waveEl) waveEl.innerText = `1 / 4`;
+    const scEl = document.getElementById('culpritScreamText');
+    if (scEl) scEl.innerText = `"${gameState.stg6Statement}"`;
+    const banner = document.getElementById('armamentFinalBlowBanner');
+    if (banner) banner.classList.add('hidden');
+    startTimer(60);
     playSfx('gavel');
+  } else if (stage === 'closing') {
+    autoUnlockTrialClues();
+    gameState.closingSlots = { 1: false, 2: false };
+    updateClosingDisplay();
+    startTimer(90);
+    playSfx('gavel');
+    logCourt(`📖 [CLOSING ARGUMENT]: เริ่มต้นการปะติดปะต่อลำดับเหตุการณ์มังงะคดีความ!`);
   } else if (stage === 'stage7') {
     gameState.votingOpen = true;
     gameState.votes = {};
+    gameState.votesCast = {};
+    gameState.votesRevealed = false;
+    updateVoteDisplay();
     startTimer(60);
     playSfx('vote_intro');
   } else if (stage === 'lobby') {
@@ -1808,6 +1882,11 @@ function startTimer(duration) {
     } else {
       stopTimer();
       logCourt('⌛ [TIME UP]: หมดเวลาสำหรับการพิจารณาคดีช่วงนี้!');
+      if (gameState.stage === 'stage7' && !gameState.votesRevealed) {
+        revealVotes();
+      } else if (gameState.stage === 'stage4') {
+        evaluateLogicDiveMajority();
+      }
     }
   }, 1000);
 }
@@ -1945,23 +2024,27 @@ function handleClueDiscovered(clueId, clueName, playerName) {
 // STAGE RENDERERS (COURTROOM VIEW & MOBILE VIEW)
 // ==========================================================
 function renderStage(stage) {
-  const courtStages = ['courtLobby', 'courtTrial', 'courtInvestigation', 'courtStage1', 'courtStage2', 'courtStage3', 'courtStage4', 'courtStage5', 'courtStage6', 'courtStage7', 'courtVerdict'];
+  const courtStages = ['courtIdle', 'courtLobby', 'courtTrial', 'courtInvestigation', 'courtStage1', 'courtStage2', 'courtStage3', 'courtStage4', 'courtStage5', 'courtStage6', 'courtClosing', 'courtStage7', 'courtVerdict'];
   courtStages.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
 
-  // Clock visibility: Only show during timed mini-games (stage1 to stage7)
+  // Clock visibility: Only show during timed mini-games (stage1 to stage7, closing)
   const clockEl = document.querySelector('.monokuma-clock');
   if (clockEl) {
-    if (stage && stage.startsWith('stage')) {
+    if (stage && (stage.startsWith('stage') || stage === 'closing')) {
       clockEl.classList.remove('hidden');
     } else {
       clockEl.classList.add('hidden');
     }
   }
 
-  if (stage === 'trial') {
+  if (stage === 'idle') {
+    const idl = document.getElementById('courtIdle');
+    if (idl) idl.classList.remove('hidden');
+    updatePlayerDisplays();
+  } else if (stage === 'trial') {
     const ct = document.getElementById('courtTrial');
     if (ct) ct.classList.remove('hidden');
     updatePlayerDisplays();
@@ -1977,6 +2060,7 @@ function renderStage(stage) {
     const s2 = document.getElementById('courtStage2');
     if (s2) s2.classList.remove('hidden');
     updateHangmanDisplay();
+    updateHangmanHealthDisplay();
   } else if (stage === 'stage3') {
     const s3 = document.getElementById('courtStage3');
     if (s3) s3.classList.remove('hidden');
@@ -1992,6 +2076,10 @@ function renderStage(stage) {
     const s6 = document.getElementById('courtStage6');
     if (s6) s6.classList.remove('hidden');
     updateShieldDisplay();
+  } else if (stage === 'closing') {
+    const cl = document.getElementById('courtClosing');
+    if (cl) cl.classList.remove('hidden');
+    updateClosingDisplay();
   } else if (stage === 'stage7') {
     const s7 = document.getElementById('courtStage7');
     if (s7) s7.classList.remove('hidden');
@@ -2009,6 +2097,24 @@ function renderStage(stage) {
 // ==========================================================
 // MINI-GAME SPECIFIC LOGIC
 // ==========================================================
+// ==========================================================
+// AUTO CLUE DISCOVERY HELPER
+// ==========================================================
+function autoUnlockTrialClues() {
+  const trialClueIds = ['CORE-01', 'EVD-01', 'EVD-04', 'EVD-11', 'EVD-14'];
+  if (!gameState.discoveredClues) gameState.discoveredClues = [];
+  trialClueIds.forEach(cid => {
+    if (!gameState.discoveredClues.includes(cid)) {
+      gameState.discoveredClues.push(cid);
+    }
+  });
+  gameState.discoveredCluesCount = gameState.discoveredClues.length;
+  updateDiscoveredCluesDisplay();
+}
+
+// ==========================================================
+// MINI-GAME SPECIFIC LOGIC
+// ==========================================================
 // 1. Evidence Linker
 function handleStg1Submit(clueId, pName) {
   const target = gameState.stg1TargetClue || 'EVD-01';
@@ -2019,7 +2125,7 @@ function handleStg1Submit(clueId, pName) {
     const cName = clueObj ? clueObj.name : clueId;
     logCourt(`🎯 [TRUTH BULLET]: ${pName} ยิงหลักฐาน '${cName}' เข้าเป้าหมาย!`);
     updateStg1Display();
-    if (gameState.stg1Submissions >= gameState.stg1Required) {
+    if (gameState.stg1Submissions >= (gameState.stg1Required || 2)) {
       logCourt(`✨ [CLEARED]: หักล้างข้ออ้างของคนร้ายสำเร็จ!`);
       playSfx('point_break');
     }
@@ -2032,28 +2138,32 @@ function handleStg1Submit(clueId, pName) {
 }
 
 function updateStg1Display() {
-  document.getElementById('stg1Count').innerText = gameState.stg1Submissions;
-  const placeholders = document.querySelectorAll('#stg1SlotsDisplay .clue-card-placeholder');
+  const req = gameState.stg1Required || 2;
+  const countEl = document.getElementById('stg1Count');
+  if (countEl) countEl.innerText = gameState.stg1Submissions;
+  
+  const container = document.getElementById('stg1SlotsDisplay');
+  if (!container) return;
+  container.innerHTML = '';
+
   const target = gameState.stg1TargetClue || 'EVD-01';
   const clueObj = ALL_CLUES_DATA.find(c => c.id === target);
   const targetName = clueObj ? clueObj.name : target;
 
-  placeholders.forEach((el, idx) => {
-    if (idx < gameState.stg1Submissions) {
-      el.classList.add('active-match');
-      el.innerText = `✅ [${target}] ${targetName}`;
-    } else {
-      el.classList.remove('active-match');
-      el.innerText = `รอหลักฐานชิ้นที่ ${idx+1}...`;
-    }
-  });
+  for (let idx = 0; idx < req; idx++) {
+    const el = document.createElement('div');
+    el.className = 'clue-card-placeholder' + (idx < gameState.stg1Submissions ? ' active-match' : '');
+    el.innerText = (idx < gameState.stg1Submissions) ? `✅ [${target}] ${targetName}` : `รอหลักฐานชิ้นที่ ${idx + 1}...`;
+    container.appendChild(el);
+  }
 }
 
 // 2. Hangman's Gambit
 function handleStg2Char(char) {
   let matched = false;
+  const upChar = char.toUpperCase();
   gameState.stg2Target.forEach((targetChar, idx) => {
-    if (targetChar.toUpperCase() === char.toUpperCase()) {
+    if (targetChar.toUpperCase() === upChar) {
       gameState.stg2Board[idx] = targetChar;
       matched = true;
     }
@@ -2064,11 +2174,13 @@ function handleStg2Char(char) {
     updateHangmanDisplay();
     if (!gameState.stg2Board.includes('_')) {
       playSfx('point_break');
-      logCourt(`✨ [HANGMAN SOLVED]: ถอดรหัสสำเร็จ! "${gameState.stg2Target.join('')}"`);
+      logCourt(`✨ [HANGMAN SOLVED]: ถอดรหัสคำว่า "${gameState.stg2Target.join('')}" สำเร็จ!`);
     }
   } else {
+    gameState.stg2Mistakes = (gameState.stg2Mistakes || 0) + 1;
     gameState.influence = Math.max(0, gameState.influence - 5);
     updateInfluenceDisplay();
+    updateHangmanHealthDisplay();
     playSfx('wrong');
   }
 }
@@ -2079,74 +2191,319 @@ function updateHangmanDisplay() {
   b.innerHTML = '';
   gameState.stg2Board.forEach(c => {
     const tile = document.createElement('div');
-    tile.className = 'hangman-tile' + (c !== '_' ? ' revealed' : '');
+    tile.className = 'hangman-tile' + (c !== '_' && c !== ' ' ? ' revealed' : '') + (c === ' ' ? ' space' : '');
     tile.innerText = c;
     b.appendChild(tile);
   });
 }
 
-// 4. Logic Dive
-function advanceLogicDive(choice) {
-  if (choice === 'correct') {
-    gameState.stg4Step++;
-    playSfx('correct');
-    if (gameState.stg4Step > 3) {
-      logCourt(`✨ [LOGIC DIVE CLEAR]: ทะลวงตรรกะสำเร็จ B ตัดเชือกเองและคอหักตายเอง!`);
-    } else {
-      updateLogicDiveDisplay();
-    }
+function updateHangmanHealthDisplay() {
+  const txt = document.getElementById('hangmanHealthTxt');
+  const fill = document.getElementById('hangmanHealthFill');
+  const max = gameState.stg2MaxMistakes || 5;
+  const current = Math.max(0, max - (gameState.stg2Mistakes || 0));
+  if (txt) txt.innerText = `${current} / ${max}`;
+  if (fill) fill.style.width = `${Math.round((current / max) * 100)}%`;
+}
+
+// 3. Rebuttal Showdown
+function handleRebuttalSlash(bulletId, pName) {
+  const clue = ALL_CLUES_DATA.find(c => c.id === bulletId) || { name: bulletId || 'กระสุนความจริง' };
+  playSfx('blade');
+  logCourt(`⚔️ [TRUTH BLADE]: ${pName || 'ผู้เล่น'} กวัดแกว่ง [${clue.name}] เข้าปะทะข้อโต้แย้ง!`);
+}
+
+function adminRebuttalVerdict(isWin) {
+  if (isWin) {
+    playSfx('counter');
+    setTimeout(() => {
+      playSfx('point_break');
+      logCourt(`🏆 [REBUTTAL VICTORY]: ฝั่งผู้เล่นฟันทำลายดาบปฏิเสธของคู่ต่อสู้สำเร็จ! "Sore wa Chigau yo!"`);
+    }, 450);
+    broadcast({ type: 'trigger_fx', fx: 'counter' });
   } else {
     gameState.influence = Math.max(0, gameState.influence - 15);
     updateInfluenceDisplay();
     playSfx('wrong');
-    logCourt(`⚠️ [LOGIC DIVE CRASH]: เลือกทางแยกผิด ตกหน้าผาจิตสำนึก!`);
+    logCourt(`💀 [REBUTTAL DEFEAT]: ข้อโต้แย้งของผู้เล่นถูกฟันตกสะบั้น! (-15% Influence)`);
+    broadcast({ type: 'trigger_fx', fx: 'wrong' });
+  }
+}
+
+// 4. Logic Dive
+const LOGIC_DIVE_DATA = [
+  {
+    step: 1,
+    question: "สาเหตุที่น้ำในถังหนักขึ้นเรื่อยๆ จนกระชากกลไกรอกเกิดจากอะไร?",
+    choices: {
+      A: "ฝนตกลงมาจากช่องระบายอากาศ",
+      B: "น้ำจากก๊อกที่เปิดไหลทิ้งไว้",
+      C: "มีคนแอบนำก้อนน้ำแข็งมาวาง"
+    },
+    correct: "B"
+  },
+  {
+    step: 2,
+    question: "เชือกที่ผูกกับถังน้ำขาดสะบั้นออกจากกันได้อย่างไร?",
+    choices: {
+      A: "B ใช้มีดปอกผลไม้ตัดเชือกเองจนหลุด",
+      B: "เชือกเปื่อยยุ่ยเพราะถูกน้ำแช่เป็นเวลานาน",
+      C: "มีดของคนร้ายบาดขาดระหว่างการต่อสู้"
+    },
+    correct: "A"
+  },
+  {
+    step: 3,
+    question: "สาเหตุการเสียชีวิตที่แท้จริงของ B คืออะไร?",
+    choices: {
+      A: "จมน้ำขาดอากาศหายใจในถัง",
+      B: "ถูกกะโหลกแตกด้วยหม้อสตูว์",
+      C: "คอหักจากการกระทำสุดท้ายที่ตนเองผูกบ่วงเชือก"
+    },
+    correct: "C"
+  }
+];
+
+function handleLogicDiveVote(qStep, choice, voterId, pName) {
+  if (gameState.stg4Step !== qStep) return;
+  if (!gameState.stg4Votes) gameState.stg4Votes = {};
+  gameState.stg4Votes[voterId] = choice;
+  
+  const count = Object.keys(gameState.stg4Votes).length;
+  const tallyEl = document.getElementById('diveVotedCount');
+  if (tallyEl) tallyEl.innerText = count;
+
+  const activePlayers = Object.keys(gameState.players).length;
+  if (activePlayers > 0 && count >= activePlayers) {
+    evaluateLogicDiveMajority();
+  }
+}
+
+function evaluateLogicDiveMajority() {
+  const currentData = LOGIC_DIVE_DATA.find(d => d.step === gameState.stg4Step);
+  if (!currentData) return;
+
+  const tally = { A: 0, B: 0, C: 0 };
+  Object.values(gameState.stg4Votes || {}).forEach(ch => {
+    if (tally[ch] !== undefined) tally[ch]++;
+  });
+
+  let winningChoice = 'A';
+  let maxVotes = -1;
+  ['A', 'B', 'C'].forEach(ch => {
+    if (tally[ch] > maxVotes) {
+      maxVotes = tally[ch];
+      winningChoice = ch;
+    }
+  });
+
+  ['A', 'B', 'C'].forEach(ch => {
+    const lane = document.getElementById('lane' + ch);
+    if (lane) {
+      lane.classList.remove('highlight', 'active-match');
+      if (ch === winningChoice) lane.classList.add('highlight');
+      if (ch === currentData.correct) lane.classList.add('active-match');
+    }
+  });
+
+  if (winningChoice === currentData.correct) {
+    playSfx('correct');
+    logCourt(`✨ [LOGIC DIVE]: มติเสียงข้างมากเลือกข้อ [${winningChoice}] ถูกต้อง! สเก็ตบอร์ดพุ่งทะลวงสู่อุโมงค์ถัดไป`);
+    setTimeout(() => {
+      gameState.stg4Step++;
+      gameState.stg4Votes = {};
+      if (gameState.stg4Step > 3) {
+        logCourt(`✨ [LOGIC DIVE CLEAR]: ทะลวงตรรกะจนพบความจริง! B ตัดเชือกและผูกบ่วงคอหักตายเอง!`);
+        playSfx('point_break');
+      } else {
+        updateLogicDiveDisplay();
+        broadcast({ type: 'sync_state', state: gameState });
+      }
+    }, 1200);
+  } else {
+    gameState.influence = Math.max(0, gameState.influence - 15);
+    updateInfluenceDisplay();
+    playSfx('wrong');
+    logCourt(`⚠️ [LOGIC DIVE CRASH]: เสียงข้างมากเลือกข้อ [${winningChoice}] ผิดทาง! ชนผนังอุโมงค์ (-15% Influence)`);
+    gameState.stg4Votes = {};
+    const tallyEl = document.getElementById('diveVotedCount');
+    if (tallyEl) tallyEl.innerText = 0;
   }
 }
 
 function updateLogicDiveDisplay() {
-  document.getElementById('diveStageNum').innerText = `STAGE ${gameState.stg4Step} / 3`;
-  if (gameState.stg4Step === 1) {
-    document.getElementById('diveQuestion').innerText = `"มีดพกเปื้อนใยเชือกในกระเป๋าเสื้อของ B หมายความว่าอย่างไร?"`;
-    document.getElementById('laneA').innerText = `A: คนร้ายใช้มีดอำพราง`;
-    document.getElementById('laneB').innerText = `B: ตัวเหยื่อตัดเชือกเองจนรอดแล้ว!`;
-  } else if (gameState.stg4Step === 2) {
-    document.getElementById('diveQuestion').innerText = `"ถ้า B ตัดเชือกรอดแล้ว ทำไมถึงมีเงื่อนโบว์ไลน์ผูกติดสายรัดลำตัว?"`;
-    document.getElementById('laneA').innerText = `A: B แกล้งจัดฉากผูกหลอกเพื่อแฉคนร้าย`;
-    document.getElementById('laneB').innerText = `B: B พยายามปีนหนีขึ้นเพดาน`;
-  } else if (gameState.stg4Step === 3) {
-    document.getElementById('diveQuestion').innerText = `"แล้วทำไม B ถึงคอหักตายจริง ทั้งที่มีสายรัดลำตัวพยุงอยู่!?"`;
-    document.getElementById('laneA').innerText = `A: B ถูกวางยาพิษไซยาไนด์`;
-    document.getElementById('laneB').innerText = `B: มวลน้ำเกิด Shock Load มหาศาล กระชากเงื่อนหลุดรัดคอ!`;
-  }
+  const currentData = LOGIC_DIVE_DATA.find(d => d.step === gameState.stg4Step);
+  if (!currentData) return;
+
+  const numEl = document.getElementById('diveStageNum');
+  const qEl = document.getElementById('diveQuestion');
+  if (numEl) numEl.innerText = `STAGE ${currentData.step} / 3`;
+  if (qEl) qEl.innerText = `"${currentData.question}"`;
+
+  ['A', 'B', 'C'].forEach(ch => {
+    const lane = document.getElementById('lane' + ch);
+    if (lane) {
+      lane.classList.remove('highlight', 'active-match');
+      lane.innerHTML = `<strong>${ch}:</strong> <span class="choice-text">${currentData.choices[ch]}</span>`;
+    }
+  });
+
+  const tallyEl = document.getElementById('diveVotedCount');
+  if (tallyEl) tallyEl.innerText = Object.keys(gameState.stg4Votes || {}).length;
 }
 
 // 5. Debate Scrum
 function updateScrumDisplay() {
-  document.getElementById('courtScrumFill').style.width = `${gameState.stg5Meter}%`;
+  const fill = document.getElementById('courtScrumFill');
+  if (fill) fill.style.width = `${gameState.stg5Meter}%`;
 }
 
 // 6. Argument Armament
-function updateShieldDisplay() {
-  document.getElementById('shieldFill').style.width = `${gameState.stg6Shield}%`;
+function handleStg6Hit(pName) {
+  gameState.stg6Shield = Math.max(0, gameState.stg6Shield - 10);
+  updateShieldDisplay();
+  playSfx('blade');
   if (gameState.stg6Shield <= 0) {
-    document.getElementById('culpritScreamText').innerText = `"อ๊ากกกกกก!! ความจริงมัน... เป็นไปไม่ได้... แผนของฉัน!!"`;
-    playSfx('gavel');
+    if (gameState.stg6Wave < (gameState.stg6MaxWave || 4)) {
+      gameState.stg6Wave++;
+      gameState.stg6Shield = 100;
+      gameState.stg6Statement = gameState.stg6Denials[gameState.stg6Wave - 1] || gameState.stg6Statement;
+      playSfx('break');
+      logCourt(`💥 [ARMAMENT BREAK]: ทลายเกราะคลื่นที่ ${gameState.stg6Wave - 1} สำเร็จ! คนร้ายสติแตกเข้าสู่คลื่นที่ ${gameState.stg6Wave}!`);
+      updateShieldDisplay();
+      broadcast({ type: 'sync_state', state: gameState });
+    } else {
+      playSfx('break');
+      const banner = document.getElementById('armamentFinalBlowBanner');
+      if (banner) banner.classList.remove('hidden');
+      logCourt(`💥 [ARMAMENT READY]: เกราะการปฏิเสธของคนร้ายพังทลายสิ้นเชิง! เล็งยิงกระสุนความจริงนัดสุดท้าย!`);
+      broadcast({ type: 'armament_final_ready' });
+    }
   }
 }
 
-// 7. Voting & Verdict
+function handleStg6FinalBlow(pName) {
+  playSfx('counter');
+  setTimeout(() => {
+    playSfx('point_break');
+    logCourt(`🎯 [FINAL TRUTH BULLET]: ${pName || 'ผู้เล่น'} ลั่นไก [มีดปอกผลไม้ในมือ B] ปิดฉากการปฏิเสธของคนร้าย!`);
+    const scream = document.getElementById('culpritScreamText');
+    if (scream) scream.innerText = `"อ๊ากกกกกกกกกกก!! แผนการของฉัน... พังหมดแล้ว...!!"`;
+  }, 400);
+}
+
+function updateShieldDisplay() {
+  const fill = document.getElementById('shieldFill');
+  const waveTxt = document.getElementById('armamentWaveTxt');
+  const scEl = document.getElementById('culpritScreamText');
+  if (fill) fill.style.width = `${gameState.stg6Shield}%`;
+  if (waveTxt) waveTxt.innerText = `${gameState.stg6Wave || 1} / 4`;
+  if (scEl && gameState.stg6Statement) scEl.innerText = `"${gameState.stg6Statement}"`;
+}
+
+// 7. Closing Argument (Mini-Game 7)
+function handleClosingSubmit(slot, cardId, pName) {
+  if (!gameState.closingSlots) gameState.closingSlots = { 1: false, 2: false };
+  let correct = false;
+
+  if (slot === 1 && (cardId === 'EVD-14' || cardId === 'ACTION-CUT')) {
+    gameState.closingSlots[1] = true;
+    correct = true;
+    logCourt(`📖 [CLOSING ACT 3]: ${pName} เติมมังงะช่องที่ 1 สำเร็จ! "B ฟื้นสติและใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง"`);
+  } else if (slot === 2 && (cardId === 'EVD-11' || cardId === 'ACTION-NOOSE')) {
+    gameState.closingSlots[2] = true;
+    correct = true;
+    logCourt(`📖 [CLOSING ACT 4]: ${pName} เติมมังงะช่องที่ 2 สำเร็จ! "B นำบ่วงเชือกมาคล้องคอตนเองเพื่อจัดฉากกลั่นแกล้ง"`);
+  }
+
+  if (correct) {
+    playSfx('correct');
+    updateClosingDisplay();
+    if (gameState.closingSlots[1] && gameState.closingSlots[2]) {
+      setTimeout(() => {
+        playSfx('point_break');
+        logCourt(`✨ [CLOSING ARGUMENT COMPLETE]: ลำดับเหตุการณ์มังงะสมบูรณ์แบบ 100%! ความจริงทั้งหมดกระจ่างแจ้งแล้ว!`);
+      }, 500);
+    }
+    broadcast({ type: 'sync_state', state: gameState });
+  } else {
+    gameState.influence = Math.max(0, gameState.influence - 10);
+    updateInfluenceDisplay();
+    playSfx('wrong');
+    logCourt(`❌ [CLOSING MISMATCH]: การ์ดเหตุการณ์ไม่ตรงกับช่องว่าง (-10% Influence)`);
+  }
+}
+
+function updateClosingDisplay() {
+  const s1 = document.getElementById('mangaSlot1');
+  const s2 = document.getElementById('mangaSlot2');
+  if (gameState.closingSlots && gameState.closingSlots[1]) {
+    if (s1) {
+      s1.className = 'manga-panel complete solved';
+      const art = document.getElementById('mangaSlot1Art');
+      const desc = document.getElementById('mangaSlot1Desc');
+      if (art) art.innerText = '🔪';
+      if (desc) desc.innerText = 'B ฟื้นสติขึ้นมา และใช้มีดปอกผลไม้ในกระเป๋าตัดเชือกที่มัดมือออกเองจนหลุด!';
+    }
+  }
+  if (gameState.closingSlots && gameState.closingSlots[2]) {
+    if (s2) {
+      s2.className = 'manga-panel complete solved';
+      const art = document.getElementById('mangaSlot2Art');
+      const desc = document.getElementById('mangaSlot2Desc');
+      if (art) art.innerText = '🪢';
+      if (desc) desc.innerText = 'B ผูกบ่วงเชือกเส้นใหม่มาคล้องคอตนเอง หวังจัดฉากฆาตกรรมกลั่นแกล้งคนอื่น!';
+    }
+  }
+}
+
+// 8. Voting & Verdict
 function updateVoteDisplay() {
   const container = document.getElementById('courtVoteResults');
-  container.innerHTML = '';
-  const candidates = ['PC 1 (นักแต่งนิยาย)', 'PC 2 (นักกีฬา)', 'PC 3 (นักมายากล A)', 'PC 4 (นักชิม)', 'PC 5 (นักแสดงผาดโผน)', 'PC 6 (ช่างกล)', 'NPC B (สุดยอดนักเอาตัวรอด)'];
-  
-  candidates.forEach(cand => {
-    const card = document.createElement('div');
-    card.className = 'vote-card';
-    const count = gameState.votes[cand] || 0;
-    card.innerHTML = `<span>👤 ${cand}</span><span class="vote-count-badge">${count} โหวต</span>`;
-    container.appendChild(card);
-  });
+  const suspenseBox = document.getElementById('votingSuspenseCard');
+  const wrapper = document.getElementById('courtVoteResultsWrapper');
+  const votesCastCountEl = document.getElementById('votesCastCount');
+  const votesExpectedCountEl = document.getElementById('votesExpectedCount');
+
+  const activePlayers = Object.keys(gameState.players).length;
+  const votesCastCount = Object.keys(gameState.votesCast || {}).length;
+
+  if (votesCastCountEl) votesCastCountEl.innerText = votesCastCount;
+  if (votesExpectedCountEl) votesExpectedCountEl.innerText = activePlayers;
+
+  if (gameState.votesRevealed) {
+    if (suspenseBox) suspenseBox.classList.add('hidden');
+    if (wrapper) wrapper.classList.remove('hidden');
+  } else {
+    if (suspenseBox) suspenseBox.classList.remove('hidden');
+    if (wrapper) wrapper.classList.add('hidden');
+  }
+
+  if (container) {
+    container.innerHTML = '';
+    const candidates = ['PC 1 (นักแต่งนิยาย)', 'PC 2 (นักกีฬา)', 'PC 3 (นักมายากล)', 'PC 4 (นักชิม)', 'PC 5 (นักแสดงผาดโผน)', 'PC 6 (ช่างกล)', 'NPC B (สุดยอดนักเอาตัวรอด)'];
+    candidates.forEach(cand => {
+      const card = document.createElement('div');
+      card.className = 'vote-card';
+      const count = gameState.votes[cand] || 0;
+      card.innerHTML = `<span>👤 ${cand}</span><span class="vote-count-badge">${count} โหวต</span>`;
+      container.appendChild(card);
+    });
+  }
+}
+
+function revealVotes() {
+  gameState.votesRevealed = true;
+  stopTimer();
+  updateVoteDisplay();
+  playSfx('vote_correct');
+  logCourt('🗳️ [VOTE REVEAL]: เปิดเผยผลคะแนนการลงมติชี้ชะตา!');
+  if (isHost) broadcast({ type: 'sync_state', state: gameState });
+}
+
+function adminRevealVotes() {
+  revealVotes();
+  broadcast({ type: 'reveal_votes' });
 }
 
 function showVerdict(isVictory) {
@@ -2309,39 +2666,65 @@ function renderMobileTask(stage) {
         ${btnsHtml}
       </div>
     `;
+  } else if (stage === 'idle') {
+    area.innerHTML = `
+      <div style="background:rgba(15,15,28,0.95); border:2px solid var(--court-gold); border-radius:10px; padding:20px; text-align:center;">
+        <div style="font-size:2.5rem; margin-bottom:10px;">⏳</div>
+        <h3 style="color:var(--court-gold); font-weight:900;">ศาลชั้นเรียนกำลังเตรียมการ</h3>
+        <p style="color:#aaa; font-size:0.92rem;">กรุณารอฟังคำสั่งและการเปิดศาลจาก Headmaster Monokuma / DM</p>
+      </div>
+    `;
   } else if (stage === 'stage2') {
-    const targetLetters = (gameState.stg2Target && gameState.stg2Target.length) ? [...gameState.stg2Target] : ["น", "า", "ฬิ", "ก", "า", "น้", "ำ"];
-    const dummyPool = ['ร', 'ว', 'ส', 'ม', 'อ', 'เ', 'ย', 'ด', 'บ', 'ง', 'ท', 'ล'];
-    const letterSet = new Set(targetLetters);
-    for (const d of dummyPool) {
-      if (letterSet.size >= targetLetters.length + 3) break;
-      letterSet.add(d);
-    }
-    const letterArray = Array.from(letterSet).sort(() => 0.5 - Math.random());
-    const btnsHtml = letterArray.map(ch => {
-      const safeCh = ch.replace(/'/g, "\\'");
-      return `<button class="p-task-btn letter-btn" onclick="sendStg2Char('${safeCh}')">${ch}</button>`;
-    }).join('');
+    // English A-Z Keyboard Layout (QWERTY)
+    const row1 = ['Q','W','E','R','T','Y','U','I','O','P'];
+    const row2 = ['A','S','D','F','G','H','J','K','L'];
+    const row3 = ['Z','X','C','V','B','N','M'];
+
+    const renderRow = (letters) => `
+      <div style="display:flex; justify-content:center; gap:5px; margin-bottom:6px;">
+        ${letters.map(ch => `<button class="p-task-btn letter-btn" style="min-width:30px; padding:8px 4px; font-weight:900; font-size:1rem;" onclick="sendStg2Char('${ch}')">${ch}</button>`).join('')}
+      </div>
+    `;
 
     area.innerHTML = `
-      <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">แตะตัวอักษรเพื่อส่งขึ้นกระดาน:</h3>
-      <div class="hangman-letters-grid">
-        ${btnsHtml}
+      <h3 style="color:var(--court-gold); margin-bottom:10px; font-weight:900;">ถอดรหัสคำศัพท์ภาษาอังกฤษ (A - Z):</h3>
+      <div class="hangman-keyboard-container" style="max-width:420px; margin:0 auto;">
+        ${renderRow(row1)}
+        ${renderRow(row2)}
+        ${renderRow(row3)}
       </div>
     `;
   } else if (stage === 'stage3') {
+    const activeBullets = (gameState.discoveredClues && gameState.discoveredClues.length) ? gameState.discoveredClues : ['CORE-01', 'EVD-01', 'EVD-04', 'EVD-14'];
+    let bulletOptions = activeBullets.map(cid => {
+      const c = ALL_CLUES_DATA.find(x => x.id === cid) || { id: cid, name: cid };
+      return `<option value="${c.id}">[${c.id}] ${c.name}</option>`;
+    }).join('');
+
     area.innerHTML = `
       <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">ดวลดาบคำพูด (Rebuttal Showdown)!</h3>
-      <button class="p-task-btn big-action-btn" style="background:#3b141b; border: 3px solid var(--mono-pink); box-shadow: 4px 4px 0 #000;" onclick="broadcast({type:'trigger_fx',fx:'correct'})">
+      <div style="margin-bottom:12px; text-align:left;">
+        <label style="font-size:0.85rem; color:#aaa; font-weight:700; display:block; margin-bottom:4px;">เลือกกระสุนความจริงที่ถือดาบเข้าปะทะ:</label>
+        <select id="rebuttalEquippedBullet" style="width:100%; background:#1a1a2e; color:#fff; border:2px solid var(--mono-pink); padding:8px; border-radius:6px;">
+          ${bulletOptions}
+        </select>
+      </div>
+      <button class="p-task-btn big-action-btn" style="background:#3b141b; border: 3px solid var(--mono-pink); box-shadow: 4px 4px 0 #000;" onclick="sendRebuttalSlash()">
         ⚔️ ฟันดาบความจริง! (Truth Blade Slash)
       </button>
     `;
   } else if (stage === 'stage4') {
+    const currentData = LOGIC_DIVE_DATA.find(d => d.step === gameState.stg4Step) || LOGIC_DIVE_DATA[0];
     area.innerHTML = `
-      <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">Logic Dive: เลือกทางแยกตรรกะ!</h3>
-      <div class="mobile-task-grid">
-        <button class="p-task-btn" onclick="advanceLogicDive('wrong')">ทางแยกซ้าย</button>
-        <button class="p-task-btn" onclick="advanceLogicDive('correct')">ทางแยกขวา (ทางถูกต้อง)</button>
+      <h3 style="color:var(--court-gold); margin-bottom:10px; font-weight:900;">Logic Dive: เลือกทางแยกตรรกะ!</h3>
+      <p style="font-size:0.9rem; color:#ddd; margin-bottom:12px;">${currentData.question}</p>
+      <div class="mobile-task-grid" id="diveMobileChoices">
+        <button class="p-task-btn" onclick="sendLogicDiveChoice('A')"><strong>A:</strong> ${currentData.choices.A}</button>
+        <button class="p-task-btn" onclick="sendLogicDiveChoice('B')"><strong>B:</strong> ${currentData.choices.B}</button>
+        <button class="p-task-btn" onclick="sendLogicDiveChoice('C')"><strong>C:</strong> ${currentData.choices.C}</button>
+      </div>
+      <div id="diveChoiceFeedback" style="display:none; margin-top:12px; color:#ffe600; font-weight:700;">
+        ⏳ ส่งเสียงโหวตเส้นทางแล้ว รอสรุปมติพร้อมกัน!
       </div>
     `;
   } else if (stage === 'stage5') {
@@ -2359,13 +2742,40 @@ function renderMobileTask(stage) {
   } else if (stage === 'stage6') {
     area.innerHTML = `
       <h3 style="color:var(--mono-yellow); margin-bottom:12px; font-weight:900;">Argument Armament: รัวปุ่มทุบเกราะ!</h3>
-      <button class="p-task-btn big-action-btn" style="background:#423414; border:3px solid var(--mono-yellow); box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg6_hit'})">
-        🔨 ทุบเกราะความจริง! (-15% Shield)
+      <button class="p-task-btn big-action-btn" style="background:#423414; border:3px solid var(--mono-yellow); box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg6_hit', playerName: myPlayer ? myPlayer.name : 'ผู้เล่น'})">
+        🔨 ทุบเกราะความจริง! (-10% Shield)
       </button>
+      <div id="finalBlowMobileBox" style="margin-top:14px; display:none;">
+        <button class="p-task-btn big-action-btn" style="background:#5e111a; border:3px solid var(--mono-pink); box-shadow:0 0 16px var(--mono-pink); font-size:1.15rem;" onclick="sendStg6FinalBlow()">
+          💥 ยิงกระสุนความจริงนัดสุดท้าย: [มีดปอกผลไม้ในมือ B]!
+        </button>
+      </div>
+    `;
+  } else if (stage === 'closing') {
+    const cards = [
+      { id: 'EVD-14', title: 'B ใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง' },
+      { id: 'EVD-11', title: 'B นำบ่วงเชือกมาคล้องคอตนเองเพื่อจัดฉากกลั่นแกล้ง' },
+      { id: 'ACT-ESCAPE', title: 'B วิ่งหนีขึ้นบันไดไปตามคนมาช่วย' },
+      { id: 'ACT-CHECK', title: 'คนร้ายกลับมาที่ห้องซักรีดเพื่อตรวจผลงาน' }
+    ];
+    let cardButtons = cards.map(c => `
+      <div style="background:#19192b; border:2px solid #444; border-radius:8px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <span style="font-size:0.85rem; color:#fff; text-align:left;">${c.title}</span>
+        <div style="display:flex; gap:4px;">
+          <button class="small-btn cyan" onclick="sendClosingCard(1, '${c.id}')" style="white-space:nowrap; padding:4px 8px; font-size:0.75rem;">ใส่ช่อง 1</button>
+          <button class="small-btn pink" onclick="sendClosingCard(2, '${c.id}')" style="white-space:nowrap; padding:4px 8px; font-size:0.75rem;">ใส่ช่อง 2</button>
+        </div>
+      </div>
+    `).join('');
+
+    area.innerHTML = `
+      <h3 style="color:var(--mono-cyan); margin-bottom:10px; font-weight:900;">Closing Argument: เติมการ์ดลงช่องมังงะ</h3>
+      <p style="font-size:0.85rem; color:#aaa; margin-bottom:12px;">เลือกการ์ดเหตุการณ์ที่ถูกต้องแล้วกดวางลงในช่องว่างที่ 1 หรือ 2 บนจอใหญ่:</p>
+      <div>${cardButtons}</div>
     `;
   } else if (stage === 'stage7') {
-    const candidates = ['PC 1 (นักแต่งนิยาย)', 'PC 2 (นักกีฬา)', 'PC 3 (นักมายากล A)', 'PC 4 (นักชิม)', 'PC 5 (นักแสดงผาดโผน)', 'PC 6 (ช่างกล)', 'NPC B (สุดยอดนักเอาตัวรอด)'];
-    let btns = candidates.map(c => `<button class="p-task-btn" onclick="submitPlayerVote('${c}')">👉 โหวต: ${c}</button>`).join('');
+    const candidates = ['PC 1 (นักแต่งนิยาย)', 'PC 2 (นักกีฬา)', 'PC 3 (นักมายากล)', 'PC 4 (นักชิม)', 'PC 5 (นักแสดงผาดโผน)', 'PC 6 (ช่างกล)', 'NPC B (สุดยอดนักเอาตัวรอด)'];
+    let btns = candidates.map(c => `<button class="p-task-btn vote-option-btn" onclick="submitPlayerVote('${c}')">👉 โหวต: ${c}</button>`).join('');
     area.innerHTML = `
       <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">โหวตเลือก Blackened ผู้ปลิดชีพ B:</h3>
       <div class="mobile-task-grid">${btns}</div>
@@ -2385,9 +2795,60 @@ function sendStg2(idx, char) {
   sendStg2Char(char);
 }
 
+function sendRebuttalSlash() {
+  const sel = document.getElementById('rebuttalEquippedBullet');
+  const bullet = sel ? sel.value : 'EVD-01';
+  broadcast({ type: 'rebuttal_slash', bullet: bullet, playerName: myPlayer ? myPlayer.name : 'ผู้เล่น' });
+}
+
+function sendLogicDiveChoice(ch) {
+  const voterId = myPlayer ? myPlayer.id : (currentUserHash || 'p_anon');
+  broadcast({
+    type: 'logic_dive_vote',
+    question: gameState.stg4Step,
+    choice: ch,
+    voterId: voterId,
+    playerName: myPlayer ? myPlayer.name : 'ผู้เล่น'
+  });
+  const choicesBox = document.getElementById('diveMobileChoices');
+  const feedback = document.getElementById('diveChoiceFeedback');
+  if (choicesBox) choicesBox.style.pointerEvents = 'none';
+  if (feedback) feedback.style.display = 'block';
+}
+
+function sendClosingCard(slot, cardId) {
+  broadcast({
+    type: 'closing_submit',
+    slot: slot,
+    cardId: cardId,
+    playerName: myPlayer ? myPlayer.name : 'ผู้เล่น'
+  });
+}
+
+function sendStg6FinalBlow() {
+  broadcast({ type: 'stg6_final_blow', playerName: myPlayer ? myPlayer.name : 'ผู้เล่น' });
+  const box = document.getElementById('finalBlowMobileBox');
+  if (box) box.innerHTML = '<div style="color:#00ff88; font-weight:900; font-size:1.1rem;">🎯 ยิงกระสุนความจริงเข้าเป้าหมายสำเร็จ!</div>';
+}
+
+let myPlayerVoted = false;
+
 function submitPlayerVote(cand) {
-  broadcast({ type: 'submit_vote', candidate: cand });
-  alert(`คุณได้ลงคะแนนโหวตให้ '${cand}' เรียบร้อยแล้ว!`);
+  if (myPlayerVoted) return;
+  myPlayerVoted = true;
+  const voterId = myPlayer ? myPlayer.id : (currentUserHash || 'p_anon');
+  broadcast({ type: 'submit_vote', candidate: cand, voterId: voterId });
+  const area = document.getElementById('mobileTaskArea');
+  if (area) {
+    area.innerHTML = `
+      <div style="background:rgba(20,20,35,0.95); border:2px solid var(--court-gold); border-radius:10px; padding:20px; text-align:center;">
+        <div style="font-size:2.5rem; margin-bottom:10px;">🗳️</div>
+        <h3 style="color:var(--court-gold); margin-bottom:8px; font-weight:900;">บันทึกการลงคะแนนเรียบร้อยแล้ว!</h3>
+        <p style="color:#ddd; font-size:0.95rem;">คุณได้ลงคะแนนให้: <strong style="color:var(--mono-pink);">${cand}</strong></p>
+        <p style="color:#888; font-size:0.85rem; margin-top:10px;">ผลคะแนนจะถูกปิดเป็นความลับจนกว่าทุกคนจะลงคะแนนเสร็จสิ้น หรือหมดเวลา!</p>
+      </div>
+    `;
+  }
 }
 
 // ==========================================================
@@ -2517,6 +2978,10 @@ function triggerFx(fx) {
   if (isHost || currentView === 'court') {
     playSfx(fx);
     broadcast({ type: 'trigger_fx', fx: fx });
+  } else if (currentView === 'admin') {
+    // Admin DM clicks: route to host screen (classroom speakers); NEVER play locally on DM device
+    broadcast({ type: 'trigger_fx', fx: fx });
+    showToast(`🔊 ส่งเสียง [${fx}] ขึ้นจอใหญ่ศาลเรียบร้อย`);
   } else if (hostPeer && hostPeer.open) {
     broadcast({ type: 'trigger_fx', fx: fx });
     showToast(`🔊 ส่งเสียง [${fx}] ขึ้นจอศาลเรียบร้อย`);
@@ -2556,17 +3021,20 @@ function updatePlayerDisplays() {
   const count = document.getElementById('courtPlayerCount');
   const trialList = document.getElementById('courtTrialPodiumList');
   const trialCount = document.getElementById('courtTrialPlayerCount');
+  const idleCount = document.getElementById('courtIdlePlayerCount');
   const players = Object.values(gameState.players);
 
   if (count) count.innerText = players.length;
   if (trialCount) trialCount.innerText = players.length;
+  if (idleCount) idleCount.innerText = players.length;
 
   [list, trialList].forEach(targetList => {
     if (!targetList) return;
     targetList.innerHTML = '';
     players.forEach(p => {
       const seat = document.createElement('div');
-      seat.className = 'podium-seat' + (p.isKiller ? ' killer-badge' : '');
+      // All podium seats have uniform color & styling - zero spoilers
+      seat.className = 'podium-seat';
       seat.innerHTML = `<span>👤 ${escapeHtml(p.name)}</span><span class="podium-role">[${escapeHtml(p.role)}]</span>`;
       targetList.appendChild(seat);
     });

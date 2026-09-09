@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Danganronpa TRPG - 2d6 Character Sheet (A4 Printable)</title>
+  <title>Hope's Peak Academy - Classified Student Dossier (A4 2d6 Character Sheet)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,700;0,900;1,700&family=Kanit:wght@300;400;600;700;900&family=Mitr:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Kanit:wght@300;400;500;600;700;900&family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     /* ========================================================= */
-    /* GLOBAL & SCREEN CONTROLS */
+    /* GLOBAL RESET & SCREEN CONTROLS                            */
     /* ========================================================= */
     * {
       box-sizing: border-box;
@@ -20,8 +20,8 @@
     }
 
     body {
-      background-color: #12121a;
-      color: #222;
+      background-color: #0f1017;
+      color: #111;
       font-family: 'Kanit', sans-serif;
       line-height: 1.25;
       padding: 20px 10px;
@@ -31,11 +31,11 @@
     .screen-toolbar {
       max-width: 210mm;
       margin: 0 auto 20px auto;
-      background: #1c1c28;
+      background: #171822;
       border: 2px solid #ff0055;
       border-radius: 8px;
       padding: 14px 18px;
-      box-shadow: 0 4px 20px rgba(255, 0, 85, 0.25);
+      box-shadow: 0 4px 25px rgba(255, 0, 85, 0.3);
       color: #fff;
     }
     .toolbar-title {
@@ -46,11 +46,14 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
+      font-family: 'Chakra Petch', sans-serif;
+      letter-spacing: 1px;
     }
     .toolbar-title span.sub {
       font-size: 0.8rem;
-      color: #aaa;
+      color: #bbb;
       font-weight: normal;
+      font-family: 'Kanit', sans-serif;
     }
     .preset-buttons {
       display: flex;
@@ -59,11 +62,11 @@
       margin-bottom: 12px;
     }
     .btn-preset {
-      background: #2a2a3c;
+      background: #252636;
       color: #eee;
-      border: 1px solid #444466;
+      border: 1px solid #484a66;
       border-radius: 4px;
-      padding: 6px 10px;
+      padding: 6px 12px;
       font-size: 0.82rem;
       font-family: 'Kanit', sans-serif;
       cursor: pointer;
@@ -79,7 +82,7 @@
       color: #fff;
       font-weight: 700;
       border-color: #ff0055;
-      box-shadow: 0 0 8px rgba(255, 0, 85, 0.5);
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
     }
     .action-row {
       display: flex;
@@ -142,7 +145,7 @@
     }
 
     /* ========================================================= */
-    /* A4 PAGE CONTAINER */
+    /* A4 PAGE CONTAINER & AUTHENTIC DOSSIER STYLING             */
     /* ========================================================= */
     .sheet-page {
       width: 210mm;
@@ -151,262 +154,343 @@
       min-height: 297mm;
       background: #ffffff;
       color: #000000;
-      padding: 7mm 8mm;
+      padding: 5mm 6mm;
       position: relative;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Outer Decorative Double Frame matching user's image */
-    .outer-frame {
+    /* Subtle Hope's Peak Academy Crest Watermark */
+    .academy-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 145mm;
+      height: 145mm;
+      opacity: 0.045;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Outer Dossier Double Border with Registration Marks */
+    .dossier-frame {
       width: 100%;
       height: 100%;
-      border: 2.5px solid #000;
+      border: 3px solid #000;
       position: relative;
       display: flex;
       flex-direction: column;
-      padding: 4px 6px 6px 6px;
+      padding: 5px 7px 5px 7px;
+      z-index: 2;
+    }
+
+    /* Corner Graphic Accents (Manga / Blueprint Registration Marks) */
+    .dossier-frame::before {
+      content: "+";
+      position: absolute;
+      top: -12px;
+      left: -5px;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #000;
+      pointer-events: none;
+    }
+    .dossier-frame::after {
+      content: "+";
+      position: absolute;
+      bottom: -12px;
+      right: -5px;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #000;
+      pointer-events: none;
     }
 
     /* Left and Right Accent Stripes (Vertical lines) */
-    .outer-frame::before {
-      content: "";
+    .side-stripes-left {
       position: absolute;
-      top: -4px;
-      bottom: -4px;
-      left: 3px;
+      top: -3px;
+      bottom: -3px;
+      left: 4px;
       width: 2px;
       background: #000;
       pointer-events: none;
     }
-    .outer-frame::after {
-      content: "";
+    .side-stripes-right {
       position: absolute;
-      top: -4px;
-      bottom: -4px;
-      right: 3px;
+      top: -3px;
+      bottom: -3px;
+      right: 4px;
       width: 2px;
       background: #000;
       pointer-events: none;
     }
 
     /* ========================================================= */
-    /* HEADER SECTION: 2d6 Box + Title Stripes */
+    /* HEADER: 2d6 SEAL + CLASSIFIED TOP SECRET BANNER           */
     /* ========================================================= */
-    .sheet-header {
+    .dossier-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 6px;
-      margin-left: 6px;
-      margin-right: 6px;
+      gap: 8px;
+      margin-bottom: 5px;
+      margin-left: 5px;
+      margin-right: 5px;
       position: relative;
+      border-bottom: 2px solid #000;
+      padding-bottom: 4px;
     }
 
-    /* 2d6 Top-Left Box with Double Border */
-    .d20-badge {
-      width: 58px;
-      height: 38px;
-      border: 2.5px solid #000;
+    /* 2d6 Angular Seal */
+    .d20-seal {
+      width: 62px;
+      height: 42px;
+      border: 3px solid #000;
       outline: 1.5px solid #000;
       outline-offset: 1.5px;
+      background: #fff;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-family: 'Chakra Petch', monospace, sans-serif;
-      font-size: 1.8rem;
-      font-weight: 900;
-      letter-spacing: -1px;
-      background: #fff;
       flex-shrink: 0;
+      position: relative;
+    }
+    .d20-seal .num {
+      font-family: 'Chakra Petch', monospace, sans-serif;
+      font-size: 1.85rem;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      line-height: 0.9;
+    }
+    .d20-seal .sub {
+      font-size: 0.48rem;
+      font-weight: 900;
+      font-family: 'Chakra Petch', sans-serif;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: #000;
+      color: #fff;
+      padding: 0 4px;
+      margin-top: 1px;
     }
 
-    /* Header Decorative Lines and Academy Title */
-    .header-lines-wrap {
+    /* Header Main Center Text */
+    .header-main-info {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 3px;
     }
-    .header-rule {
-      height: 2px;
-      background: #000;
-      width: 100%;
-    }
-    .header-title-bar {
+    .header-top-row {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      padding: 1px 4px;
+      align-items: center;
+      margin-bottom: 1px;
     }
-    .academy-name {
-      font-size: 0.95rem;
+    .school-name-en {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 1.05rem;
       font-weight: 900;
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      font-family: 'Chakra Petch', sans-serif;
     }
-    .dossier-tag {
-      font-size: 0.72rem;
+    .dossier-stamp-box {
+      border: 1.5px solid #000;
+      padding: 1px 6px;
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 900;
+      background: #000;
+      color: #fff;
+      letter-spacing: 1px;
+    }
+    .school-name-th {
+      font-size: 0.75rem;
       font-weight: 700;
-      color: #333;
-      letter-spacing: 0.5px;
+      color: #222;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .school-name-th span.code {
+      font-family: monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #444;
     }
 
     /* ========================================================= */
-    /* MAIN BODY: 2-COLUMN SPLIT (Left Column vs Right Area) */
+    /* 2-COLUMN MAIN BODY LAYOUT                                 */
     /* ========================================================= */
-    .sheet-main-grid {
+    .main-grid {
       display: grid;
-      grid-template-columns: 58px 1fr;
+      grid-template-columns: 62px 1fr;
       gap: 8px;
       flex: 1;
-      margin-left: 6px;
-      margin-right: 6px;
+      margin-left: 5px;
+      margin-right: 5px;
     }
 
     /* ========================================================= */
-    /* LEFT COLUMN: Stats, Mental Grid, HP/WP, Languages */
+    /* LEFT COLUMN: 8 Stats, Mental Grid, HP/WP, Languages       */
     /* ========================================================= */
     .col-left {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
 
-    /* Stat Block (8 Stats) */
-    .stats-table {
-      width: 100%;
+    /* 8 Stats Table */
+    .stats-card {
       border: 2px solid #000;
-      border-collapse: collapse;
+      width: 100%;
+      background: #fff;
+    }
+    .stats-card-header {
+      background: #000;
+      color: #fff;
+      text-align: center;
+      font-size: 0.6rem;
+      font-weight: 900;
+      font-family: 'Chakra Petch', sans-serif;
+      padding: 1px 0;
+      letter-spacing: 1px;
     }
     .stat-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1.5px solid #000;
-      height: 22px;
-      padding: 0 2px 0 4px;
+      height: 23px;
+      padding: 0 3px 0 4px;
+      position: relative;
     }
     .stat-row:last-child {
       border-bottom: none;
     }
-    .stat-label {
+    .stat-title {
       font-family: 'Chakra Petch', sans-serif;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       font-weight: 900;
       letter-spacing: 0.5px;
     }
-    .stat-box {
-      width: 20px;
-      height: 18px;
+    .stat-mod-box {
+      width: 22px;
+      height: 19px;
       border: 1.5px solid #000;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.78rem;
+      font-size: 0.82rem;
       font-weight: 900;
       font-family: monospace;
       outline: none;
       background: #fff;
     }
 
-    /* Mental Tracker Box */
-    .mental-container {
+    /* Mental Tracker (Despair & Panic) */
+    .mental-card {
       border: 2px solid #000;
-      padding: 3px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
+      padding: 3px 4px 4px 4px;
+      background: #fff;
     }
-    .block-tag {
+    .section-tag {
       background: #000;
       color: #fff;
       font-size: 0.62rem;
       font-weight: 900;
-      padding: 1px 4px;
+      font-family: 'Chakra Petch', sans-serif;
+      padding: 1px 5px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       display: inline-block;
-      align-self: flex-start;
     }
     .mental-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 3px;
-      margin-top: 2px;
+      margin-top: 3px;
+      margin-bottom: 4px;
     }
     .check-sq {
-      width: 14px;
-      height: 14px;
+      width: 15px;
+      height: 15px;
       border: 1.5px solid #000;
       background: #fff;
       cursor: pointer;
       margin: 0 auto;
+      transition: background 0.1s ease;
     }
-    .cred-gauge {
-      margin-top: 2px;
-      padding-top: 2px;
-      border-top: 1px dashed #000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+
+    /* Credibility Hearts Tracker */
+    .cred-box {
+      border-top: 1.5px dashed #000;
+      padding-top: 3px;
+      text-align: center;
     }
-    .cred-title {
-      font-size: 0.55rem;
-      font-weight: 700;
+    .cred-label {
+      font-size: 0.52rem;
+      font-weight: 900;
       line-height: 1;
       margin-bottom: 2px;
+      font-family: 'Chakra Petch', sans-serif;
+      text-transform: uppercase;
     }
     .hearts-row {
       display: flex;
+      justify-content: center;
       gap: 2px;
-      font-size: 0.65rem;
+      font-size: 0.68rem;
     }
 
-    /* HP and WP Boxes Side by Side */
+    /* HP & WP Twin Gauges */
     .hp-wp-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 4px;
     }
-    .hp-box-wrap, .wp-box-wrap {
+    .gauge-block {
       border: 2px solid #000;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 2px 1px 3px 1px;
+      background: #fff;
     }
-    .hp-wp-tag {
-      font-size: 0.68rem;
+    .gauge-block .lbl {
+      font-size: 0.7rem;
       font-weight: 900;
       font-family: 'Chakra Petch', sans-serif;
       margin-bottom: 2px;
     }
-    .hp-wp-val {
+    .gauge-block .val-box {
       width: 100%;
-      height: 24px;
+      height: 25px;
       border: 1.5px solid #000;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       font-weight: 900;
       font-family: monospace;
       outline: none;
       background: #fff;
     }
 
-    /* Languages Box */
-    .languages-wrap {
+    /* Languages / Specialty Knowledge */
+    .languages-card {
       border: 2px solid #000;
       padding: 3px 4px;
       flex: 1;
       min-height: 52px;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
+      background: #fff;
     }
     .languages-content {
       font-size: 0.62rem;
@@ -417,37 +501,52 @@
     }
 
     /* ========================================================= */
-    /* RIGHT AREA: Top (Portrait + Bio), Middle (Talents), Bottom (Backpack) */
+    /* RIGHT AREA: Bio + Talents + Backpack                      */
     /* ========================================================= */
     .col-right {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
 
-    /* Top Section of Right Area: Portrait + Bio Details */
-    .top-right-group {
+    /* Top Right: Portrait + Student Bio Group */
+    .bio-group-grid {
       display: grid;
-      grid-template-columns: 140px 1fr;
+      grid-template-columns: 145px 1fr;
       gap: 8px;
     }
 
-    /* Portrait Box */
-    .portrait-wrap {
+    /* Portrait Box with Mounting Photo Brackets */
+    .portrait-card {
       border: 2px solid #000;
-      height: 180px;
-      display: flex;
-      flex-direction: column;
+      height: 185px;
       position: relative;
       background: #fafafa;
+      display: flex;
+      flex-direction: column;
     }
-    .portrait-box-tag {
+    .portrait-tag {
       position: absolute;
       top: 3px;
       left: 3px;
+      z-index: 3;
+    }
+    /* Photo Corner Brackets */
+    .bracket-tl, .bracket-tr, .bracket-bl, .bracket-br {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-color: #000;
+      border-style: solid;
+      pointer-events: none;
       z-index: 2;
     }
-    .portrait-inner {
+    .bracket-tl { top: 3px; left: 3px; border-width: 2.5px 0 0 2.5px; }
+    .bracket-tr { top: 3px; right: 3px; border-width: 2.5px 2.5px 0 0; }
+    .bracket-bl { bottom: 3px; left: 3px; border-width: 0 0 2.5px 2.5px; }
+    .bracket-br { bottom: 3px; right: 3px; border-width: 0 2.5px 2.5px 0; }
+
+    .portrait-body {
       width: 100%;
       height: 100%;
       display: flex;
@@ -457,7 +556,7 @@
       overflow: hidden;
       cursor: pointer;
     }
-    .portrait-img {
+    .portrait-preview-img {
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
@@ -467,110 +566,113 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: #777;
+      color: #666;
       text-align: center;
       padding: 10px;
     }
     .portrait-placeholder svg {
-      width: 48px;
-      height: 48px;
-      opacity: 0.25;
-      margin-bottom: 6px;
+      width: 44px;
+      height: 44px;
+      opacity: 0.3;
+      margin-bottom: 4px;
     }
     .portrait-placeholder span {
       font-size: 0.62rem;
-      font-weight: 600;
+      font-weight: 700;
     }
 
-    /* Bio Details Form */
-    .bio-wrap {
+    /* Student Bio Info */
+    .bio-fields-wrap {
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 4px;
+      gap: 3px;
     }
-    .bio-field {
+    .bio-row {
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
-    .bio-label {
+    .bio-row-label {
       font-size: 0.72rem;
       font-weight: 900;
       font-family: 'Chakra Petch', sans-serif;
-      text-transform: uppercase;
       letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
     }
-    .bio-input-box {
+    .bio-row-label span.sub {
+      font-size: 0.65rem;
+      font-weight: normal;
+      color: #555;
+      font-family: 'Kanit', sans-serif;
+    }
+    .bio-field-box {
       border: 2px solid #000;
-      min-height: 24px;
-      padding: 2px 6px;
-      font-size: 0.85rem;
+      min-height: 25px;
+      padding: 2px 7px;
+      font-size: 0.86rem;
       font-weight: 700;
       display: flex;
       align-items: center;
       outline: none;
       background: #fff;
     }
-    .bio-field.char-field .bio-input-box {
-      min-height: 28px;
-      font-size: 0.92rem;
+    .bio-row.role-row .bio-field-box {
+      min-height: 29px;
+      font-size: 0.94rem;
       font-weight: 900;
-      color: #000;
+      border-width: 2.5px;
     }
 
-    /* Height / Weight / Age 3-column row */
+    /* 3-Way Grid: Height / Weight / Age */
     .hwa-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 6px;
     }
-    .hwa-item {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .hwa-item .bio-input-box {
-      text-align: center;
+    .hwa-grid .bio-field-box {
       justify-content: center;
+      text-align: center;
       font-size: 0.82rem;
     }
 
     /* ========================================================= */
-    /* TALENTS BOX (Middle Wide Box) */
+    /* TALENTS BOX (Middle Wide Box)                             */
     /* ========================================================= */
-    .talents-wrap {
+    .talents-card {
       border: 2px solid #000;
       padding: 4px 8px 6px 8px;
-      position: relative;
+      background: #fff;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
       min-height: 175px;
-      background: #fff;
     }
-    .talents-header {
+    .talents-top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 2px;
     }
     .talents-content {
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       line-height: 1.35;
       outline: none;
       flex: 1;
     }
-    .talent-feature {
-      margin-bottom: 5px;
+    .talent-feat {
+      margin-bottom: 4px;
     }
-    .talent-feature-name {
+    .talent-feat-title {
       font-weight: 900;
       font-size: 0.8rem;
-      color: #000;
       text-decoration: underline;
     }
-    .rules-cheat-sheet {
+
+    /* 2d6 Rules Quick Reference Grid */
+    .rules-grid {
       border-top: 1.5px dashed #000;
       padding-top: 4px;
       margin-top: 4px;
@@ -578,47 +680,47 @@
       grid-template-columns: 1fr 1fr;
       gap: 6px;
       font-size: 0.65rem;
-      color: #222;
+      color: #111;
     }
-    .rule-item {
+    .rule-box {
       line-height: 1.25;
     }
-    .rule-item strong {
+    .rule-box strong {
       font-family: 'Chakra Petch', sans-serif;
     }
 
     /* ========================================================= */
-    /* BACKPACK BOX (Bottom Wide Box) */
+    /* BACKPACK BOX (Bottom Wide Box)                            */
     /* ========================================================= */
-    .backpack-wrap {
+    .backpack-card {
       border: 2px solid #000;
       padding: 4px 8px 6px 8px;
-      position: relative;
+      background: #fff;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
       min-height: 140px;
-      background: #fff;
       flex: 1;
     }
     .backpack-content {
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       line-height: 1.35;
       outline: none;
       flex: 1;
     }
-    .bp-grid {
+    .bp-cols {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
-    .bp-col-title {
+    .bp-heading {
       font-size: 0.68rem;
       font-weight: 900;
       text-transform: uppercase;
       margin-bottom: 2px;
       border-bottom: 1px solid #000;
       display: inline-block;
+      font-family: 'Chakra Petch', sans-serif;
     }
     .bp-list {
       list-style-type: square;
@@ -629,25 +731,28 @@
       margin-bottom: 2px;
     }
 
-    /* Sheet Footer Tag */
-    .sheet-footer {
+    /* Bottom Dossier Legal Line */
+    .dossier-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 4px;
-      padding: 0 8px;
+      margin-top: 3px;
+      padding: 0 4px;
       font-size: 0.58rem;
       font-weight: 700;
-      color: #555;
+      color: #333;
       letter-spacing: 0.5px;
+      font-family: 'Chakra Petch', sans-serif;
+      border-top: 1px solid #000;
+      padding-top: 2px;
     }
 
     /* ========================================================= */
-    /* PRINT STYLES - STRICT A4 ONE PAGE FIT */
+    /* STRICT PRINT SETTINGS - SINGLE A4 FIT GUARANTEE           */
     /* ========================================================= */
     @page {
       size: A4 portrait;
-      margin: 6mm 8mm 6mm 8mm;
+      margin: 5mm 6mm 5mm 6mm;
     }
 
     @media print {
@@ -665,9 +770,9 @@
       }
       .sheet-page {
         width: 100% !important;
-        height: 284mm !important;
-        max-height: 284mm !important;
-        min-height: 284mm !important;
+        height: 285mm !important;
+        max-height: 285mm !important;
+        min-height: 285mm !important;
         box-shadow: none !important;
         padding: 0 !important;
         margin: 0 !important;
@@ -679,9 +784,6 @@
         page-break-after: auto !important;
         break-after: auto !important;
       }
-      .portrait-placeholder {
-        opacity: 0.5;
-      }
     }
   </style>
 </head>
@@ -690,18 +792,18 @@
   <!-- Screen-only Control Bar -->
   <div class="screen-toolbar no-print">
     <div class="toolbar-title">
-      <div>📜 DANGANRONPA TRPG: แฟ้มประวัตินักเรียน (Character Sheet)</div>
-      <span class="sub">แบบฟอร์มขนาด A4 สำหรับพิมพ์แจกผู้เล่นจริง</span>
+      <div>HOPE'S PEAK ACADEMY // CLASSIFIED STUDENT DOSSIER</div>
+      <span class="sub">แบบฟอร์มแฟ้มประวัตินักเรียนขนาด A4 พร้อมสั่งพิมพ์ (2d6 System)</span>
     </div>
 
     <div style="font-size:0.8rem; color:#aaa; margin-bottom:6px;">
-      เลือกโหลดข้อมูลตัวละครสำเร็จรูป (Presets) หรือเลือกแผ่นเปล่าเพื่อเขียนเอง:
+      เลือกโหลดพรีเซ็ตข้อมูลตัวละครสำเร็จรูป (Presets) หรือเลือกแผ่นเปล่าสำหรับเขียนด้วยดินสอบนกระดาษ:
     </div>
     <div class="preset-buttons">
       <button class="btn-preset active" onclick="loadPreset('blank')">📄 แผ่นเปล่า (Blank Template)</button>
       <button class="btn-preset" onclick="loadPreset('novelist')">PC 1: สุดยอดนักแต่งนิยาย</button>
       <button class="btn-preset" onclick="loadPreset('athlete')">PC 2: สุดยอดนักกีฬา</button>
-      <button class="btn-preset" onclick="loadPreset('magician')">PC 3: สุดยอดนักมายากล (คนวางกับดัก A)</button>
+      <button class="btn-preset" onclick="loadPreset('magician')">PC 3: สุดยอดนักมายากล</button>
       <button class="btn-preset" onclick="loadPreset('gourmet')">PC 4: สุดยอดนักชิม</button>
       <button class="btn-preset" onclick="loadPreset('stuntman')">PC 5: สุดยอดนักแสดงผาดโผน</button>
       <button class="btn-preset" onclick="loadPreset('mechanic')">PC 6: สุดยอดช่างกล</button>
@@ -722,85 +824,107 @@
 
   <!-- Sheets Container -->
   <div class="sheet-wrapper" id="sheetContainer">
+    
     <!-- Single Character Sheet Page -->
     <div class="sheet-page" id="sheetPage">
-      <div class="outer-frame">
-        
-        <!-- Header: 2d6 Box + Hope's Peak Academy Title -->
-        <header class="sheet-header">
-          <div class="d20-badge">2d6</div>
-          <div class="header-lines-wrap">
-            <div class="header-rule"></div>
-            <div class="header-title-bar">
-              <span class="academy-name">Hope's Peak Academy // Student Record</span>
-              <span class="dossier-tag">แฟ้มประวัตินักเรียนโรงเรียนคิโบกามิเนะ (2d6 SYSTEM)</span>
+      
+      <!-- Vector Watermark Crest -->
+      <svg class="academy-watermark" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="#000" stroke-width="4"/>
+        <circle cx="100" cy="100" r="80" fill="none" stroke="#000" stroke-width="2"/>
+        <path d="M100 25 L120 70 L175 70 L130 105 L150 160 L100 125 L50 160 L70 105 L25 70 L80 70 Z" fill="none" stroke="#000" stroke-width="3"/>
+        <circle cx="100" cy="100" r="25" fill="#000"/>
+        <text x="100" y="106" font-family="'Chakra Petch', sans-serif" font-weight="900" font-size="16" fill="#fff" text-anchor="middle">78</text>
+      </svg>
+
+      <!-- Outer Frame -->
+      <div class="dossier-frame">
+        <div class="side-stripes-left"></div>
+        <div class="side-stripes-right"></div>
+
+        <!-- Header: 2d6 Box + Hope's Peak Academy Title & Top Secret Stamp -->
+        <header class="dossier-header">
+          <div class="d20-seal">
+            <span class="num">2d6</span>
+            <span class="sub">TRPG SYSTEM</span>
+          </div>
+
+          <div class="header-main-info">
+            <div class="header-top-row">
+              <span class="school-name-en">Hope's Peak Academy // Student Record</span>
+              <span class="dossier-stamp-box">【 極秘 // CLASSIFIED DOSSIER 】</span>
             </div>
-            <div class="header-rule"></div>
+            <div class="school-name-th">
+              <span>แฟ้มประวัตินักเรียนระดับมัธยมปลายเฉพาะบุคคล // โรงเรียนคิโบกามิเนะ</span>
+              <span class="code">REF: HPA-78-CLASSIFIED</span>
+            </div>
           </div>
         </header>
 
         <!-- Main Content 2-Column Grid -->
-        <div class="sheet-main-grid">
+        <div class="main-grid">
           
           <!-- LEFT COLUMN: 8 Stats, Mental, HP/WP, Languages -->
           <div class="col-left">
             
             <!-- 8 Stats Table -->
-            <div class="stats-table">
+            <div class="stats-card">
+              <div class="stats-card-header">CORE STATS</div>
               <div class="stat-row">
-                <span class="stat-label">STR</span>
-                <div class="stat-box" contenteditable="true" id="statSTR">+0</div>
+                <span class="stat-title">STR</span>
+                <div class="stat-mod-box" contenteditable="true" id="statSTR">+0</div>
               </div>
               <div class="stat-row">
-                <span class="stat-label">AGI</span>
-                <div class="stat-box" contenteditable="true" id="statAGI">+0</div>
+                <span class="stat-title">AGI</span>
+                <div class="stat-mod-box" contenteditable="true" id="statAGI">+0</div>
               </div>
               <div class="stat-row">
-                <span class="stat-label">DEX</span>
-                <div class="stat-box" contenteditable="true" id="statDEX">+0</div>
+                <span class="stat-title">DEX</span>
+                <div class="stat-mod-box" contenteditable="true" id="statDEX">+0</div>
               </div>
               <div class="stat-row">
-                <span class="stat-label">TOU</span>
-                <div class="stat-box" contenteditable="true" id="statTOU">+0</div>
+                <span class="stat-title">TOU</span>
+                <div class="stat-mod-box" contenteditable="true" id="statTOU">+0</div>
               </div>
               <div class="stat-row">
-                <span class="stat-label">INT</span>
-                <div class="stat-box" contenteditable="true" id="statINT">+0</div>
+                <span class="stat-title">INT</span>
+                <div class="stat-mod-box" contenteditable="true" id="statINT">+0</div>
               </div>
               <div class="stat-row">
-                <span class="stat-label">WIS</span>
-                <div class="stat-box" contenteditable="true" id="statWIS">+0</div>
+                <span class="stat-title">WIS</span>
+                <div class="stat-mod-box" contenteditable="true" id="statWIS">+0</div>
               </div>
               <div class="stat-row">
-                <span class="stat-label">CHA</span>
-                <div class="stat-box" contenteditable="true" id="statCHA">+0</div>
+                <span class="stat-title">CHA</span>
+                <div class="stat-mod-box" contenteditable="true" id="statCHA">+0</div>
               </div>
               <div class="stat-row">
-                <span class="stat-label">EGO</span>
-                <div class="stat-box" contenteditable="true" id="statEGO">+0</div>
+                <span class="stat-title">EGO</span>
+                <div class="stat-mod-box" contenteditable="true" id="statEGO">+0</div>
               </div>
             </div>
 
-            <!-- Mental / Sanity / Panic Tracker -->
-            <div class="mental-container">
+            <!-- Mental / Despair Tracker -->
+            <div class="mental-card">
               <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="block-tag">Mental</span>
-                <span style="font-size:0.55rem; font-weight:700;">Despair</span>
+                <span class="section-tag">Mental</span>
+                <span style="font-size:0.52rem; font-weight:700; font-family:'Chakra Petch';">DESPAIR</span>
               </div>
               <div class="mental-grid">
-                <div class="check-sq" onclick="toggleCheck(this)"></div>
-                <div class="check-sq" onclick="toggleCheck(this)"></div>
-                <div class="check-sq" onclick="toggleCheck(this)"></div>
-                <div class="check-sq" onclick="toggleCheck(this)"></div>
-                <div class="check-sq" onclick="toggleCheck(this)"></div>
-                <div class="check-sq" onclick="toggleCheck(this)"></div>
-                <div class="check-sq" onclick="toggleCheck(this)"></div>
-                <div class="check-sq" onclick="toggleCheck(this)"></div>
-                <div class="check-sq" onclick="toggleCheck(this)"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="ปกติ"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="ปกติ"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="ปกติ"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="เริ่มสับสน"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="เริ่มสับสน"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="เริ่มสับสน"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="สิ้นหวัง"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="สิ้นหวัง"></div>
+                <div class="check-sq" onclick="toggleCheck(this)" title="Panic State"></div>
               </div>
-              <!-- Credibility Gauge (5 Hearts) -->
-              <div class="cred-gauge">
-                <span class="cred-title">CREDIBILITY (ความน่าเชื่อถือ)</span>
+              
+              <!-- Personal Credibility Gauge (5 Hearts) -->
+              <div class="cred-box">
+                <div class="cred-label">CREDIBILITY (ความน่าเชื่อถือ)</div>
                 <div class="hearts-row">
                   <span>[♥]</span>
                   <span>[♥]</span>
@@ -811,21 +935,21 @@
               </div>
             </div>
 
-            <!-- HP & WP Side-by-Side -->
+            <!-- HP & WP Twin Gauges -->
             <div class="hp-wp-grid">
-              <div class="hp-box-wrap">
-                <span class="hp-wp-tag">HP</span>
-                <div class="hp-wp-val" contenteditable="true" id="valHP">10</div>
+              <div class="gauge-block">
+                <span class="lbl">HP</span>
+                <div class="val-box" contenteditable="true" id="valHP">10</div>
               </div>
-              <div class="wp-box-wrap">
-                <span class="hp-wp-tag">WP</span>
-                <div class="hp-wp-val" contenteditable="true" id="valWP">10</div>
+              <div class="gauge-block">
+                <span class="lbl">WP</span>
+                <div class="val-box" contenteditable="true" id="valWP">10</div>
               </div>
             </div>
 
-            <!-- Languages / Special Knowledge -->
-            <div class="languages-wrap">
-              <span class="block-tag">Languages</span>
+            <!-- Languages & Specialty Knowledge -->
+            <div class="languages-card">
+              <span class="section-tag">Languages</span>
               <div class="languages-content" contenteditable="true" id="txtLanguages">
                 ภาษาญี่ปุ่น (Japanese)<br>
                 ภาษาอังกฤษ (English)
@@ -837,103 +961,117 @@
           <!-- RIGHT AREA: Bio Top + Talents Middle + Backpack Bottom -->
           <div class="col-right">
             
-            <!-- Top Right: Portrait + Bio -->
-            <div class="top-right-group">
+            <!-- Top Right: Portrait + Student Bio Details -->
+            <div class="bio-group-grid">
               
-              <!-- Portrait Box -->
-              <div class="portrait-wrap">
-                <span class="block-tag portrait-box-tag">Portrait</span>
-                <div class="portrait-inner" id="portraitContainer" onclick="document.getElementById('portraitUploader').click()">
+              <!-- Portrait Card with Corner Brackets -->
+              <div class="portrait-card">
+                <span class="section-tag portrait-tag">Portrait</span>
+                <div class="bracket-tl"></div>
+                <div class="bracket-tr"></div>
+                <div class="bracket-bl"></div>
+                <div class="bracket-br"></div>
+
+                <div class="portrait-body" id="portraitContainer" onclick="document.getElementById('portraitUploader').click()">
                   <div class="portrait-placeholder" id="portraitPlaceholder">
                     <svg viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                     </svg>
-                    <span>คลิกเพื่อใส่รูปประจำตัว<br>(Portrait Sprite)</span>
+                    <span>คลิกเพื่อใส่ภาพถ่ายตัวละคร<br>(Upload Sprite)</span>
                   </div>
-                  <img id="portraitImg" class="portrait-img" style="display:none;" alt="Character Portrait">
+                  <img id="portraitImg" class="portrait-preview-img" style="display:none;" alt="Character Portrait">
                 </div>
               </div>
 
-              <!-- Student Bio Form -->
-              <div class="bio-wrap">
-                <div class="bio-field">
-                  <span class="bio-label">Player (ชื่อผู้เล่น)</span>
-                  <div class="bio-input-box" contenteditable="true" id="bioPlayer"></div>
+              <!-- Student Bio Information -->
+              <div class="bio-fields-wrap">
+                <div class="bio-row">
+                  <div class="bio-row-label">
+                    <span>Player</span>
+                    <span class="sub">ชื่อผู้เล่น</span>
+                  </div>
+                  <div class="bio-field-box" contenteditable="true" id="bioPlayer"></div>
                 </div>
 
-                <div class="bio-field char-field">
-                  <span class="bio-label">Character (ชื่อตัวละคร & สุดยอดนักเรียน)</span>
-                  <div class="bio-input-box" contenteditable="true" id="bioCharacter"></div>
+                <div class="bio-row role-row">
+                  <div class="bio-row-label">
+                    <span>Character & Ultimate Talent</span>
+                    <span class="sub">ชื่อตัวละคร & ความสามารถพิเศษ</span>
+                  </div>
+                  <div class="bio-field-box" contenteditable="true" id="bioCharacter"></div>
                 </div>
 
                 <div class="hwa-grid">
-                  <div class="hwa-item">
-                    <span class="bio-label">Height</span>
-                    <div class="bio-input-box" contenteditable="true" id="bioHeight">--- cm</div>
+                  <div class="bio-row">
+                    <div class="bio-row-label"><span>Height</span></div>
+                    <div class="bio-field-box" contenteditable="true" id="bioHeight">--- cm</div>
                   </div>
-                  <div class="hwa-item">
-                    <span class="bio-label">Weight</span>
-                    <div class="bio-input-box" contenteditable="true" id="bioWeight">--- kg</div>
+                  <div class="bio-row">
+                    <div class="bio-row-label"><span>Weight</span></div>
+                    <div class="bio-field-box" contenteditable="true" id="bioWeight">--- kg</div>
                   </div>
-                  <div class="hwa-item">
-                    <span class="bio-label">Age</span>
-                    <div class="bio-input-box" contenteditable="true" id="bioAge">17 ปี</div>
+                  <div class="bio-row">
+                    <div class="bio-row-label"><span>Age</span></div>
+                    <div class="bio-field-box" contenteditable="true" id="bioAge">17 ปี</div>
                   </div>
                 </div>
 
-                <div class="bio-field">
-                  <span class="bio-label">Status (สถานะความหวัง / คดีความ)</span>
-                  <div class="bio-input-box" contenteditable="true" id="bioStatus">ปกติ (Normal)</div>
+                <div class="bio-row">
+                  <div class="bio-row-label">
+                    <span>Status</span>
+                    <span class="sub">สถานะการพิจารณาคดี</span>
+                  </div>
+                  <div class="bio-field-box" contenteditable="true" id="bioStatus">ปกติ (Innocent)</div>
                 </div>
               </div>
 
             </div>
 
-            <!-- Middle Wide: Talents Box -->
-            <div class="talents-wrap">
-              <div class="talents-header">
-                <span class="block-tag">Talents</span>
-                <span style="font-size:0.62rem; font-weight:700;">ความสามารถพิเศษระดับมัธยมปลาย & การกระทำในศาล</span>
+            <!-- Middle Wide: Talents Card -->
+            <div class="talents-card">
+              <div class="talents-top-bar">
+                <span class="section-tag">Talents</span>
+                <span style="font-size:0.62rem; font-weight:700; color:#333;">ความสามารถพิเศษระดับมัธยมปลาย & การทอยเต๋า 2d6 ในศาล</span>
               </div>
 
               <div class="talents-content" contenteditable="true" id="txtTalents">
-                <div class="talent-feature">
-                  <span class="talent-feature-name">ความสามารถพิเศษประจำตัว (Ultimate Feat):</span>
+                <div class="talent-feat">
+                  <span class="talent-feat-title">ความสามารถพิเศษประจำตัว (Ultimate Feat):</span>
                   <p>ระบุความเชี่ยวชาญพิเศษของตัวละครที่ได้เปรียบในการสืบสวน การพูดคุย หรือการกระทำทางกายภาพ...</p>
                 </div>
 
-                <div class="rules-cheat-sheet">
-                  <div class="rule-item">
-                    <strong>🔍 สืบสวนหาเบาะแส (Investigation):</strong><br>
-                    ทอย 2d6 + INT หรือ WIS vs DC (ง่าย 6 / ปานกลาง 8 / ยาก 10)
+                <div class="rules-grid">
+                  <div class="rule-box">
+                    <strong>🔍 สืบสวนหาเบาะแส (Investigation Check):</strong><br>
+                    ทอย 2d6 + INT หรือ WIS vs DC (ง่าย 6 / ปานกลาง 8 / ยาก 10 / เชิงลึก 12)
                   </div>
-                  <div class="rule-item">
-                    <strong>⚖️ ดีเบต & หักล้าง (Debate Roll):</strong><br>
-                    ทอย 2d6 + CHA หรือ INT ปะทะ 2d6 + WIS/EGO ของฝ่ายตรงข้าม
+                  <div class="rule-box">
+                    <strong>⚖️ ดีเบต & หักล้าง (Contested Debate Roll):</strong><br>
+                    ทอย 2d6 + CHA หรือ INT ปะทะ 2d6 + WIS หรือ EGO ของฝ่ายตรงข้าม
                   </div>
-                  <div class="rule-item">
-                    <strong>👁️ จับโกหก & สังเกตพิรุธ (Detect Lie):</strong><br>
+                  <div class="rule-box">
+                    <strong>👁️ จับโกหก & สังเกตพิรุธ (Detect Lie / Insight):</strong><br>
                     ทอย 2d6 + WIS หรือ EGO vs DC 8
                   </div>
-                  <div class="rule-item">
+                  <div class="rule-box">
                     <strong>💔 เสียสติ & สิ้นหวัง (Panic State):</strong><br>
-                    หากถูกหักล้างในศาล เสียแต้มความน่าเชื่อถือ 1 ดวง (หมด 5 ดวง = Panic)
+                    ถูกจับโกหกเสีย 1 แต้มความน่าเชื่อถือ (หมด 5 แต้ม = เสียสิทธิโต้แย้ง 1 หัวข้อ)
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Bottom Wide: Backpack Box -->
-            <div class="backpack-wrap">
-              <div class="talents-header">
-                <span class="block-tag">Backpack</span>
-                <span style="font-size:0.62rem; font-weight:700;">สัมภาระ, อุปกรณ์ส่วนตัว & กระสุนความจริง (Truth Bullets)</span>
+            <!-- Bottom Wide: Backpack Card -->
+            <div class="backpack-card">
+              <div class="talents-top-bar">
+                <span class="section-tag">Backpack</span>
+                <span style="font-size:0.62rem; font-weight:700; color:#333;">สัมภาระติดตัว, บัตรนักเรียน Monopad & กระสุนความจริง (Truth Bullets)</span>
               </div>
 
               <div class="backpack-content" contenteditable="true" id="txtBackpack">
-                <div class="bp-grid">
+                <div class="bp-cols">
                   <div>
-                    <span class="bp-col-title">อุปกรณ์ติดตัว (Equipment):</span>
+                    <span class="bp-heading">สัมภาระติดตัว (Equipment):</span>
                     <ul class="bp-list">
                       <li>Monopad โรงเรียนคิโบกามิเนะ (Student Digital ID)</li>
                       <li>กุญแจห้องพักนักเรียนส่วนตัว</li>
@@ -941,7 +1079,7 @@
                     </ul>
                   </div>
                   <div>
-                    <span class="bp-col-title">กระสุนความจริง & บันทึก (Truth Bullets):</span>
+                    <span class="bp-heading">กระสุนความจริง & บันทึก (Truth Bullets):</span>
                     <ul class="bp-list">
                       <li>[ ] ................................................................</li>
                       <li>[ ] ................................................................</li>
@@ -956,18 +1094,19 @@
 
         </div>
 
-        <!-- Footer Bar -->
-        <footer class="sheet-footer">
-          <span>KIBOUGAMINE ACADEMY // SUPER HIGH SCHOOL LEVEL STUDENT DOSSIER</span>
+        <!-- Footer Dossier Line -->
+        <footer class="dossier-footer">
+          <span>KIBOUGAMINE ACADEMY // CLASSIFIED SUPER HIGH SCHOOL LEVEL FILE</span>
           <span>DANGANRONPA TRPG - 2d6 SYSTEM</span>
-          <span>FORM NO. KP-77B</span>
+          <span>FORM NO. KP-78B</span>
         </footer>
 
       </div>
     </div>
+
   </div>
 
-  <!-- Preset Data & Script Logic -->
+  <!-- Presets Data & Interactive Scripts -->
   <script>
     const PRESETS = {
       blank: {
@@ -976,38 +1115,38 @@
         height: "--- cm",
         weight: "--- kg",
         age: "17 ปี",
-        status: "ปกติ (Normal)",
+        status: "ปกติ (Innocent)",
         str: "+0", agi: "+0", dex: "+0", tou: "+0", int: "+0", wis: "+0", cha: "+0", ego: "+0",
         hp: "10", wp: "10",
         languages: "ภาษาญี่ปุ่น (Japanese)<br>ภาษาอังกฤษ (English)",
         talents: `
-          <div class="talent-feature">
-            <span class="talent-feature-name">ความสามารถพิเศษประจำตัว (Ultimate Feat):</span>
+          <div class="talent-feat">
+            <span class="talent-feat-title">ความสามารถพิเศษประจำตัว (Ultimate Feat):</span>
             <p>ระบุความเชี่ยวชาญพิเศษของตัวละครที่ได้เปรียบในการสืบสวน การพูดคุย หรือการกระทำทางกายภาพ...</p>
           </div>
-          <div class="rules-cheat-sheet">
-            <div class="rule-item">
+          <div class="rules-grid">
+            <div class="rule-box">
               <strong>🔍 สืบสวนหาเบาะแส (Investigation):</strong><br>
-              ทอย 2d6 + INT หรือ WIS vs DC (ง่าย 6 / ปานกลาง 8 / ยาก 10)
+              ทอย 2d6 + INT หรือ WIS vs DC (ง่าย 6 / ปานกลาง 8 / ยาก 10 / เชิงลึก 12)
             </div>
-            <div class="rule-item">
-              <strong>⚖️ ดีเบต & หักล้าง (Debate Roll):</strong><br>
-              ทอย 2d6 + CHA หรือ INT ปะทะ 2d6 + WIS/EGO ของฝ่ายตรงข้าม
+            <div class="rule-box">
+              <strong>⚖️ ดีเบต & หักล้าง (Contested Debate):</strong><br>
+              ทอย 2d6 + CHA หรือ INT ปะทะ 2d6 + WIS หรือ EGO ของฝ่ายตรงข้าม
             </div>
-            <div class="rule-item">
+            <div class="rule-box">
               <strong>👁️ จับโกหก & สังเกตพิรุธ (Detect Lie):</strong><br>
               ทอย 2d6 + WIS หรือ EGO vs DC 8
             </div>
-            <div class="rule-item">
+            <div class="rule-box">
               <strong>💔 เสียสติ & สิ้นหวัง (Panic State):</strong><br>
-              หากถูกหักล้างในศาล เสียแต้มความน่าเชื่อถือ 1 ดวง (หมด 5 ดวง = Panic)
+              ถูกจับโกหกเสีย 1 แต้มความน่าเชื่อถือ (หมด 5 แต้ม = เสียสิทธิโต้แย้ง 1 หัวข้อ)
             </div>
           </div>
         `,
         backpack: `
-          <div class="bp-grid">
+          <div class="bp-cols">
             <div>
-              <span class="bp-col-title">อุปกรณ์ติดตัว (Equipment):</span>
+              <span class="bp-heading">สัมภาระติดตัว (Equipment):</span>
               <ul class="bp-list">
                 <li>Monopad โรงเรียนคิโบกามิเนะ (Student Digital ID)</li>
                 <li>กุญแจห้องพักนักเรียนส่วนตัว</li>
@@ -1015,7 +1154,7 @@
               </ul>
             </div>
             <div>
-              <span class="bp-col-title">กระสุนความจริง & บันทึก (Truth Bullets):</span>
+              <span class="bp-heading">กระสุนความจริง & บันทึก (Truth Bullets):</span>
               <ul class="bp-list">
                 <li>[ ] ................................................................</li>
                 <li>[ ] ................................................................</li>
@@ -1031,31 +1170,31 @@
         height: "175 cm",
         weight: "62 kg",
         age: "17 ปี",
-        status: "ปกติ (Normal)",
+        status: "ปกติ (Innocent)",
         str: "-1", agi: "+0", dex: "+1", tou: "+0", int: "+3", wis: "+2", cha: "+1", ego: "+1",
         hp: "10", wp: "14",
         languages: "ภาษาญี่ปุ่น, ภาษาอังกฤษ, ละตินโบราณ (สำหรับแปลรหัสวรรณกรรม)",
         talents: `
-          <div class="talent-feature">
-            <span class="talent-feature-name">📖 สุดยอดนักแต่งนิยาย (Plot Deduction):</span>
+          <div class="talent-feat">
+            <span class="talent-feat-title">📖 สุดยอดนักแต่งนิยาย (Plot Deduction):</span>
             <p><strong>ความสามารถพิเศษ:</strong> เมื่อทำการปะติดปะต่อไทม์ไลน์หรือวิเคราะห์พฤติกรรมผิดปกติ สามารถทอย <strong>2d6 + INT</strong> ได้เปรียบ (Advantage) หรือทอยซ้ำได้รอบละ 1 ครั้ง</p>
             <p><strong>Roleplay Hook:</strong> นิ่งเงียบช่างสังเกต แอบจดพฤติกรรมทุกคนลงสมุด พูดเปรยๆ เป็นสำนวนนิยายสืบสวน</p>
           </div>
-          <div class="rules-cheat-sheet">
-            <div class="rule-item">
+          <div class="rules-grid">
+            <div class="rule-box">
               <strong>🔍 สืบสวนหาเบาะแส:</strong> 2d6 + 3 (INT) หรือ + 2 (WIS)<br>
               <strong>⚖️ ดีเบตโต้แย้ง:</strong> 2d6 + 3 (INT) หรือ + 1 (CHA)
             </div>
-            <div class="rule-item">
+            <div class="rule-box">
               <strong>👁️ สังเกตพิรุธ & เจตนา:</strong> 2d6 + 2 (WIS)<br>
               <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
             </div>
           </div>
         `,
         backpack: `
-          <div class="bp-grid">
+          <div class="bp-cols">
             <div>
-              <span class="bp-col-title">สัมภาระติดตัว:</span>
+              <span class="bp-heading">สัมภาระติดตัว:</span>
               <ul class="bp-list">
                 <li>Monopad คิโบกามิเนะ</li>
                 <li>สมุดบันทึกพล็อตนิยายปกหนังแท้ & ปากกาหมึกซึม</li>
@@ -1064,7 +1203,7 @@
               </ul>
             </div>
             <div>
-              <span class="bp-col-title">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
+              <span class="bp-heading">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
               <ul class="bp-list">
                 <li>17:30 - 18:30 น. เห็นนักมายากลเดินเข้าออกครัวกับใต้ดิน 2-3 รอบ</li>
                 <li>19:00 - 20:00 น. กินสตูว์เนื้อร่วมกับทุกคน</li>
@@ -1080,31 +1219,31 @@
         height: "184 cm",
         weight: "78 kg",
         age: "17 ปี",
-        status: "ปกติ (Normal)",
+        status: "ปกติ (Innocent)",
         str: "+3", agi: "+3", dex: "+1", tou: "+2", int: "-1", wis: "+0", cha: "+1", ego: "+2",
         hp: "16", wp: "10",
         languages: "ภาษาญี่ปุ่น, ภาษามือสากล (สำหรับสื่อสารในสนามกีฬา)",
         talents: `
-          <div class="talent-feature">
-            <span class="talent-feature-name">⚡ สุดยอดนักกีฬา (Iron Muscle & Dash):</span>
+          <div class="talent-feat">
+            <span class="talent-feat-title">⚡ สุดยอดนักกีฬา (Iron Muscle & Dash):</span>
             <p><strong>ความสามารถพิเศษ:</strong> สามารถพังประตู ยกของหนัก หรือวิ่งฝ่าอุปสรรคได้ทันทีด้วย <strong>2d6 + STR/AGI</strong> และเป็นคนแรกที่ไปถึงห้องเกิดเหตุเสมอ</p>
             <p><strong>Roleplay Hook:</strong> พลังล้นเหลือ ชอบชวนเพื่อนขยับตัว และบ่นตามหา "ลูกตุ้มเหล็ก 68 กก." ที่หายไปจากยิม</p>
           </div>
-          <div class="rules-cheat-sheet">
-            <div class="rule-item">
+          <div class="rules-grid">
+            <div class="rule-box">
               <strong>💥 พละกำลัง & ว่องไว:</strong> 2d6 + 3 (STR) หรือ + 3 (AGI)<br>
               <strong>🛡️ ความอึดทน:</strong> 2d6 + 2 (TOU)
             </div>
-            <div class="rule-item">
+            <div class="rule-box">
               <strong>⚖️ ดีเบตในศาล:</strong> 2d6 + 2 (EGO) หรือ + 1 (CHA)<br>
               <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
             </div>
           </div>
         `,
         backpack: `
-          <div class="bp-grid">
+          <div class="bp-cols">
             <div>
-              <span class="bp-col-title">สัมภาระติดตัว:</span>
+              <span class="bp-heading">สัมภาระติดตัว:</span>
               <ul class="bp-list">
                 <li>Monopad คิโบกามิเนะ</li>
                 <li>ผ้าขนหนูซับเหงื่อประจำตัว</li>
@@ -1113,7 +1252,7 @@
               </ul>
             </div>
             <div>
-              <span class="bp-col-title">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
+              <span class="bp-heading">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
               <ul class="bp-list">
                 <li>ลูกตุ้มเหล็กถ่วงน้ำหนัก 68 กก. และดัมเบลหายไปตอนบ่าย</li>
                 <li>19:00 - 20:00 น. ซดสตูว์เนื้อหลายชามที่ห้องอาหาร</li>
@@ -1129,31 +1268,31 @@
         height: "168 cm",
         weight: "54 kg",
         age: "16 ปี",
-        status: "ปกติ (Normal)",
+        status: "ปกติ (Innocent)",
         str: "-1", agi: "+1", dex: "+3", tou: "+0", int: "+2", wis: "+1", cha: "+2", ego: "+1",
         hp: "10", wp: "12",
         languages: "ภาษาญี่ปุ่น, ฝรั่งเศส (ศัพท์เฉพาะทางมายากล)",
         talents: `
-          <div class="talent-feature">
-            <span class="talent-feature-name">🎩 สุดยอดนักมายากล (Misdirection & Sleight):</span>
+          <div class="talent-feat">
+            <span class="talent-feat-title">🎩 สุดยอดนักมายากล (Misdirection & Sleight):</span>
             <p><strong>ความสามารถพิเศษ:</strong> ทอย <strong>2d6 + DEX</strong> เพื่อแอบสลับของ ขโมยวัตถุ หรือซ่อนร่องรอยโดยไม่มีใครรู้ และใช้ <strong>2d6 + CHA</strong> เบนความสนใจในวงสนทนา</p>
             <p><strong>Roleplay Hook:</strong> ยิ้มแย้ม ชวนคุย เสนอตัวทำอาหารให้ทุกคนกิน (ซ่อน Alibi สมบูรณ์แบบตอน 21:00 น.)</p>
           </div>
-          <div class="rules-cheat-sheet">
-            <div class="rule-item">
+          <div class="rules-grid">
+            <div class="rule-box">
               <strong>✨ มือเบา & จัดฉาก:</strong> 2d6 + 3 (DEX)<br>
               <strong>🎭 วาทศิลป์โน้มน้าว:</strong> 2d6 + 2 (CHA)
             </div>
-            <div class="rule-item">
+            <div class="rule-box">
               <strong>🔍 ตรรกะวิเคราะห์:</strong> 2d6 + 2 (INT)<br>
               <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
             </div>
           </div>
         `,
         backpack: `
-          <div class="bp-grid">
+          <div class="bp-cols">
             <div>
-              <span class="bp-col-title">สัมภาระติดตัว:</span>
+              <span class="bp-heading">สัมภาระติดตัว:</span>
               <ul class="bp-list">
                 <li>Monopad คิโบกามิเนะ</li>
                 <li>สำรับไพ่กล & เหรียญทองมายากล</li>
@@ -1162,7 +1301,7 @@
               </ul>
             </div>
             <div>
-              <span class="bp-col-title">ความลับส่วนตัว (ห้ามให้ใครเห็น):</span>
+              <span class="bp-heading">ความลับส่วนตัว (ห้ามให้ใครเห็น):</span>
               <ul class="bp-list">
                 <li>17:30 น. ใช้กระดูกขาหมูฟาด B สลบ แล้วต้มลงหม้อสตูว์</li>
                 <li>18:00 น. ผูกรอกสายยางน้ำถ่วงน้ำหนักแขวนคอ B ตอน 21:00 น.</li>
@@ -1178,31 +1317,31 @@
         height: "170 cm",
         weight: "82 kg",
         age: "17 ปี",
-        status: "ปกติ (Normal)",
+        status: "ปกติ (Innocent)",
         str: "+0", agi: "-1", dex: "+0", tou: "+3", int: "+1", wis: "+2", cha: "+1", ego: "+2",
         hp: "14", wp: "12",
         languages: "ภาษาญี่ปุ่น, อิตาเลียน, ฝรั่งเศส (คำศัพท์อาหารและไวน์)",
         talents: `
-          <div class="talent-feature">
-            <span class="talent-feature-name">🍖 สุดยอดนักชิม (Super Palate & Iron Stomach):</span>
+          <div class="talent-feat">
+            <span class="talent-feat-title">🍖 สุดยอดนักชิม (Super Palate & Iron Stomach):</span>
             <p><strong>ความสามารถพิเศษ:</strong> ทอย <strong>2d6 + WIS/TOU</strong> สามารถระบุกลิ่น วัตถุดิบแปลกปลอม พิษ หรือคราบเคมีในอากาศและอาหารได้อย่างแม่นยำ และต้านทานสารพิษทางเดินอาหาร</p>
             <p><strong>Roleplay Hook:</strong> หิวง่าย มองหาของกินตลอดเวลา เมื่อได้กินสตูว์จะวิจารณ์รสชาติอย่างละเอียด</p>
           </div>
-          <div class="rules-cheat-sheet">
-            <div class="rule-item">
+          <div class="rules-grid">
+            <div class="rule-box">
               <strong>👅 ประสาทสัมผัสรับรส:</strong> 2d6 + 3 (TOU) หรือ + 2 (WIS)<br>
               <strong>🛡️ กระเพาะเหล็ก:</strong> 2d6 + 3 (TOU)
             </div>
-            <div class="rule-item">
+            <div class="rule-box">
               <strong>⚖️ ดีเบตจุดยืน:</strong> 2d6 + 2 (EGO)<br>
               <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
             </div>
           </div>
         `,
         backpack: `
-          <div class="bp-grid">
+          <div class="bp-cols">
             <div>
-              <span class="bp-col-title">สัมภาระติดตัว:</span>
+              <span class="bp-heading">สัมภาระติดตัว:</span>
               <ul class="bp-list">
                 <li>Monopad คิโบกามิเนะ</li>
                 <li>ชุดช้อนส้อมเงินแท้พกพา (ตรวจจับสารพิษ)</li>
@@ -1211,7 +1350,7 @@
               </ul>
             </div>
             <div>
-              <span class="bp-col-title">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
+              <span class="bp-heading">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
               <ul class="bp-list">
                 <li>17:30 - 18:30 น. เห็นนักมายากลง่วนกับการต้มน้ำซุปคนเดียว</li>
                 <li>19:00 น. ซดสตูว์พบว่ามี "กลิ่นคาวสนิมเหล็กของเลือดสดมนุษย์ปนเปื้อน!"</li>
@@ -1227,31 +1366,31 @@
         height: "176 cm",
         weight: "68 kg",
         age: "18 ปี",
-        status: "ปกติ (Normal)",
+        status: "ปกติ (Innocent)",
         str: "+1", agi: "+3", dex: "+2", tou: "+2", int: "+0", wis: "+1", cha: "+0", ego: "+2",
         hp: "14", wp: "12",
         languages: "ภาษาญี่ปุ่น, ภาษาอังกฤษสากล",
         talents: `
-          <div class="talent-feature">
-            <span class="talent-feature-name">🧗 สุดยอดนักแสดงผาดโผน (Acrobatic Fall & Rigging):</span>
+          <div class="talent-feat">
+            <span class="talent-feat-title">🧗 สุดยอดนักแสดงผาดโผน (Acrobatic Fall & Rigging):</span>
             <p><strong>ความสามารถพิเศษ:</strong> ทอย <strong>2d6 + AGI/DEX</strong> เพื่อปีนป่าย โรยตัว หรือกระโดดจากที่สูงโดยไม่บาดเจ็บ และเชี่ยวชาญเรื่องคาน รอก สลิง และเงื่อนนิรภัย</p>
             <p><strong>Roleplay Hook:</strong> บ่นเรื่องความปลอดภัยของโครงสร้างอาคาร และตามหา "รองเท้าบูทสำหรับสตั๊นต์คู่หนักพิเศษ" ที่หายไป</p>
           </div>
-          <div class="rules-cheat-sheet">
-            <div class="rule-item">
+          <div class="rules-grid">
+            <div class="rule-box">
               <strong>🤸 การทรงตัว & ผาดโผน:</strong> 2d6 + 3 (AGI) หรือ + 2 (DEX)<br>
               <strong>⚙️ กลไกรอก & สลิง:</strong> 2d6 + 2 (DEX)
             </div>
-            <div class="rule-item">
+            <div class="rule-box">
               <strong>⚖️ ดีเบตในศาล:</strong> 2d6 + 2 (EGO)<br>
               <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
             </div>
           </div>
         `,
         backpack: `
-          <div class="bp-grid">
+          <div class="bp-cols">
             <div>
-              <span class="bp-col-title">สัมภาระติดตัว:</span>
+              <span class="bp-heading">สัมภาระติดตัว:</span>
               <ul class="bp-list">
                 <li>Monopad คิโบกามิเนะ</li>
                 <li>สายรัดนิรภัยปีนป่าย (Harness)</li>
@@ -1260,7 +1399,7 @@
               </ul>
             </div>
             <div>
-              <span class="bp-col-title">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
+              <span class="bp-heading">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
               <ul class="bp-list">
                 <li>รองเท้าสตั๊นต์คู่หนักพิเศษหายไปในช่วงบ่าย</li>
                 <li>19:00 - 20:00 น. กินสตูว์ร่วมกับทุกคน</li>
@@ -1276,31 +1415,31 @@
         height: "163 cm",
         weight: "55 kg",
         age: "17 ปี",
-        status: "ปกติ (Normal)",
+        status: "ปกติ (Innocent)",
         str: "+1", agi: "+0", dex: "+3", tou: "+1", int: "+3", wis: "+1", cha: "-1", ego: "+1",
         hp: "12", wp: "12",
         languages: "ภาษาญี่ปุ่น, รหัสวงจรไฟฟ้า & แบบแปลนเครื่องกล",
         talents: `
-          <div class="talent-feature">
-            <span class="talent-feature-name">🔧 สุดยอดช่างกล (Master Tinkerer & Circuitry):</span>
+          <div class="talent-feat">
+            <span class="talent-feat-title">🔧 สุดยอดช่างกล (Master Tinkerer & Circuitry):</span>
             <p><strong>ความสามารถพิเศษ:</strong> ทอย <strong>2d6 + INT/DEX</strong> เพื่อวิเคราะห์ระบบท่อประปา มิเตอร์ไฟฟ้า แผงวงจร หรือเครื่องอบผ้า/เครื่องซักผ้า และสามารถซ่อม/ดัดแปลงกลไกได้</p>
             <p><strong>Roleplay Hook:</strong> สนใจระบบกลไกมากกว่าคน ชอบทักเรื่องท่อประปาส่งเสียงครางหรือไฟตก</p>
           </div>
-          <div class="rules-cheat-sheet">
-            <div class="rule-item">
+          <div class="rules-grid">
+            <div class="rule-box">
               <strong>⚡ วิเคราะห์ระบบกลไก:</strong> 2d6 + 3 (INT) หรือ + 3 (DEX)<br>
               <strong>🔨 งานซ่อม & ดัดแปลง:</strong> 2d6 + 3 (DEX)
             </div>
-            <div class="rule-item">
+            <div class="rule-box">
               <strong>👁️ สังเกตความผิดปกติ:</strong> 2d6 + 1 (WIS)<br>
               <strong>💔 Credibility Gauge:</strong> [♥][♥][♥][♥][♥]
             </div>
           </div>
         `,
         backpack: `
-          <div class="bp-grid">
+          <div class="bp-cols">
             <div>
-              <span class="bp-col-title">สัมภาระติดตัว:</span>
+              <span class="bp-heading">สัมภาระติดตัว:</span>
               <ul class="bp-list">
                 <li>Monopad คิโบกามิเนะ</li>
                 <li>ชุดไขควงมัลติทูล 12 หัว</li>
@@ -1309,7 +1448,7 @@
               </ul>
             </div>
             <div>
-              <span class="bp-col-title">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
+              <span class="bp-heading">เบาะแส & ข้อสังเกตช่วงเกิดเหตุ:</span>
               <ul class="bp-list">
                 <li>17:30 - 18:30 น. ตรวจมิเตอร์น้ำพบว่า มีก๊อกน้ำตัวหนึ่งถูกเปิดทิ้งไว้เอื่อยๆ</li>
                 <li>20:00 - 21:00 น. นั่งคุยกับนักกีฬาในห้องนั่งเล่น</li>
@@ -1383,90 +1522,103 @@
         const d = PRESETS[key];
         allSheetsHTML += `
           <div class="sheet-page">
-            <div class="outer-frame">
-              <header class="sheet-header">
-                <div class="d20-badge">2d6</div>
-                <div class="header-lines-wrap">
-                  <div class="header-rule"></div>
-                  <div class="header-title-bar">
-                    <span class="academy-name">Hope's Peak Academy // Student Record</span>
-                    <span class="dossier-tag">แฟ้มประวัตินักเรียนโรงเรียนคิโบกามิเนะ (2d6 SYSTEM)</span>
+            <svg class="academy-watermark" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="90" fill="none" stroke="#000" stroke-width="4"/>
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#000" stroke-width="2"/>
+              <path d="M100 25 L120 70 L175 70 L130 105 L150 160 L100 125 L50 160 L70 105 L25 70 L80 70 Z" fill="none" stroke="#000" stroke-width="3"/>
+              <circle cx="100" cy="100" r="25" fill="#000"/>
+              <text x="100" y="106" font-family="'Chakra Petch', sans-serif" font-weight="900" font-size="16" fill="#fff" text-anchor="middle">78</text>
+            </svg>
+            <div class="dossier-frame">
+              <div class="side-stripes-left"></div>
+              <div class="side-stripes-right"></div>
+              <header class="dossier-header">
+                <div class="d20-seal"><span class="num">2d6</span><span class="sub">TRPG SYSTEM</span></div>
+                <div class="header-main-info">
+                  <div class="header-top-row">
+                    <span class="school-name-en">Hope's Peak Academy // Student Record</span>
+                    <span class="dossier-stamp-box">【 極秘 // CLASSIFIED DOSSIER 】</span>
                   </div>
-                  <div class="header-rule"></div>
+                  <div class="school-name-th">
+                    <span>แฟ้มประวัตินักเรียนระดับมัธยมปลายเฉพาะบุคคล // โรงเรียนคิโบกามิเนะ</span>
+                    <span class="code">REF: HPA-78-CLASSIFIED</span>
+                  </div>
                 </div>
               </header>
-              <div class="sheet-main-grid">
+              <div class="main-grid">
                 <div class="col-left">
-                  <div class="stats-table">
-                    <div class="stat-row"><span class="stat-label">STR</span><div class="stat-box">${d.str}</div></div>
-                    <div class="stat-row"><span class="stat-label">AGI</span><div class="stat-box">${d.agi}</div></div>
-                    <div class="stat-row"><span class="stat-label">DEX</span><div class="stat-box">${d.dex}</div></div>
-                    <div class="stat-row"><span class="stat-label">TOU</span><div class="stat-box">${d.tou}</div></div>
-                    <div class="stat-row"><span class="stat-label">INT</span><div class="stat-box">${d.int}</div></div>
-                    <div class="stat-row"><span class="stat-label">WIS</span><div class="stat-box">${d.wis}</div></div>
-                    <div class="stat-row"><span class="stat-label">CHA</span><div class="stat-box">${d.cha}</div></div>
-                    <div class="stat-row"><span class="stat-label">EGO</span><div class="stat-box">${d.ego}</div></div>
+                  <div class="stats-card">
+                    <div class="stats-card-header">CORE STATS</div>
+                    <div class="stat-row"><span class="stat-title">STR</span><div class="stat-mod-box">${d.str}</div></div>
+                    <div class="stat-row"><span class="stat-title">AGI</span><div class="stat-mod-box">${d.agi}</div></div>
+                    <div class="stat-row"><span class="stat-title">DEX</span><div class="stat-mod-box">${d.dex}</div></div>
+                    <div class="stat-row"><span class="stat-title">TOU</span><div class="stat-mod-box">${d.tou}</div></div>
+                    <div class="stat-row"><span class="stat-title">INT</span><div class="stat-mod-box">${d.int}</div></div>
+                    <div class="stat-row"><span class="stat-title">WIS</span><div class="stat-mod-box">${d.wis}</div></div>
+                    <div class="stat-row"><span class="stat-title">CHA</span><div class="stat-mod-box">${d.cha}</div></div>
+                    <div class="stat-row"><span class="stat-title">EGO</span><div class="stat-mod-box">${d.ego}</div></div>
                   </div>
-                  <div class="mental-container">
+                  <div class="mental-card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                      <span class="block-tag">Mental</span>
-                      <span style="font-size:0.55rem; font-weight:700;">Despair</span>
+                      <span class="section-tag">Mental</span>
+                      <span style="font-size:0.52rem; font-weight:700; font-family:'Chakra Petch';">DESPAIR</span>
                     </div>
                     <div class="mental-grid">
                       <div class="check-sq"></div><div class="check-sq"></div><div class="check-sq"></div>
                       <div class="check-sq"></div><div class="check-sq"></div><div class="check-sq"></div>
                       <div class="check-sq"></div><div class="check-sq"></div><div class="check-sq"></div>
                     </div>
-                    <div class="cred-gauge">
-                      <span class="cred-title">CREDIBILITY (ความน่าเชื่อถือ)</span>
+                    <div class="cred-box">
+                      <div class="cred-label">CREDIBILITY (ความน่าเชื่อถือ)</div>
                       <div class="hearts-row"><span>[♥]</span><span>[♥]</span><span>[♥]</span><span>[♥]</span><span>[♥]</span></div>
                     </div>
                   </div>
                   <div class="hp-wp-grid">
-                    <div class="hp-box-wrap"><span class="hp-wp-tag">HP</span><div class="hp-wp-val">${d.hp}</div></div>
-                    <div class="wp-box-wrap"><span class="hp-wp-tag">WP</span><div class="hp-wp-val">${d.wp}</div></div>
+                    <div class="gauge-block"><span class="lbl">HP</span><div class="val-box">${d.hp}</div></div>
+                    <div class="gauge-block"><span class="lbl">WP</span><div class="val-box">${d.wp}</div></div>
                   </div>
-                  <div class="languages-wrap">
-                    <span class="block-tag">Languages</span>
+                  <div class="languages-card">
+                    <span class="section-tag">Languages</span>
                     <div class="languages-content">${d.languages}</div>
                   </div>
                 </div>
                 <div class="col-right">
-                  <div class="top-right-group">
-                    <div class="portrait-wrap">
-                      <span class="block-tag portrait-box-tag">Portrait</span>
-                      <div class="portrait-inner">
+                  <div class="bio-group-grid">
+                    <div class="portrait-card">
+                      <span class="section-tag portrait-tag">Portrait</span>
+                      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+                      <div class="portrait-body">
                         <div class="portrait-placeholder">
                           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                          <span>Hope's Peak Dossier</span>
+                          <span>Hope's Peak File</span>
                         </div>
                       </div>
                     </div>
-                    <div class="bio-wrap">
-                      <div class="bio-field"><span class="bio-label">Player</span><div class="bio-input-box"></div></div>
-                      <div class="bio-field char-field"><span class="bio-label">Character</span><div class="bio-input-box">${d.character}</div></div>
+                    <div class="bio-fields-wrap">
+                      <div class="bio-row"><div class="bio-row-label"><span>Player</span></div><div class="bio-field-box"></div></div>
+                      <div class="bio-row role-row"><div class="bio-row-label"><span>Character & Ultimate Talent</span></div><div class="bio-field-box">${d.character}</div></div>
                       <div class="hwa-grid">
-                        <div class="hwa-item"><span class="bio-label">Height</span><div class="bio-input-box">${d.height}</div></div>
-                        <div class="hwa-item"><span class="bio-label">Weight</span><div class="bio-input-box">${d.weight}</div></div>
-                        <div class="hwa-item"><span class="bio-label">Age</span><div class="bio-input-box">${d.age}</div></div>
+                        <div class="bio-row"><div class="bio-row-label"><span>Height</span></div><div class="bio-field-box">${d.height}</div></div>
+                        <div class="bio-row"><div class="bio-row-label"><span>Weight</span></div><div class="bio-field-box">${d.weight}</div></div>
+                        <div class="bio-row"><div class="bio-row-label"><span>Age</span></div><div class="bio-field-box">${d.age}</div></div>
                       </div>
-                      <div class="bio-field"><span class="bio-label">Status</span><div class="bio-input-box">${d.status}</div></div>
+                      <div class="bio-row"><div class="bio-row-label"><span>Status</span></div><div class="bio-field-box">${d.status}</div></div>
                     </div>
                   </div>
-                  <div class="talents-wrap">
-                    <div class="talents-header"><span class="block-tag">Talents</span><span style="font-size:0.62rem; font-weight:700;">ความสามารถพิเศษ & การกระทำในศาล</span></div>
+                  <div class="talents-card">
+                    <div class="talents-top-bar"><span class="section-tag">Talents</span><span style="font-size:0.62rem; font-weight:700;">ความสามารถ & การกระทำในศาล</span></div>
                     <div class="talents-content">${d.talents}</div>
                   </div>
-                  <div class="backpack-wrap">
-                    <div class="talents-header"><span class="block-tag">Backpack</span><span style="font-size:0.62rem; font-weight:700;">สัมภาระ & บันทึกส่วนตัว</span></div>
+                  <div class="backpack-card">
+                    <div class="talents-top-bar"><span class="section-tag">Backpack</span><span style="font-size:0.62rem; font-weight:700;">สัมภาระ & บันทึกส่วนตัว</span></div>
                     <div class="backpack-content">${d.backpack}</div>
                   </div>
                 </div>
               </div>
-              <footer class="sheet-footer">
-                <span>KIBOUGAMINE ACADEMY // SUPER HIGH SCHOOL LEVEL STUDENT DOSSIER</span>
+              <footer class="dossier-footer">
+                <span>KIBOUGAMINE ACADEMY // CLASSIFIED SUPER HIGH SCHOOL LEVEL FILE</span>
                 <span>DANGANRONPA TRPG - 2d6 SYSTEM</span>
-                <span>FORM NO. KP-77B</span>
+                <span>FORM NO. KP-78B</span>
               </footer>
             </div>
           </div>
@@ -1476,7 +1628,6 @@
       document.getElementById('sheetContainer').innerHTML = allSheetsHTML;
       window.print();
       
-      // Restore single sheet view after printing dialog closes
       setTimeout(() => {
         document.getElementById('sheetContainer').innerHTML = originalHTML;
       }, 1000);
