@@ -214,6 +214,19 @@ body.dangan-body {
   font-weight: 700;
 }
 
+/* Base Full / Short text switches for responsive layout */
+.tab-btn-short,
+.btn-txt-short,
+.status-short {
+  display: none;
+}
+
+.tab-btn-full,
+.btn-txt-full,
+.status-full {
+  display: inline;
+}
+
 /* ==========================================================
    VIEW PANELS
    ========================================================== */
@@ -1943,16 +1956,54 @@ body.dangan-body {
     letter-spacing: 0.5px;
   }
 
+  .header-controls {
+    gap: 6px;
+  }
+
   .room-badge {
-    padding: 3px 8px;
+    padding: 2px 7px;
+    gap: 4px;
+    cursor: pointer;
   }
 
   .room-lbl {
-    font-size: 0.68rem;
+    display: none !important;
   }
 
   .room-code-val {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+  }
+
+  .view-tabs {
+    gap: 3px;
+  }
+
+  .tab-btn {
+    padding: 4px 6px;
+    font-size: 0.72rem;
+    border-radius: 4px;
+  }
+
+  .tab-btn-full,
+  .btn-txt-full,
+  .status-full {
+    display: none !important;
+  }
+
+  .tab-btn-short,
+  .btn-txt-short,
+  .status-short {
+    display: inline !important;
+  }
+
+  .admin-logout-btn {
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .hub-resume-btn {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
   }
 
   .view-panel {
@@ -2221,4 +2272,21 @@ body.dangan-body {
     font-size: 1.3rem;
   }
 }
+
+/* ==========================================================
+   EXTRA-COMPACT PHONES (<= 440px e.g. iPhone SE)
+   ========================================================== */
+@media (max-width: 440px) {
+  .monokuma-brand .sub-tag {
+    display: none;
+  }
+  .monokuma-brand .main-title {
+    font-size: 0.84rem;
+  }
+  .view-tabs .tab-btn {
+    padding: 3px 5px;
+    font-size: 0.68rem;
+  }
+}
+
 

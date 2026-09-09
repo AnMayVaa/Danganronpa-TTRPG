@@ -44,17 +44,29 @@
 
     <!-- Room Code Badge & Mode Selector -->
     <div class="header-controls">
-      <div class="room-badge">
+      <div class="room-badge" onclick="copyRoomLink()" title="คลิกเพื่อคัดลอกรหัสห้อง">
         <span class="room-lbl">ROOM:</span>
         <span id="displayRoomCode" class="room-code-val">DESPAIR</span>
-        <button class="icon-btn" onclick="copyRoomLink()" title="คัดลอกลิงก์ให้เพื่อน">📋</button>
+        <button class="icon-btn" onclick="event.stopPropagation(); copyRoomLink()" title="คัดลอกลิงก์ให้เพื่อน">📋</button>
       </div>
 
       <nav class="view-tabs" id="mainViewTabs">
-        <button id="tabHub" class="tab-btn" onclick="navigate('/')">🏠 หน้าหลัก (Hub)</button>
-        <button id="tabCourt" class="tab-btn" onclick="navigate('/court')">🏛️ จอใหญ่ศาล (Court)</button>
-        <button id="tabAdmin" class="tab-btn" onclick="navigate('/admin')">🎛️ ผู้ดูแลศาล (Admin)</button>
-        <button id="tabPlayer" class="tab-btn" onclick="navigate('/play')">📱 ผู้เล่น (Player)</button>
+        <button id="tabHub" class="tab-btn" onclick="navigate('/')">
+          <span class="tab-btn-full">🏠 หน้าหลัก (Hub)</span>
+          <span class="tab-btn-short">🏠 Hub</span>
+        </button>
+        <button id="tabCourt" class="tab-btn" onclick="navigate('/court')">
+          <span class="tab-btn-full">🏛️ จอใหญ่ศาล (Court)</span>
+          <span class="tab-btn-short">🏛️ Court</span>
+        </button>
+        <button id="tabAdmin" class="tab-btn" onclick="navigate('/admin')">
+          <span class="tab-btn-full">🎛️ ผู้ดูแลศาล (Admin)</span>
+          <span class="tab-btn-short">🎛️ Admin</span>
+        </button>
+        <button id="tabPlayer" class="tab-btn" onclick="navigate('/play')">
+          <span class="tab-btn-full">📱 ผู้เล่น (Player)</span>
+          <span class="tab-btn-short">📱 Play</span>
+        </button>
       </nav>
     </div>
   </header>
@@ -79,8 +91,9 @@
             <div style="color: var(--mono-pink); font-weight: 900; font-size: 1.1rem;">📱 พบเซสชันตัวละครของคุณที่เคยเล่นไว้!</div>
             <div id="hubResumeInfo" style="color: #ccc; font-size: 0.95rem; margin-top: 4px;">ตัวละคร: - | Hash: -</div>
           </div>
-          <button class="dangan-action-btn pink" style="padding: 10px 20px; font-size: 0.9rem;" onclick="resumePlayerSession()">
-            ▶️ เข้าสู่หน้าจอตัวละครของคุณ
+          <button class="dangan-action-btn pink hub-resume-btn" onclick="resumePlayerSession()">
+            <span class="btn-txt-full">▶️ เข้าสู่หน้าจอตัวละครของคุณ</span>
+            <span class="btn-txt-short">▶️ เข้าเล่นต่อ</span>
           </button>
         </div>
       </div>
@@ -314,8 +327,9 @@
           <div style="color:#00ff88; font-size:0.8rem; font-weight:700;">● รหัสผ่าน PIN: 295437 ได้รับการยืนยันความถูกต้องแล้ว</div>
         </div>
       </div>
-      <button class="small-btn red" onclick="adminLogout()" style="padding:8px 16px; font-weight:900; cursor:pointer;">
-        🔒 ล็อก / ออกจากระบบ
+      <button class="small-btn red admin-logout-btn" onclick="adminLogout()" style="padding:8px 14px; font-weight:900; cursor:pointer;">
+        <span class="btn-txt-full">🔒 ล็อก / ออกจากระบบ</span>
+        <span class="btn-txt-short">🔒 ออก</span>
       </button>
     </div>
 
@@ -442,7 +456,7 @@
           <span>ลิงก์ผู้เล่นส่วนตัว:</span>
           <strong id="displayUserHash" style="color:var(--mono-pink); font-family:monospace; margin-left:6px; font-size:1rem;">#USER</strong>
         </div>
-        <button type="button" class="small-btn" onclick="copyPersonalLink()" style="font-size:0.75rem;">📋 คัดลอกลิงก์นี้</button>
+        <button type="button" class="small-btn" onclick="copyPersonalLink()" style="font-size:0.75rem; white-space:nowrap; padding:4px 8px;">📋 คัดลอก</button>
       </div>
       
       <div class="mobile-input-group">
@@ -478,7 +492,10 @@
           <span id="pMyHash" style="font-size:0.75rem; color:#888; margin-left:4px; font-family:monospace;">#USER</span>
           <button class="icon-btn" onclick="copyPersonalLink()" title="คัดลอกลิงก์ส่วนตัว" style="font-size:0.8rem; padding:2px 6px; margin-left:4px;">📋</button>
         </div>
-        <div id="pMyStatus" class="p-status normal">🛡️ นักเรียนผู้บริสุทธิ์</div>
+        <div id="pMyStatus" class="p-status normal">
+          <span class="status-full">🛡️ นักเรียนผู้บริสุทธิ์</span>
+          <span class="status-short">🛡️ บริสุทธิ์</span>
+        </div>
       </div>
 
       <!-- Player Page Sub-Navigation -->
