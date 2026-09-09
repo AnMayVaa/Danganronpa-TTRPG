@@ -825,20 +825,22 @@ function switchView(v) {
     if (el) el.classList.remove('hidden');
     const tab = document.getElementById('tabCourt');
     if (tab) tab.classList.add('active');
-    setupPeerJS();
+    initRealtime();
+    updatePlayerDisplays();
+    renderStage(gameState.stage || 'lobby');
   } else if (v === 'admin') {
     const el = document.getElementById('viewAdmin');
     if (el) el.classList.remove('hidden');
     const tab = document.getElementById('tabAdmin');
     if (tab) tab.classList.add('active');
+    initRealtime();
     updateAdminDisplay();
-    setupPeerJS();
   } else if (v === 'player') {
     const el = document.getElementById('viewPlayer');
     if (el) el.classList.remove('hidden');
     const tab = document.getElementById('tabPlayer');
     if (tab) tab.classList.add('active');
-    setupPeerJS();
+    initRealtime();
   }
 }
 
@@ -1420,6 +1422,9 @@ function setStage(stage, config) {
     startTimer(config && config.duration ? config.duration : 300);
     playSfx('gavel');
     logCourt(`🔍 [INVESTIGATION]: เริ่มต้นช่วงเวลาสืบสวนหาหลักฐาน! ออกค้นหาและสแกน QR Code`);
+  } else if (stage === 'trial') {
+    playSfx('gavel');
+    logCourt(`⚖️ [CLASS TRIAL]: เริ่มต้นศาลชั้นเรียน! เข้าสู่ช่วงอภิปรายและไต่สวนคดี`);
   } else if (stage === 'stage1') {
     gameState.stg1Submissions = 0;
     if (config) {
@@ -1543,11 +1548,19 @@ function updateInfluenceDisplay() {
 
 function logCourt(text) {
   const box = document.getElementById('courtLog');
-  if (!box) return;
-  const d = document.createElement('div');
-  d.innerText = `> ${text}`;
-  box.appendChild(d);
-  box.scrollTop = box.scrollHeight;
+  if (box) {
+    const d = document.createElement('div');
+    d.innerText = `> ${text}`;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+  const trialBox = document.getElementById('courtLogTrial');
+  if (trialBox) {
+    const d = document.createElement('div');
+    d.innerText = `> ${text}`;
+    trialBox.appendChild(d);
+    trialBox.scrollTop = trialBox.scrollHeight;
+  }
 }
 
 function updateDiscoveredCluesDisplay() {
@@ -1639,13 +1652,17 @@ function handleClueDiscovered(clueId, clueName, playerName) {
 // STAGE RENDERERS (COURTROOM VIEW & MOBILE VIEW)
 // ==========================================================
 function renderStage(stage) {
-  const courtStages = ['courtLobby', 'courtInvestigation', 'courtStage1', 'courtStage2', 'courtStage3', 'courtStage4', 'courtStage5', 'courtStage6', 'courtStage7', 'courtVerdict'];
+  const courtStages = ['courtLobby', 'courtTrial', 'courtInvestigation', 'courtStage1', 'courtStage2', 'courtStage3', 'courtStage4', 'courtStage5', 'courtStage6', 'courtStage7', 'courtVerdict'];
   courtStages.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
 
-  if (stage === 'investigation') {
+  if (stage === 'trial') {
+    const ct = document.getElementById('courtTrial');
+    if (ct) ct.classList.remove('hidden');
+    updatePlayerDisplays();
+  } else if (stage === 'investigation') {
     const inv = document.getElementById('courtInvestigation');
     if (inv) inv.classList.remove('hidden');
     updateDiscoveredCluesDisplay();
@@ -1679,6 +1696,7 @@ function renderStage(stage) {
   } else {
     const lob = document.getElementById('courtLobby');
     if (lob) lob.classList.remove('hidden');
+    updatePlayerDisplays();
   }
 
   // Render on Mobile
@@ -1906,7 +1924,34 @@ function renderMobileTask(stage) {
   }
 
   if (stage === 'lobby') {
-    area.innerHTML = '<div class="idle-message"><div class="idle-spinner"></div><p>กำลังรอเริ่มศาลชั้นเรียน...</p></div>';
+    area.innerHTML = '<div class="idle-message"><div class="idle-spinner"></div><p>กำลังรอเริ่มศาลชั้นเรียน... (Lobby)</p></div>';
+  } else if (stage === 'trial') {
+    area.innerHTML = `
+      <div style="background:rgba(20,20,35,0.95); border:2px solid var(--mono-yellow); border-radius:10px; padding:16px; text-align:center;">
+        <div style="font-size:2.2rem; margin-bottom:8px;">⚖️</div>
+        <h3 style="color:var(--court-gold); margin-bottom:6px; font-weight:900;">ศาลชั้นเรียนกำลังดำเนินอยู่</h3>
+        <p style="color:#ddd; font-size:0.9rem; margin-bottom:14px;">ขณะนี้อยู่ในช่วงอภิปรายและไต่สวนคดี (Debate & Discussion) ให้ทุกคนซักถาม ถกเถียง และตรวจสอบข้อมูลผ่านแท็บด้านบน</p>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="p-task-btn" onclick="switchPlayerTab('char')" style="background:rgba(255,230,0,0.15); border-color:#ffe600; color:#fff;">📜 ดูแผ่นตัวละคร & ไทม์ไลน์ส่วนตัว</button>
+          <button class="p-task-btn" onclick="switchPlayerTab('clues')" style="background:rgba(0,240,255,0.15); border-color:#00f0ff; color:#fff;">🔍 เปิด Monopad ตรวจสอบหลักฐาน</button>
+          <button class="p-task-btn" onclick="switchPlayerTab('guide')" style="background:rgba(230,0,103,0.15); border-color:#e60067; color:#fff;">📋 ดูกฎการดีเบตศาลชั้นเรียน</button>
+        </div>
+        <div style="margin-top:14px; font-size:0.8rem; color:#aaa;">
+          ⏳ เมื่อมีข้อโต้แย้งเกิดขึ้น ผู้ดูแลศาล (DM) จะเปิดมินิเกมเข้ามาที่หน้านี้โดยอัตโนมัติ
+        </div>
+      </div>
+    `;
+  } else if (stage === 'investigation') {
+    area.innerHTML = `
+      <div style="background:rgba(0,40,60,0.95); border:2px solid var(--mono-cyan); border-radius:10px; padding:16px; text-align:center;">
+        <div style="font-size:2.2rem; margin-bottom:8px;">🔍</div>
+        <h3 style="color:var(--mono-cyan); margin-bottom:6px; font-weight:900;">ช่วงเวลาสืบสวนหาหลักฐาน</h3>
+        <p style="color:#ddd; font-size:0.9rem; margin-bottom:14px;">ออกสำรวจสถานที่เกิดเหตุ สแกน QR Code จากการ์ดหลักฐาน หรือกรอกรหัส EVD-XX เพื่อเก็บเข้า Monopad ของคุณ!</p>
+        <button class="p-task-btn" onclick="switchPlayerTab('clues')" style="background:rgba(0,240,255,0.2); border-color:#00f0ff; color:#fff; font-weight:900;">
+          📷 สแกน QR Code / ตรวจสอบหลักฐาน (Monopad)
+        </button>
+      </div>
+    `;
   } else if (stage === 'stage1') {
     const target = gameState.stg1TargetClue || 'EVD-01';
     const allDistractors = ['EVD-01', 'EVD-02', 'EVD-04', 'EVD-05', 'EVD-09', 'EVD-11', 'EVD-14'];
@@ -2156,17 +2201,24 @@ function updateAdminDisplay() {
 function updatePlayerDisplays() {
   const list = document.getElementById('courtPodiumList');
   const count = document.getElementById('courtPlayerCount');
-  if (list && count) {
-    list.innerHTML = '';
-    const players = Object.values(gameState.players);
-    count.innerText = players.length;
+  const trialList = document.getElementById('courtTrialPodiumList');
+  const trialCount = document.getElementById('courtTrialPlayerCount');
+  const players = Object.values(gameState.players);
+
+  if (count) count.innerText = players.length;
+  if (trialCount) trialCount.innerText = players.length;
+
+  [list, trialList].forEach(targetList => {
+    if (!targetList) return;
+    targetList.innerHTML = '';
     players.forEach(p => {
       const seat = document.createElement('div');
       seat.className = 'podium-seat' + (p.isKiller ? ' killer-badge' : '');
-      seat.innerHTML = `<span>👤 ${p.name}</span><span class="podium-role">[${p.role}]</span>`;
-      list.appendChild(seat);
+      seat.innerHTML = `<span>👤 ${escapeHtml(p.name)}</span><span class="podium-role">[${escapeHtml(p.role)}]</span>`;
+      targetList.appendChild(seat);
     });
-  }
+  });
+
   updateAdminDisplay();
 }
 

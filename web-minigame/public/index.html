@@ -182,8 +182,11 @@
             
             <!-- Court Control Action Buttons -->
             <div class="court-lobby-actions">
-              <button class="small-btn green" onclick="setStage('stage1')" style="font-weight:900; padding:8px 16px;">
+              <button class="small-btn green" onclick="setStage('trial')" style="font-weight:900; padding:8px 16px;">
                 🚀 เริ่มศาลชั้นเรียน (Start Trial)
+              </button>
+              <button class="small-btn yellow" onclick="setStage('investigation')" style="font-weight:900; padding:8px 16px;">
+                🔍 ช่วงสืบสวน (Investigation)
               </button>
               <button class="small-btn cyan" onclick="window.open('/admin?room=' + roomCode, '_blank')" style="font-weight:900; padding:8px 16px;">
                 🎛️ เปิดจอควบคุม Admin
@@ -197,6 +200,40 @@
 
         <div class="court-podiums-header">นักเรียนที่ยืนประจำแท่นโพเดียม (<span id="courtPlayerCount">0</span> คน):</div>
         <div id="courtPodiumList" class="podium-grid"></div>
+      </div>
+
+      <!-- STAGE: CLASS TRIAL DISCUSSION (ศาลชั้นเรียน - ช่วงอภิปรายคดี) -->
+      <div id="courtTrial" class="court-box hidden">
+        <div class="slanted-banner pink" style="position:static !important; display:inline-block; margin-bottom:8px;">CLASS TRIAL IN SESSION</div>
+        <h1 class="court-heading" style="color:var(--court-gold); font-size:1.8rem; margin-bottom:6px;">⚖️ ศาลชั้นเรียน: ช่วงอภิปราย & ไต่สวนคดี</h1>
+        <p class="sub-guide" style="margin-bottom:18px;">นักเรียนทุกคนโปรดอภิปราย ซักถาม และหักล้างข้อสงสัยตามลำดับเหตุการณ์ (DM เป็นผู้เปิดมินิเกมเมื่อเกิดข้อโต้แย้ง)</p>
+
+        <!-- Court Quick Actions in Trial View -->
+        <div class="court-lobby-actions" style="margin-bottom:24px;">
+          <button class="small-btn cyan" onclick="window.open('/admin?room=' + roomCode, '_blank')" style="font-weight:900; padding:8px 16px;">
+            🎛️ เปิดจอควบคุม Admin (เลือกมินิเกม)
+          </button>
+          <button class="small-btn yellow" onclick="setStage('investigation')" style="font-weight:900; padding:8px 16px;">
+            🔍 สลับไปช่วงสืบสวน (Investigation)
+          </button>
+          <button class="small-btn grey" onclick="setStage('lobby')" style="font-weight:900; padding:8px 16px;">
+            🏛️ กลับสู่หน้า Lobby (แสดง QR / PIN)
+          </button>
+          <button class="small-btn red" onclick="courtTerminateSession()" style="font-weight:900; padding:8px 16px;">
+            🚪 จบ Session & เตะทุกคนออก
+          </button>
+        </div>
+
+        <div class="court-podiums-header" style="font-size:1.25rem;">แท่นโพเดียมประจำตำแหน่งนักเรียน (<span id="courtTrialPlayerCount">0</span> คน):</div>
+        <div id="courtTrialPodiumList" class="podium-grid" style="max-width:1000px; margin:0 auto 24px auto;"></div>
+
+        <!-- Court Announcement Log Box -->
+        <div class="court-box" style="background:rgba(10,10,18,0.8); border:2px solid var(--mono-dark-border); text-align:left; max-width:850px; margin:0 auto; padding:12px 18px;">
+          <div style="font-size:0.85rem; color:var(--mono-yellow); font-weight:900; margin-bottom:6px;">📢 บันทึกศาลชั้นเรียน (Courtroom Announcements):</div>
+          <div id="courtLogTrial" style="max-height:100px; overflow-y:auto; font-family:monospace; font-size:0.85rem; color:#aaa; line-height:1.4;">
+            <div>> ศาลชั้นเรียนเริ่มต้นขึ้นแล้ว! ทุกคนโปรดเปิดเผยข้อมูลและหลักฐานที่พบ...</div>
+          </div>
+        </div>
       </div>
 
       <!-- INVESTIGATION PHASE: EXPLORATION & CLUE HUNT -->
@@ -423,6 +460,10 @@
             <button class="dm-act-btn cyan" onclick="adminSetGame('investigation')" style="grid-column: 1 / -1;">
               <strong>🔍 0. Investigation Phase (ช่วงเวลาสืบสวนหาหลักฐาน)</strong>
               <span>เปิดระบบสำรวจ รวบรวมเบาะแส และให้ผู้เล่นใช้มือถือสแกน QR Code</span>
+            </button>
+            <button class="dm-act-btn gold" onclick="adminSetGame('trial')" style="grid-column: 1 / -1; background:#2a200a; border:2px solid #ffe600;">
+              <strong>⚖️ Class Trial (ศาลชั้นเรียน - ช่วงอภิปราย & ไต่สวนทั่วไป)</strong>
+              <span>เปิดศาลให้นักเรียนทุกคนอภิปรายถกเถียงอย่างอิสระบนโพเดียม (ยังไม่เริ่มมินิเกม)</span>
             </button>
             <button class="dm-act-btn pink" onclick="adminSetGame('stage1')">
               <strong>1. Evidence Linker</strong>
