@@ -96,11 +96,18 @@ body.dangan-body {
   align-items: center;
   gap: 15px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .monokuma-logo {
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 44px;
+  max-height: 44px;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   background: linear-gradient(90deg, #ffffff 50%, #111118 50%);
   border: 3px solid #fff;
@@ -1936,6 +1943,12 @@ body.dangan-body {
   .monokuma-logo {
     width: 34px;
     height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    max-width: 34px;
+    max-height: 34px;
+    flex-shrink: 0;
+    aspect-ratio: 1 / 1;
   }
 
   .monokuma-logo .eye-left {

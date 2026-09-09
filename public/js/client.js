@@ -528,6 +528,26 @@ function setupPeerJS() {
 
     myPeer.on('error', (err) => {
       console.warn('[WEBRTC Host Error]:', err);
+      if (err.type === 'unavailable-id') {
+        console.warn('[WEBRTC] Host Peer ID unavailable/busy. Re-creating with fresh 6-digit room code...');
+        roomCode = generate6DigitRoomCode();
+        sessionStorage.setItem('dangan_court_room_code', roomCode);
+        const courtRoom = document.getElementById('courtLobbyRoomCode');
+        if (courtRoom) courtRoom.innerText = roomCode;
+        const directJoin = window.location.origin + '/play?room=' + roomCode;
+        const joinUrl = document.getElementById('courtJoinUrl');
+        if (joinUrl) joinUrl.innerText = directJoin;
+        const qrImg = document.getElementById('courtQrImg');
+        if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(directJoin);
+        registerActiveRoom(roomCode);
+        setTimeout(() => {
+          if (myPeer && !myPeer.destroyed) {
+            try { myPeer.destroy(); } catch(e) {}
+            myPeer = null;
+          }
+          setupPeerJS();
+        }, 500);
+      }
     });
   } else if (currentView === 'admin' || currentView === 'player') {
     // Admin DM panel and Player mobile connect to Host
@@ -538,6 +558,23 @@ function setupPeerJS() {
 
 function connectToHostPeer(hostId, onConnected) {
   isHost = false;
+
+  // 1. If already connected and open, invoke callback immediately
+  if (hostPeer && hostPeer.open) {
+    if (onConnected) onConnected();
+    return;
+  }
+
+  // 2. If already in the process of connecting, attach callback to existing connection
+  if (hostPeer && !hostPeer.open && myPeer && myPeer.open) {
+    if (onConnected) {
+      hostPeer.once('open', () => {
+        console.log('[WEBRTC] Hooked into opened Host connection:', hostId);
+        onConnected();
+      });
+    }
+    return;
+  }
 
   const attemptConnect = () => {
     if (!myPeer || myPeer.destroyed) return;
@@ -581,6 +618,11 @@ function connectToHostPeer(hostId, onConnected) {
     });
     myPeer.on('error', (err) => {
       console.warn('[WEBRTC Client Peer Error]:', err);
+      if (err.type === 'peer-unavailable') {
+        if (typeof resetJoinButton === 'function') {
+          resetJoinButton(`❌ ไม่พบห้องศาล [${roomCode}]\nกรุณาเปิดหน้าจอหลักศาลชั้นเรียน (/court) ก่อน หรือตรวจสอบรหัสห้องให้ถูกต้อง`);
+        }
+      }
     });
   } else if (myPeer.open) {
     attemptConnect();
@@ -653,12 +695,28 @@ function handleIncomingMessage(msg, senderConn) {
     updatePlayerDisplays();
 
     // Send approval back
+    let sentApproval = false;
     if (senderConn && senderConn.open) {
-      senderConn.send({
-        type: 'claim_approved',
-        player: playerObj,
-        state: gameState
-      });
+      try {
+        senderConn.send({
+          type: 'claim_approved',
+          player: playerObj,
+          state: gameState
+        });
+        sentApproval = true;
+      } catch(e) {}
+    }
+    if (!sentApproval) {
+      const targetConn = peerConnections.find(c => c.peer === senderId && c.open);
+      if (targetConn) {
+        try {
+          targetConn.send({
+            type: 'claim_approved',
+            player: playerObj,
+            state: gameState
+          });
+        } catch(e) {}
+      }
     }
 
     // Broadcast to all other peers so they disable this role card
@@ -677,6 +735,10 @@ function handleIncomingMessage(msg, senderConn) {
 
     logCourt(`👤 [PODIUM]: ${reqName} ยืนประจำแท่น [${reqRole}]`);
   } else if (msg.type === 'claim_approved') {
+    if (typeof joinClaimTimeout !== 'undefined' && joinClaimTimeout) {
+      clearTimeout(joinClaimTimeout);
+      joinClaimTimeout = null;
+    }
     myPlayer = msg.player;
     localStorage.setItem('dangan_player_' + roomCode, JSON.stringify(myPlayer));
     localStorage.setItem('dangan_current_room', roomCode);
@@ -709,6 +771,10 @@ function handleIncomingMessage(msg, senderConn) {
     showToast(`✨ คุณได้สวมบทบาท [${myPlayer.role}] เข้าสู่ศาลแล้ว!`);
     playSfx('correct');
   } else if (msg.type === 'claim_rejected') {
+    if (typeof joinClaimTimeout !== 'undefined' && joinClaimTimeout) {
+      clearTimeout(joinClaimTimeout);
+      joinClaimTimeout = null;
+    }
     const btnJoin = document.querySelector('#mobileJoinScreen .dangan-action-btn');
     if (btnJoin) {
       btnJoin.disabled = false;
@@ -2006,6 +2072,21 @@ function showVerdict(isVictory) {
 // ==========================================================
 // MOBILE PLAYER CONTROLS & TASKS
 // ==========================================================
+let joinClaimTimeout = null;
+
+function resetJoinButton(errMsg) {
+  if (joinClaimTimeout) {
+    clearTimeout(joinClaimTimeout);
+    joinClaimTimeout = null;
+  }
+  const btnJoin = document.querySelector('#mobileJoinScreen .dangan-action-btn');
+  if (btnJoin) {
+    btnJoin.disabled = false;
+    btnJoin.innerText = 'เข้าสู่ศาลชั้นเรียน';
+  }
+  if (errMsg) alert(errMsg);
+}
+
 function playerJoin() {
   getAudio();
   const name = document.getElementById('mobileNameInput').value.trim();
@@ -2029,6 +2110,12 @@ function playerJoin() {
     btnJoin.innerText = '⏳ กำลังขอบทบาทจากศาลชั้นเรียน...';
   }
 
+  // 7-second safety timeout so player never hangs indefinitely
+  if (joinClaimTimeout) clearTimeout(joinClaimTimeout);
+  joinClaimTimeout = setTimeout(() => {
+    resetJoinButton(`⚠️ การตอบรับจากศาลชั้นเรียนห้อง [${roomCode}] ใช้เวลานานเกินไป\n\nโปรดตรวจสอบว่า:\n1. หน้าจอหลักศาลชั้นเรียน (/court) กำลังเปิดอยู่และออนไลน์\n2. รหัสห้อง 6 หลัก [${roomCode}] ถูกต้องตรงกับบนจอศาล\nแล้วลองกดใหม่อีกครั้ง`);
+  }, 7000);
+
   const claimPacket = {
     type: 'request_claim_character',
     role: role,
@@ -2036,13 +2123,26 @@ function playerJoin() {
     userHash: currentUserHash || ('u-' + Math.random().toString(36).substr(2, 7))
   };
 
+  const sendClaim = () => {
+    try {
+      if (hostPeer && hostPeer.open) {
+        hostPeer.send(claimPacket);
+      } else {
+        broadcast(claimPacket);
+      }
+    } catch(e) {
+      console.warn('[WEBRTC] Direct send failed, using broadcast:', e);
+      broadcast(claimPacket);
+    }
+  };
+
   const hostPeerId = `dangan-court-${roomCode.toLowerCase()}`;
   if (!hostPeer || !hostPeer.open) {
     connectToHostPeer(hostPeerId, () => {
-      broadcast(claimPacket);
+      sendClaim();
     });
   } else {
-    broadcast(claimPacket);
+    sendClaim();
   }
 }
 
@@ -2805,4 +2905,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   handleRoute();
   initRealtime();
+});
+
+window.addEventListener('beforeunload', () => {
+  if (myPeer && !myPeer.destroyed) {
+    try { myPeer.destroy(); } catch(e) {}
+  }
 });
