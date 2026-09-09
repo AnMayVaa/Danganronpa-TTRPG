@@ -2,9 +2,24 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>DANGANRONPA TRPG: CLASS TRIAL SYSTEM</title>
   <link rel="stylesheet" href="/css/style.css">
+  <!-- Early view detection script: immediately hides other page navigation buttons on Court and PC views -->
+  <script>
+    (function() {
+      var p = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+      if (p === 'court') {
+        document.documentElement.classList.add('view-is-court');
+      } else if (p === 'play' || p.startsWith('u-') || p.startsWith('u/')) {
+        document.documentElement.classList.add('view-is-player');
+      } else if (p === 'admin') {
+        document.documentElement.classList.add('view-is-admin');
+      } else {
+        document.documentElement.classList.add('view-is-hub');
+      }
+    })();
+  </script>
   <!-- PeerJS for 100% Real-time Serverless WebRTC (Works on Vercel & Local) -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <!-- Socket.io for local server fallback -->
@@ -16,7 +31,7 @@
   <!-- TOP DANGANRONPA HEADER BAR                     -->
   <!-- ============================================== -->
   <header class="dangan-header">
-    <div class="monokuma-brand" onclick="navigate('/')">
+    <div class="monokuma-brand" onclick="handleBrandClick()">
       <div class="monokuma-logo">
         <div class="eye-left"></div>
         <div class="eye-right"></div>
@@ -35,7 +50,7 @@
         <button class="icon-btn" onclick="copyRoomLink()" title="คัดลอกลิงก์ให้เพื่อน">📋</button>
       </div>
 
-      <nav class="view-tabs">
+      <nav class="view-tabs" id="mainViewTabs">
         <button id="tabHub" class="tab-btn" onclick="navigate('/')">🏠 หน้าหลัก (Hub)</button>
         <button id="tabCourt" class="tab-btn" onclick="navigate('/court')">🏛️ จอใหญ่ศาล (Court)</button>
         <button id="tabAdmin" class="tab-btn" onclick="navigate('/admin')">🎛️ ผู้ดูแลศาล (Admin)</button>
@@ -468,17 +483,21 @@
 
       <!-- Player Page Sub-Navigation -->
       <nav class="player-nav-tabs">
-        <button id="pTabGame" class="p-nav-btn active" onclick="switchPlayerTab('game')">
-          🎮 มินิเกม
+        <button id="pTabGame" class="p-nav-btn active" onclick="switchPlayerTab('game')" title="มินิเกมศาล">
+          <span class="p-nav-icon">🎮</span>
+          <span class="p-nav-text">มินิเกม</span>
         </button>
-        <button id="pTabChar" class="p-nav-btn" onclick="switchPlayerTab('char')">
-          📜 ตัวละคร & ไทม์ไลน์
+        <button id="pTabChar" class="p-nav-btn" onclick="switchPlayerTab('char')" title="แผ่นตัวละคร & ไทม์ไลน์">
+          <span class="p-nav-icon">📜</span>
+          <span class="p-nav-text">ตัวละคร</span>
         </button>
-        <button id="pTabClues" class="p-nav-btn" onclick="switchPlayerTab('clues')">
-          🔍 หลักฐาน
+        <button id="pTabClues" class="p-nav-btn" onclick="switchPlayerTab('clues')" title="การ์ดหลักฐานการสืบสวน">
+          <span class="p-nav-icon">🔍</span>
+          <span class="p-nav-text">หลักฐาน</span>
         </button>
-        <button id="pTabGuide" class="p-nav-btn" onclick="switchPlayerTab('guide')">
-          📋 กฎ & ดีเบต
+        <button id="pTabGuide" class="p-nav-btn" onclick="switchPlayerTab('guide')" title="กฎศาล & ดีเบต">
+          <span class="p-nav-icon">📋</span>
+          <span class="p-nav-text">กฎศาล</span>
         </button>
       </nav>
 

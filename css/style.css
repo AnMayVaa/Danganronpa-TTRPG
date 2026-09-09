@@ -28,12 +28,35 @@
   display: none !important;
 }
 
+/* ==========================================================
+   PAGE-SPECIFIC NAVIGATION VISIBILITY RULES
+   Court page and PC Player page: remove/hide buttons to other pages!
+   ========================================================== */
+html.view-is-court .view-tabs,
+body.view-is-court .view-tabs,
+html.view-is-player .view-tabs,
+body.view-is-player .view-tabs {
+  display: none !important;
+}
+
+html.view-is-court .monokuma-brand,
+body.view-is-court .monokuma-brand,
+html.view-is-player .monokuma-brand,
+body.view-is-player .monokuma-brand {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   font-family: 'Kanit', sans-serif;
   -webkit-tap-highlight-color: transparent;
+}
+
+button, input, select, textarea {
+  touch-action: manipulation;
 }
 
 body.dangan-body {
@@ -44,9 +67,14 @@ body.dangan-body {
   background-size: 16px 16px, 100% 100%;
   color: var(--text-bright);
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* ==========================================================
@@ -1486,7 +1514,7 @@ body.dangan-body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
-  margin: 12px 0 16px;
+  margin: 10px 0 14px;
   width: 100%;
 }
 
@@ -1494,14 +1522,32 @@ body.dangan-body {
   background: #181824;
   border: 2px solid #333348;
   color: #bbb;
-  padding: 10px 4px;
-  font-size: 0.82rem;
+  padding: 8px 4px;
+  font-size: clamp(0.72rem, 2.3vw, 0.85rem);
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   box-shadow: 2px 2px 0px #000;
   transition: all 0.15s;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 48px;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.p-nav-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.p-nav-text {
+  font-size: inherit;
+  line-height: 1.1;
   white-space: nowrap;
 }
 
@@ -1777,3 +1823,402 @@ body.dangan-body {
   border-radius: 6px;
   border-left: 2px solid #444;
 }
+
+/* ==========================================================
+   CHARACTER SHEET RESPONSIVE SPLIT LAYOUT
+   ========================================================== */
+.char-sheet-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+@media (min-width: 680px) {
+  .char-sheet-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 20px;
+    align-items: start;
+  }
+}
+
+.char-profile-pane,
+.char-timeline-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ==========================================================
+   MINIGAME MOBILE & IPAD RESPONSIVE GRIDS
+   ========================================================== */
+.mobile-task-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+@media (min-width: 680px) {
+  .mobile-task-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+.hangman-letters-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+@media (min-width: 500px) {
+  .hangman-letters-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+.letter-btn {
+  min-height: 48px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.big-action-btn {
+  padding: 22px 18px;
+  font-size: clamp(1.05rem, 3.5vw, 1.25rem);
+  min-height: 60px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================
+   RESPONSIVE OVERHAUL: PHONES (<= 600px)
+   ========================================================== */
+@media (max-width: 600px) {
+  .dangan-header {
+    padding: 8px 12px;
+  }
+
+  .monokuma-brand {
+    gap: 10px;
+  }
+
+  .monokuma-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .monokuma-logo .eye-left {
+    top: 11px;
+    left: 7px;
+    width: 5px;
+    height: 5px;
+  }
+
+  .monokuma-logo .eye-right {
+    top: 11px;
+    right: 5px;
+    width: 11px;
+    height: 6px;
+  }
+
+  .sub-tag {
+    font-size: 0.55rem;
+    letter-spacing: 1px;
+  }
+
+  .main-title {
+    font-size: 0.92rem;
+    letter-spacing: 0.5px;
+  }
+
+  .room-badge {
+    padding: 3px 8px;
+  }
+
+  .room-lbl {
+    font-size: 0.68rem;
+  }
+
+  .room-code-val {
+    font-size: 0.85rem;
+  }
+
+  .view-panel {
+    padding: 12px 8px;
+  }
+
+  /* Court on mobile phone */
+  .court-top-bar {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .clock-digits {
+    font-size: 1.8rem;
+  }
+
+  .court-box {
+    padding: 18px 12px;
+  }
+
+  .court-heading {
+    font-size: 1.3rem;
+  }
+
+  .join-callout-grid {
+    grid-template-columns: 1fr;
+    padding: 14px;
+    gap: 16px;
+  }
+
+  .qr-frame {
+    width: 140px;
+    height: 140px;
+  }
+
+  .url-badge {
+    font-size: 0.95rem;
+    padding: 6px 10px;
+  }
+
+  .podium-grid {
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 8px;
+  }
+
+  .podium-seat {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .rebuttal-arena {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .vs-emblem {
+    font-size: 1.8rem;
+    margin: 4px 0;
+  }
+
+  .scrum-container {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .vote-results-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Player Mobile View */
+  .mobile-game-container {
+    max-width: 100%;
+    padding: 0 4px;
+  }
+
+  .player-top-strip {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .p-name {
+    font-size: 0.95rem;
+  }
+
+  .p-role {
+    font-size: 0.78rem;
+  }
+
+  .p-reference-content {
+    gap: 12px;
+  }
+
+  .char-sheet-card {
+    padding: 14px 12px;
+  }
+
+  .char-name {
+    font-size: 1.15rem;
+  }
+
+  .stat-pill {
+    padding: 4px 8px;
+    font-size: 0.78rem;
+  }
+
+  .hook-box {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .p-clues-grid {
+    max-height: calc(100dvh - 240px);
+  }
+
+  /* Admin screen on mobile phone */
+  .admin-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .minigame-btn-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .verdict-btn-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================
+   RESPONSIVE OVERHAUL: IPAD & TABLETS (601px - 1024px)
+   ========================================================== */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .dangan-header {
+    padding: 12px 20px;
+  }
+
+  .main-title {
+    font-size: 1.15rem;
+  }
+
+  .view-panel {
+    padding: 18px 16px;
+  }
+
+  /* Court on iPad */
+  .court-top-bar {
+    grid-template-columns: 1fr 180px;
+    gap: 20px;
+    padding: 14px 20px;
+  }
+
+  .court-box {
+    padding: 24px;
+  }
+
+  .join-callout-grid {
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .qr-frame {
+    width: 170px;
+    height: 170px;
+  }
+
+  .url-badge {
+    font-size: 1.15rem;
+  }
+
+  .podium-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  .rebuttal-arena {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+  }
+
+  .scrum-container {
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 16px;
+  }
+
+  .vote-results-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  /* Player on iPad */
+  .mobile-game-container {
+    max-width: 760px;
+    padding: 0 12px;
+  }
+
+  .player-nav-tabs {
+    gap: 10px;
+  }
+
+  .p-nav-btn {
+    flex-direction: row;
+    gap: 8px;
+    min-height: 50px;
+    padding: 8px 14px;
+    font-size: 0.95rem;
+  }
+
+  .p-nav-icon {
+    font-size: 1.25rem;
+  }
+
+  .p-clues-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    max-height: calc(100dvh - 280px);
+  }
+
+  /* Admin on iPad */
+  .admin-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .minigame-btn-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .soundboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ==========================================================
+   IPAD LANDSCAPE & DESKTOP (> 1024px)
+   ========================================================== */
+@media (min-width: 1025px) {
+  .p-clues-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    max-height: calc(100dvh - 280px);
+  }
+
+  .mobile-game-container {
+    max-width: 780px;
+  }
+
+  .player-nav-tabs {
+    gap: 12px;
+  }
+
+  .p-nav-btn {
+    flex-direction: row;
+    gap: 8px;
+    min-height: 52px;
+    font-size: 0.98rem;
+  }
+
+  .p-nav-icon {
+    font-size: 1.3rem;
+  }
+}
+

@@ -310,6 +310,12 @@ function getCleanPath() {
   return p;
 }
 
+function handleBrandClick() {
+  if (currentView === 'hub' || currentView === 'admin') {
+    navigate('/');
+  }
+}
+
 function navigate(path) {
   if (window.location.pathname !== path) {
     history.pushState(null, '', path);
@@ -365,6 +371,14 @@ window.addEventListener('popstate', () => {
 
 function switchView(v) {
   currentView = v;
+
+  // Set active view class on root elements to control navigation button visibility
+  ['view-is-hub', 'view-is-court', 'view-is-admin', 'view-is-player'].forEach(cls => {
+    document.documentElement.classList.remove(cls);
+    document.body.classList.remove(cls);
+  });
+  document.documentElement.classList.add('view-is-' + v);
+  document.body.classList.add('view-is-' + v);
 
   const panels = ['viewHub', 'viewCourt', 'viewAdmin', 'viewPlayer'];
   panels.forEach(id => {
@@ -782,22 +796,26 @@ function renderPlayerCharSheet() {
         <span class="char-role-badge">${role}</span>
       </div>
 
-      <div>
-        <div style="font-size:0.85rem; color:#aaa; font-weight:700; margin-bottom:6px;">สเตตัสเด่น & ความสามารถ:</div>
-        <div class="stat-badge-row">${statPills}</div>
-      </div>
+      <div class="char-sheet-layout">
+        <div class="char-profile-pane">
+          <div>
+            <div style="font-size:0.85rem; color:#aaa; font-weight:700; margin-bottom:6px;">สเตตัสเด่น & ความสามารถ:</div>
+            <div class="stat-badge-row">${statPills}</div>
+          </div>
 
-      <div class="hook-box">
-        <strong>🎭 กฎควบคุมพฤติกรรม & บทบาทการเล่น:</strong><br>
-        ${data.hook}
-      </div>
-
-      <div style="margin-top:5px;">
-        <div style="font-size:0.95rem; color:var(--mono-yellow); font-weight:900; margin-bottom:8px;">
-          📅 ไทม์ไลน์ความทรงจำส่วนตัว (Personal Timeline 17:30 - 21:00):
+          <div class="hook-box" style="margin-top:12px;">
+            <strong>🎭 กฎควบคุมพฤติกรรม & บทบาทการเล่น:</strong><br>
+            ${data.hook}
+          </div>
         </div>
-        <div class="timeline-block">
-          ${timelineItems}
+
+        <div class="char-timeline-pane">
+          <div style="font-size:0.95rem; color:var(--mono-yellow); font-weight:900; margin-bottom:8px;">
+            📅 ไทม์ไลน์ความทรงจำส่วนตัว (Personal Timeline 17:30 - 21:00):
+          </div>
+          <div class="timeline-block">
+            ${timelineItems}
+          </div>
         </div>
       </div>
     </div>
@@ -1193,37 +1211,41 @@ function renderMobileTask(stage) {
   } else if (stage === 'stage1') {
     area.innerHTML = `
       <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">เลือกการ์ดหลักฐานที่ตรงกับอาวุธ:</h3>
-      <button class="p-task-btn" onclick="sendStg1('CORE-01')">🔴 [CORE-01] ท่อนกระดูกหมูต้มเปื้อนเลือด</button>
-      <button class="p-task-btn" onclick="sendStg1('HERR-01')">🟡 [HERR-01] หลอดแก้วไซยาไนด์เปล่า</button>
-      <button class="p-task-btn" onclick="sendStg1('TRASH-02')">⚫ [TRASH-02] ดัมเบลเปื้อนซอสมะเขือเทศ</button>
-      <button class="p-task-btn" onclick="sendStg1('SUPP-01')">🔵 [SUPP-01] แผงตั้งเวลาเครื่องอบผ้า</button>
+      <div class="mobile-task-grid">
+        <button class="p-task-btn" onclick="sendStg1('CORE-01')">🔴 [CORE-01] ท่อนกระดูกหมูต้มเปื้อนเลือด</button>
+        <button class="p-task-btn" onclick="sendStg1('HERR-01')">🟡 [HERR-01] หลอดแก้วไซยาไนด์เปล่า</button>
+        <button class="p-task-btn" onclick="sendStg1('TRASH-02')">⚫ [TRASH-02] ดัมเบลเปื้อนซอสมะเขือเทศ</button>
+        <button class="p-task-btn" onclick="sendStg1('SUPP-01')">🔵 [SUPP-01] แผงตั้งเวลาเครื่องอบผ้า</button>
+      </div>
     `;
   } else if (stage === 'stage2') {
     area.innerHTML = `
       <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">แตะตัวอักษรเพื่อส่งขึ้นกระดาน:</h3>
-      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; width:100%;">
-        <button class="p-task-btn" style="text-align:center;" onclick="sendStg2(0,'น')">น</button>
-        <button class="p-task-btn" style="text-align:center;" onclick="sendStg2(1,'า')">า</button>
-        <button class="p-task-btn" style="text-align:center;" onclick="sendStg2(2,'ฬิ')">ฬิ</button>
-        <button class="p-task-btn" style="text-align:center;" onclick="sendStg2(3,'ก')">ก</button>
-        <button class="p-task-btn" style="text-align:center;" onclick="sendStg2(4,'า')">า</button>
-        <button class="p-task-btn" style="text-align:center;" onclick="sendStg2(5,'น้')">น้</button>
-        <button class="p-task-btn" style="text-align:center;" onclick="sendStg2(6,'ำ')">ำ</button>
-        <button class="p-task-btn" style="text-align:center;" onclick="sendStg2(99,'ร')">ร</button>
+      <div class="hangman-letters-grid">
+        <button class="p-task-btn letter-btn" onclick="sendStg2(0,'น')">น</button>
+        <button class="p-task-btn letter-btn" onclick="sendStg2(1,'า')">า</button>
+        <button class="p-task-btn letter-btn" onclick="sendStg2(2,'ฬิ')">ฬิ</button>
+        <button class="p-task-btn letter-btn" onclick="sendStg2(3,'ก')">ก</button>
+        <button class="p-task-btn letter-btn" onclick="sendStg2(4,'า')">า</button>
+        <button class="p-task-btn letter-btn" onclick="sendStg2(5,'น้')">น้</button>
+        <button class="p-task-btn letter-btn" onclick="sendStg2(6,'ำ')">ำ</button>
+        <button class="p-task-btn letter-btn" onclick="sendStg2(99,'ร')">ร</button>
       </div>
     `;
   } else if (stage === 'stage3') {
     area.innerHTML = `
       <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">ดวลดาบคำพูด (Rebuttal Showdown)!</h3>
-      <button class="p-task-btn" style="background:#3b141b; border: 3px solid var(--mono-pink); padding:25px; box-shadow: 4px 4px 0 #000;" onclick="broadcast({type:'trigger_fx',fx:'correct'})">
+      <button class="p-task-btn big-action-btn" style="background:#3b141b; border: 3px solid var(--mono-pink); box-shadow: 4px 4px 0 #000;" onclick="broadcast({type:'trigger_fx',fx:'correct'})">
         ⚔️ ฟันดาบความจริง! (Truth Blade Slash)
       </button>
     `;
   } else if (stage === 'stage4') {
     area.innerHTML = `
       <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">Logic Dive: เลือกทางแยกตรรกะ!</h3>
-      <button class="p-task-btn" onclick="advanceLogicDive('wrong')">ทางแยกซ้าย</button>
-      <button class="p-task-btn" onclick="advanceLogicDive('correct')">ทางแยกขวา (ทางถูกต้อง)</button>
+      <div class="mobile-task-grid">
+        <button class="p-task-btn" onclick="advanceLogicDive('wrong')">ทางแยกซ้าย</button>
+        <button class="p-task-btn" onclick="advanceLogicDive('correct')">ทางแยกขวา (ทางถูกต้อง)</button>
+      </div>
     `;
   } else if (stage === 'stage5') {
     let killerSab = '';
@@ -1232,7 +1254,7 @@ function renderMobileTask(stage) {
     }
     area.innerHTML = `
       <h3 style="color:var(--mono-yellow); margin-bottom:12px; font-weight:900;">Debate Scrum: รัวปุ่มดันตรรกะ!</h3>
-      <button class="p-task-btn" style="background:#1d2b1e; border:3px solid #2ecc71; padding:25px; font-size:1.2rem; box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg5_scrum',delta:4})">
+      <button class="p-task-btn big-action-btn" style="background:#1d2b1e; border:3px solid #2ecc71; box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg5_scrum',delta:4})">
         🔥 ดันความจริง! (B ทำให้ตัวเองตาย)
       </button>
       ${killerSab}
@@ -1240,7 +1262,7 @@ function renderMobileTask(stage) {
   } else if (stage === 'stage6') {
     area.innerHTML = `
       <h3 style="color:var(--mono-yellow); margin-bottom:12px; font-weight:900;">Argument Armament: รัวปุ่มทุบเกราะ!</h3>
-      <button class="p-task-btn" style="background:#423414; border:3px solid var(--mono-yellow); padding:25px; font-size:1.2rem; box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg6_hit'})">
+      <button class="p-task-btn big-action-btn" style="background:#423414; border:3px solid var(--mono-yellow); box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg6_hit'})">
         🔨 ทุบเกราะความจริง! (-15% Shield)
       </button>
     `;
@@ -1249,7 +1271,7 @@ function renderMobileTask(stage) {
     let btns = candidates.map(c => `<button class="p-task-btn" onclick="submitPlayerVote('${c}')">👉 โหวต: ${c}</button>`).join('');
     area.innerHTML = `
       <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">โหวตเลือก Blackened ผู้ปลิดชีพ B:</h3>
-      <div style="display:flex; flex-direction:column; gap:8px; width:100%;">${btns}</div>
+      <div class="mobile-task-grid">${btns}</div>
     `;
   }
 }
