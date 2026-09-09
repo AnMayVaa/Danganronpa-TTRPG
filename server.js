@@ -48,7 +48,7 @@ setInterval(() => {
   });
 }, 12000);
 
-const server = http.createServer((req, res) => {
+function requestHandler(req, res) {
   // Universal CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -60,7 +60,25 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let cleanUrl = req.url.split('?')[0];
+  let cleanUrl = (req.url || '/').split('?')[0];
+
+  // Helper to read payload whether pre-parsed by Vercel/Express or raw Node stream
+  const getPayload = (cb) => {
+    if (req.body) {
+      const parsed = typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}');
+      cb(null, parsed);
+      return;
+    }
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        cb(null, JSON.parse(body || '{}'));
+      } catch (err) {
+        cb(err, null);
+      }
+    });
+  };
 
   // -------------------------------------------------------------
   // 1. SSE REAL-TIME STREAM: GET /api/rooms/:code/stream
@@ -103,50 +121,47 @@ const server = http.createServer((req, res) => {
   const broadcastMatch = cleanUrl.match(/^\/api\/rooms\/([A-Za-z0-9_-]+)\/broadcast$/i);
   if (broadcastMatch && req.method === 'POST') {
     const code = broadcastMatch[1].toUpperCase();
-    let body = '';
-    req.on('data', chunk => { body += chunk; });
-    req.on('end', () => {
-      try {
-        const msg = JSON.parse(body || '{}');
-        msg._serverTime = Date.now();
-        msg._room = code;
-
-        // Buffer recent messages
-        if (!roomMessageBuffers.has(code)) {
-          roomMessageBuffers.set(code, []);
-        }
-        const buf = roomMessageBuffers.get(code);
-        buf.push(msg);
-        if (buf.length > 50) buf.shift();
-
-        // Update room heartbeat & stage
-        if (activeRooms.has(code)) {
-          const r = activeRooms.get(code);
-          r.lastHeartbeat = Date.now();
-          if (msg.type === 'set_stage' && msg.stage) r.stage = msg.stage;
-        }
-
-        // Instant dispatch to all SSE subscribers in this room
-        const subs = roomSubscribers.get(code);
-        let dispatchedCount = 0;
-        if (subs && subs.size > 0) {
-          const payload = `data: ${JSON.stringify(msg)}\n\n`;
-          subs.forEach(clientRes => {
-            try {
-              clientRes.write(payload);
-              dispatchedCount++;
-            } catch (err) {
-              subs.delete(clientRes);
-            }
-          });
-        }
-
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, dispatchedTo: dispatchedCount }));
-      } catch (err) {
+    getPayload((err, msg) => {
+      if (err || !msg) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
+        return;
       }
+      msg._serverTime = Date.now();
+      msg._room = code;
+
+      // Buffer recent messages
+      if (!roomMessageBuffers.has(code)) {
+        roomMessageBuffers.set(code, []);
+      }
+      const buf = roomMessageBuffers.get(code);
+      buf.push(msg);
+      if (buf.length > 50) buf.shift();
+
+      // Update room heartbeat & stage
+      if (activeRooms.has(code)) {
+        const r = activeRooms.get(code);
+        r.lastHeartbeat = Date.now();
+        if (msg.type === 'set_stage' && msg.stage) r.stage = msg.stage;
+      }
+
+      // Instant dispatch to all SSE subscribers in this room
+      const subs = roomSubscribers.get(code);
+      let dispatchedCount = 0;
+      if (subs && subs.size > 0) {
+        const payload = `data: ${JSON.stringify(msg)}\n\n`;
+        subs.forEach(clientRes => {
+          try {
+            clientRes.write(payload);
+            dispatchedCount++;
+          } catch (err) {
+            subs.delete(clientRes);
+          }
+        });
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, dispatchedTo: dispatchedCount }));
     });
     return;
   }
@@ -289,7 +304,9 @@ const server = http.createServer((req, res) => {
       }
     });
   });
-});
+}
+
+const server = http.createServer(requestHandler);
 
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
@@ -298,4 +315,6 @@ if (require.main === module) {
   });
 }
 
+server.handler = requestHandler;
 module.exports = server;
+module.exports.handler = requestHandler;

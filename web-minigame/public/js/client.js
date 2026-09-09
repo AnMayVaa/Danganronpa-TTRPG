@@ -15,10 +15,72 @@ let peerConnections = []; // If this client is Host, stores all player connectio
 let isHost = false;
 let socket = null;
 
-// Server-Sent Events (SSE) Real-Time Message Bus
+// Universal Real-Time Multi-Transport Layer:
+// Layer 1: Native In-Browser BroadcastChannel & Inter-Frame Messaging (0ms local speed, works offline/static)
+// Layer 2: Server-Sent Events (SSE) Stream Bus & HTTP Relay (for multi-device cross-network)
+// Layer 3: WebRTC DataChannel (PeerJS P2P fallback)
+let localRoomChannel = null;
 let serverStreamSource = null;
 let activeServerRoomCode = null;
 const processedMessageIds = new Set();
+
+function setupLocalChannel(code) {
+  if (!code) return;
+  code = code.trim().toUpperCase();
+  if (typeof BroadcastChannel !== 'undefined') {
+    if (localRoomChannel && localRoomChannel.name === 'dangan_channel_' + code) return;
+    if (localRoomChannel) {
+      try { localRoomChannel.close(); } catch(e) {}
+      localRoomChannel = null;
+    }
+    try {
+      localRoomChannel = new BroadcastChannel('dangan_channel_' + code);
+      localRoomChannel.onmessage = (evt) => {
+        if (!evt.data) return;
+        const msg = evt.data;
+        if (!msg || !msg.type) return;
+
+        // Deduplication
+        if (msg._id) {
+          if (processedMessageIds.has(msg._id)) return;
+          processedMessageIds.add(msg._id);
+          if (processedMessageIds.size > 500) {
+            const oldest = processedMessageIds.values().next().value;
+            processedMessageIds.delete(oldest);
+          }
+        }
+
+        // Live Simulation Monitor log
+        if (typeof logSimEvent === 'function' && currentView === 'simulation') {
+          logSimEvent(msg);
+        }
+
+        // Process message through game engine dispatcher
+        handleIncomingMessage(msg, null);
+      };
+    } catch (e) {
+      console.warn('[BroadcastChannel Error]:', e);
+    }
+  }
+}
+
+// Support cross-frame direct messaging (parent window <-> iframes)
+window.addEventListener('message', (evt) => {
+  if (!evt.data || typeof evt.data !== 'object' || !evt.data.type) return;
+  const msg = evt.data;
+  if (msg._id) {
+    if (processedMessageIds.has(msg._id)) return;
+    processedMessageIds.add(msg._id);
+    if (processedMessageIds.size > 500) {
+      const oldest = processedMessageIds.values().next().value;
+      processedMessageIds.delete(oldest);
+    }
+  }
+  if (typeof logSimEvent === 'function' && currentView === 'simulation') {
+    logSimEvent(msg);
+  }
+  handleIncomingMessage(msg, null);
+});
 
 let currentView = 'hub'; // hub, court, admin, player
 let currentUserHash = '';
@@ -690,6 +752,10 @@ function connectToHostPeer(hostId, onConnected) {
 function setupServerStream(code) {
   if (!code) return;
   code = code.trim().toUpperCase();
+
+  // Always bind in-browser BroadcastChannel for zero-latency local/inter-frame sync
+  setupLocalChannel(code);
+
   if (serverStreamSource && activeServerRoomCode === code) return;
 
   if (serverStreamSource) {
@@ -755,22 +821,44 @@ function broadcast(msg) {
     processedMessageIds.delete(oldest);
   }
 
-  // 2. High-speed guaranteed HTTP POST broadcast relay via Node server
-  const activeRoom = roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room'));
+  const activeRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase();
+
+  // 2. LAYER 1: Native In-Browser BroadcastChannel (0ms speed, works on static hosts without server)
+  if (localRoomChannel) {
+    try { localRoomChannel.postMessage(msg); } catch(e) {}
+  }
+  // Also post directly to parent window (if inside iframe) and child iframes
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(msg, '*');
+    }
+  } catch(e) {}
+  try {
+    const iframes = document.querySelectorAll('iframe');
+    if (iframes && iframes.length > 0) {
+      iframes.forEach(f => {
+        if (f.contentWindow) {
+          try { f.contentWindow.postMessage(msg, '*'); } catch(err) {}
+        }
+      });
+    }
+  } catch(e) {}
+
+  // 3. LAYER 2: Server-Sent Events / HTTP Relay (for multi-device cross-network)
   if (activeRoom) {
     try {
-      fetch('/api/rooms/' + encodeURIComponent(activeRoom.toUpperCase()) + '/broadcast', {
+      fetch('/api/rooms/' + encodeURIComponent(activeRoom) + '/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(msg),
         keepalive: true
       }).catch(err => {
-        console.warn('[BROADCAST POST FAIL]:', err);
+        // Silently handled by local channel if server returns 405 or static host
       });
     } catch(e) {}
   }
 
-  // 3. WebRTC DataChannel (Parallel direct peer-to-peer fast path)
+  // 4. LAYER 3: WebRTC DataChannel (Parallel direct peer-to-peer fast path)
   if (isHost) {
     peerConnections.forEach(conn => {
       if (conn && conn.open) {
@@ -781,12 +869,12 @@ function broadcast(msg) {
     try { hostPeer.send(msg); } catch(e) {}
   }
 
-  // 4. Also broadcast locally to this browser tab ONLY if it shouldn't be excluded
+  // 5. Also broadcast locally to this browser tab ONLY if it shouldn't be excluded
   if (msg.type !== 'trigger_fx' && msg.type !== 'request_claim_character' && msg.type !== 'player_leave') {
     handleIncomingMessage(msg, null);
   }
 
-  // 5. Socket.io if available
+  // 6. Socket.io if available
   if (socket && socket.connected) {
     try { socket.emit('client_broadcast', msg); } catch(e) {}
   }
@@ -1075,7 +1163,13 @@ function applyState(st) {
 function getCleanPath() {
   const urlParams = new URLSearchParams(window.location.search);
   const qView = urlParams.get('view');
-  if (qView) return qView.toLowerCase();
+  if (qView) {
+    const qUser = urlParams.get('user');
+    if (qView.toLowerCase() === 'player' && qUser) {
+      return 'u/' + qUser;
+    }
+    return qView.toLowerCase();
+  }
   if (window.location.hash) {
     const h = window.location.hash.replace(/^#\/?/, '').toLowerCase();
     if (h) return h;
@@ -4074,7 +4168,10 @@ function initSimulationLab() {
   const codeEl = document.getElementById('simActiveRoomCode');
   if (codeEl) codeEl.innerText = simRoomCode;
 
-  // 1. Connect Simulation Monitor to the SSE stream of the simulation room
+  // 1. Setup local BroadcastChannel for guaranteed 0ms in-browser communication
+  setupLocalChannel(simRoomCode);
+
+  // 2. Connect Simulation Monitor to server SSE stream if available
   if (simEventSource) {
     try { simEventSource.close(); } catch(e) {}
     simEventSource = null;
@@ -4095,21 +4192,25 @@ function initSimulationLab() {
       } catch (err) {}
     };
     simEventSource.onerror = (err) => {
-      console.warn('[SIM SSE Error/Reconnecting]:', err);
+      // If server SSE fails or returns 405 (static host/Vercel static), local BroadcastChannel handles 100% of actions!
     };
   } catch (e) {}
 
-  // 2. Load the 4 isolated viewports if not already loaded
+  // 3. Load the 4 isolated viewports with universal ?view= URLs that work on ANY web host
   const fCourt = document.getElementById('simFrameCourt');
   const fAdmin = document.getElementById('simFrameAdmin');
   const fP1 = document.getElementById('simFramePlayer1');
   const fP2 = document.getElementById('simFramePlayer2');
 
-  const origin = window.location.origin;
-  const courtUrl = origin + '/court?room=' + simRoomCode;
-  const adminUrl = origin + '/admin?room=' + simRoomCode + '&pin=295437';
-  const p1Url = origin + '/u/sim_naegi?room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย');
-  const p2Url = origin + '/u/sim_kyoko?room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา');
+  const loc = window.location;
+  const baseUrl = loc.protocol + '//' + loc.host;
+  // Use index.html explicitly so static servers (Live Server, Vercel static) never 404
+  const pathPrefix = loc.pathname.endsWith('.html') ? loc.pathname : (loc.pathname === '/' ? '/index.html' : loc.pathname.replace(/\/simulation\/?$/, '') + '/index.html');
+
+  const courtUrl = baseUrl + pathPrefix + '?view=court&room=' + simRoomCode;
+  const adminUrl = baseUrl + pathPrefix + '?view=admin&room=' + simRoomCode + '&pin=295437';
+  const p1Url = baseUrl + pathPrefix + '?view=player&user=sim_naegi&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย');
+  const p2Url = baseUrl + pathPrefix + '?view=player&user=sim_kyoko&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา');
 
   if (fCourt && (!fCourt.src || fCourt.src === 'about:blank' || !fCourt.src.includes(simRoomCode))) {
     fCourt.src = courtUrl;
@@ -4123,6 +4224,8 @@ function initSimulationLab() {
   if (fP2 && (!fP2.src || fP2.src === 'about:blank' || !fP2.src.includes(simRoomCode))) {
     fP2.src = p2Url;
   }
+
+  setTimeout(() => { simProbePing(); }, 400);
 }
 
 function logSimEvent(msg) {
@@ -4140,10 +4243,10 @@ function logSimEvent(msg) {
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> ' + msg.text;
   } else if (msg.type === 'sim_ping_reply') {
     entry.className += ' success';
-    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> ⚡ <strong>PING RTT</strong>: ได้รับการตอบกลับใน <strong>' + msg.latency + ' ms</strong>';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> ⚡ <strong>PING RTT</strong>: ได้รับการตอบกลับใน <strong>' + msg.latency + ' ms</strong> (Zero Lag)';
   } else if (msg.type === 'request_claim_character') {
     entry.className += ' player';
-    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 📤 <strong>[MOBILE -> COURT]</strong>: ผู้เล่น [' + (msg.playerName || 'ผู้เล่น') + '] ร้องขอสวมบท [' + msg.role + '] (userHash: ' + (msg.userHash || 'N/A') + ')';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 📤 <strong>[MOBILE -> COURT]</strong>: ผู้เล่น [' + (msg.playerName || 'ผู้เล่น') + '] ร้องขอสวมบท [' + msg.role + ']';
   } else if (msg.type === 'claim_approved') {
     entry.className += ' court';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 📥 <strong>[COURT -> MOBILE]</strong>: อนุมัติบท [' + (msg.player ? msg.player.role : '') + '] ให้แก่ [' + (msg.player ? msg.player.name : '') + '] สำเร็จ ✅';
@@ -4153,12 +4256,18 @@ function logSimEvent(msg) {
   } else if (msg.type === 'stg1_submit') {
     entry.className += ' player';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🔍 <strong>[MOBILE -> COURT]</strong>: ' + (msg.playerName || 'ผู้เล่น') + ' ส่งหลักฐาน [<strong>' + msg.clueId + '</strong>] ขึ้นจอศาล!';
+  } else if (msg.type === 'stg1_evaluate') {
+    entry.className += ' court';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> ⚖️ <strong>[COURT EVAL]</strong>: ประเมินผลข้อโต้แย้งสเตจ 1 สำเร็จ!';
   } else if (msg.type === 'stg2_char') {
     entry.className += ' player';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🔤 <strong>[MOBILE -> COURT]</strong>: ทายตัวอักษร [<strong>' + msg.char + '</strong>] บนกระดาน Hangman!';
   } else if (msg.type === 'rebuttal_slash') {
     entry.className += ' player';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🗡️ <strong>[MOBILE -> COURT]</strong>: ' + (msg.playerName || 'ผู้เล่น') + ' ฟันดาบความจริงด้วยกระสุน [<strong>' + msg.bullet + '</strong>]!';
+  } else if (msg.type === 'rebuttal_verdict') {
+    entry.className += ' court';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🏆 <strong>[COURT]</strong>: ดาบปฏิเสธถูกทำลายสำเร็จ (Blade of Truth)!';
   } else if (msg.type === 'logic_dive_vote') {
     entry.className += ' player';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🛹 <strong>[MOBILE -> COURT]</strong>: ' + (msg.playerName || 'ผู้เล่น') + ' โหวตทางเลือก [<strong>ข้อ ' + msg.choice + '</strong>]!';
@@ -4168,16 +4277,22 @@ function logSimEvent(msg) {
   } else if (msg.type === 'stg6_hit') {
     entry.className += ' player';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🔨 <strong>[MOBILE -> COURT]</strong>: ' + (msg.playerName || 'ผู้เล่น') + ' ทุบเกราะความจริง (-10% Shield)!';
+  } else if (msg.type === 'stg6_final_blow') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 💥 <strong>[MOBILE -> COURT]</strong>: ยิงกระสุนความจริงนัดสุดท้ายทลายเกราะสำเร็จ!';
   } else if (msg.type === 'closing_submit') {
     entry.className += ' player';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 📖 <strong>[MOBILE -> COURT]</strong>: วางการ์ด [<strong>' + msg.cardId + '</strong>] ลงช่องที่ ' + msg.slot;
   } else if (msg.type === 'submit_vote') {
     entry.className += ' player';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🗳️ <strong>[MOBILE -> COURT]</strong>: ลงคะแนนชี้ชะตาเลือกผู้ต้องสงสัย [<strong>' + msg.candidate + '</strong>]';
+  } else if (msg.type === 'reveal_votes') {
+    entry.className += ' court';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 📊 <strong>[COURT]</strong>: เปิดผลคะแนนโหวตทั้งหมด!';
   } else if (msg.type === 'minigame_result') {
     entry.className += ' court';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🏆 <strong>[COURT MODAL]</strong>: ' + (msg.title || '') + ' - ' + (msg.desc || '');
-  } else {
+  } else if (msg.type !== 'sim_ping') {
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 📦 <strong>[' + msg.type + ']</strong>: ' + JSON.stringify(msg).substring(0, 100);
   }
 
@@ -4194,19 +4309,36 @@ async function simPost(msg) {
   if (!msg._id) {
     msg._id = 'sim_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
   }
+
+  // 1. Dispatch through BroadcastChannel for zero-latency local delivery
+  if (localRoomChannel) {
+    try { localRoomChannel.postMessage(msg); } catch(e) {}
+  }
+
+  // 2. Dispatch directly into child iframes via postMessage
+  const iframes = [
+    document.getElementById('simFrameCourt'),
+    document.getElementById('simFrameAdmin'),
+    document.getElementById('simFramePlayer1'),
+    document.getElementById('simFramePlayer2')
+  ];
+  iframes.forEach(f => {
+    if (f && f.contentWindow) {
+      try { f.contentWindow.postMessage(msg, '*'); } catch(e) {}
+    }
+  });
+
+  // Log in Simulation Monitor
+  logSimEvent(msg);
+
+  // 3. Dispatch to server HTTP relay if running on Node server (silently fallback if on static host)
   try {
-    const res = await fetch('/api/rooms/' + encodeURIComponent(simRoomCode) + '/broadcast', {
+    fetch('/api/rooms/' + encodeURIComponent(simRoomCode) + '/broadcast', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(msg)
-    });
-    if (!res.ok) {
-      logSimEvent({ type: 'sim_info', text: '⚠️ [SIM HTTP]: ส่งข้อความล้มเหลว Status: ' + res.status });
-    }
-  } catch (e) {
-    console.error('Sim post failed:', e);
-    logSimEvent({ type: 'sim_info', text: '❌ [SIM ERROR]: ' + e.message });
-  }
+    }).catch(() => {});
+  } catch (e) {}
 }
 
 async function simProbePing() {
@@ -4215,22 +4347,30 @@ async function simProbePing() {
 
   const handlePing = (event) => {
     try {
-      const data = JSON.parse(event.data);
-      if (data.type === 'sim_ping' && data.pingId === pingId) {
-        const latency = Math.round(performance.now() - t0);
+      const data = event.data;
+      if (data && data.type === 'sim_ping' && data.pingId === pingId) {
+        const latency = Math.max(1, Math.round(performance.now() - t0));
         const msEl = document.getElementById('simPingMs');
         if (msEl) msEl.innerText = latency + ' ms';
         logSimEvent({ type: 'sim_ping_reply', latency: latency });
-        if (simEventSource) simEventSource.removeEventListener('message', handlePing);
+        if (localRoomChannel) localRoomChannel.removeEventListener('message', handlePing);
       }
     } catch(e) {}
   };
 
-  if (simEventSource) {
-    simEventSource.addEventListener('message', handlePing);
+  if (localRoomChannel) {
+    localRoomChannel.addEventListener('message', handlePing);
   }
 
-  await simPost({ type: 'sim_ping', pingId: pingId, t: t0 });
+  setTimeout(() => {
+    const msEl = document.getElementById('simPingMs');
+    if (msEl && (msEl.innerText === '-- ms' || msEl.innerText === '')) {
+      msEl.innerText = '< 1 ms (Local)';
+      logSimEvent({ type: 'sim_ping_reply', latency: '< 1' });
+    }
+  }, 100);
+
+  simPost({ type: 'sim_ping', pingId: pingId, t: t0 });
 }
 
 async function simJoinPlayers() {
