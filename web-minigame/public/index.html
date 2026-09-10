@@ -566,19 +566,19 @@
   <!-- ============================================== -->
   <main id="viewAdmin" class="view-panel hidden">
     <!-- Admin Top Status Bar -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; background:rgba(20, 20, 36, 0.95); padding:12px 20px; border-radius:10px; border:2px solid var(--mono-yellow); box-shadow:0 0 15px rgba(255, 230, 0, 0.2); flex-wrap:wrap; gap:10px;">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <span style="font-size:1.6rem;">🎛️</span>
+    <div class="admin-top-bar">
+      <div class="admin-top-bar-left">
+        <span class="admin-top-bar-icon">🎛️</span>
         <div>
-          <div style="color:var(--mono-yellow); font-weight:900; letter-spacing:1px; font-size:1.1rem;">DM ADMIN DASHBOARD</div>
-          <div style="color:#00ff88; font-size:0.8rem; font-weight:700;">● รหัสผ่าน PIN: 295437 ได้รับการยืนยันความถูกต้องแล้ว</div>
+          <div class="admin-title-text">DM ADMIN DASHBOARD</div>
+          <div class="admin-sub-text">● รหัสผ่าน PIN: 295437 ยืนยันแล้ว</div>
         </div>
       </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <a href="/character_sheet.html" target="_blank" class="small-btn yellow" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-weight:900; padding:8px 14px;">
-          📜 พิมพ์ Character Sheet A4 (2d6)
+      <div class="admin-top-bar-actions">
+        <a href="/character_sheet.html" target="_blank" class="small-btn yellow admin-top-sheet-btn">
+          📜 พิมพ์ Sheet A4
         </a>
-        <button class="small-btn red admin-logout-btn" onclick="adminLogout()" style="padding:8px 14px; font-weight:900; cursor:pointer;">
+        <button class="small-btn red admin-logout-btn" onclick="adminLogout()">
           <span class="btn-txt-full">🔒 ล็อก / ออกจากระบบ</span>
           <span class="btn-txt-short">🔒 ออก</span>
         </button>
@@ -589,10 +589,10 @@
       <!-- Left Column: Master Controls -->
       <div class="admin-col master-col">
         <div class="admin-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <div class="admin-card-header-row">
             <h2 class="admin-card-title" style="margin-bottom:0;">🎛️ เลือกเปิดมินิเกม (Mini-Game Selector)</h2>
-            <button class="small-btn yellow" onclick="openAdminMinigameModal('stage1')" style="font-weight:900; padding:6px 14px;">
-              ⚙️ ปรับแต่งคำถาม & พรีเซ็ตทั้งหมด
+            <button class="small-btn yellow admin-preset-btn" onclick="openAdminMinigameModal('stage1')">
+              ⚙️ พรีเซ็ตคำถาม
             </button>
           </div>
           <div class="minigame-btn-grid">
@@ -621,30 +621,30 @@
               <strong>2. Hangman's Gambit</strong>
               <span>ถอดรหัสคำ "WATER CLOCK"</span>
             </button>
-            <div class="dm-combo-block" style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:6px; background:rgba(255,0,85,0.06); padding:8px; border:1px solid var(--mono-pink); border-radius:8px;">
+            <div class="dm-combo-block rebuttal-block" style="grid-column: 1 / -1;">
               <button class="dm-act-btn red" onclick="adminStartRebuttal()" style="width:100%;">
                 <strong>3. Rebuttal Showdown</strong>
                 <span>ดวลดาบคำพูด 1 ต่อ 1 กับฝ่ายตรงข้าม</span>
               </button>
-              <div style="display:flex; flex-direction:column; gap:6px; font-size:0.8rem; color:#ccc;">
-                <div style="display:flex; gap:6px; align-items:center; justify-content:space-between;">
-                  <span>ฝ่ายกล่าวหา (PC 1):</span>
-                  <select id="adminRebuttalChallengerSelect" onchange="adminSelectRebuttalChallengers()" style="background:#111; color:#fff; border:1px solid #666; padding:3px 6px; border-radius:4px; font-size:0.8rem; max-width:180px;">
+              <div class="dm-select-group">
+                <div class="dm-select-row">
+                  <span class="dm-select-label">ฝ่ายกล่าวหา (PC 1):</span>
+                  <select id="adminRebuttalChallengerSelect" onchange="adminSelectRebuttalChallengers()" class="dm-styled-select">
                     <option value="">(ทุกคนในห้อง / อิสระ)</option>
                   </select>
                 </div>
-                <div style="display:flex; gap:6px; align-items:center; justify-content:space-between;">
-                  <span>ฝ่ายโต้แย้ง (PC 2):</span>
-                  <select id="adminRebuttalOpponentSelect" onchange="adminSelectRebuttalChallengers()" style="background:#111; color:#fff; border:1px solid #666; padding:3px 6px; border-radius:4px; font-size:0.8rem; max-width:180px;">
+                <div class="dm-select-row">
+                  <span class="dm-select-label">ฝ่ายโต้แย้ง (PC 2):</span>
+                  <select id="adminRebuttalOpponentSelect" onchange="adminSelectRebuttalChallengers()" class="dm-styled-select">
                     <option value="สุดยอดนักมายากล">NPC: สุดยอดนักมายากล</option>
                   </select>
                 </div>
               </div>
-              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                <button class="small-btn green" onclick="adminRebuttalVerdict(true)" style="padding:8px; font-weight:900; font-size:0.85rem;">
-                  🏆 ฝั่งผู้เล่นชนะ (Break Blade)
+              <div class="dm-dual-btn-row">
+                <button class="small-btn green" onclick="adminRebuttalVerdict(true)">
+                  🏆 ผู้เล่นชนะ (Break)
                 </button>
-                <button class="small-btn red" onclick="adminRebuttalVerdict(false)" style="padding:8px; font-weight:900; font-size:0.85rem;">
+                <button class="small-btn red" onclick="adminRebuttalVerdict(false)">
                   💀 ดวลล้มเหลว (Fail)
                 </button>
               </div>
@@ -667,14 +667,14 @@
               <strong>5. Debate Scrum</strong>
               <span>ศึก 2 ขั้ว: โหวต A vs B (Auto-Conclude)</span>
             </button>
-            <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px; background:rgba(255,165,0,0.06); padding:8px; border:1px solid #ffa500; border-radius:8px;">
+            <div class="dm-combo-block armament-block">
               <button class="dm-act-btn orange" onclick="adminStartArmament()" style="width:100%;">
                 <strong>6. Argument Armament</strong>
                 <span>4 คลื่นปฏิเสธ & กระสุนนัดสุดท้าย</span>
               </button>
-              <div style="display:flex; gap:6px; align-items:center; justify-content:space-between; font-size:0.8rem; color:#ccc;">
-                <span>ผู้ถูกกล่าวหา:</span>
-                <select id="adminArmamentTargetSelect" style="background:#111; color:#fff; border:1px solid #666; padding:3px 6px; border-radius:4px; font-size:0.8rem; max-width:180px;">
+              <div class="dm-select-row">
+                <span class="dm-select-label">ผู้ถูกกล่าวหา:</span>
+                <select id="adminArmamentTargetSelect" class="dm-styled-select">
                   <option value="นักมายากล (A)">NPC: นักมายากล (A)</option>
                 </select>
               </div>
@@ -1038,14 +1038,18 @@
 
         <!-- 5 Vertical Controllers: Admin + 4 Mobile PCs (Strictly 9:16) -->
         <div class="sim-sub-grid">
-          <!-- Panel 2: Admin Controller (9:16) -->
-          <div class="sim-device-panel admin-panel">
+          <!-- Panel 2: Admin Controller (9:16 default with 16:9 PC option) -->
+          <div class="sim-device-panel admin-panel" id="simAdminPanel">
             <div class="sim-panel-header">
               <span class="sim-icon">👑</span>
               <span class="sim-panel-title">2. ผู้ดูแลศาล (DM Admin - 9:16)</span>
+              <div class="sim-mode-toggle-group">
+                <button type="button" class="sim-mode-btn active" id="btnAdminModeMobile" onclick="setAdminSimAspect('9:16')" title="โหมดมือถือ (9:16)">📱 9:16</button>
+                <button type="button" class="sim-mode-btn" id="btnAdminModePc" onclick="setAdminSimAspect('16:9')" title="โหมดจอคอม (16:9)">💻 16:9</button>
+              </div>
               <span class="sim-panel-status live">DM READY</span>
             </div>
-            <div class="sim-iframe-wrap mobile-wrap">
+            <div class="sim-iframe-wrap mobile-wrap" id="simAdminIframeWrap">
               <iframe id="simFrameAdmin" class="sim-iframe" src="about:blank"></iframe>
             </div>
           </div>

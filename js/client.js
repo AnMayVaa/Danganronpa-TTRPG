@@ -1343,6 +1343,10 @@ function switchView(v) {
   });
   document.documentElement.classList.add('view-is-' + v);
   document.body.classList.add('view-is-' + v);
+  if (window.self !== window.top) {
+    document.documentElement.classList.add('in-iframe');
+    document.body.classList.add('in-iframe');
+  }
 
   const panels = ['viewHub', 'viewCourt', 'viewAdmin', 'viewPlayer', 'viewSimulation'];
   panels.forEach(id => {
@@ -4038,19 +4042,21 @@ function updateAdminDisplay() {
     const row = document.createElement('div');
     row.className = 'admin-p-row' + (p.isKiller ? ' is-killer' : '');
     row.innerHTML = `
-      <div>
-        <strong>${escapeHtml(p.name)}</strong>
-        <span style="color:#ffe600; font-size:0.8rem; margin-left:6px;">[${escapeHtml(p.role)}]</span>
-        ${p.isKiller ? '<span style="color:#ff2244; font-weight:900; margin-left:6px;">[SABOTEUR]</span>' : ''}
-        <div class="admin-p-cred" style="margin-top:4px;">
+      <div class="admin-p-info">
+        <div>
+          <strong>${escapeHtml(p.name)}</strong>
+          <span class="admin-p-role">[${escapeHtml(p.role)}]</span>
+          ${p.isKiller ? '<span class="admin-p-saboteur">[SABOTEUR]</span>' : ''}
+        </div>
+        <div class="admin-p-cred">
           <button class="cred-btn" onclick="adminAdjustPlayerCred('${p.id}', -1)" title="ลด 1 ดวง">-</button>
           <span class="admin-p-cred-hearts" title="ความน่าเชื่อถือ: ${pCred}/5">${heartsHtml}</span>
           <button class="cred-btn" onclick="adminAdjustPlayerCred('${p.id}', 1)" title="เพิ่ม 1 ดวง">+</button>
         </div>
       </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-size:0.8rem; color:#aaa;">${p.votedFor ? `โหวต: ${escapeHtml(p.votedFor)}` : 'ยังไม่โหวต'}</span>
-        <button class="small-btn red" style="padding:4px 8px; font-size:0.75rem; font-weight:700;" onclick="adminKickPlayer('${p.id}')">❌ เตะ</button>
+      <div class="admin-p-actions">
+        <span class="admin-p-vote-status">${p.votedFor ? `โหวต: ${escapeHtml(p.votedFor)}` : 'ยังไม่โหวต'}</span>
+        <button class="small-btn red admin-p-kick-btn" onclick="adminKickPlayer('${p.id}')">❌ เตะ</button>
       </div>
     `;
     table.appendChild(row);
@@ -4999,3 +5005,32 @@ function simResetRoom() {
   }, 300);
 }
 
+
+
+function setAdminSimAspect(mode) {
+  const panel = document.getElementById('simAdminPanel');
+  const wrap = document.getElementById('simAdminIframeWrap');
+  const btnMob = document.getElementById('btnAdminModeMobile');
+  const btnPc = document.getElementById('btnAdminModePc');
+  const title = panel ? panel.querySelector('.sim-panel-title') : null;
+
+  if (mode === '16:9') {
+    if (wrap) {
+      wrap.classList.remove('mobile-wrap');
+      wrap.classList.add('court-wrap');
+    }
+    if (panel) panel.classList.add('admin-pc-full');
+    if (btnMob) btnMob.classList.remove('active');
+    if (btnPc) btnPc.classList.add('active');
+    if (title) title.innerText = '2. ผู้ดูแลศาล (DM Admin - 16:9)';
+  } else {
+    if (wrap) {
+      wrap.classList.remove('court-wrap');
+      wrap.classList.add('mobile-wrap');
+    }
+    if (panel) panel.classList.remove('admin-pc-full');
+    if (btnMob) btnMob.classList.add('active');
+    if (btnPc) btnPc.classList.remove('active');
+    if (title) title.innerText = '2. ผู้ดูแลศาล (DM Admin - 9:16)';
+  }
+}
