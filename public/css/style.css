@@ -3919,17 +3919,12 @@ select option:disabled {
   color: #ff6b77;
 }
 
-/* 4 Viewports Grid */
+/* Simulation Viewports Grid: Court 16:9 on top, Admin + 4 PC Mobiles 9:16 below */
 .sim-devices-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 1080px) {
-  .sim-devices-grid {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
 }
 
 .sim-device-panel {
@@ -3943,6 +3938,9 @@ select option:disabled {
 
 .sim-device-panel.court-panel {
   border-color: var(--mono-pink);
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
 }
 
 .sim-device-panel.admin-panel {
@@ -3979,9 +3977,31 @@ select option:disabled {
   border: 1px solid #00ff88;
 }
 
-.sim-iframe-wrap {
+/* Court Screen: Strictly 16:9 Aspect Ratio */
+.sim-iframe-wrap.court-wrap {
   width: 100%;
-  height: 440px;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  background: #000;
+  position: relative;
+}
+
+/* Admin Controller & Mobile Viewports: Strictly 9:16 Aspect Ratio */
+.sim-sub-grid,
+.sim-mobile-subgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.sim-iframe-wrap.mobile-wrap,
+.sim-iframe-wrap:not(.court-wrap) {
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 9 / 16;
+  height: auto;
+  margin: 0 auto;
   background: #000;
   position: relative;
 }

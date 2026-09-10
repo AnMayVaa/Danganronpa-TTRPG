@@ -398,19 +398,19 @@
       <!-- STAGE 5: DEBATE SCRUM (ศึกสองขั้วความคิด) -->
       <div id="courtStage5" class="court-box hidden">
         <div class="slanted-banner pink">MINI-GAME 5: DEBATE SCRUM</div>
-        <h2 class="riddle-title">"ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?"</h2>
+        <h2 class="riddle-title" id="scrumTopicTitle">"ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?"</h2>
         <div class="scrum-container">
           <div class="scrum-side left">
-            <h3>🔴 ฝั่ง A (นักมายากล)</h3>
-            <p>คนวางกับดักต้องรับผิดชอบ!</p>
+            <h3 id="scrumLeftTitle">🔴 ฝั่ง A (นักมายากล)</h3>
+            <p id="scrumLeftDesc">คนวางกับดักต้องรับผิดชอบ!</p>
           </div>
           <div class="scrum-gauge-box">
             <div class="scrum-center-mark"></div>
             <div id="courtScrumFill" class="scrum-fill-bar" style="width: 50%;"></div>
           </div>
           <div class="scrum-side right">
-            <h3>🟢 ฝั่ง B (ตัวเหยื่อเอง)</h3>
-            <p>B ตัดเชือกแล้วผูกคอตายเอง!</p>
+            <h3 id="scrumRightTitle">🟢 ฝั่ง B (ตัวเหยื่อเอง)</h3>
+            <p id="scrumRightDesc">B ตัดเชือกแล้วผูกคอตายเอง!</p>
           </div>
         </div>
       </div>
@@ -418,7 +418,7 @@
       <!-- STAGE 6: ARGUMENT ARMAMENT (ทุบเกราะความจริง) -->
       <div id="courtStage6" class="court-box hidden">
         <div class="slanted-banner red">MINI-GAME 6: ARGUMENT ARMAMENT</div>
-        <h2 class="riddle-title">"ทุบทำลายเกราะการปฏิเสธครั้งสุดท้ายของคนร้าย!"</h2>
+        <h2 class="riddle-title" id="armamentCourtTitle">"ทุบทำลายเกราะการปฏิเสธของ: <span id="armamentTargetName" style="color:var(--mono-pink);">นักมายากล (A)</span>"</h2>
         <div class="armament-target">
           <div class="wave-indicator-bar">
             <span>DENIAL WAVE: <strong id="armamentWaveTxt" style="color:var(--dr-red); font-size:1.15rem;">1 / 4</strong></span>
@@ -622,7 +622,7 @@
               <span>ถอดรหัสคำ "WATER CLOCK"</span>
             </button>
             <div class="dm-combo-block" style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:6px; background:rgba(255,0,85,0.06); padding:8px; border:1px solid var(--mono-pink); border-radius:8px;">
-              <button class="dm-act-btn red" onclick="adminSetGame('stage3')" style="width:100%;">
+              <button class="dm-act-btn red" onclick="adminStartRebuttal()" style="width:100%;">
                 <strong>3. Rebuttal Showdown</strong>
                 <span>ดวลดาบคำพูด 1 ต่อ 1 กับฝ่ายตรงข้าม</span>
               </button>
@@ -667,10 +667,18 @@
               <strong>5. Debate Scrum</strong>
               <span>ศึก 2 ขั้ว: โหวต A vs B (Auto-Conclude)</span>
             </button>
-            <button class="dm-act-btn orange" onclick="adminSetGame('stage6')">
-              <strong>6. Argument Armament</strong>
-              <span>4 คลื่นปฏิเสธ & กระสุนนัดสุดท้าย</span>
-            </button>
+            <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px; background:rgba(255,165,0,0.06); padding:8px; border:1px solid #ffa500; border-radius:8px;">
+              <button class="dm-act-btn orange" onclick="adminStartArmament()" style="width:100%;">
+                <strong>6. Argument Armament</strong>
+                <span>4 คลื่นปฏิเสธ & กระสุนนัดสุดท้าย</span>
+              </button>
+              <div style="display:flex; gap:6px; align-items:center; justify-content:space-between; font-size:0.8rem; color:#ccc;">
+                <span>ผู้ถูกกล่าวหา:</span>
+                <select id="adminArmamentTargetSelect" style="background:#111; color:#fff; border:1px solid #666; padding:3px 6px; border-radius:4px; font-size:0.8rem; max-width:180px;">
+                  <option value="นักมายากล (A)">NPC: นักมายากล (A)</option>
+                </select>
+              </div>
+            </div>
             <button class="dm-act-btn cyan" onclick="adminSetGame('closing')">
               <strong>7. Closing Argument</strong>
               <span>มังงะสรุปคดี (Culprit B Timeline)</span>
@@ -691,20 +699,14 @@
           </div>
         </div>
 
-        <!-- Timer & Influence Controls -->
+        <!-- Timer Controls -->
         <div class="admin-card">
-          <h2 class="admin-card-title">⏱️ ควบคุมเวลา & พลังชีวิต (Influence Gauge)</h2>
+          <h2 class="admin-card-title">⏱️ ควบคุมเวลา (Timer Controls)</h2>
           <div class="ctrl-row">
             <span>นาฬิกาจับเวลา:</span>
             <button class="small-btn" onclick="adminAdjustTimer(30)">+30s</button>
             <button class="small-btn" onclick="adminAdjustTimer(-15)">-15s</button>
             <button class="small-btn red" onclick="adminToggleTimer()">⏯️ เริ่ม/หยุด</button>
-          </div>
-          <div class="ctrl-row" style="margin-top:12px;">
-            <span>เกจความน่าเชื่อถือ:</span>
-            <button class="small-btn green" onclick="adminAdjustInfluence(20)">+20% Heal</button>
-            <button class="small-btn red" onclick="adminAdjustInfluence(-20)">-20% Penalty</button>
-            <button class="small-btn yellow" onclick="adminAdjustInfluence(100, true)">100% Reset</button>
           </div>
         </div>
 
@@ -1020,13 +1022,13 @@
         </div>
       </div>
 
-      <!-- 6 Viewports Grid: Court, Admin, and 4 Mobile PCs -->
+      <!-- 6 Viewports: Court 16:9 on top, Admin + 4 PC Mobiles 9:16 below -->
       <div class="sim-devices-grid">
-        <!-- Panel 1: Court Projector Screen -->
+        <!-- Panel 1: Court Projector Screen (Strictly 16:9) -->
         <div class="sim-device-panel court-panel">
           <div class="sim-panel-header">
             <span class="sim-icon">🖥️</span>
-            <span class="sim-panel-title">1. จอหลักศาลชั้นเรียน (Court Screen / Projector)</span>
+            <span class="sim-panel-title">1. จอหลักศาลชั้นเรียน (Court Screen / Projector - 16:9)</span>
             <span class="sim-panel-status live">LIVE STREAM</span>
           </div>
           <div class="sim-iframe-wrap court-wrap">
@@ -1034,25 +1036,25 @@
           </div>
         </div>
 
-        <!-- Panel 2: Admin Controller -->
-        <div class="sim-device-panel admin-panel">
-          <div class="sim-panel-header">
-            <span class="sim-icon">👑</span>
-            <span class="sim-panel-title">2. ผู้ดูแลศาล (DM Admin Controller)</span>
-            <span class="sim-panel-status live">DM READY</span>
+        <!-- 5 Vertical Controllers: Admin + 4 Mobile PCs (Strictly 9:16) -->
+        <div class="sim-sub-grid">
+          <!-- Panel 2: Admin Controller (9:16) -->
+          <div class="sim-device-panel admin-panel">
+            <div class="sim-panel-header">
+              <span class="sim-icon">👑</span>
+              <span class="sim-panel-title">2. ผู้ดูแลศาล (DM Admin - 9:16)</span>
+              <span class="sim-panel-status live">DM READY</span>
+            </div>
+            <div class="sim-iframe-wrap mobile-wrap">
+              <iframe id="simFrameAdmin" class="sim-iframe" src="about:blank"></iframe>
+            </div>
           </div>
-          <div class="sim-iframe-wrap">
-            <iframe id="simFrameAdmin" class="sim-iframe" src="about:blank"></iframe>
-          </div>
-        </div>
 
-        <!-- Subgrid for 4 Mobile PCs -->
-        <div class="sim-mobile-subgrid">
-          <!-- Panel 3: Mobile Player 1 -->
+          <!-- Panel 3: Mobile Player 1 (9:16) -->
           <div class="sim-device-panel mobile-panel">
             <div class="sim-panel-header">
               <span class="sim-icon">📱</span>
-              <span class="sim-panel-title">3. ผู้เล่น 1 (นาเอกิ - นิยาย)</span>
+              <span class="sim-panel-title">3. ผู้เล่น 1 (นาเอกิ - 9:16)</span>
               <span class="sim-panel-status live">LIVE</span>
             </div>
             <div class="sim-iframe-wrap mobile-wrap">
@@ -1060,11 +1062,11 @@
             </div>
           </div>
 
-          <!-- Panel 4: Mobile Player 2 -->
+          <!-- Panel 4: Mobile Player 2 (9:16) -->
           <div class="sim-device-panel mobile-panel">
             <div class="sim-panel-header">
               <span class="sim-icon">📱</span>
-              <span class="sim-panel-title">4. ผู้เล่น 2 (เคียวโกะ - กีฬา)</span>
+              <span class="sim-panel-title">4. ผู้เล่น 2 (เคียวโกะ - 9:16)</span>
               <span class="sim-panel-status live">LIVE</span>
             </div>
             <div class="sim-iframe-wrap mobile-wrap">
@@ -1072,11 +1074,11 @@
             </div>
           </div>
 
-          <!-- Panel 5: Mobile Player 3 -->
+          <!-- Panel 5: Mobile Player 3 (9:16) -->
           <div class="sim-device-panel mobile-panel">
             <div class="sim-panel-header">
               <span class="sim-icon">📱</span>
-              <span class="sim-panel-title">5. ผู้เล่น 3 (เบียคุยะ - มายากล)</span>
+              <span class="sim-panel-title">5. ผู้เล่น 3 (เบียคุยะ - 9:16)</span>
               <span class="sim-panel-status live">LIVE</span>
             </div>
             <div class="sim-iframe-wrap mobile-wrap">
@@ -1084,11 +1086,11 @@
             </div>
           </div>
 
-          <!-- Panel 6: Mobile Player 4 -->
+          <!-- Panel 6: Mobile Player 4 (9:16) -->
           <div class="sim-device-panel mobile-panel">
             <div class="sim-panel-header">
               <span class="sim-icon">📱</span>
-              <span class="sim-panel-title">6. ผู้เล่น 4 (อาโออิ - ชิม)</span>
+              <span class="sim-panel-title">6. ผู้เล่น 4 (อาโออิ - 9:16)</span>
               <span class="sim-panel-status live">LIVE</span>
             </div>
             <div class="sim-iframe-wrap mobile-wrap">

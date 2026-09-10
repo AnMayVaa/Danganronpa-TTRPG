@@ -1172,6 +1172,8 @@ function handleIncomingMessage(msg, senderConn) {
     if (feedback) feedback.style.display = 'none';
   } else if (msg.type === 'stg5_scrum') {
     handleStg5Scrum(msg.delta);
+  } else if (msg.type === 'stg6_counter') {
+    handleStg6Counter(msg.playerName);
   } else if (msg.type === 'stg6_hit') {
     handleStg6Hit(msg.playerName);
   } else if (msg.type === 'stg6_final_blow') {
@@ -2144,14 +2146,13 @@ function setStage(stage, config) {
     playSfx('gavel');
   } else if (stage === 'stage3') {
     autoUnlockTrialClues();
-    gameState.stg3Opponent = "สุดยอดนักมายากล";
     if (config) {
+      if (config.challenger !== undefined) gameState.stg3Challenger = config.challenger;
+      if (config.opponent !== undefined) gameState.stg3Opponent = config.opponent;
       if (config.argument) gameState.stg3Argument = config.argument;
     }
-    const oppEl = document.getElementById('rebuttalSuspect');
-    if (oppEl) oppEl.innerText = gameState.stg3Opponent;
-    const stmtEl = document.getElementById('rebuttalStatement');
-    if (stmtEl && gameState.stg3Argument) stmtEl.innerText = `"${gameState.stg3Argument}"`;
+    if (!gameState.stg3Opponent) gameState.stg3Opponent = "สุดยอดนักมายากล";
+    updateRebuttalDisplay();
     gameState.timeRemaining = 60;
     gameState.timerRunning = false;
     stopTimer();
@@ -2178,12 +2179,19 @@ function setStage(stage, config) {
       if (config.leftTeam) gameState.stg5LeftTeam = config.leftTeam;
       if (config.rightTeam) gameState.stg5RightTeam = config.rightTeam;
     }
-    const sTitle = document.querySelector('#courtStage5 .riddle-title');
-    if (sTitle && gameState.stg5Topic) sTitle.innerText = `"${gameState.stg5Topic}"`;
-    const sLeft = document.querySelector('#courtStage5 .scrum-side.left h3');
-    if (sLeft && gameState.stg5LeftTeam) sLeft.innerText = gameState.stg5LeftTeam;
-    const sRight = document.querySelector('#courtStage5 .scrum-side.right h3');
-    if (sRight && gameState.stg5RightTeam) sRight.innerText = gameState.stg5RightTeam;
+    if (!gameState.stg5Topic) {
+      const topEl = document.getElementById('cfgStg5Topic');
+      if (topEl && topEl.value) gameState.stg5Topic = topEl.value;
+    }
+    if (!gameState.stg5LeftTeam) {
+      const lEl = document.getElementById('cfgStg5Left');
+      if (lEl && lEl.value) gameState.stg5LeftTeam = lEl.value;
+    }
+    if (!gameState.stg5RightTeam) {
+      const rEl = document.getElementById('cfgStg5Right');
+      if (rEl && rEl.value) gameState.stg5RightTeam = rEl.value;
+    }
+    updateScrumDisplay();
     gameState.stg5Meter = 50;
     gameState.timeRemaining = 60;
     gameState.timerRunning = false;
@@ -2195,11 +2203,13 @@ function setStage(stage, config) {
     gameState.stg6Wave = 1;
     gameState.stg6MaxWave = 4;
     gameState.stg6Shield = 100;
-    gameState.stg6Statement = gameState.stg6Denials[0];
-    const waveEl = document.getElementById('armamentWaveTxt');
-    if (waveEl) waveEl.innerText = `1 / 4`;
-    const scEl = document.getElementById('culpritScreamText');
-    if (scEl) scEl.innerText = `"${gameState.stg6Statement}"`;
+    gameState.stg6TargetPlayer = config?.targetPlayer || (document.getElementById('adminArmamentTargetSelect')?.value) || 'นักมายากล (A)';
+    if (config && config.scream) {
+      gameState.stg6Statement = config.scream;
+    } else {
+      gameState.stg6Statement = gameState.stg6Denials[0];
+    }
+    updateShieldDisplay();
     const banner = document.getElementById('armamentFinalBlowBanner');
     if (banner) banner.classList.add('hidden');
     gameState.timeRemaining = 60;
@@ -2219,6 +2229,7 @@ function setStage(stage, config) {
     logCourt(`📖 [CLOSING ARGUMENT]: เริ่มต้นการปะติดปะต่อลำดับเหตุการณ์มังงะคดีความ!`);
   } else if (stage === 'stage7') {
     gameState.votingOpen = true;
+    myPlayerVoted = false;
     gameState.votes = {};
     gameState.votesCast = {};
     gameState.votesRevealed = false;
@@ -2445,6 +2456,7 @@ function renderStage(stage) {
   } else if (stage === 'stage3') {
     const s3 = document.getElementById('courtStage3');
     if (s3) s3.classList.remove('hidden');
+    updateRebuttalDisplay();
   } else if (stage === 'stage4') {
     const s4 = document.getElementById('courtStage4');
     if (s4) s4.classList.remove('hidden');
@@ -2914,15 +2926,19 @@ function handleLogicDiveVote(qStep, choice, voterId, pName) {
   if (totalEl) totalEl.innerText = activePlayers;
 
   if (activePlayers > 0 && count >= activePlayers) {
-    evaluateLogicDiveMajority();
+    if (isHost) {
+      evaluateLogicDiveMajority();
+    }
   } else {
     if (isHost) broadcast({ type: 'sync_state', state: gameState });
   }
 }
 
 function evaluateLogicDiveMajority() {
+  if (gameState.stg4Evaluating) return;
   const currentData = LOGIC_DIVE_DATA.find(d => d.step === gameState.stg4Step);
   if (!currentData) return;
+  gameState.stg4Evaluating = true;
 
   const tally = { A: 0, B: 0, C: 0 };
   Object.values(gameState.stg4Votes || {}).forEach(ch => {
@@ -2940,7 +2956,7 @@ function evaluateLogicDiveMajority() {
 
   if (winningChoice === currentData.correct) {
     playSfx('correct');
-    logCourt(`✨ [LOGIC DIVE]: มติเสียงข้างมากเลือกข้อ [${winningChoice}] ถูกต้อง! สเก็ตบอร์ดพุ่งทะลวงสู่อุโมงค์ถัดไป`);
+    logCourt(`✨ [LOGIC DIVE]: มติเสียงข้างมากเลือกข้อ [${winningChoice}] ถูกต้อง! สเก็ตบอร์ดพุ่งทะลวงสู่อุโมงค์ถัดไป (ด่าน ${gameState.stg4Step}/3)`);
 
     const lane = document.getElementById('lane' + winningChoice);
     if (lane) lane.classList.add('active-match');
@@ -2948,7 +2964,8 @@ function evaluateLogicDiveMajority() {
     setTimeout(() => {
       gameState.stg4Step++;
       gameState.stg4Votes = {};
-      if (gameState.stg4Step > 3) {
+      gameState.stg4Evaluating = false;
+      if (gameState.stg4Step > LOGIC_DIVE_DATA.length) {
         stopTimer();
         showMinigameResult(
           true,
@@ -2959,8 +2976,8 @@ function evaluateLogicDiveMajority() {
       } else {
         updateLogicDiveDisplay();
         startTimer(45);
-        broadcast({ type: 'sync_state', state: gameState });
       }
+      if (isHost) broadcast({ type: 'sync_state', state: gameState });
     }, 1200);
   } else {
     // Collision crash - DO NOT reveal the correct answer!
@@ -2976,6 +2993,7 @@ function evaluateLogicDiveMajority() {
       crashNotice.innerText = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${winningChoice}] ซึ่งเป็นทางตัน (-15% Influence)`;
     }
 
+    gameState.stg4Evaluating = false;
     logCourt(`⚠️ [LOGIC DIVE CRASH]: เสียงข้างมากเลือกข้อ [${winningChoice}] ผิดทาง! ชนผนังอุโมงค์ (-15% Influence)`);
     broadcast({ type: 'logic_dive_crash', winningChoice: winningChoice });
   }
@@ -3046,22 +3064,22 @@ function handleStg5Scrum(delta) {
   if (gameState.stg5Meter >= 100) {
     gameState.stg5Finished = true;
     stopTimer();
+    const rightName = gameState.stg5RightTeam || 'ฝ่ายขวา';
     showMinigameResult(
       true,
       "SCRUM VICTORY!",
-      "ผลักดันตรรกะสำเร็จ 100%!",
-      "ข้อโต้แย้งของฝ่ายตรงข้ามถูกบดขยี้จนสิ้นเชิง!"
+      `ชัยชนะของ [${rightName}]!`,
+      "พลังความจริงผลักดันข้อถกเถียงจนได้ข้อสรุปที่เด็ดขาด!"
     );
   } else if (gameState.stg5Meter <= 0) {
     gameState.stg5Finished = true;
     stopTimer();
-    gameState.influence = Math.max(0, gameState.influence - 20);
-    updateInfluenceDisplay();
+    const leftName = gameState.stg5LeftTeam || 'ฝ่ายซ้าย';
     showMinigameResult(
-      false,
-      "SCRUM DEFEAT!",
-      "ฝ่ายตรงข้ามดันตรรกะจนชนะ! (-20% Influence)",
-      "ศาลถูกชักจูงไปในทางที่ผิดพลาด"
+      true,
+      "SCRUM VICTORY!",
+      `ชัยชนะของ [${leftName}]!`,
+      "พลังความจริงผลักดันข้อถกเถียงจนได้ข้อสรุปที่เด็ดขาด!"
     );
   }
 }
@@ -3069,11 +3087,18 @@ function handleStg5Scrum(delta) {
 function updateScrumDisplay() {
   const fill = document.getElementById('courtScrumFill');
   if (fill) fill.style.width = `${gameState.stg5Meter}%`;
+
+  const topicEl = document.getElementById('scrumTopicTitle') || document.querySelector('#courtStage5 .riddle-title');
+  const leftEl = document.getElementById('scrumLeftTitle') || document.querySelector('#courtStage5 .scrum-side.left h3');
+  const rightEl = document.getElementById('scrumRightTitle') || document.querySelector('#courtStage5 .scrum-side.right h3');
+  if (topicEl && gameState.stg5Topic) topicEl.innerText = `"${gameState.stg5Topic}"`;
+  if (leftEl && gameState.stg5LeftTeam) leftEl.innerText = gameState.stg5LeftTeam;
+  if (rightEl && gameState.stg5RightTeam) rightEl.innerText = gameState.stg5RightTeam;
 }
 
 // 6. Argument Armament
 function handleStg6Hit(pName) {
-  gameState.stg6Shield = Math.max(0, gameState.stg6Shield - 10);
+  gameState.stg6Shield = Math.max(0, gameState.stg6Shield - 5);
   updateShieldDisplay();
   playSfx('blade');
   if (gameState.stg6Shield <= 0) {
@@ -3117,9 +3142,24 @@ function updateShieldDisplay() {
   const fill = document.getElementById('shieldFill');
   const waveTxt = document.getElementById('armamentWaveTxt');
   const scEl = document.getElementById('culpritScreamText');
+  const targetEl = document.getElementById('armamentTargetName');
   if (fill) fill.style.width = `${gameState.stg6Shield}%`;
   if (waveTxt) waveTxt.innerText = `${gameState.stg6Wave || 1} / 4`;
   if (scEl && gameState.stg6Statement) scEl.innerText = `"${gameState.stg6Statement}"`;
+  if (targetEl && gameState.stg6TargetPlayer) targetEl.innerText = gameState.stg6TargetPlayer;
+}
+
+function handleStg6Counter(pName) {
+  if (gameState.stg6Shield >= 100) return;
+  gameState.stg6Shield = Math.min(100, gameState.stg6Shield + 4);
+  updateShieldDisplay();
+  playSfx('blade');
+}
+
+function adminStartArmament() {
+  const sel = document.getElementById('adminArmamentTargetSelect');
+  const target = sel ? sel.value : 'นักมายากล (A)';
+  adminSetGame('stage6', { targetPlayer: target });
 }
 
 // 7. Closing Argument (Mini-Game 7)
@@ -3213,7 +3253,7 @@ function getVotingCandidates() {
   } else {
     list.push('PC 1 (นักแต่งนิยาย)', 'PC 2 (นักกีฬา)');
   }
-  list.push('NPC B (พยานปากเอก / ผู้ต้องสงสัย)');
+  list.push('NPC B');
   return list;
 }
 
@@ -3428,15 +3468,29 @@ function renderMobileTask(stage) {
       if (!chosenIds.includes(d)) chosenIds.push(d);
     }
     chosenIds.sort();
+
+    const pName = myPlayer ? myPlayer.name : 'ผู้เล่น';
+    const existingSub = (gameState.stg1SubmissionsList || []).find(s => s.pName === pName);
+    const hasChosen = Boolean(existingSub);
+    const chosenClueId = existingSub ? existingSub.clueId : null;
+
     const btnsHtml = chosenIds.map(cid => {
       const clue = ALL_CLUES_DATA.find(c => c.id === cid) || { id: cid, name: cid };
-      return `<button class="p-task-btn" onclick="sendStg1('${clue.id}')">[${clue.id}] ${clue.name}</button>`;
+      const isSelected = (chosenClueId === cid);
+      return `<button class="p-task-btn ${isSelected ? 'btn-selected' : ''}" data-clue="${clue.id}" onclick="sendStg1('${clue.id}')">
+        [${clue.id}] ${clue.name} ${isSelected ? ' ✓' : ''}
+      </button>`;
     }).join('');
+
+    const chosenObj = chosenClueId ? (ALL_CLUES_DATA.find(c => c.id === chosenClueId) || { id: chosenClueId, name: chosenClueId }) : null;
 
     area.innerHTML = `
       <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">เลือกการ์ดหลักฐานที่ตรงกับอาวุธ/ปริศนา:</h3>
-      <div class="mobile-task-grid">
+      <div class="mobile-task-grid" id="stg1MobileGrid" style="${hasChosen ? 'pointer-events: none;' : ''}">
         ${btnsHtml}
+      </div>
+      <div id="stg1MobileFeedback" style="display:${hasChosen ? 'block' : 'none'}; margin-top:12px; padding:10px; background:rgba(0,255,136,0.15); border:1px solid #00ff88; border-radius:6px; color:#00ff88; font-weight:bold; text-align:center;">
+        ${hasChosen ? `✅ คุณเลือก [${chosenClueId}: ${chosenObj ? chosenObj.name : ''}] เรียบร้อยแล้ว (รอผลสรุปพร้อมเพื่อน)` : ''}
       </div>
     `;
   } else if (stage === 'idle') {
@@ -3528,29 +3582,53 @@ function renderMobileTask(stage) {
       </div>
     `;
   } else if (stage === 'stage5') {
-    let killerSab = '';
-    if (myPlayer && myPlayer.isKiller) {
-      killerSab = `<button class="p-task-btn" style="background:#4a101a; border-color:#ff2244; margin-top:12px;" onclick="broadcast({type:'stg5_scrum',delta:-6})">☠️ [ลับเฉพาะคนร้าย] แอบดึงกลับ (-6%)</button>`;
-    }
+    const leftLabel = gameState.stg5LeftTeam || '🔴 ฝ่ายซ้าย';
+    const rightLabel = gameState.stg5RightTeam || '🟢 ฝ่ายขวา';
+    const topicLabel = gameState.stg5Topic || 'ศึกสองขั้วความคิด';
+
     area.innerHTML = `
-      <h3 style="color:var(--mono-yellow); margin-bottom:12px; font-weight:900;">Debate Scrum: รัวปุ่มดันตรรกะ!</h3>
-      <button class="p-task-btn big-action-btn" style="background:#1d2b1e; border:3px solid #2ecc71; box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg5_scrum',delta:4})">
-        🔥 ดันความจริง! (B ทำให้ตัวเองตาย)
-      </button>
-      ${killerSab}
-    `;
-  } else if (stage === 'stage6') {
-    area.innerHTML = `
-      <h3 style="color:var(--mono-yellow); margin-bottom:12px; font-weight:900;">Argument Armament: รัวปุ่มทุบเกราะ!</h3>
-      <button class="p-task-btn big-action-btn" style="background:#423414; border:3px solid var(--mono-yellow); box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg6_hit', playerName: myPlayer ? myPlayer.name : 'ผู้เล่น'})">
-        🔨 ทุบเกราะความจริง! (-10% Shield)
-      </button>
-      <div id="finalBlowMobileBox" style="margin-top:14px; display:none;">
-        <button class="p-task-btn big-action-btn" style="background:#5e111a; border:3px solid var(--mono-pink); box-shadow:0 0 16px var(--mono-pink); font-size:1.15rem;" onclick="sendStg6FinalBlow()">
-          💥 ยิงกระสุนความจริงนัดสุดท้าย: [มีดปอกผลไม้ในมือ B]!
+      <h3 style="color:var(--mono-yellow); margin-bottom:6px; font-weight:900;">Debate Scrum: เลือกดันฝั่งที่คุณเชื่อมั่น!</h3>
+      <p style="font-size:0.88rem; color:#ccc; margin-bottom:14px;">หัวข้อ: "${topicLabel}"</p>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <button class="p-task-btn big-action-btn" style="background:#381119; border:3px solid #ff2255; box-shadow:4px 4px 0 #000; font-size:1.02rem;" onclick="broadcast({type:'stg5_scrum',delta:-4})">
+          👈 ดัน ${leftLabel} (-4%)
+        </button>
+        <button class="p-task-btn big-action-btn" style="background:#12351e; border:3px solid #00ff88; box-shadow:4px 4px 0 #000; font-size:1.02rem;" onclick="broadcast({type:'stg5_scrum',delta:4})">
+          👉 ดัน ${rightLabel} (+4%)
         </button>
       </div>
     `;
+  } else if (stage === 'stage6') {
+    const targetName = gameState.stg6TargetPlayer || 'นักมายากล (A)';
+    const isTarget = Boolean(myPlayer && (
+      myPlayer.name === targetName ||
+      targetName.includes(myPlayer.name)
+    ));
+
+    if (isTarget) {
+      area.innerHTML = `
+        <div style="background:rgba(40,10,20,0.95); border:2px solid var(--mono-pink); border-radius:10px; padding:16px; text-align:center;">
+          <h3 style="color:var(--mono-pink); margin-bottom:8px; font-weight:900;">⚠️ คุณกำลังถูกทั้งศาลชั้นเรียนต้อนจนมุม!</h3>
+          <p style="color:#ddd; font-size:0.9rem; margin-bottom:14px;">เพื่อนๆ กำลังรุมทุบทำลายข้ออ้างของคุณ! กดปุ่มโต้กลับเพื่อฟื้นฟูเกราะการปฏิเสธ!</p>
+          <button class="p-task-btn big-action-btn" style="background:#5e111a; border:3px solid var(--mono-pink); box-shadow:0 0 16px var(--mono-pink); font-size:1.1rem; color:#fff;" onclick="broadcast({type:'stg6_counter', playerName: myPlayer ? myPlayer.name : 'ผู้ถูกต้อน'})">
+            🛡️ ตอกกลับข้อกล่าวหา! (+4% Shield)
+          </button>
+        </div>
+      `;
+    } else {
+      area.innerHTML = `
+        <h3 style="color:var(--mono-yellow); margin-bottom:6px; font-weight:900;">Argument Armament: รุมทุบเกราะคนร้าย!</h3>
+        <p style="font-size:0.88rem; color:#ccc; margin-bottom:14px;">ผู้ถูกต้อน: <strong style="color:var(--mono-pink);">${targetName}</strong></p>
+        <button class="p-task-btn big-action-btn" style="background:#423414; border:3px solid var(--mono-yellow); box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg6_hit', playerName: myPlayer ? myPlayer.name : 'ผู้เล่น'})">
+          🔨 ทุบเกราะความจริง! (-5% Shield)
+        </button>
+        <div id="finalBlowMobileBox" style="margin-top:14px; display:none;">
+          <button class="p-task-btn big-action-btn" style="background:#5e111a; border:3px solid var(--mono-pink); box-shadow:0 0 16px var(--mono-pink); font-size:1.15rem;" onclick="sendStg6FinalBlow()">
+            💥 ยิงกระสุนความจริงนัดสุดท้าย: [มีดปอกผลไม้ในมือ B]!
+          </button>
+        </div>
+      `;
+    }
   } else if (stage === 'closing') {
     const allCards = [
       { id: 'EVD-14', title: 'เหยื่อ B ฟื้นสติและใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง' },
@@ -3586,23 +3664,60 @@ function renderMobileTask(stage) {
       <div>${cardButtons}</div>
     `;
   } else if (stage === 'stage7') {
-    const candidates = getVotingCandidates();
-    let btns = candidates.map(c => {
-      const isMyVote = (myPlayer && myPlayer.votedFor === c);
-      const safeEscaped = c.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      return `<button class="p-task-btn vote-option-btn ${isMyVote ? 'btn-selected' : ''}" onclick="submitPlayerVote('${safeEscaped}')">
-        👉 โหวต: ${c} ${isMyVote ? ' ✓' : ''}
-      </button>`;
-    }).join('');
-    area.innerHTML = `
-      <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">โหวตเลือก Blackened ผู้ปลิดชีพ B:</h3>
-      <div class="mobile-task-grid">${btns}</div>
-    `;
+    const voterId = myPlayer ? myPlayer.id : (currentUserHash || 'p_anon');
+    const myVotedCand = (gameState.votesCast && gameState.votesCast[voterId]) || (myPlayerVoted ? 'บันทึกแล้ว' : null);
+
+    if (myVotedCand) {
+      area.innerHTML = `
+        <div style="background:rgba(20,20,35,0.95); border:2px solid var(--court-gold); border-radius:10px; padding:20px; text-align:center;">
+          <div style="font-size:2.5rem; margin-bottom:10px;">🗳️</div>
+          <h3 style="color:var(--court-gold); margin-bottom:8px; font-weight:900;">บันทึกการลงคะแนนเรียบร้อยแล้ว!</h3>
+          <p style="color:#ddd; font-size:0.95rem;">คุณได้ลงคะแนนให้: <strong style="color:var(--mono-pink);">${myVotedCand}</strong></p>
+          <p style="color:#888; font-size:0.85rem; margin-top:10px;">ผลคะแนนจะถูกปิดเป็นความลับจนกว่าทุกคนจะลงคะแนนเสร็จสิ้น หรือหมดเวลา!</p>
+        </div>
+      `;
+    } else {
+      const candidates = getVotingCandidates();
+      let btns = candidates.map(c => {
+        const safeEscaped = c.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        return `<button class="p-task-btn vote-option-btn" onclick="submitPlayerVote('${safeEscaped}')">
+          👉 โหวต: ${c}
+        </button>`;
+      }).join('');
+      area.innerHTML = `
+        <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">โหวตเลือก Blackened ผู้ปลิดชีพ B:</h3>
+        <div class="mobile-task-grid" id="mobileVoteGrid">${btns}</div>
+      `;
+    }
   }
 }
 
 function sendStg1(id) {
-  broadcast({ type: 'stg1_submit', clueId: id, playerName: myPlayer ? myPlayer.name : 'ผู้เล่น' });
+  const pName = myPlayer ? myPlayer.name : 'ผู้เล่น';
+  broadcast({ type: 'stg1_submit', clueId: id, playerName: pName });
+  if (!gameState.stg1SubmissionsList) gameState.stg1SubmissionsList = [];
+  const existingIdx = gameState.stg1SubmissionsList.findIndex(s => s.pName === pName);
+  if (existingIdx >= 0) {
+    gameState.stg1SubmissionsList[existingIdx].clueId = id;
+  } else {
+    gameState.stg1SubmissionsList.push({ pName: pName, clueId: id });
+  }
+  const grid = document.getElementById('stg1MobileGrid');
+  const fb = document.getElementById('stg1MobileFeedback');
+  if (grid) {
+    Array.from(grid.children).forEach(b => {
+      b.classList.remove('btn-selected');
+      if (b.getAttribute('data-clue') === id) {
+        b.classList.add('btn-selected');
+      }
+    });
+    grid.style.pointerEvents = 'none';
+  }
+  if (fb) {
+    const clueObj = ALL_CLUES_DATA.find(c => c.id === id) || { id: id, name: id };
+    fb.style.display = 'block';
+    fb.innerHTML = `✅ คุณเลือก [${id}: ${clueObj.name}] เรียบร้อยแล้ว (รอผลสรุปพร้อมเพื่อน)`;
+  }
 }
 
 function sendStg2Char(char) {
@@ -3668,7 +3783,11 @@ function submitPlayerVote(cand) {
   if (myPlayerVoted) return;
   myPlayerVoted = true;
   const voterId = myPlayer ? myPlayer.id : (currentUserHash || 'p_anon');
+  if (!gameState.votesCast) gameState.votesCast = {};
+  gameState.votesCast[voterId] = cand;
   broadcast({ type: 'submit_vote', candidate: cand, voterId: voterId });
+  const grid = document.getElementById('mobileVoteGrid');
+  if (grid) grid.style.pointerEvents = 'none';
   const area = document.getElementById('mobileTaskArea');
   if (area) {
     area.innerHTML = `
@@ -3832,15 +3951,29 @@ function adminAdjustPlayerCred(peerId, delta) {
   logCourt(`💔 [CREDIBILITY]: DM ปรับความน่าเชื่อถือของ [${p.name}] เป็น ${p.credibility}/5 ดวง`);
 }
 
+function updateRebuttalDisplay() {
+  const accEl = document.getElementById('rebuttalAccuser');
+  const oppEl = document.getElementById('rebuttalSuspect');
+  if (accEl) accEl.innerText = gameState.stg3Challenger ? `ฝ่ายกล่าวหา: ${gameState.stg3Challenger}` : 'ฝ่ายกล่าวหา';
+  if (oppEl) oppEl.innerText = gameState.stg3Opponent ? `ฝ่ายโต้แย้ง: ${gameState.stg3Opponent}` : 'ฝ่ายโต้แย้ง';
+  const stmtEl = document.getElementById('rebuttalStatement');
+  if (stmtEl && gameState.stg3Argument) stmtEl.innerText = `"${gameState.stg3Argument}"`;
+}
+
+function adminStartRebuttal() {
+  const rebSel = document.getElementById('adminRebuttalChallengerSelect');
+  const rebOppSel = document.getElementById('adminRebuttalOpponentSelect');
+  const chal = rebSel ? rebSel.value : '';
+  const opp = rebOppSel ? rebOppSel.value : 'สุดยอดนักมายากล';
+  adminSetGame('stage3', { challenger: chal, opponent: opp });
+}
+
 function adminSelectRebuttalChallengers() {
   const rebSel = document.getElementById('adminRebuttalChallengerSelect');
   const rebOppSel = document.getElementById('adminRebuttalOpponentSelect');
   if (rebSel) gameState.stg3Challenger = rebSel.value;
   if (rebOppSel) gameState.stg3Opponent = rebOppSel.value;
-  const accEl = document.getElementById('rebuttalAccuser');
-  const oppEl = document.getElementById('rebuttalSuspect');
-  if (accEl) accEl.innerText = gameState.stg3Challenger ? `ฝ่ายกล่าวหา: ${gameState.stg3Challenger}` : 'ฝ่ายกล่าวหา';
-  if (oppEl) oppEl.innerText = gameState.stg3Opponent ? `ฝ่ายโต้แย้ง: ${gameState.stg3Opponent}` : 'ฝ่ายโต้แย้ง';
+  updateRebuttalDisplay();
   broadcast({
     type: 'rebuttal_challengers',
     challenger: gameState.stg3Challenger,
@@ -3863,9 +3996,9 @@ function updateAdminDisplay() {
     rebSel.innerHTML = '<option value="">(ทุกคนในห้อง / อิสระ)</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
-      opt.value = p.name;
+      opt.value = `${p.name} [${p.role}]`;
       opt.innerText = `${p.name} [${p.role}]`;
-      if (p.name === curVal) opt.selected = true;
+      if (opt.value === curVal || p.name === curVal) opt.selected = true;
       rebSel.appendChild(opt);
     });
   }
@@ -3875,10 +4008,23 @@ function updateAdminDisplay() {
     rebOppSel.innerHTML = '<option value="สุดยอดนักมายากล">NPC: สุดยอดนักมายากล</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
-      opt.value = p.name;
+      opt.value = `${p.name} [${p.role}]`;
       opt.innerText = `${p.name} [${p.role}]`;
-      if (p.name === curOpp) opt.selected = true;
+      if (opt.value === curOpp || p.name === curOpp) opt.selected = true;
       rebOppSel.appendChild(opt);
+    });
+  }
+
+  const armTargetSel = document.getElementById('adminArmamentTargetSelect');
+  if (armTargetSel) {
+    const curVal = armTargetSel.value;
+    armTargetSel.innerHTML = '<option value="นักมายากล (A)">NPC: นักมายากล (A)</option>';
+    players.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = `${p.name} [${p.role}]`;
+      opt.innerText = `${p.name} [${p.role}]`;
+      if (opt.value === curVal || p.name === curVal) opt.selected = true;
+      armTargetSel.appendChild(opt);
     });
   }
 
@@ -4526,6 +4672,9 @@ function logSimEvent(msg) {
   } else if (msg.type === 'stg5_scrum') {
     entry.className += ' player';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🔥 <strong>[MOBILE -> COURT]</strong>: รัวปุ่มดัน Scrum! (Delta: <strong>' + (msg.delta > 0 ? '+' : '') + msg.delta + '%</strong>)';
+  } else if (msg.type === 'stg6_counter') {
+    entry.className += ' player';
+    entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🛡️ <strong>[MOBILE -> COURT]</strong>: ' + (msg.playerName || 'ผู้ถูกต้อน') + ' ตอกกลับข้อกล่าวหา (+4% Shield)!';
   } else if (msg.type === 'stg6_hit') {
     entry.className += ' player';
     entry.innerHTML = '<span class="log-time">[' + timeStr + ']</span> 🔨 <strong>[MOBILE -> COURT]</strong>: ' + (msg.playerName || 'ผู้เล่น') + ' ทุบเกราะความจริง (-10% Shield)!';
