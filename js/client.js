@@ -1336,6 +1336,16 @@ window.addEventListener('popstate', () => {
 function switchView(v) {
   currentView = v;
 
+  // Clear background polling intervals when switching away (Fixes E-01, E-02)
+  if (v !== 'hub' && hubRoomsPollingInterval) {
+    clearInterval(hubRoomsPollingInterval);
+    hubRoomsPollingInterval = null;
+  }
+  if (v !== 'court' && courtHeartbeatInterval) {
+    clearInterval(courtHeartbeatInterval);
+    courtHeartbeatInterval = null;
+  }
+
   // Set active view class on root elements to control navigation button visibility
   ['view-is-hub', 'view-is-court', 'view-is-admin', 'view-is-player', 'view-is-simulation'].forEach(cls => {
     document.documentElement.classList.remove(cls);
@@ -2745,15 +2755,19 @@ function getActiveHangmanPlayer() {
 
 function handleStg2Char(char) {
   let matched = false;
+  let newlyRevealed = false;
   const upChar = char.toUpperCase();
   gameState.stg2Target.forEach((targetChar, idx) => {
     if (targetChar.toUpperCase() === upChar) {
+      if (gameState.stg2Board[idx] === '_') {
+        newlyRevealed = true;
+      }
       gameState.stg2Board[idx] = targetChar;
       matched = true;
     }
   });
 
-  if (matched) {
+  if (matched && newlyRevealed) {
     playSfx('correct');
     updateHangmanDisplay();
     if (!gameState.stg2Board.includes('_')) {
@@ -2868,7 +2882,8 @@ function triggerRebuttalVerdict(isWin, skipBroadcast = false) {
 }
 
 function adminRebuttalVerdict(isWin) {
-  triggerRebuttalVerdict(isWin, false);
+  triggerRebuttalVerdict(isWin, true);
+  broadcast({ type: 'rebuttal_verdict', isWin: isWin });
 }
 
 function adminSelectRebuttalChallenger() {
@@ -2949,14 +2964,16 @@ function evaluateLogicDiveMajority() {
     if (tally[ch] !== undefined) tally[ch]++;
   });
 
+  const maxVotes = Math.max(tally.A, tally.B, tally.C);
+  const topChoices = ['A', 'B', 'C'].filter(ch => tally[ch] === maxVotes && maxVotes > 0);
   let winningChoice = 'A';
-  let maxVotes = -1;
-  ['A', 'B', 'C'].forEach(ch => {
-    if (tally[ch] > maxVotes) {
-      maxVotes = tally[ch];
-      winningChoice = ch;
-    }
-  });
+  if (topChoices.length === 1) {
+    winningChoice = topChoices[0];
+  } else if (topChoices.length > 1) {
+    winningChoice = topChoices[Math.floor(Math.random() * topChoices.length)];
+  } else {
+    winningChoice = currentData.correct;
+  }
 
   if (winningChoice === currentData.correct) {
     playSfx('correct');
@@ -3113,18 +3130,20 @@ function handleStg6Hit(pName) {
       playSfx('break');
       logCourt(`💥 [ARMAMENT BREAK]: ทลายเกราะคลื่นที่ ${gameState.stg6Wave - 1} สำเร็จ! คนร้ายสติแตกเข้าสู่คลื่นที่ ${gameState.stg6Wave}!`);
       updateShieldDisplay();
-      broadcast({ type: 'sync_state', state: gameState });
+      if (isHost) broadcast({ type: 'sync_state', state: gameState });
     } else {
       playSfx('break');
       const banner = document.getElementById('armamentFinalBlowBanner');
       if (banner) banner.classList.remove('hidden');
       logCourt(`💥 [ARMAMENT READY]: เกราะการปฏิเสธของคนร้ายพังทลายสิ้นเชิง! เล็งยิงกระสุนความจริงนัดสุดท้าย!`);
-      broadcast({ type: 'armament_final_ready' });
+      if (isHost) broadcast({ type: 'armament_final_ready' });
     }
   }
 }
 
 function handleStg6FinalBlow(pName) {
+  if (gameState.stg6Finished) return;
+  gameState.stg6Finished = true;
   stopTimer();
   playSfx('counter');
   setTimeout(() => {
@@ -3196,7 +3215,7 @@ function handleClosingSubmit(slot, cardId, pName) {
         );
       }, 500);
     }
-    broadcast({ type: 'sync_state', state: gameState });
+    if (isHost) broadcast({ type: 'sync_state', state: gameState });
   } else {
     gameState.influence = Math.max(0, gameState.influence - 10);
     updateInfluenceDisplay();
@@ -3425,6 +3444,9 @@ function playerJoin() {
 }
 
 function renderMobileTask(stage) {
+  if (stage !== 'stage7') {
+    myPlayerVoted = false;
+  }
   const area = document.getElementById('mobileTaskArea');
   if (!area) return;
   area.innerHTML = '';

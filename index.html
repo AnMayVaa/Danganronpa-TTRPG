@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>DANGANRONPA TRPG: CLASS TRIAL SYSTEM</title>
   <link rel="stylesheet" href="/css/style.css">
   <!-- Early view detection script: immediately hides other page navigation buttons on Court and PC views -->
@@ -23,7 +23,6 @@
   <!-- PeerJS for 100% Real-time Serverless WebRTC (Works on Vercel & Local) -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <!-- Socket.io for local server fallback -->
-  <script src="/socket.io/socket.io.js"></script>
 </head>
 <body class="dangan-body">
 
@@ -160,6 +159,15 @@
         <span style="color:#fff; font-weight:900; font-size:1.1rem; letter-spacing:1px;">⚖️ CLASS TRIAL SESSION // ศาลชั้นเรียน</span>
       </div>
 
+      <!-- Court Influence Gauge (Fixes F-01) -->
+      <div class="court-influence-gauge" style="display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.6); padding:4px 12px; border-radius:6px; border:1px solid #333355;">
+        <span style="font-size:0.75rem; font-weight:800; color:#ffe600; white-space:nowrap;">INFLUENCE:</span>
+        <div style="width:100px; height:10px; background:#222; border-radius:5px; overflow:hidden; border:1px solid #555;">
+          <div id="courtInfluenceBar" style="width:100%; height:100%; background:linear-gradient(90deg, #00ff88, #ffe600, #ff2e63); transition:width 0.3s;"></div>
+        </div>
+        <span id="courtInfluenceTxt" style="font-size:0.75rem; font-weight:900; color:#00ff88; min-width:35px;">100%</span>
+      </div>
+
       <!-- Monokuma Countdown Clock (Shown only during timed mini-games) -->
       <div class="monokuma-clock hidden">
         <div class="clock-label">TIME LIMIT</div>
@@ -204,7 +212,7 @@
           <!-- QR Code Box for PC Mobile Scan -->
           <div class="court-qr-card">
             <div class="qr-frame">
-              <img id="courtQrImg" src="" alt="QR Code เข้าร่วมศาล" class="qr-img">
+              <img id="courtQrImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E" alt="QR Code เข้าร่วมศาล" class="qr-img">
             </div>
             <div class="qr-caption">📷 สแกน QR Code ด้วยมือถือเพื่อเข้าเล่น</div>
           </div>
@@ -248,6 +256,12 @@
 
         <div class="court-podiums-header" style="font-size:1.25rem;">แท่นโพเดียมประจำตำแหน่งนักเรียน (<span id="courtTrialPlayerCount">0</span> คน):</div>
         <div id="courtTrialPodiumList" class="podium-grid" style="max-width:1000px; margin:0 auto 24px auto;"></div>
+
+        <!-- Trial Discussion Log (Fixes F-01) -->
+        <div class="court-trial-log-box" style="margin-top:12px; background:rgba(10,10,20,0.8); border:1px solid #333355; border-radius:8px; padding:10px;">
+          <div style="font-size:0.8rem; font-weight:800; color:#888; margin-bottom:4px;">📜 บันทึกการอภิปรายศาล:</div>
+          <div id="courtLogTrial" style="max-height:100px; overflow-y:auto; font-family:monospace; font-size:0.78rem; color:#aaa;"></div>
+        </div>
 
 
       </div>
@@ -367,7 +381,7 @@
         <div class="rebuttal-quote" id="rebuttalStatement">
           "ฉันอยู่แต่ในครัวตลอดเวลา จะไปเอาเวลาที่ไหนไปทำร้ายหมอนั่นได้!?"
         </div>
-        <div id="rebuttalSlashFx" class="rebuttal-slash-fx hidden" style="display:none;">
+        <div id="rebuttalSlashFx" class="rebuttal-slash-fx hidden">
           <div class="slash-line"></div>
           <div class="slash-text">BLADE OF TRUTH!</div>
         </div>
@@ -504,7 +518,7 @@
       </div>
 
       <!-- UNIVERSAL MINIGAME FINAL RESULT MODAL OVERLAY -->
-      <div id="courtResultModal" class="court-result-overlay hidden" style="display:none;">
+      <div id="courtResultModal" class="court-result-overlay hidden">
         <div class="court-result-card" id="courtResultCard">
           <div class="result-emblem" id="resultEmblem">🏆</div>
           <div class="result-badge-strip" id="resultBadge">MINI-GAME CLEARED</div>
@@ -518,7 +532,7 @@
       </div>
 
       <!-- MONOKUMA PUNISHMENT EXECUTION CUTSCENE -->
-      <div id="monokumaExecutionModal" class="execution-cutscene-overlay hidden" style="display:none;">
+      <div id="monokumaExecutionModal" class="execution-cutscene-overlay hidden">
         <div class="execution-siren-light"></div>
         <div class="execution-content-box">
           <div class="execution-top-banner">
@@ -1032,7 +1046,7 @@
             <span class="sim-panel-status live">LIVE STREAM</span>
           </div>
           <div class="sim-iframe-wrap court-wrap">
-            <iframe id="simFrameCourt" class="sim-iframe" src="about:blank"></iframe>
+            <iframe id="simFrameCourt" class="sim-iframe" src="about:blank" title="Court Projector Screen"></iframe>
           </div>
         </div>
 
@@ -1050,7 +1064,7 @@
               <span class="sim-panel-status live">DM READY</span>
             </div>
             <div class="sim-iframe-wrap mobile-wrap" id="simAdminIframeWrap">
-              <iframe id="simFrameAdmin" class="sim-iframe" src="about:blank"></iframe>
+              <iframe id="simFrameAdmin" class="sim-iframe" src="about:blank" title="DM Admin Dashboard"></iframe>
             </div>
           </div>
 
@@ -1062,7 +1076,7 @@
               <span class="sim-panel-status live">LIVE</span>
             </div>
             <div class="sim-iframe-wrap mobile-wrap">
-              <iframe id="simFramePlayer1" class="sim-iframe" src="about:blank"></iframe>
+              <iframe id="simFramePlayer1" class="sim-iframe" src="about:blank" title="Player 1 - Naegi"></iframe>
             </div>
           </div>
 
@@ -1074,7 +1088,7 @@
               <span class="sim-panel-status live">LIVE</span>
             </div>
             <div class="sim-iframe-wrap mobile-wrap">
-              <iframe id="simFramePlayer2" class="sim-iframe" src="about:blank"></iframe>
+              <iframe id="simFramePlayer2" class="sim-iframe" src="about:blank" title="Player 2 - Kyoko"></iframe>
             </div>
           </div>
 
@@ -1086,7 +1100,7 @@
               <span class="sim-panel-status live">LIVE</span>
             </div>
             <div class="sim-iframe-wrap mobile-wrap">
-              <iframe id="simFramePlayer3" class="sim-iframe" src="about:blank"></iframe>
+              <iframe id="simFramePlayer3" class="sim-iframe" src="about:blank" title="Player 3 - Byakuya"></iframe>
             </div>
           </div>
 
@@ -1098,7 +1112,7 @@
               <span class="sim-panel-status live">LIVE</span>
             </div>
             <div class="sim-iframe-wrap mobile-wrap">
-              <iframe id="simFramePlayer4" class="sim-iframe" src="about:blank"></iframe>
+              <iframe id="simFramePlayer4" class="sim-iframe" src="about:blank" title="Player 4 - Aoi"></iframe>
             </div>
           </div>
         </div>
@@ -1121,7 +1135,7 @@
   <!-- ============================================== -->
   <!-- PIN MODAL FOR /ADMIN (PIN: 295437)             -->
   <!-- ============================================== -->
-  <div id="pinModal" class="modal-backdrop hidden" style="display: none;">
+  <div id="pinModal" class="modal-backdrop hidden">
     <div class="pin-modal">
       <div class="slanted-banner yellow">SECURITY CHECK</div>
       <h2 class="pin-title">🔒 ใส่รหัสผ่านผู้ดูแลศาล</h2>
@@ -1152,7 +1166,7 @@
   </div>
 
   <!-- Fullscreen Glitch FX Overlay -->
-  <div id="screenGlitch" class="screen-glitch-layer hidden" style="display: none;">
+  <div id="screenGlitch" class="screen-glitch-layer hidden">
     <div class="glitch-warning-box">
       <div class="glitch-icon">⚡⚡⚡</div>
       <div class="glitch-title">WARNING: SYSTEM JAMMED</div>

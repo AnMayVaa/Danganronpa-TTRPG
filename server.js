@@ -21,13 +21,43 @@ const roomSubscribers = new Map();
 // In-Memory Message Buffer (roomCode -> Array of last 50 messages)
 const roomMessageBuffers = new Map();
 
+// Universal safe body parser with 1MB limit (Fixes BUG-04, BUG-12, BUG-15)
+function parseBody(req, cb) {
+  if (req.body !== undefined && req.body !== null) {
+    if (typeof req.body === 'object') return cb(null, req.body);
+    try {
+      return cb(null, JSON.parse(req.body || '{}'));
+    } catch (err) {
+      return cb(err, null);
+    }
+  }
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk;
+    if (body.length > 1e6) { // 1MB payload limit
+      req.destroy();
+      return cb(new Error('Payload too large'), null);
+    }
+  });
+  req.on('end', () => {
+    try {
+      cb(null, JSON.parse(body || '{}'));
+    } catch (err) {
+      cb(err, null);
+    }
+  });
+  req.on('error', err => cb(err, null));
+}
+
+// Clean stale rooms only if NO active subscribers exist (Fixes BUG-09)
 function cleanStaleRooms() {
   const now = Date.now();
   for (const [code, r] of activeRooms.entries()) {
-    if (now - r.lastHeartbeat > 75000) {
+    const subs = roomSubscribers.get(code);
+    const hasActiveSubs = subs && subs.size > 0;
+    if (now - r.lastHeartbeat > 75000 && !hasActiveSubs) {
       activeRooms.delete(code);
       roomMessageBuffers.delete(code);
-      const subs = roomSubscribers.get(code);
       if (subs) {
         subs.forEach(res => {
           try { res.end(); } catch(e) {}
@@ -49,10 +79,11 @@ setInterval(() => {
 }, 12000);
 
 function requestHandler(req, res) {
-  // Universal CORS Headers
+  // Universal CORS Headers with preflight caching (Fixes BUG-16)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Authorization, Cache-Control, Last-Event-ID, X-Admin-PIN');
+  res.setHeader('Access-Control-Max-Age', '86400');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -62,29 +93,17 @@ function requestHandler(req, res) {
 
   let cleanUrl = (req.url || '/').split('?')[0];
 
-  // Helper to read payload whether pre-parsed by Vercel/Express or raw Node stream
-  const getPayload = (cb) => {
-    if (req.body) {
-      const parsed = typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}');
-      cb(null, parsed);
-      return;
-    }
-    let body = '';
-    req.on('data', chunk => { body += chunk; });
-    req.on('end', () => {
-      try {
-        cb(null, JSON.parse(body || '{}'));
-      } catch (err) {
-        cb(err, null);
-      }
-    });
-  };
-
   // -------------------------------------------------------------
-  // 1. SSE REAL-TIME STREAM: GET /api/rooms/:code/stream
+  // 1. SSE REAL-TIME STREAM: GET /api/rooms/:code/stream (Fixes BUG-08, BUG-11, BUG-20)
   // -------------------------------------------------------------
   const streamMatch = cleanUrl.match(/^\/api\/rooms\/([A-Za-z0-9_-]+)\/stream$/i);
-  if (streamMatch && req.method === 'GET') {
+  if (streamMatch) {
+    if (req.method !== 'GET') {
+      res.writeHead(405, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Method Not Allowed' }));
+      return;
+    }
+
     const code = streamMatch[1].toUpperCase();
 
     res.writeHead(200, {
@@ -93,6 +112,7 @@ function requestHandler(req, res) {
       'Connection': 'keep-alive',
       'X-Accel-Buffering': 'no'
     });
+    res.write('retry: 3000\n\n');
     res.write(': connected\n\n');
 
     if (!roomSubscribers.has(code)) {
@@ -100,6 +120,14 @@ function requestHandler(req, res) {
     }
     const subs = roomSubscribers.get(code);
     subs.add(res);
+
+    // Replay buffered messages to reconnecting client (Fixes BUG-11)
+    const buf = roomMessageBuffers.get(code);
+    if (buf && buf.length > 0) {
+      buf.forEach(m => {
+        try { res.write(`data: ${JSON.stringify(m)}\n\n`); } catch(e) {}
+      });
+    }
 
     // Keep active room timestamp fresh
     if (activeRooms.has(code)) {
@@ -116,12 +144,18 @@ function requestHandler(req, res) {
   }
 
   // -------------------------------------------------------------
-  // 2. REAL-TIME BROADCAST API: POST /api/rooms/:code/broadcast
+  // 2. REAL-TIME BROADCAST API: POST /api/rooms/:code/broadcast (Fixes BUG-08)
   // -------------------------------------------------------------
   const broadcastMatch = cleanUrl.match(/^\/api\/rooms\/([A-Za-z0-9_-]+)\/broadcast$/i);
-  if (broadcastMatch && req.method === 'POST') {
+  if (broadcastMatch) {
+    if (req.method !== 'POST') {
+      res.writeHead(405, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Method Not Allowed' }));
+      return;
+    }
+
     const code = broadcastMatch[1].toUpperCase();
-    getPayload((err, msg) => {
+    parseBody(req, (err, msg) => {
       if (err || !msg) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
@@ -172,41 +206,48 @@ function requestHandler(req, res) {
   const stateMatch = cleanUrl.match(/^\/api\/rooms\/([A-Za-z0-9_-]+)\/state$/i);
   if (stateMatch) {
     const code = stateMatch[1].toUpperCase();
-    let room = activeRooms.get(code);
-    if (!room) {
-      room = { roomCode: code, createdAt: Date.now(), lastHeartbeat: Date.now(), playersCount: 0, stage: 'lobby', state: null };
-      activeRooms.set(code, room);
-    }
 
     if (req.method === 'GET') {
+      const room = activeRooms.get(code);
+      if (!room) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Room not found' }));
+        return;
+      }
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: true, state: room.state }));
       return;
     }
 
     if (req.method === 'POST') {
-      let body = '';
-      req.on('data', chunk => { body += chunk; });
-      req.on('end', () => {
-        try {
-          const data = JSON.parse(body || '{}');
-          room.state = data.state || data;
-          room.lastHeartbeat = Date.now();
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true }));
-        } catch (err) {
+      parseBody(req, (err, data) => {
+        if (err || !data) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
+          return;
         }
+        let room = activeRooms.get(code);
+        if (!room) {
+          room = { roomCode: code, createdAt: Date.now(), lastHeartbeat: Date.now(), playersCount: 0, stage: 'lobby', state: null };
+          activeRooms.set(code, room);
+        }
+        room.state = data.state || data;
+        room.lastHeartbeat = Date.now();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
       });
       return;
     }
+
+    res.writeHead(405, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: false, error: 'Method Not Allowed' }));
+    return;
   }
 
   // -------------------------------------------------------------
-  // 4. ACTIVE ROOMS REST API: GET, POST, DELETE /api/rooms
+  // 4. ACTIVE ROOMS REST API: GET, POST, DELETE /api/rooms (Fixes BUG-10)
   // -------------------------------------------------------------
-  if (cleanUrl === '/api/rooms' || cleanUrl.startsWith('/api/rooms/')) {
+  if (cleanUrl === '/api/rooms' || cleanUrl === '/api/rooms/') {
     cleanStaleRooms();
 
     if (req.method === 'GET') {
@@ -218,62 +259,93 @@ function requestHandler(req, res) {
     }
 
     if (req.method === 'POST') {
-      let body = '';
-      req.on('data', chunk => { body += chunk; });
-      req.on('end', () => {
-        try {
-          const data = JSON.parse(body || '{}');
-          const code = (data.roomCode || '').trim().toUpperCase();
-          if (!code) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, error: 'Missing roomCode' }));
-            return;
-          }
-
-          if (data.action === 'delete') {
-            activeRooms.delete(code);
-            roomMessageBuffers.delete(code);
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, deleted: code }));
-            return;
-          }
-
-          const existing = activeRooms.get(code);
-          const roomObj = {
-            roomCode: code,
-            createdAt: existing ? existing.createdAt : Date.now(),
-            lastHeartbeat: Date.now(),
-            playersCount: data.playersCount !== undefined ? data.playersCount : (existing ? existing.playersCount : 0),
-            stage: data.stage || (existing ? existing.stage : 'lobby'),
-            state: existing ? existing.state : null
-          };
-          activeRooms.set(code, roomObj);
-
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true, room: roomObj }));
-        } catch (e) {
+      parseBody(req, (err, data) => {
+        if (err || !data) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: 'Invalid JSON' }));
+          return;
         }
+        const code = (data.roomCode || '').trim().toUpperCase();
+        if (!code) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Missing roomCode' }));
+          return;
+        }
+
+        if (data.action === 'delete') {
+          activeRooms.delete(code);
+          roomMessageBuffers.delete(code);
+          const subs = roomSubscribers.get(code);
+          if (subs) {
+            subs.forEach(clientRes => {
+              try { clientRes.end('event: room_closed\ndata: {"closed":true}\n\n'); } catch(e) {}
+            });
+            roomSubscribers.delete(code);
+          }
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, deleted: code }));
+          return;
+        }
+
+        const existing = activeRooms.get(code);
+        const roomObj = {
+          roomCode: code,
+          createdAt: existing ? existing.createdAt : Date.now(),
+          lastHeartbeat: Date.now(),
+          playersCount: data.playersCount !== undefined ? data.playersCount : (existing ? existing.playersCount : 0),
+          stage: data.stage || (existing ? existing.stage : 'lobby'),
+          state: existing ? existing.state : null
+        };
+        activeRooms.set(code, roomObj);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, room: roomObj }));
       });
       return;
     }
 
-    if (req.method === 'DELETE') {
-      const parts = cleanUrl.split('/');
-      const code = parts[parts.length - 1].toUpperCase();
-      activeRooms.delete(code);
-      roomMessageBuffers.delete(code);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, deleted: code }));
-      return;
+    res.writeHead(405, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: false, error: 'Method Not Allowed' }));
+    return;
+  }
+
+  // DELETE /api/rooms/:code
+  const deleteRoomMatch = cleanUrl.match(/^\/api\/rooms\/([A-Za-z0-9_-]+)$/i);
+  if (deleteRoomMatch && req.method === 'DELETE') {
+    const code = deleteRoomMatch[1].toUpperCase();
+    activeRooms.delete(code);
+    roomMessageBuffers.delete(code);
+    const subs = roomSubscribers.get(code);
+    if (subs) {
+      subs.forEach(clientRes => {
+        try { clientRes.end('event: room_closed\ndata: {"closed":true}\n\n'); } catch(e) {}
+      });
+      roomSubscribers.delete(code);
     }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, deleted: code }));
+    return;
+  }
+
+  // If request is under /api/ but didn't match any route, return 404 JSON instead of HTML
+  if (cleanUrl.startsWith('/api/')) {
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: false, error: 'API route not found' }));
+    return;
   }
 
   // -------------------------------------------------------------
-  // 5. STATIC FILE SERVING WITH SPA FALLBACK
+  // 5. STATIC FILE SERVING WITH PATH TRAVERSAL JAIL (Fixes BUG-06)
   // -------------------------------------------------------------
-  let filePath = path.join(__dirname, cleanUrl);
+  // Normalize path and ensure it stays inside __dirname
+  const safePath = path.normalize(path.join(__dirname, cleanUrl));
+  if (!safePath.startsWith(__dirname)) {
+    res.writeHead(403, { 'Content-Type': 'text/plain' });
+    res.end('Forbidden');
+    return;
+  }
+
+  let filePath = safePath;
 
   if (cleanUrl === '/' || cleanUrl === '') {
     filePath = path.join(__dirname, 'index.html');
@@ -282,8 +354,8 @@ function requestHandler(req, res) {
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
       // Check public folder
-      const publicPath = path.join(__dirname, 'public', cleanUrl);
-      if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
+      const publicPath = path.normalize(path.join(__dirname, 'public', cleanUrl));
+      if (publicPath.startsWith(__dirname) && fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
         filePath = publicPath;
       } else {
         // SPA Fallback to index.html
