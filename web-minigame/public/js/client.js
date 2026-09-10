@@ -127,10 +127,22 @@ async function deleteActiveRoom(code) {
   } catch(e) {}
 }
 
+function dismissActiveRooms() {
+  const container = document.getElementById('hubActiveRoomsSection');
+  if (container) container.classList.add('hidden');
+  try { sessionStorage.setItem('dangan_active_rooms_dismissed', '1'); } catch(e) {}
+}
+
 async function fetchActiveRooms() {
   const container = document.getElementById('hubActiveRoomsSection');
   const listEl = document.getElementById('activeRoomsList');
   if (!container || !listEl) return;
+  try {
+    if (sessionStorage.getItem('dangan_active_rooms_dismissed') === '1') {
+      container.classList.add('hidden');
+      return;
+    }
+  } catch(e) {}
 
   let rooms = [];
   try {
@@ -1175,6 +1187,26 @@ function handleIncomingMessage(msg, senderConn) {
     showMinigameResult(msg.success, msg.title, msg.desc, msg.details, true);
   } else if (msg.type === 'close_minigame_result') {
     closeCourtResultModal(true);
+    if (gameState.stage !== 'trial' && gameState.stage !== 'lobby') {
+      setStage('trial');
+    }
+  } else if (msg.type === 'adjust_player_cred') {
+    if (gameState.players && gameState.players[msg.playerId]) {
+      gameState.players[msg.playerId].credibility = msg.credibility;
+      updatePlayerDisplays();
+      updateAdminDisplay();
+      updateMobileCredDisplay();
+    }
+  } else if (msg.type === 'rebuttal_challengers') {
+    gameState.stg3Challenger = msg.challenger;
+    gameState.stg3Opponent = msg.opponent;
+    const accEl = document.getElementById('rebuttalAccuser');
+    const oppEl = document.getElementById('rebuttalSuspect');
+    if (accEl) accEl.innerText = gameState.stg3Challenger ? `ฝ่ายกล่าวหา: ${gameState.stg3Challenger}` : 'ฝ่ายกล่าวหา';
+    if (oppEl) oppEl.innerText = gameState.stg3Opponent ? `ฝ่ายโต้แย้ง: ${gameState.stg3Opponent}` : 'ฝ่ายโต้แย้ง';
+    if (currentView === 'player' && gameState.stage === 'stage3') {
+      renderMobileTask('stage3');
+    }
   } else if (msg.type === 'execution_cutscene') {
     triggerMonokumaExecutionCutscene(msg.isVictory, true);
   } else if (msg.type === 'close_execution_cutscene') {
@@ -2087,7 +2119,10 @@ function setStage(stage, config) {
     }
     const pBox = document.getElementById('courtStage1Prompt');
     if (pBox && gameState.stg1Prompt) pBox.innerText = `"${gameState.stg1Prompt}"`;
-    startTimer(60);
+    gameState.timeRemaining = 60;
+    gameState.timerRunning = false;
+    stopTimer();
+    updateTimerDisplay();
     playSfx('gavel');
   } else if (stage === 'stage2') {
     autoUnlockTrialClues();
@@ -2102,7 +2137,10 @@ function setStage(stage, config) {
     }
     updateHangmanHealthDisplay();
     updateHangmanDisplay();
-    startTimer(75);
+    gameState.timeRemaining = 75;
+    gameState.timerRunning = false;
+    stopTimer();
+    updateTimerDisplay();
     playSfx('gavel');
   } else if (stage === 'stage3') {
     autoUnlockTrialClues();
@@ -2114,7 +2152,10 @@ function setStage(stage, config) {
     if (oppEl) oppEl.innerText = gameState.stg3Opponent;
     const stmtEl = document.getElementById('rebuttalStatement');
     if (stmtEl && gameState.stg3Argument) stmtEl.innerText = `"${gameState.stg3Argument}"`;
-    startTimer(60);
+    gameState.timeRemaining = 60;
+    gameState.timerRunning = false;
+    stopTimer();
+    updateTimerDisplay();
     playSfx('rebuttal');
   } else if (stage === 'stage4') {
     autoUnlockTrialClues();
@@ -2126,7 +2167,10 @@ function setStage(stage, config) {
       crashNotice.style.display = 'none';
     }
     updateLogicDiveDisplay();
-    startTimer(45);
+    gameState.timeRemaining = 45;
+    gameState.timerRunning = false;
+    stopTimer();
+    updateTimerDisplay();
     playSfx('gavel');
   } else if (stage === 'stage5') {
     if (config) {
@@ -2141,7 +2185,10 @@ function setStage(stage, config) {
     const sRight = document.querySelector('#courtStage5 .scrum-side.right h3');
     if (sRight && gameState.stg5RightTeam) sRight.innerText = gameState.stg5RightTeam;
     gameState.stg5Meter = 50;
-    startTimer(60);
+    gameState.timeRemaining = 60;
+    gameState.timerRunning = false;
+    stopTimer();
+    updateTimerDisplay();
     playSfx('gavel');
   } else if (stage === 'stage6') {
     autoUnlockTrialClues();
@@ -2155,13 +2202,19 @@ function setStage(stage, config) {
     if (scEl) scEl.innerText = `"${gameState.stg6Statement}"`;
     const banner = document.getElementById('armamentFinalBlowBanner');
     if (banner) banner.classList.add('hidden');
-    startTimer(60);
+    gameState.timeRemaining = 60;
+    gameState.timerRunning = false;
+    stopTimer();
+    updateTimerDisplay();
     playSfx('gavel');
   } else if (stage === 'closing') {
     autoUnlockTrialClues();
     gameState.closingSlots = { 1: false, 2: false };
     updateClosingDisplay();
-    startTimer(90);
+    gameState.timeRemaining = 90;
+    gameState.timerRunning = false;
+    stopTimer();
+    updateTimerDisplay();
     playSfx('gavel');
     logCourt(`📖 [CLOSING ARGUMENT]: เริ่มต้นการปะติดปะต่อลำดับเหตุการณ์มังงะคดีความ!`);
   } else if (stage === 'stage7') {
@@ -2170,7 +2223,10 @@ function setStage(stage, config) {
     gameState.votesCast = {};
     gameState.votesRevealed = false;
     updateVoteDisplay();
-    startTimer(60);
+    gameState.timeRemaining = 60;
+    gameState.timerRunning = false;
+    stopTimer();
+    updateTimerDisplay();
     playSfx('vote_intro');
   } else if (stage === 'lobby') {
     logCourt(`🏛️ [LOBBY]: กลับสู่ห้องพิจารณาคดีหลัก`);
@@ -2494,7 +2550,14 @@ function closeCourtResultModal(skipBroadcast = false) {
     modal.classList.add('hidden');
     modal.style.display = 'none';
   }
-  if (!skipBroadcast && isHost) broadcast({ type: 'close_minigame_result' });
+  if (!skipBroadcast) {
+    if (gameState.stage !== 'trial' && gameState.stage !== 'lobby') {
+      setStage('trial');
+      if (isHost) broadcast({ type: 'set_stage', stage: 'trial' });
+    } else if (isHost) {
+      broadcast({ type: 'close_minigame_result' });
+    }
+  }
 }
 
 function triggerMonokumaExecutionCutscene(isVictory, skipBroadcast = false) {
@@ -3140,6 +3203,20 @@ function handleVoteSubmitted(candidate, voterId) {
   }
 }
 
+function getVotingCandidates() {
+  const players = Object.values(gameState.players || {});
+  const list = [];
+  if (players.length > 0) {
+    players.forEach(p => {
+      list.push(`${p.name} [${p.role}]`);
+    });
+  } else {
+    list.push('PC 1 (นักแต่งนิยาย)', 'PC 2 (นักกีฬา)');
+  }
+  list.push('NPC B (พยานปากเอก / ผู้ต้องสงสัย)');
+  return list;
+}
+
 function updateVoteDisplay() {
   const container = document.getElementById('courtVoteResults');
   const suspenseBox = document.getElementById('votingSuspenseCard');
@@ -3163,12 +3240,36 @@ function updateVoteDisplay() {
 
   if (container) {
     container.innerHTML = '';
-    const candidates = ['PC 1 (นักแต่งนิยาย)', 'PC 2 (นักกีฬา)', 'PC 3 (นักมายากล)', 'PC 4 (นักชิม)', 'PC 5 (นักแสดงผาดโผน)', 'PC 6 (ช่างกล)', 'NPC B (สุดยอดนักเอาตัวรอด)'];
+    const candidates = getVotingCandidates();
+
+    // Find highest voted candidate
+    let maxVotes = -1;
+    let topCandidate = null;
+    candidates.forEach(cand => {
+      const count = gameState.votes[cand] || 0;
+      if (count > maxVotes && count > 0) {
+        maxVotes = count;
+        topCandidate = cand;
+      }
+    });
+
+    if (gameState.votesRevealed && topCandidate) {
+      const spotlight = document.createElement('div');
+      spotlight.className = 'top-suspect-spotlight';
+      spotlight.innerHTML = `
+        <div class="top-suspect-title">🎯 บุคคลที่ถูกเสียงข้างมากชี้ตัวว่าเป็นคนร้าย (PRIMARY SUSPECT)</div>
+        <div class="top-suspect-name">${escapeHtml(topCandidate)}</div>
+        <div class="top-suspect-badge">${maxVotes} คะแนนโหวตสูงสุด</div>
+      `;
+      container.appendChild(spotlight);
+    }
+
     candidates.forEach(cand => {
       const card = document.createElement('div');
-      card.className = 'vote-card';
       const count = gameState.votes[cand] || 0;
-      card.innerHTML = `<span>👤 ${cand}</span><span class="vote-count-badge">${count} โหวต</span>`;
+      const isTop = (gameState.votesRevealed && count === maxVotes && maxVotes > 0);
+      card.className = 'vote-card' + (isTop ? ' highlight-suspect' : '');
+      card.innerHTML = `<span>👤 ${escapeHtml(cand)}</span><span class="vote-count-badge">${count} โหวต</span>`;
       container.appendChild(card);
     });
   }
@@ -3406,16 +3507,24 @@ function renderMobileTask(stage) {
     }
   } else if (stage === 'stage4') {
     const currentData = LOGIC_DIVE_DATA.find(d => d.step === gameState.stg4Step) || LOGIC_DIVE_DATA[0];
+    const myVote = (myPlayer && gameState.stg4Votes) ? (gameState.stg4Votes[myPlayer.id] || gameState.stg4Votes[currentUserHash]) : null;
+    const hasVoted = Boolean(myVote);
+
+    const choicesHtml = ['A', 'B', 'C'].map(ch => {
+      const isSelected = (myVote === ch);
+      return `<button class="p-task-btn ${isSelected ? 'btn-selected' : ''}" data-choice="${ch}" onclick="sendLogicDiveChoice('${ch}')">
+        <strong>${ch}:</strong> ${currentData.choices[ch]} ${isSelected ? ' ✓' : ''}
+      </button>`;
+    }).join('');
+
     area.innerHTML = `
       <h3 style="color:var(--court-gold); margin-bottom:10px; font-weight:900;">Logic Dive: เลือกทางแยกตรรกะ!</h3>
       <p style="font-size:0.9rem; color:#ddd; margin-bottom:12px;">${currentData.question}</p>
-      <div class="mobile-task-grid" id="diveMobileChoices">
-        <button class="p-task-btn" data-choice="A" onclick="sendLogicDiveChoice('A')"><strong>A:</strong> ${currentData.choices.A}</button>
-        <button class="p-task-btn" data-choice="B" onclick="sendLogicDiveChoice('B')"><strong>B:</strong> ${currentData.choices.B}</button>
-        <button class="p-task-btn" data-choice="C" onclick="sendLogicDiveChoice('C')"><strong>C:</strong> ${currentData.choices.C}</button>
+      <div class="mobile-task-grid" id="diveMobileChoices" style="${hasVoted ? 'pointer-events: none;' : ''}">
+        ${choicesHtml}
       </div>
-      <div id="diveChoiceFeedback" style="display:none; margin-top:12px; color:#ffe600; font-weight:700;">
-        ⏳ ส่งเสียงโหวตเส้นทางแล้ว รอสรุปมติพร้อมกัน!
+      <div id="diveChoiceFeedback" style="display:${hasVoted ? 'block' : 'none'}; margin-top:12px; color:#00ff88; font-weight:700;">
+        ${hasVoted ? `✅ คุณเลือกข้อ [${myVote}] แล้ว (รอผลมติพร้อมเพื่อน)` : ''}
       </div>
     `;
   } else if (stage === 'stage5') {
@@ -3477,8 +3586,14 @@ function renderMobileTask(stage) {
       <div>${cardButtons}</div>
     `;
   } else if (stage === 'stage7') {
-    const candidates = ['PC 1 (นักแต่งนิยาย)', 'PC 2 (นักกีฬา)', 'PC 3 (นักมายากล)', 'PC 4 (นักชิม)', 'PC 5 (นักแสดงผาดโผน)', 'PC 6 (ช่างกล)', 'NPC B (สุดยอดนักเอาตัวรอด)'];
-    let btns = candidates.map(c => `<button class="p-task-btn vote-option-btn" onclick="submitPlayerVote('${c}')">👉 โหวต: ${c}</button>`).join('');
+    const candidates = getVotingCandidates();
+    let btns = candidates.map(c => {
+      const isMyVote = (myPlayer && myPlayer.votedFor === c);
+      const safeEscaped = c.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return `<button class="p-task-btn vote-option-btn ${isMyVote ? 'btn-selected' : ''}" onclick="submitPlayerVote('${safeEscaped}')">
+        👉 โหวต: ${c} ${isMyVote ? ' ✓' : ''}
+      </button>`;
+    }).join('');
     area.innerHTML = `
       <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">โหวตเลือก Blackened ผู้ปลิดชีพ B:</h3>
       <div class="mobile-task-grid">${btns}</div>
@@ -3506,6 +3621,8 @@ function sendRebuttalSlash() {
 
 function sendLogicDiveChoice(ch) {
   const voterId = myPlayer ? myPlayer.id : (currentUserHash || 'p_anon');
+  if (!gameState.stg4Votes) gameState.stg4Votes = {};
+  gameState.stg4Votes[voterId] = ch;
   broadcast({
     type: 'logic_dive_vote',
     question: gameState.stg4Step,
@@ -3704,28 +3821,74 @@ function triggerFx(fx) {
   }
 }
 
+function adminAdjustPlayerCred(peerId, delta) {
+  if (!peerId) return;
+  const p = gameState.players[peerId];
+  if (!p) return;
+  p.credibility = Math.max(0, Math.min(5, ((typeof p.credibility === 'number') ? p.credibility : 5) + delta));
+  updatePlayerDisplays();
+  updateAdminDisplay();
+  broadcast({ type: 'adjust_player_cred', playerId: peerId, credibility: p.credibility });
+  logCourt(`💔 [CREDIBILITY]: DM ปรับความน่าเชื่อถือของ [${p.name}] เป็น ${p.credibility}/5 ดวง`);
+}
+
+function adminSelectRebuttalChallengers() {
+  const rebSel = document.getElementById('adminRebuttalChallengerSelect');
+  const rebOppSel = document.getElementById('adminRebuttalOpponentSelect');
+  if (rebSel) gameState.stg3Challenger = rebSel.value;
+  if (rebOppSel) gameState.stg3Opponent = rebOppSel.value;
+  const accEl = document.getElementById('rebuttalAccuser');
+  const oppEl = document.getElementById('rebuttalSuspect');
+  if (accEl) accEl.innerText = gameState.stg3Challenger ? `ฝ่ายกล่าวหา: ${gameState.stg3Challenger}` : 'ฝ่ายกล่าวหา';
+  if (oppEl) oppEl.innerText = gameState.stg3Opponent ? `ฝ่ายโต้แย้ง: ${gameState.stg3Opponent}` : 'ฝ่ายโต้แย้ง';
+  broadcast({
+    type: 'rebuttal_challengers',
+    challenger: gameState.stg3Challenger,
+    opponent: gameState.stg3Opponent
+  });
+}
+
 function updateAdminDisplay() {
   const table = document.getElementById('adminPlayerTable');
   const cnt = document.getElementById('adminPlayerCount');
   const rebSel = document.getElementById('adminRebuttalChallengerSelect');
+  const rebOppSel = document.getElementById('adminRebuttalOpponentSelect');
   if (!table || !cnt) return;
   table.innerHTML = '';
   const players = Object.values(gameState.players);
   cnt.innerText = players.length;
 
   if (rebSel) {
-    const currentVal = rebSel.value;
+    const curVal = rebSel.value;
     rebSel.innerHTML = '<option value="">(ทุกคนในห้อง / อิสระ)</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
       opt.value = p.name;
       opt.innerText = `${p.name} [${p.role}]`;
-      if (p.name === currentVal) opt.selected = true;
+      if (p.name === curVal) opt.selected = true;
       rebSel.appendChild(opt);
     });
   }
 
+  if (rebOppSel) {
+    const curOpp = rebOppSel.value || gameState.stg3Opponent || 'สุดยอดนักมายากล';
+    rebOppSel.innerHTML = '<option value="สุดยอดนักมายากล">NPC: สุดยอดนักมายากล</option>';
+    players.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.innerText = `${p.name} [${p.role}]`;
+      if (p.name === curOpp) opt.selected = true;
+      rebOppSel.appendChild(opt);
+    });
+  }
+
   players.forEach(p => {
+    const pCred = (typeof p.credibility === 'number') ? p.credibility : 5;
+    let heartsHtml = '';
+    for (let i = 1; i <= 5; i++) {
+      heartsHtml += (i <= pCred) ? '♥' : '♡';
+    }
+
     const row = document.createElement('div');
     row.className = 'admin-p-row' + (p.isKiller ? ' is-killer' : '');
     row.innerHTML = `
@@ -3733,9 +3896,14 @@ function updateAdminDisplay() {
         <strong>${escapeHtml(p.name)}</strong>
         <span style="color:#ffe600; font-size:0.8rem; margin-left:6px;">[${escapeHtml(p.role)}]</span>
         ${p.isKiller ? '<span style="color:#ff2244; font-weight:900; margin-left:6px;">[SABOTEUR]</span>' : ''}
+        <div class="admin-p-cred" style="margin-top:4px;">
+          <button class="cred-btn" onclick="adminAdjustPlayerCred('${p.id}', -1)" title="ลด 1 ดวง">-</button>
+          <span class="admin-p-cred-hearts" title="ความน่าเชื่อถือ: ${pCred}/5">${heartsHtml}</span>
+          <button class="cred-btn" onclick="adminAdjustPlayerCred('${p.id}', 1)" title="เพิ่ม 1 ดวง">+</button>
+        </div>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
-        <span>${p.votedFor ? `โหวต: ${escapeHtml(p.votedFor)}` : 'ยังไม่โหวต'}</span>
+        <span style="font-size:0.8rem; color:#aaa;">${p.votedFor ? `โหวต: ${escapeHtml(p.votedFor)}` : 'ยังไม่โหวต'}</span>
         <button class="small-btn red" style="padding:4px 8px; font-size:0.75rem; font-weight:700;" onclick="adminKickPlayer('${p.id}')">❌ เตะ</button>
       </div>
     `;
@@ -3760,14 +3928,36 @@ function updatePlayerDisplays() {
     targetList.innerHTML = '';
     players.forEach(p => {
       const seat = document.createElement('div');
-      // All podium seats have uniform color & styling - zero spoilers
       seat.className = 'podium-seat';
-      seat.innerHTML = `<span>👤 ${escapeHtml(p.name)}</span><span class="podium-role">[${escapeHtml(p.role)}]</span>`;
+      const cred = (typeof p.credibility === 'number') ? p.credibility : 5;
+      let heartsHtml = '';
+      for (let i = 1; i <= 5; i++) {
+        heartsHtml += `<span class="heart ${i <= cred ? 'active' : 'lost'}">♥</span>`;
+      }
+      seat.innerHTML = `
+        <div class="podium-avatar">👤</div>
+        <div class="podium-plate">${escapeHtml(p.name)}</div>
+        <span class="podium-role">[${escapeHtml(p.role)}]</span>
+        <div class="podium-cred-hearts" title="ความน่าเชื่อถือ: ${cred}/5">${heartsHtml}</div>
+      `;
       targetList.appendChild(seat);
     });
   });
 
   updateAdminDisplay();
+  updateMobileCredDisplay();
+}
+
+function updateMobileCredDisplay() {
+  const el = document.getElementById('pMyCredHearts');
+  if (!el) return;
+  const p = myPlayer || (currentUserHash ? gameState.players[currentUserHash] : null);
+  const cred = (p && typeof p.credibility === 'number') ? p.credibility : 5;
+  let str = '';
+  for (let i = 1; i <= 5; i++) {
+    str += (i <= cred) ? '♥' : '♡';
+  }
+  el.innerText = str;
 }
 
 function adminChangeRoomCode() {
@@ -4256,29 +4446,26 @@ function initSimulationLab() {
   const fAdmin = document.getElementById('simFrameAdmin');
   const fP1 = document.getElementById('simFramePlayer1');
   const fP2 = document.getElementById('simFramePlayer2');
+  const fP3 = document.getElementById('simFramePlayer3');
+  const fP4 = document.getElementById('simFramePlayer4');
 
   const loc = window.location;
   const baseUrl = loc.protocol + '//' + loc.host;
-  // Use index.html explicitly so static servers (Live Server, Vercel static) never 404
   const pathPrefix = loc.pathname.endsWith('.html') ? loc.pathname : (loc.pathname === '/' ? '/index.html' : loc.pathname.replace(/\/simulation\/?$/, '') + '/index.html');
 
   const courtUrl = baseUrl + pathPrefix + '?view=court&room=' + simRoomCode;
   const adminUrl = baseUrl + pathPrefix + '?view=admin&room=' + simRoomCode + '&pin=295437&muted=1';
   const p1Url = baseUrl + pathPrefix + '?view=player&user=sim_naegi&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย') + '&muted=1';
   const p2Url = baseUrl + pathPrefix + '?view=player&user=sim_kyoko&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา') + '&muted=1';
+  const p3Url = baseUrl + pathPrefix + '?view=player&user=sim_byakuya&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('เบียคุยะ') + '&role=' + encodeURIComponent('นักมายากล') + '&muted=1';
+  const p4Url = baseUrl + pathPrefix + '?view=player&user=sim_aoi&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('อาโออิ') + '&role=' + encodeURIComponent('นักชิม') + '&muted=1';
 
-  if (fCourt && (!fCourt.src || fCourt.src === 'about:blank' || !fCourt.src.includes(simRoomCode))) {
-    fCourt.src = courtUrl;
-  }
-  if (fAdmin && (!fAdmin.src || fAdmin.src === 'about:blank' || !fAdmin.src.includes(simRoomCode))) {
-    fAdmin.src = adminUrl;
-  }
-  if (fP1 && (!fP1.src || fP1.src === 'about:blank' || !fP1.src.includes(simRoomCode))) {
-    fP1.src = p1Url;
-  }
-  if (fP2 && (!fP2.src || fP2.src === 'about:blank' || !fP2.src.includes(simRoomCode))) {
-    fP2.src = p2Url;
-  }
+  if (fCourt && (!fCourt.src || fCourt.src === 'about:blank' || !fCourt.src.includes(simRoomCode))) fCourt.src = courtUrl;
+  if (fAdmin && (!fAdmin.src || fAdmin.src === 'about:blank' || !fAdmin.src.includes(simRoomCode))) fAdmin.src = adminUrl;
+  if (fP1 && (!fP1.src || fP1.src === 'about:blank' || !fP1.src.includes(simRoomCode))) fP1.src = p1Url;
+  if (fP2 && (!fP2.src || fP2.src === 'about:blank' || !fP2.src.includes(simRoomCode))) fP2.src = p2Url;
+  if (fP3 && (!fP3.src || fP3.src === 'about:blank' || !fP3.src.includes(simRoomCode))) fP3.src = p3Url;
+  if (fP4 && (!fP4.src || fP4.src === 'about:blank' || !fP4.src.includes(simRoomCode))) fP4.src = p4Url;
 
   setTimeout(() => { simProbePing(); }, 400);
 }
@@ -4385,7 +4572,9 @@ async function simPost(msg) {
       document.getElementById('simFrameCourt'),
       document.getElementById('simFrameAdmin'),
       document.getElementById('simFramePlayer1'),
-      document.getElementById('simFramePlayer2')
+      document.getElementById('simFramePlayer2'),
+      document.getElementById('simFramePlayer3'),
+      document.getElementById('simFramePlayer4')
     ];
     iframes.forEach(f => {
       if (f && f.contentWindow) {
@@ -4464,19 +4653,33 @@ async function runSimGuarded(actionName, actionFn) {
 }
 
 async function simJoinPlayersRaw() {
-  logSimEvent({ type: 'sim_info', text: '👤 [ACTION]: จำลองส่งคำขอสวมบทบาท: นาเอกิ (นักแต่งนิยาย) และ เคียวโกะ (นักกีฬา)...' });
+  logSimEvent({ type: 'sim_info', text: '👤 [ACTION]: จำลองส่งคำขอสวมบทบาท 4 คน: นาเอกิ (นิยาย), เคียวโกะ (กีฬา), เบียคุยะ (มายากล), อาโออิ (ชิม)...' });
   await simPost({
     type: 'request_claim_character',
     role: 'นักแต่งนิยาย',
     playerName: 'นาเอกิ',
     userHash: 'sim_naegi'
   });
-  await new Promise(r => setTimeout(r, 250));
+  await new Promise(r => setTimeout(r, 200));
   await simPost({
     type: 'request_claim_character',
     role: 'นักกีฬา',
     playerName: 'เคียวโกะ',
     userHash: 'sim_kyoko'
+  });
+  await new Promise(r => setTimeout(r, 200));
+  await simPost({
+    type: 'request_claim_character',
+    role: 'นักมายากล',
+    playerName: 'เบียคุยะ',
+    userHash: 'sim_byakuya'
+  });
+  await new Promise(r => setTimeout(r, 200));
+  await simPost({
+    type: 'request_claim_character',
+    role: 'นักชิม',
+    playerName: 'อาโออิ',
+    userHash: 'sim_aoi'
   });
 }
 
@@ -4527,12 +4730,16 @@ async function simStage3Rebuttal() {
 }
 
 async function simStage4LogicDiveRaw() {
-  logSimEvent({ type: 'sim_info', text: '🛹 [ACTION]: เริ่ม Stage 4 (Logic Dive) โหวตทางเลือกตรรกะ...' });
+  logSimEvent({ type: 'sim_info', text: '🛹 [ACTION]: เริ่ม Stage 4 (Logic Dive) ผู้เล่น 4 คนร่วมโหวตทางเลือกตรรกะ...' });
   await simPost({ type: 'set_stage', stage: 'stage4' });
   await new Promise(r => setTimeout(r, 350));
   await simPost({ type: 'logic_dive_vote', question: 1, choice: 'A', voterId: 'sim_naegi', playerName: 'นาเอกิ' });
-  await new Promise(r => setTimeout(r, 250));
+  await new Promise(r => setTimeout(r, 150));
   await simPost({ type: 'logic_dive_vote', question: 1, choice: 'A', voterId: 'sim_kyoko', playerName: 'เคียวโกะ' });
+  await new Promise(r => setTimeout(r, 150));
+  await simPost({ type: 'logic_dive_vote', question: 1, choice: 'A', voterId: 'sim_byakuya', playerName: 'เบียคุยะ' });
+  await new Promise(r => setTimeout(r, 150));
+  await simPost({ type: 'logic_dive_vote', question: 1, choice: 'A', voterId: 'sim_aoi', playerName: 'อาโออิ' });
 }
 
 async function simStage4LogicDive() {
@@ -4581,12 +4788,17 @@ async function simClosingArgument() {
 }
 
 async function simStage7VoteRaw() {
-  logSimEvent({ type: 'sim_info', text: '🗳️ [ACTION]: เริ่ม Stage 7 (Voting Time) ลงคะแนนโหวตหา Blackened...' });
+  logSimEvent({ type: 'sim_info', text: '🗳️ [ACTION]: เริ่ม Stage 7 (Voting Time) ผู้เล่นจำลอง 4 คนลงคะแนนโหวต...' });
   await simPost({ type: 'set_stage', stage: 'stage7' });
-  await new Promise(r => setTimeout(r, 350));
-  await simPost({ type: 'submit_vote', candidate: 'PC 3 (นักมายากล)', voterId: 'sim_naegi' });
-  await new Promise(r => setTimeout(r, 250));
-  await simPost({ type: 'submit_vote', candidate: 'PC 3 (นักมายากล)', voterId: 'sim_kyoko' });
+  await new Promise(r => setTimeout(r, 450));
+  const targetSuspect = 'NPC B (พยานปากเอก / ผู้ต้องสงสัย)';
+  await simPost({ type: 'submit_vote', candidate: targetSuspect, voterId: 'sim_naegi' });
+  await new Promise(r => setTimeout(r, 150));
+  await simPost({ type: 'submit_vote', candidate: targetSuspect, voterId: 'sim_kyoko' });
+  await new Promise(r => setTimeout(r, 150));
+  await simPost({ type: 'submit_vote', candidate: targetSuspect, voterId: 'sim_byakuya' });
+  await new Promise(r => setTimeout(r, 150));
+  await simPost({ type: 'submit_vote', candidate: targetSuspect, voterId: 'sim_aoi' });
   await new Promise(r => setTimeout(r, 600));
   await simPost({ type: 'reveal_votes' });
 }

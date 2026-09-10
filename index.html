@@ -90,9 +90,12 @@
 
       <!-- Active Rooms Live Discovery for Admin & Players -->
       <div id="hubActiveRoomsSection" class="hub-active-rooms-box hidden">
-        <div class="active-rooms-header">
-          <span class="room-pulse-dot"></span>
-          <span>ห้องศาลชั้นเรียนที่เปิดอยู่ขณะนี้ (Active Sessions):</span>
+        <div class="active-rooms-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="room-pulse-dot"></span>
+            <span>ห้องศาลชั้นเรียนที่เปิดอยู่ขณะนี้ (Active Sessions):</span>
+          </div>
+          <button class="active-rooms-close-btn" onclick="dismissActiveRooms()" title="ปิดการแสดงผลนี้" style="background:transparent; border:none; color:#ff0055; font-weight:900; font-size:1.1rem; cursor:pointer; padding:2px 6px;">✕</button>
         </div>
         <div id="activeRoomsList" class="active-rooms-grid">
           <!-- Populated dynamically -->
@@ -135,8 +138,11 @@
         <!-- Card 5: Simulation Sandbox -->
         <div class="hub-card simulation" onclick="navigate('/simulation')" style="border-color:#00ffcc; cursor:pointer;">
           <div class="hub-card-icon">🧪</div>
-          <h2 class="hub-card-title" style="color:#00ffcc;">จำลองระบบเสมือนจริง (Sim Lab)</h2>
-          <p class="hub-card-desc">ห้องแล็บทดสอบ Real-time มัลติไคลเอนต์: จำลองจอใหญ่ศาล, DM Admin, และมือถือผู้เล่น 2 จอ พร้อมปุ่มทดสอบมินิเกมครบ 8 สเตจ และมิเตอร์วัด Latency</p>
+          <h2 class="hub-card-title" style="color:#00ffcc; line-height:1.2;">
+            จำลองระบบเสมือนจริง<br>
+            <span style="font-size:0.85rem; opacity:0.85; font-weight:700;">(Sim Lab)</span>
+          </h2>
+          <p class="hub-card-desc">ห้องแล็บทดสอบ Real-time มัลติไคลเอนต์: จำลองจอใหญ่ศาล, DM Admin, และมือถือผู้เล่น 4 จอ พร้อมปุ่มทดสอบมินิเกมครบ 8 สเตจ และมิเตอร์วัด Latency</p>
           <div class="hub-action-tag" style="background:#00ffcc; color:#000; font-weight:900;">เปิดห้องทดลองจำลอง →</div>
         </div>
       </div>
@@ -243,13 +249,7 @@
         <div class="court-podiums-header" style="font-size:1.25rem;">แท่นโพเดียมประจำตำแหน่งนักเรียน (<span id="courtTrialPlayerCount">0</span> คน):</div>
         <div id="courtTrialPodiumList" class="podium-grid" style="max-width:1000px; margin:0 auto 24px auto;"></div>
 
-        <!-- Court Announcement Log Box -->
-        <div class="court-box" style="background:rgba(10,10,18,0.8); border:2px solid var(--mono-dark-border); text-align:left; max-width:850px; margin:0 auto; padding:12px 18px;">
-          <div style="font-size:0.85rem; color:var(--mono-yellow); font-weight:900; margin-bottom:6px;">📢 บันทึกศาลชั้นเรียน (Courtroom Announcements):</div>
-          <div id="courtLogTrial" style="max-height:100px; overflow-y:auto; font-family:monospace; font-size:0.85rem; color:#aaa; line-height:1.4;">
-            <div>> ศาลชั้นเรียนเริ่มต้นขึ้นแล้ว! ทุกคนโปรดเปิดเผยข้อมูลและหลักฐานที่พบ...</div>
-          </div>
-        </div>
+
       </div>
 
       <!-- INVESTIGATION PHASE: EXPLORATION & CLUE HUNT -->
@@ -626,11 +626,19 @@
                 <strong>3. Rebuttal Showdown</strong>
                 <span>ดวลดาบคำพูด 1 ต่อ 1 กับฝ่ายตรงข้าม</span>
               </button>
-              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; font-size:0.8rem; color:#ccc;">
-                <span>ผู้ท้าชิง (PC):</span>
-                <select id="adminRebuttalChallengerSelect" onchange="adminSelectRebuttalChallenger()" style="background:#111; color:#fff; border:1px solid #666; padding:3px 6px; border-radius:4px; font-size:0.8rem;">
-                  <option value="">(ทุกคนในห้อง / อิสระ)</option>
-                </select>
+              <div style="display:flex; flex-direction:column; gap:6px; font-size:0.8rem; color:#ccc;">
+                <div style="display:flex; gap:6px; align-items:center; justify-content:space-between;">
+                  <span>ฝ่ายกล่าวหา (PC 1):</span>
+                  <select id="adminRebuttalChallengerSelect" onchange="adminSelectRebuttalChallengers()" style="background:#111; color:#fff; border:1px solid #666; padding:3px 6px; border-radius:4px; font-size:0.8rem; max-width:180px;">
+                    <option value="">(ทุกคนในห้อง / อิสระ)</option>
+                  </select>
+                </div>
+                <div style="display:flex; gap:6px; align-items:center; justify-content:space-between;">
+                  <span>ฝ่ายโต้แย้ง (PC 2):</span>
+                  <select id="adminRebuttalOpponentSelect" onchange="adminSelectRebuttalChallengers()" style="background:#111; color:#fff; border:1px solid #666; padding:3px 6px; border-radius:4px; font-size:0.8rem; max-width:180px;">
+                    <option value="สุดยอดนักมายากล">NPC: สุดยอดนักมายากล</option>
+                  </select>
+                </div>
               </div>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                 <button class="small-btn green" onclick="adminRebuttalVerdict(true)" style="padding:8px; font-weight:900; font-size:0.85rem;">
@@ -814,6 +822,10 @@
           <span id="pMyHash" style="font-size:0.75rem; color:#888; margin-left:4px; font-family:monospace;">#USER</span>
           <button class="icon-btn" onclick="copyPersonalLink()" title="คัดลอกลิงก์ส่วนตัว" style="font-size:0.8rem; padding:2px 6px; margin-left:4px;">📋</button>
         </div>
+        <div class="p-cred-display-wrap" title="Personal Credibility Gauge (เกจความน่าเชื่อถือของคุณ - DM เป็นผู้ปรับ)">
+          <span class="p-cred-label">CRED:</span>
+          <span id="pMyCredHearts" class="p-cred-hearts">♥♥♥♥♥</span>
+        </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <div id="pMyStatus" class="p-status normal">
             <span class="status-full">🛡️ นักเรียนผู้บริสุทธิ์</span>
@@ -950,7 +962,7 @@
           <div class="slanted-banner cyan">MULTI-CLIENT REAL-TIME SIMULATION LAB</div>
           <h1 class="sim-title">ห้องทดลองจำลองการเชื่อมต่อเสมือนจริง (Live Sandbox)</h1>
           <p class="sim-desc">
-            ทดสอบการส่งข้อมูล Real-time ระหว่างอุปกรณ์ข้ามเครือข่ายด้วยระบบ SSE Stream Bus & WebRTC Dual-Transport: จำลอง จอศาล (Court), ผู้คุมเกม (Admin DM), ผู้เล่น 1 (นาเอกิ), และผู้เล่น 2 (เคียวโกะ)
+            ทดสอบการส่งข้อมูล Real-time ระหว่างอุปกรณ์ข้ามเครือข่ายด้วยระบบ SSE Stream Bus & WebRTC Dual-Transport: จำลอง จอศาล (Court), ผู้คุมเกม (Admin DM), และผู้เล่น 4 คน (นาเอกิ, เคียวโกะ, เบียคุยะ, อาโออิ)
           </p>
         </div>
         <div class="sim-meta-badge">
@@ -973,7 +985,7 @@
             ▶️ รันการจำลองอัตโนมัติครบ 8 สเตจ (Full Auto Test)
           </button>
           <button class="sim-btn" onclick="simJoinPlayers()">
-            👤 1. จำลองผู้เล่น 2 คนเข้าสู่ศาล
+            👤 1. จำลองผู้เล่น 4 คนเข้าสู่ศาล
           </button>
           <button class="sim-btn" onclick="simStage1Evidence()">
             🔍 2. สเตจ 1: ส่งหลักฐาน (Evidence Linker)
@@ -1008,7 +1020,7 @@
         </div>
       </div>
 
-      <!-- 4 Viewports Grid: Court, Admin, Mobile 1, Mobile 2 -->
+      <!-- 6 Viewports Grid: Court, Admin, and 4 Mobile PCs -->
       <div class="sim-devices-grid">
         <!-- Panel 1: Court Projector Screen -->
         <div class="sim-device-panel court-panel">
@@ -1034,27 +1046,54 @@
           </div>
         </div>
 
-        <!-- Panel 3: Mobile Player 1 -->
-        <div class="sim-device-panel mobile-panel">
-          <div class="sim-panel-header">
-            <span class="sim-icon">📱</span>
-            <span class="sim-panel-title">3. มือถือผู้เล่น 1 (นาเอกิ - นักแต่งนิยาย)</span>
-            <span class="sim-panel-status live">CONNECTED</span>
+        <!-- Subgrid for 4 Mobile PCs -->
+        <div class="sim-mobile-subgrid">
+          <!-- Panel 3: Mobile Player 1 -->
+          <div class="sim-device-panel mobile-panel">
+            <div class="sim-panel-header">
+              <span class="sim-icon">📱</span>
+              <span class="sim-panel-title">3. ผู้เล่น 1 (นาเอกิ - นิยาย)</span>
+              <span class="sim-panel-status live">LIVE</span>
+            </div>
+            <div class="sim-iframe-wrap mobile-wrap">
+              <iframe id="simFramePlayer1" class="sim-iframe" src="about:blank"></iframe>
+            </div>
           </div>
-          <div class="sim-iframe-wrap mobile-wrap">
-            <iframe id="simFramePlayer1" class="sim-iframe" src="about:blank"></iframe>
-          </div>
-        </div>
 
-        <!-- Panel 4: Mobile Player 2 -->
-        <div class="sim-device-panel mobile-panel">
-          <div class="sim-panel-header">
-            <span class="sim-icon">📱</span>
-            <span class="sim-panel-title">4. มือถือผู้เล่น 2 (เคียวโกะ - นักกีฬา)</span>
-            <span class="sim-panel-status live">CONNECTED</span>
+          <!-- Panel 4: Mobile Player 2 -->
+          <div class="sim-device-panel mobile-panel">
+            <div class="sim-panel-header">
+              <span class="sim-icon">📱</span>
+              <span class="sim-panel-title">4. ผู้เล่น 2 (เคียวโกะ - กีฬา)</span>
+              <span class="sim-panel-status live">LIVE</span>
+            </div>
+            <div class="sim-iframe-wrap mobile-wrap">
+              <iframe id="simFramePlayer2" class="sim-iframe" src="about:blank"></iframe>
+            </div>
           </div>
-          <div class="sim-iframe-wrap mobile-wrap">
-            <iframe id="simFramePlayer2" class="sim-iframe" src="about:blank"></iframe>
+
+          <!-- Panel 5: Mobile Player 3 -->
+          <div class="sim-device-panel mobile-panel">
+            <div class="sim-panel-header">
+              <span class="sim-icon">📱</span>
+              <span class="sim-panel-title">5. ผู้เล่น 3 (เบียคุยะ - มายากล)</span>
+              <span class="sim-panel-status live">LIVE</span>
+            </div>
+            <div class="sim-iframe-wrap mobile-wrap">
+              <iframe id="simFramePlayer3" class="sim-iframe" src="about:blank"></iframe>
+            </div>
+          </div>
+
+          <!-- Panel 6: Mobile Player 4 -->
+          <div class="sim-device-panel mobile-panel">
+            <div class="sim-panel-header">
+              <span class="sim-icon">📱</span>
+              <span class="sim-panel-title">6. ผู้เล่น 4 (อาโออิ - ชิม)</span>
+              <span class="sim-panel-status live">LIVE</span>
+            </div>
+            <div class="sim-iframe-wrap mobile-wrap">
+              <iframe id="simFramePlayer4" class="sim-iframe" src="about:blank"></iframe>
+            </div>
           </div>
         </div>
       </div>

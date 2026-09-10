@@ -284,12 +284,14 @@ body.dangan-body {
 }
 
 .hub-title {
-  font-size: 2.8rem;
+  font-size: clamp(1.4rem, 2.7vw, 2.5rem);
   font-weight: 900;
   font-style: italic;
   color: #fff;
   margin: 15px 0 10px;
   text-shadow: 3px 3px 0px #000;
+  white-space: nowrap;
+  letter-spacing: -0.5px;
 }
 
 .hub-subtitle {
@@ -718,23 +720,81 @@ body.dangan-body {
 }
 
 .podium-seat {
-  background: var(--court-wood);
-  border: 3px solid var(--court-wood-border);
-  box-shadow: 4px 4px 0px #000;
-  padding: 12px 22px;
+  background: linear-gradient(180deg, #381f14 0%, #23120b 60%, #160a05 100%);
+  border: 2px solid #d4af37;
+  border-top: 5px solid #e5a93b;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.7), inset 0 2px 4px rgba(255,215,0,0.25);
+  padding: 12px 14px;
   border-radius: 6px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  font-size: 1.05rem;
-  font-weight: 700;
+  text-align: center;
+  gap: 5px;
   color: #fff;
+  min-width: 140px;
+  max-width: 200px;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.podium-seat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.8), 0 0 12px rgba(229,169,59,0.4);
+}
+
+.podium-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #e5a93b;
+  background: radial-gradient(circle, #2d1822 0%, #110e14 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  margin-bottom: 2px;
+}
+
+.podium-plate {
+  background: linear-gradient(90deg, #997520 0%, #ffd700 50%, #997520 100%);
+  color: #111;
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 900;
+  font-size: 0.88rem;
+  padding: 2px 10px;
+  border-radius: 2px;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .podium-role {
+  font-size: 0.76rem;
+  color: #ffcc00;
+  font-weight: 700;
+}
+
+.podium-cred-hearts {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
   font-size: 0.85rem;
-  color: var(--court-gold);
-  font-weight: 900;
+  margin-top: 2px;
+}
+
+.podium-cred-hearts .heart {
+  color: #ff0055;
+  text-shadow: 0 0 6px rgba(255,0,85,0.7);
+}
+
+.podium-cred-hearts .heart.lost {
+  color: #444;
+  text-shadow: none;
+  opacity: 0.35;
 }
 
 /* ==========================================================
@@ -4007,4 +4067,136 @@ select option:disabled {
 
 .sim-log-entry.admin {
   color: #a855f7;
+}
+
+/* Simulation Multi-Client 4-PC Subgrid */
+.sim-mobile-subgrid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* Mobile Player Credibility Gauge in Top Strip */
+.p-cred-display-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 0, 85, 0.12);
+  border: 1px solid rgba(255, 0, 85, 0.4);
+  border-radius: 4px;
+  padding: 3px 8px;
+  user-select: none;
+}
+
+.p-cred-label {
+  font-size: 0.68rem;
+  font-weight: 900;
+  font-family: 'Chakra Petch', sans-serif;
+  color: #ff0055;
+  letter-spacing: 0.5px;
+}
+
+.p-cred-hearts {
+  font-size: 0.9rem;
+  color: #ff0055;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px rgba(255, 0, 85, 0.6);
+}
+
+/* Logic Dive Persistent Selected Button Highlight */
+.p-task-btn.btn-selected {
+  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%) !important;
+  color: #000 !important;
+  font-weight: 900 !important;
+  border: 2.5px solid #fff !important;
+  box-shadow: 0 0 16px rgba(0, 242, 254, 0.8), 0 0 30px rgba(79, 172, 254, 0.5) !important;
+  transform: scale(1.02);
+  animation: pulseSelected 1.5s infinite alternate;
+}
+
+@keyframes pulseSelected {
+  0% { box-shadow: 0 0 12px rgba(0, 242, 254, 0.6); }
+  100% { box-shadow: 0 0 24px rgba(0, 242, 254, 1); }
+}
+
+/* Primary Suspect Spotlight Banner on Court Voting Reveal */
+.top-suspect-spotlight {
+  background: linear-gradient(135deg, rgba(255, 0, 85, 0.25) 0%, rgba(30, 15, 25, 0.85) 100%);
+  border: 2.5px solid #ff0055;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  text-align: center;
+  box-shadow: 0 0 25px rgba(255, 0, 85, 0.5), inset 0 0 15px rgba(255, 0, 85, 0.2);
+  animation: pulseSpotlight 2s infinite alternate;
+}
+
+.top-suspect-title {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #ff0055;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.top-suspect-name {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  margin-bottom: 4px;
+}
+
+.top-suspect-badge {
+  display: inline-block;
+  background: #ff0055;
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.85rem;
+  padding: 3px 12px;
+  border-radius: 4px;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulseSpotlight {
+  0% { border-color: #ff0055; box-shadow: 0 0 15px rgba(255,0,85,0.4); }
+  100% { border-color: #ff5588; box-shadow: 0 0 35px rgba(255,0,85,0.8); }
+}
+
+/* DM Admin Player Credibility Hearts & Buttons */
+.admin-p-cred {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-p-cred-hearts {
+  color: #ff0055;
+  font-size: 0.88rem;
+  letter-spacing: 1px;
+}
+
+.cred-btn {
+  background: #222;
+  border: 1px solid #555;
+  color: #fff;
+  font-weight: 900;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+  transition: all 0.1s;
+}
+
+.cred-btn:hover {
+  background: #ff0055;
+  border-color: #ff0055;
 }

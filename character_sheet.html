@@ -301,17 +301,31 @@
       align-items: center;
       margin-bottom: 2px;
     }
+    .school-titles-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
     .school-name-en {
       font-family: 'Chakra Petch', sans-serif;
-      font-size: 1.15rem;
+      font-size: 1.18rem;
       font-weight: 900;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       color: #111827;
+      line-height: 1.1;
+    }
+    .school-sub-record {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #ff0055;
+      text-transform: uppercase;
     }
     .dossier-stamp-box {
       border: 2px solid #ff0055;
-      padding: 2px 8px;
+      padding: 3px 8px;
       font-family: 'Chakra Petch', sans-serif;
       font-size: 0.72rem;
       font-weight: 900;
@@ -319,6 +333,8 @@
       color: #fff;
       letter-spacing: 1px;
       box-shadow: 2px 2px 0px rgba(0,0,0,0.25);
+      white-space: nowrap !important;
+      flex-shrink: 0;
     }
     .school-name-th {
       font-size: 0.82rem;
@@ -511,9 +527,71 @@
       padding: 4px;
       background: #fff;
       box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
-      flex: 1;
       display: flex;
       flex-direction: column;
+      min-height: 52px;
+    }
+    .hope-tokens-card {
+      border: 2px solid #1a1a24;
+      padding: 4px 5px;
+      background: #fff;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+    }
+    .hope-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .hope-sub-label {
+      font-size: 0.54rem;
+      font-weight: 700;
+      color: #e5a93b;
+      font-family: 'Chakra Petch', sans-serif;
+    }
+    .hope-stars-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin: 2px 0;
+    }
+    .hope-star-box {
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid #1a1a24;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      color: #e5a93b;
+      cursor: pointer;
+      background: #fff;
+      line-height: 1;
+      user-select: none;
+      transition: all 0.1s ease;
+    }
+    .hope-star-box.used {
+      background: #1a1a24;
+      color: #666;
+    }
+    .hope-note {
+      font-size: 0.52rem;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.1;
+    }
+    .hope-traits-box {
+      border-top: 1px dashed #ccc;
+      margin-top: 2px;
+      padding-top: 2px;
+      font-size: 0.65rem;
+      min-height: 24px;
+      outline: none;
+      color: #111;
+      flex: 1;
     }
     .conditions-content {
       font-size: 0.65rem;
@@ -907,7 +985,10 @@
 
           <div class="header-main-info">
             <div class="header-top-row">
-              <span class="school-name-en">Hope's Peak Academy // Student Record</span>
+              <div class="school-titles-col">
+                <span class="school-name-en">Hope's Peak Academy</span>
+                <span class="school-sub-record">Student Record & Classified Dossier</span>
+              </div>
               <span class="dossier-stamp-box">【 極秘 // CLASSIFIED DOSSIER 】</span>
             </div>
             <div class="school-name-th">
@@ -1003,14 +1084,25 @@
               </div>
             </div>
 
-            <!-- Conditions & Injuries Card (Replaces Languages to balance A4 height) -->
+            <!-- Conditions Card -->
             <div class="conditions-card">
-              <span class="section-tag">Status</span>
-              <div class="conditions-content" contenteditable="true" id="txtConditions">
-                [ ] สภาพปกติ (Healthy)<br>
-                [ ] บาดเจ็บทางกาย (Physical)<br>
-                [ ] เสียสติชั่วคราว (Panic)
+              <span class="section-tag">Conditions // สภาพร่างกาย</span>
+              <div class="conditions-content" contenteditable="true" id="txtConditions"></div>
+            </div>
+
+            <!-- Hope Tokens & Specialized Traits Card (Fills bottom-left) -->
+            <div class="hope-tokens-card">
+              <div class="hope-header">
+                <span class="section-tag">Hope</span>
+                <span class="hope-sub-label">แต้มความหวัง (Hope Tokens)</span>
               </div>
+              <div class="hope-stars-row">
+                <div class="hope-star-box" onclick="toggleHopeStar(this)" title="คลิกเพื่อใช้แต้ม">★</div>
+                <div class="hope-star-box" onclick="toggleHopeStar(this)" title="คลิกเพื่อใช้แต้ม">★</div>
+                <div class="hope-star-box" onclick="toggleHopeStar(this)" title="คลิกเพื่อใช้แต้ม">★</div>
+              </div>
+              <div class="hope-note">ใช้ Re-roll หรือฟื้นฟูสติ Despair</div>
+              <div class="hope-traits-box" contenteditable="true" id="txtHopeTraits"></div>
             </div>
 
           </div>
@@ -1075,8 +1167,8 @@
 
                 <div class="bio-row">
                   <div class="bio-row-label">
-                    <span>Status</span>
-                    <span class="sub">สถานะการพิจารณาคดี</span>
+                    <span>Trial Standing // สถานะในคดี</span>
+                    <span class="sub">ผู้บริสุทธิ์ / ผู้ต้องสงสัย</span>
                   </div>
                   <div class="bio-field-box" contenteditable="true" id="bioStatus"></div>
                 </div>
@@ -1094,8 +1186,7 @@
               <div class="talents-content" contenteditable="true" id="txtTalents">
                 <div class="talent-feat">
                   <span class="talent-feat-title">ความสามารถพิเศษประจำตัว (Ultimate Feat):</span>
-                  <p>......................................................................................................................................................................................</p>
-                  <p>......................................................................................................................................................................................</p>
+                  <div style="min-height:30px; border-bottom:1px dashed #aaa; margin:4px 0;"></div>
                 </div>
 
                 <div class="rules-grid">
@@ -1133,16 +1224,16 @@
                     <ul class="bp-list">
                       <li>Monopad โรงเรียนคิโบกามิเนะ (Student Digital ID)</li>
                       <li>กุญแจห้องพักนักเรียนส่วนตัว</li>
-                      <li>ของใช้ประจำตัว: .....................................................</li>
-                      <li>............................................................................</li>
+                      <li style="border-bottom:1px dotted #ccc; min-height:18px;"></li>
+                      <li style="border-bottom:1px dotted #ccc; min-height:18px;"></li>
                     </ul>
                   </div>
                   <div>
                     <span class="bp-heading">กระสุนความจริง & บันทึก (Truth Bullets):</span>
                     <ul class="bp-list">
-                      <li>[ ] ........................................................................</li>
-                      <li>[ ] ........................................................................</li>
-                      <li>[ ] ........................................................................</li>
+                      <li style="border-bottom:1px dotted #ccc; min-height:18px;">[ ] </li>
+                      <li style="border-bottom:1px dotted #ccc; min-height:18px;">[ ] </li>
+                      <li style="border-bottom:1px dotted #ccc; min-height:18px;">[ ] </li>
                     </ul>
                   </div>
                 </div>
@@ -1156,9 +1247,9 @@
                 <span style="font-size:0.70rem; font-weight:700; color:#374151;">บันทึกเบาะแส ความเชื่อมโยง และข้อสังเกตในคดี (Investigation Notes)</span>
               </div>
               <div class="notes-content" contenteditable="true" id="txtNotes">
-                <p>......................................................................................................................................................................................</p>
-                <p>......................................................................................................................................................................................</p>
-                <p>......................................................................................................................................................................................</p>
+                <div style="border-bottom:1px dotted #ddd; min-height:18px; margin-bottom:4px;"></div>
+                <div style="border-bottom:1px dotted #ddd; min-height:18px; margin-bottom:4px;"></div>
+                <div style="border-bottom:1px dotted #ddd; min-height:18px;"></div>
               </div>
             </div>
 
@@ -1190,16 +1281,12 @@
         status: "",
         str: "", agi: "", dex: "", tou: "", int: "", wis: "", cha: "", ego: "",
         hp: "", wp: "",
-        conditions: `
-          [ ] สภาพปกติ (Healthy)<br>
-          [ ] บาดเจ็บทางกาย (Physical)<br>
-          [ ] เสียสติชั่วคราว (Panic)
-        `,
+        conditions: "",
+        hopeTraits: "",
         talents: `
           <div class="talent-feat">
             <span class="talent-feat-title">ความสามารถพิเศษประจำตัว (Ultimate Feat):</span>
-            <p>......................................................................................................................................................................................</p>
-            <p>......................................................................................................................................................................................</p>
+            <div style="min-height:30px; border-bottom:1px dashed #aaa; margin:4px 0;"></div>
           </div>
           <div class="rules-grid">
             <div class="rule-box">
@@ -1227,24 +1314,24 @@
               <ul class="bp-list">
                 <li>Monopad โรงเรียนคิโบกามิเนะ (Student Digital ID)</li>
                 <li>กุญแจห้องพักนักเรียนส่วนตัว</li>
-                <li>ของใช้ประจำตัว: .....................................................</li>
-                <li>............................................................................</li>
+                <li style="border-bottom:1px dotted #ccc; min-height:18px;"></li>
+                <li style="border-bottom:1px dotted #ccc; min-height:18px;"></li>
               </ul>
             </div>
             <div>
               <span class="bp-heading">กระสุนความจริง & บันทึก (Truth Bullets):</span>
               <ul class="bp-list">
-                <li>[ ] ........................................................................</li>
-                <li>[ ] ........................................................................</li>
-                <li>[ ] ........................................................................</li>
+                <li style="border-bottom:1px dotted #ccc; min-height:18px;">[ ] </li>
+                <li style="border-bottom:1px dotted #ccc; min-height:18px;">[ ] </li>
+                <li style="border-bottom:1px dotted #ccc; min-height:18px;">[ ] </li>
               </ul>
             </div>
           </div>
         `,
         notes: `
-          <p>......................................................................................................................................................................................</p>
-          <p>......................................................................................................................................................................................</p>
-          <p>......................................................................................................................................................................................</p>
+          <div style="border-bottom:1px dotted #ddd; min-height:18px; margin-bottom:4px;"></div>
+          <div style="border-bottom:1px dotted #ddd; min-height:18px; margin-bottom:4px;"></div>
+          <div style="border-bottom:1px dotted #ddd; min-height:18px;"></div>
         `
       },
       novelist: {
@@ -1626,6 +1713,8 @@
       document.getElementById('txtTalents').innerHTML = data.talents;
       document.getElementById('txtBackpack').innerHTML = data.backpack;
       document.getElementById('txtNotes').innerHTML = data.notes;
+      const hopeEl = document.getElementById('txtHopeTraits');
+      if (hopeEl) hopeEl.innerHTML = data.hopeTraits || '';
     }
 
     function toggleCheck(el) {
@@ -1634,6 +1723,10 @@
       } else {
         el.style.backgroundColor = '#ff0055';
       }
+    }
+
+    function toggleHopeStar(el) {
+      el.classList.toggle('used');
     }
 
     function handlePortraitUpload(event) {
