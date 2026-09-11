@@ -999,7 +999,11 @@ function handleIncomingMessage(msg, senderConn) {
       joinClaimTimeout = null;
     }
     myPlayer = msg.player;
-    localStorage.setItem('dangan_player_' + roomCode, JSON.stringify(myPlayer));
+    const uKey = currentUserHash || (new URLSearchParams(window.location.search).get('user')) || 'default';
+    localStorage.setItem('dangan_player_' + roomCode + '_' + uKey, JSON.stringify(myPlayer));
+    if (!uKey.startsWith('sim_')) {
+      localStorage.setItem('dangan_player_' + roomCode, JSON.stringify(myPlayer));
+    }
     localStorage.setItem('dangan_current_room', roomCode);
     if (currentUserHash) localStorage.setItem('dangan_current_user_hash', currentUserHash);
 
@@ -1599,7 +1603,10 @@ function initPlayerSession(hash) {
     clearPlayerLocalData();
   }
 
-  const savedData = roomCode ? localStorage.getItem('dangan_player_' + roomCode) : null;
+  const userKey = urlParams.get('user') || hash || currentUserHash || 'default';
+  const isSimUser = userKey.startsWith('sim_');
+  // Never restore saved player session automatically in simulation so court starts with 0 players
+  const savedData = (!isSimUser && roomCode) ? (localStorage.getItem('dangan_player_' + roomCode + '_' + userKey) || localStorage.getItem('dangan_player_' + roomCode)) : null;
   if (savedData) {
     try {
       const p = JSON.parse(savedData);
@@ -3501,8 +3508,11 @@ function playerJoin() {
   localStorage.setItem('dangan_current_room', roomCode);
 
   if (!currentUserHash) {
-    currentUserHash = localStorage.getItem('dangan_current_user_hash') || ('u-' + Math.random().toString(36).substring(2, 8));
-    localStorage.setItem('dangan_current_user_hash', currentUserHash);
+    const qUser = new URLSearchParams(window.location.search).get('user');
+    currentUserHash = qUser || localStorage.getItem('dangan_current_user_hash') || ('u-' + Math.random().toString(36).substring(2, 8));
+    if (!currentUserHash.startsWith('sim_')) {
+      localStorage.setItem('dangan_current_user_hash', currentUserHash);
+    }
   }
 
   // Connect to SSE stream immediately for guaranteed zero-delay messaging
@@ -4756,6 +4766,16 @@ function initSimulationLab() {
   const codeEl = document.getElementById('simActiveRoomCode');
   if (codeEl) codeEl.innerText = simRoomCode;
 
+  // Clear any existing simulation player data so lab starts with 0 players
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && (k.includes('sim_') || k.toUpperCase().includes('SIM888') || k.startsWith('dangan_player_SIM') || k === 'dangan_player_SIM888')) {
+        localStorage.removeItem(k);
+      }
+    }
+  } catch(e) {}
+
   // 1. Setup local BroadcastChannel for guaranteed 0ms in-browser communication
   setupLocalChannel(simRoomCode);
 
@@ -4798,17 +4818,17 @@ function initSimulationLab() {
 
   const courtUrl = baseUrl + pathPrefix + '?view=court&room=' + simRoomCode;
   const adminUrl = baseUrl + pathPrefix + '?view=admin&room=' + simRoomCode + '&pin=295437&muted=1';
-  const p1Url = baseUrl + pathPrefix + '?view=player&user=sim_naegi&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย') + '&muted=1';
-  const p2Url = baseUrl + pathPrefix + '?view=player&user=sim_kyoko&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา') + '&muted=1';
-  const p3Url = baseUrl + pathPrefix + '?view=player&user=sim_byakuya&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('เบียคุยะ') + '&role=' + encodeURIComponent('นักมายากล') + '&muted=1';
-  const p4Url = baseUrl + pathPrefix + '?view=player&user=sim_aoi&room=' + simRoomCode + '&autoJoin=1&name=' + encodeURIComponent('อาโออิ') + '&role=' + encodeURIComponent('นักชิม') + '&muted=1';
+  const p1Url = baseUrl + pathPrefix + '?view=player&user=sim_naegi&room=' + simRoomCode + '&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย') + '&muted=1';
+  const p2Url = baseUrl + pathPrefix + '?view=player&user=sim_kyoko&room=' + simRoomCode + '&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา') + '&muted=1';
+  const p3Url = baseUrl + pathPrefix + '?view=player&user=sim_byakuya&room=' + simRoomCode + '&name=' + encodeURIComponent('เบียคุยะ') + '&role=' + encodeURIComponent('นักมายากล') + '&muted=1';
+  const p4Url = baseUrl + pathPrefix + '?view=player&user=sim_aoi&room=' + simRoomCode + '&name=' + encodeURIComponent('อาโออิ') + '&role=' + encodeURIComponent('นักชิม') + '&muted=1';
 
   if (fCourt && (!fCourt.src || fCourt.src === 'about:blank' || !fCourt.src.includes(simRoomCode))) fCourt.src = courtUrl;
   if (fAdmin && (!fAdmin.src || fAdmin.src === 'about:blank' || !fAdmin.src.includes(simRoomCode))) fAdmin.src = adminUrl;
-  if (fP1 && (!fP1.src || fP1.src === 'about:blank' || !fP1.src.includes(simRoomCode))) fP1.src = p1Url;
-  if (fP2 && (!fP2.src || fP2.src === 'about:blank' || !fP2.src.includes(simRoomCode))) fP2.src = p2Url;
-  if (fP3 && (!fP3.src || fP3.src === 'about:blank' || !fP3.src.includes(simRoomCode))) fP3.src = p3Url;
-  if (fP4 && (!fP4.src || fP4.src === 'about:blank' || !fP4.src.includes(simRoomCode))) fP4.src = p4Url;
+  if (fP1 && (!fP1.src || fP1.src === 'about:blank' || !fP1.src.includes(simRoomCode) || fP1.src.includes('autoJoin=1'))) fP1.src = p1Url;
+  if (fP2 && (!fP2.src || fP2.src === 'about:blank' || !fP2.src.includes(simRoomCode) || fP2.src.includes('autoJoin=1'))) fP2.src = p2Url;
+  if (fP3 && (!fP3.src || fP3.src === 'about:blank' || !fP3.src.includes(simRoomCode) || fP3.src.includes('autoJoin=1'))) fP3.src = p3Url;
+  if (fP4 && (!fP4.src || fP4.src === 'about:blank' || !fP4.src.includes(simRoomCode) || fP4.src.includes('autoJoin=1'))) fP4.src = p4Url;
 
   setTimeout(() => { simProbePing(); }, 400);
 }
