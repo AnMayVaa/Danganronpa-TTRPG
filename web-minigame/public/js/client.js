@@ -2319,7 +2319,7 @@ function updateTimerDisplay() {
 }
 
 function updateInfluenceDisplay() {
-  // Influence gauge removed per requirement
+  /* influence gauge removed */
 }
 
 function logCourt(text) {
@@ -4068,7 +4068,7 @@ function adminStartRebuttal() {
   const rebSel = document.getElementById('adminRebuttalChallengerSelect');
   const rebOppSel = document.getElementById('adminRebuttalOpponentSelect');
   const chal = rebSel ? rebSel.value : '';
-  const opp = rebOppSel ? rebOppSel.value : 'สุดยอดนักมายากล';
+  const opp = rebOppSel ? rebOppSel.value : '';
   adminSetGame('stage3', { challenger: chal, opponent: opp });
 }
 

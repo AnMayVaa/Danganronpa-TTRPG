@@ -4387,7 +4387,7 @@ select option:disabled {
   border: 2px solid var(--mono-pink);
   border-radius: 12px;
   width: 100%;
-  max-width: 1120px;
+  max-width: 1160px;
   margin: 0 auto;
   box-shadow: 0 0 25px rgba(255, 46, 99, 0.35), 0 10px 30px rgba(0, 0, 0, 0.7);
   position: relative;
@@ -4397,28 +4397,6 @@ select option:disabled {
 .sim-device-panel.court-panel .sim-panel-header {
   background: linear-gradient(90deg, #2b1122 0%, #1c152a 50%, #151526 100%);
   border-bottom: 2px solid var(--mono-pink);
-}
-
-.sim-device-panel.court-panel .sim-panel-title {
-  color: #fff;
-  font-size: 0.92rem;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  text-shadow: 0 0 10px rgba(255, 46, 99, 0.5);
-}
-
-.sim-device-panel.court-panel .sim-panel-status.live {
-  background: rgba(255, 46, 99, 0.25);
-  color: #ff2e63;
-  border: 1px solid #ff2e63;
-  box-shadow: 0 0 12px rgba(255, 46, 99, 0.5);
-  animation: pulseCourtLive 2s infinite;
-}
-
-@keyframes pulseCourtLive {
-  0% { opacity: 0.8; box-shadow: 0 0 5px rgba(255, 46, 99, 0.3); }
-  50% { opacity: 1; box-shadow: 0 0 16px rgba(255, 46, 99, 0.8); }
-  100% { opacity: 0.8; box-shadow: 0 0 5px rgba(255, 46, 99, 0.3); }
 }
 
 .sim-device-panel.admin-panel {
@@ -4439,6 +4417,7 @@ select option:disabled {
   box-sizing: border-box;
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
   gap: 8px;
   border-bottom: 1px solid #282838;
 }
@@ -4454,6 +4433,7 @@ select option:disabled {
   font-weight: 800;
   color: #eee;
   flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4494,7 +4474,7 @@ select option:disabled {
   white-space: nowrap;
 }
 
-/* Court Screen: Strictly 16:9 Aspect Ratio */
+/* Court Screen: Strictly 16:9 Aspect Ratio (Monitor 1 is BIGGER than Monitor 2) */
 .sim-iframe-wrap.court-wrap {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -4510,12 +4490,13 @@ select option:disabled {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
   width: 100%;
+  align-items: start;
 }
 
 .sim-iframe-wrap.mobile-wrap,
 .sim-iframe-wrap:not(.court-wrap) {
   width: 100%;
-  max-width: 320px;
+  max-width: 290px;
   aspect-ratio: 9 / 16;
   height: auto;
   margin: 0 auto;
@@ -4523,10 +4504,11 @@ select option:disabled {
   position: relative;
 }
 
+/* Monitor 2 in PC mode (16:9): clearly smaller than Monitor 1 (800px vs 1160px) */
 .sim-device-panel.admin-panel.admin-pc-full {
   grid-column: 1 / -1;
   width: 100%;
-  max-width: 960px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
@@ -4535,10 +4517,11 @@ select option:disabled {
   aspect-ratio: 16 / 9 !important;
 }
 
+/* Monitor 2 in iPad mode (4:3): compact tablet (600px vs 1160px) */
 .sim-device-panel.admin-panel.admin-ipad-full {
   grid-column: 1 / -1;
   width: 100%;
-  max-width: 720px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
