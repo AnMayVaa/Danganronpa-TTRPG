@@ -1125,7 +1125,6 @@ function handleIncomingMessage(msg, senderConn) {
     } else {
       gameState.influence = Math.max(0, Math.min(100, gameState.influence + (msg.delta || 0)));
     }
-    updateInfluenceDisplay();
     if (msg.delta < 0) playSfx('wrong');
     else if (msg.delta > 0) playSfx('correct');
   } else if (msg.type === 'sabotage') {
@@ -1135,7 +1134,7 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'stg1_evaluate') {
     evaluateStg1Batch();
   } else if (msg.type === 'stg2_char') {
-    handleStg2Char(msg.char);
+    if (isHost) handleStg2Char(msg.char); // Only host processes to avoid double-fire
   } else if (msg.type === 'rebuttal_slash') {
     handleRebuttalSlash(msg.bullet, msg.playerName);
   } else if (msg.type === 'rebuttal_verdict') {
@@ -1156,13 +1155,10 @@ function handleIncomingMessage(msg, senderConn) {
       mobileFb.innerHTML = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${msg.winningChoice}] ซึ่งเป็นทางตัน (รอ DM สั่งการ)`;
     }
   } else if (msg.type === 'logic_dive_retry') {
-    const choicesBox = document.getElementById('diveMobileChoices');
-    const feedback = document.getElementById('diveChoiceFeedback');
-    if (choicesBox) {
-      choicesBox.style.pointerEvents = 'auto';
-      Array.from(choicesBox.children).forEach(b => b.classList.remove('btn-selected'));
+    // Re-render mobile task to rebuild DOM (old elements may be gone after sync_state)
+    if (gameState.currentStage === 'stage4') {
+      renderMobileTask('stage4');
     }
-    if (feedback) feedback.style.display = 'none';
   } else if (msg.type === 'stg5_scrum') {
     handleStg5Scrum(msg.delta);
   } else if (msg.type === 'stg6_counter') {
@@ -1217,7 +1213,6 @@ function handleIncomingMessage(msg, senderConn) {
 
 function applyState(st) {
   gameState = st;
-  updateInfluenceDisplay();
   updateTimerDisplay();
   updatePlayerDisplays();
   renderStage(gameState.stage);
@@ -2125,10 +2120,12 @@ function setStage(stage, config) {
   } else if (stage === 'stage1') {
     autoUnlockTrialClues();
     const activePlayerCount = Object.keys(gameState.players).length;
-    gameState.stg1Required = Math.max(1, Math.min(3, Math.ceil(activePlayerCount * 0.6)));
+    gameState.stg1Required = activePlayerCount; // All players must submit
     gameState.stg1Submissions = 0;
     gameState.stg1SubmissionsList = [];
     gameState.stg1Evaluated = false;
+    const slotCountEl = document.getElementById('stg1TotalSlots');
+    if (slotCountEl) slotCountEl.innerText = activePlayerCount || 4;
     updateStg1Display();
     if (config) {
       if (config.prompt) gameState.stg1Prompt = config.prompt;
@@ -2166,7 +2163,7 @@ function setStage(stage, config) {
       if (config.opponent !== undefined) gameState.stg3Opponent = config.opponent;
       if (config.argument) gameState.stg3Argument = config.argument;
     }
-    if (!gameState.stg3Opponent) gameState.stg3Opponent = "สุดยอดนักมายากล";
+    if (!gameState.stg3Opponent) gameState.stg3Opponent = "";
     updateRebuttalDisplay();
     gameState.timeRemaining = 60;
     gameState.timerRunning = false;
@@ -2221,7 +2218,7 @@ function setStage(stage, config) {
     gameState.stg6Finished = false;
     gameState.stg6FinalReady = false;
     stg6FinalBlowSent = false;
-    gameState.stg6TargetPlayer = config?.targetPlayer || (document.getElementById('adminArmamentTargetSelect')?.value) || 'นักมายากล (A)';
+    gameState.stg6TargetPlayer = config?.targetPlayer || (document.getElementById('adminArmamentTargetSelect')?.value) || '';
     if (config && config.scream) {
       gameState.stg6Statement = config.scream;
     } else {
@@ -2321,10 +2318,7 @@ function updateTimerDisplay() {
   }
 }
 
-function updateInfluenceDisplay() {
-  const bar = document.getElementById('courtInfluenceBar');
-  const txt = document.getElementById('courtInfluenceTxt');
-  if (bar) bar.style.width = `${gameState.influence}%`;
+function updateInfluenceDisplay() { /* influence gauge removed */ }%`;
   if (txt) txt.innerText = `${gameState.influence}%`;
 }
 
@@ -2396,7 +2390,6 @@ function handleResetSession() {
     myPlayer = null;
     navigate('/play?room=' + roomCode);
   } else {
-    updateInfluenceDisplay();
     updatePlayerDisplays();
     renderStage('lobby');
   }
@@ -2728,7 +2721,6 @@ function evaluateStg1Batch() {
     );
   } else {
     gameState.influence = Math.max(0, gameState.influence - 15);
-    updateInfluenceDisplay();
     showMinigameResult(
       false,
       "OBJECTION FAILED!",
@@ -2794,7 +2786,6 @@ function handleStg2Char(char) {
   } else {
     gameState.stg2Mistakes = (gameState.stg2Mistakes || 0) + 1;
     gameState.influence = Math.max(0, gameState.influence - 5);
-    updateInfluenceDisplay();
     updateHangmanHealthDisplay();
     playSfx('wrong');
 
@@ -2882,7 +2873,6 @@ function triggerRebuttalVerdict(isWin, skipBroadcast = false) {
     if (!skipBroadcast && isHost) broadcast({ type: 'rebuttal_verdict', isWin: true });
   } else {
     gameState.influence = Math.max(0, gameState.influence - 15);
-    updateInfluenceDisplay();
     showMinigameResult(
       false,
       "REBUTTAL DEFEAT!",
@@ -2898,6 +2888,42 @@ function adminRebuttalVerdict(isWin) {
   broadcast({ type: 'rebuttal_verdict', isWin: isWin });
 }
 
+
+function populateArmamentTargetSelect() {
+  const sel = document.getElementById('adminArmamentTargetSelect');
+  if (!sel) return;
+  const players = Object.values(gameState.players || {});
+  const currentVal = sel.value;
+  sel.innerHTML = '';
+  players.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.name;
+    opt.textContent = `${p.name} [${p.role || '?'}]`;
+    sel.appendChild(opt);
+  });
+  if (currentVal && sel.querySelector(`option[value="${CSS.escape(currentVal)}"]`)) {
+    sel.value = currentVal;
+  }
+}
+
+function populateRebuttalSelects() {
+  const chalSel = document.getElementById('adminRebuttalChallengerSelect');
+  const oppSel = document.getElementById('adminRebuttalOpponentSelect');
+  if (!chalSel && !oppSel) return;
+  const players = Object.values(gameState.players || {});
+  [chalSel, oppSel].forEach(sel => {
+    if (!sel) return;
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="">-- เลือกผู้เล่น --</option>';
+    players.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.textContent = `${p.name} [${p.role || '?'}]`;
+      sel.appendChild(opt);
+    });
+    if (currentVal) sel.value = currentVal;
+  });
+}
 function adminSelectRebuttalChallenger() {
   const sel = document.getElementById('adminRebuttalChallengerSelect');
   if (!sel) return;
@@ -3008,7 +3034,7 @@ function evaluateLogicDiveMajority() {
         );
       } else {
         updateLogicDiveDisplay();
-        startTimer(45);
+        // Timer starts only when DM presses "Start" button — NOT auto-started
       }
       if (isHost) broadcast({ type: 'sync_state', state: gameState });
     }, 1200);
@@ -3016,7 +3042,6 @@ function evaluateLogicDiveMajority() {
     // Collision crash - DO NOT reveal the correct answer!
     stopTimer();
     gameState.influence = Math.max(0, gameState.influence - 15);
-    updateInfluenceDisplay();
     playSfx('wrong');
 
     const crashNotice = document.getElementById('diveCrashNotice');
@@ -3037,6 +3062,7 @@ function evaluateLogicDiveMajority() {
 
 function adminRetryLogicDive() {
   gameState.stg4Votes = {};
+  gameState.stg4Evaluating = false; // Reset so evaluation can run again
   const crashNotice = document.getElementById('diveCrashNotice');
   if (crashNotice) {
     crashNotice.classList.add('hidden');
@@ -3047,7 +3073,7 @@ function adminRetryLogicDive() {
     if (lane) lane.classList.remove('active-match', 'mismatch');
   });
   updateLogicDiveDisplay();
-  startTimer(40);
+  if (isHost) broadcast({ type: 'sync_state', state: gameState }); // Trigger mobile re-render
   broadcast({ type: 'logic_dive_retry' });
   showToast('🔄 ให้โอกาสผู้เล่นคิดและเลือกเส้นทางใหม่');
 }
@@ -3055,6 +3081,7 @@ function adminRetryLogicDive() {
 function adminSkipLogicDive() {
   gameState.stg4Step++;
   gameState.stg4Votes = {};
+  gameState.stg4Evaluating = false; // Reset flag for next step
   const crashNotice = document.getElementById('diveCrashNotice');
   if (crashNotice) {
     crashNotice.classList.add('hidden');
@@ -3068,6 +3095,12 @@ function adminSkipLogicDive() {
     startTimer(45);
     broadcast({ type: 'sync_state', state: gameState });
   }
+}
+
+function adminStartLogicDiveTimer() {
+  startTimer(45);
+  broadcast({ type: 'logic_dive_timer_start' });
+  showToast('▶️ เริ่มจับเวลา Logic Dive แล้ว');
 }
 
 function updateLogicDiveDisplay() {
@@ -3237,7 +3270,6 @@ function handleClosingSubmit(slot, cardId, pName) {
     if (isHost) broadcast({ type: 'sync_state', state: gameState });
   } else {
     gameState.influence = Math.max(0, gameState.influence - 10);
-    updateInfluenceDisplay();
     playSfx('wrong');
     logCourt(`❌ [CLOSING MISMATCH]: การ์ดเหตุการณ์ไม่ตรงกับช่องว่าง (-10% Influence)`);
   }
@@ -3269,7 +3301,7 @@ function updateClosingDisplay() {
 // 8. Voting & Verdict
 function handleVoteSubmitted(candidate, voterId) {
   if (!gameState.votesCast) gameState.votesCast = {};
-  gameState.votesCast[voterId] = true;
+  gameState.votesCast[voterId] = candidate; // Store name, not boolean
   gameState.votes[candidate] = (gameState.votes[candidate] || 0) + 1;
   updateVoteDisplay();
 
@@ -3575,16 +3607,14 @@ function renderMobileTask(stage) {
       </div>
     `;
   } else if (stage === 'stage3') {
-    if (gameState.stg3Challenger && myPlayer && myPlayer.name !== gameState.stg3Challenger) {
-      area.innerHTML = `
-        <div style="background:rgba(20,20,35,0.95); border:2px solid var(--mono-pink); border-radius:10px; padding:20px; text-align:center;">
-          <div style="font-size:3rem; margin-bottom:10px;">⚔️</div>
-          <h3 style="color:var(--mono-pink); font-weight:900;">การดวลดาบคำพูด (Rebuttal Showdown)</h3>
-          <p style="color:#ddd; font-size:0.95rem; margin-top:8px;">คุณ <strong style="color:var(--court-gold);">${gameState.stg3Challenger}</strong> กำลังดวลดาบความจริงกับฝ่ายตรงข้าม!</p>
-          <p style="color:#888; font-size:0.85rem; margin-top:12px;">จับตาดูการฟันฝ่าและลุ้นผลลัพธ์บนจอใหญ่ศาลชั้นเรียน...</p>
-        </div>
-      `;
-    } else {
+    const myName = myPlayer ? myPlayer.name : '';
+    // Flexible match: check if player name contains challenger name or vice versa
+    const challenger = gameState.stg3Challenger || '';
+    const opponent = gameState.stg3Opponent || '';
+    const isChallenger = challenger && (myName === challenger || myName.includes(challenger) || challenger.includes(myName));
+    const isOpponent = opponent && (myName === opponent || myName.includes(opponent) || opponent.includes(myName));
+
+    if (isChallenger) {
       const activeBullets = (gameState.discoveredClues && gameState.discoveredClues.length) ? gameState.discoveredClues : ['CORE-01', 'EVD-01', 'EVD-04', 'EVD-14'];
       let bulletOptions = activeBullets.map(cid => {
         const c = ALL_CLUES_DATA.find(x => x.id === cid) || { id: cid, name: cid };
@@ -3592,7 +3622,8 @@ function renderMobileTask(stage) {
       }).join('');
 
       area.innerHTML = `
-        <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">⚔️ คุณคือนักดาบผู้ท้าชิง (Rebuttal Duelist)!</h3>
+        <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">⚔️ คุณคือ: ฝ่ายโจมตี (Truth Blade Duelist)!</h3>
+        <p style="color:#aaa; font-size:0.85rem; margin-bottom:10px;">vs <strong style="color:#ffe600;">${opponent || 'ฝ่ายตรงข้าม'}</strong></p>
         <div style="margin-bottom:12px; text-align:left;">
           <label style="font-size:0.85rem; color:#aaa; font-weight:700; display:block; margin-bottom:4px;">เลือกกระสุนความจริงที่ถือดาบเข้าปะทะ:</label>
           <select id="rebuttalEquippedBullet" style="width:100%; background:#1a1a2e; color:#fff; border:2px solid var(--mono-pink); padding:8px; border-radius:6px;">
@@ -3602,6 +3633,37 @@ function renderMobileTask(stage) {
         <button class="p-task-btn big-action-btn" style="background:#3b141b; border: 3px solid var(--mono-pink); box-shadow: 4px 4px 0 #000;" onclick="sendRebuttalSlash()">
           ⚔️ ฟันฝ่าข้อโต้แย้ง! (Truth Blade Slash)
         </button>
+      `;
+    } else if (isOpponent) {
+      // Opponent (defender) can counter-slash
+      const activeBullets = (gameState.discoveredClues && gameState.discoveredClues.length) ? gameState.discoveredClues : ['CORE-01', 'EVD-01', 'EVD-04', 'EVD-14'];
+      let bulletOptions = activeBullets.map(cid => {
+        const c = ALL_CLUES_DATA.find(x => x.id === cid) || { id: cid, name: cid };
+        return `<option value="${c.id}">[${c.id}] ${c.name}</option>`;
+      }).join('');
+
+      area.innerHTML = `
+        <h3 style="color:#ffe600; margin-bottom:12px; font-weight:900;">🛡️ คุณคือ: ฝ่ายรับมือ (Defender)!</h3>
+        <p style="color:#aaa; font-size:0.85rem; margin-bottom:10px;">vs <strong style="color:var(--mono-pink);">${challenger || 'ฝ่ายโจมตี'}</strong></p>
+        <div style="margin-bottom:12px; text-align:left;">
+          <label style="font-size:0.85rem; color:#aaa; font-weight:700; display:block; margin-bottom:4px;">เลือกหลักฐานโต้แย้ง (ปัดป้องข้อกล่าวหา):</label>
+          <select id="rebuttalEquippedBullet" style="width:100%; background:#1a1a2e; color:#fff; border:2px solid #ffe600; padding:8px; border-radius:6px;">
+            ${bulletOptions}
+          </select>
+        </div>
+        <button class="p-task-btn big-action-btn" style="background:#1a1500; border: 3px solid #ffe600; box-shadow: 4px 4px 0 #000;" onclick="sendRebuttalSlash()">
+          🛡️ โต้แย้งข้อกล่าวหา! (Counter Slash)
+        </button>
+      `;
+    } else {
+      // Spectator
+      area.innerHTML = `
+        <div style="background:rgba(20,20,35,0.95); border:2px solid var(--mono-pink); border-radius:10px; padding:20px; text-align:center;">
+          <div style="font-size:3rem; margin-bottom:10px;">⚔️</div>
+          <h3 style="color:var(--mono-pink); font-weight:900;">การดวลดาบคำพูด (Rebuttal Showdown)</h3>
+          <p style="color:#ddd; font-size:0.95rem; margin-top:8px;"><strong style="color:var(--court-gold);">${challenger || '?'}</strong> vs <strong style="color:#ffe600;">${opponent || '?'}</strong></p>
+          <p style="color:#888; font-size:0.85rem; margin-top:12px;">จับตาดูการดวลดาบและลุ้นผลลัพธ์บนจอใหญ่ศาลชั้นเรียน...</p>
+        </div>
       `;
     }
   } else if (stage === 'stage4') {
@@ -3644,7 +3706,7 @@ function renderMobileTask(stage) {
       </div>
     `;
   } else if (stage === 'stage6') {
-    const targetName = gameState.stg6TargetPlayer || 'นักมายากล (A)';
+    const targetName = gameState.stg6TargetPlayer || 'ผู้ถูกกล่าวหา';
     const isTarget = Boolean(myPlayer && (
       myPlayer.name === targetName ||
       targetName.includes(myPlayer.name)
@@ -3904,8 +3966,7 @@ function handleSabotage(type, pName) {
       updateTimerDisplay();
     } else if (type === 'corrupt_data') {
       gameState.influence = Math.max(0, gameState.influence - 10);
-      updateInfluenceDisplay();
-    }
+      }
     return;
   }
 
@@ -3927,7 +3988,6 @@ function handleSabotage(type, pName) {
     logCourt(`⏱️ [TIME GLITCH]: เวลาศาลชั้นเรียนถูกเร่งรัดกะทันหัน! (-10s)`);
   } else if (type === 'corrupt_data') {
     gameState.influence = Math.max(0, gameState.influence - 10);
-    updateInfluenceDisplay();
     logCourt(`⚠️ [DATA CORRUPT]: ข้อมูลเท็จถูกแทรกแซงเข้าสู่ระบบ (-10% Influence)`);
   }
 }
@@ -3960,7 +4020,6 @@ function adminToggleTimer() {
 function adminAdjustInfluence(amount, reset) {
   if (reset) gameState.influence = amount;
   else gameState.influence = Math.max(0, Math.min(100, gameState.influence + amount));
-  updateInfluenceDisplay();
   broadcast({ type: 'adjust_influence', delta: amount, reset: reset, value: gameState.influence });
 }
 
@@ -4016,6 +4075,13 @@ function adminStartRebuttal() {
 function adminSelectRebuttalChallengers() {
   const rebSel = document.getElementById('adminRebuttalChallengerSelect');
   const rebOppSel = document.getElementById('adminRebuttalOpponentSelect');
+  // Validate no self-vs-self
+  if (rebSel && rebOppSel && rebSel.value && rebOppSel.value && rebSel.value === rebOppSel.value) {
+    showToast('⚠️ ผู้ท้าชิงและฝ่ายตรงข้ามต้องไม่ใช่คนเดียวกัน!');
+    return;
+  }
+  // Reassign rebSel for the rest of the function
+  const rebOppSel = document.getElementById('adminRebuttalOpponentSelect');
   if (rebSel) gameState.stg3Challenger = rebSel.value;
   if (rebOppSel) gameState.stg3Opponent = rebOppSel.value;
   updateRebuttalDisplay();
@@ -4049,8 +4115,8 @@ function updateAdminDisplay() {
   }
 
   if (rebOppSel) {
-    const curOpp = rebOppSel.value || gameState.stg3Opponent || 'สุดยอดนักมายากล';
-    rebOppSel.innerHTML = '<option value="สุดยอดนักมายากล">NPC: สุดยอดนักมายากล</option>';
+    const curOpp = rebOppSel.value || gameState.stg3Opponent || '';
+    rebOppSel.innerHTML = '<option value="">-- เลือกฝ่ายตรงข้าม --</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
       opt.value = `${p.name} [${p.role}]`;
@@ -4063,7 +4129,7 @@ function updateAdminDisplay() {
   const armTargetSel = document.getElementById('adminArmamentTargetSelect');
   if (armTargetSel) {
     const curVal = armTargetSel.value;
-    armTargetSel.innerHTML = '<option value="นักมายากล (A)">NPC: นักมายากล (A)</option>';
+    armTargetSel.innerHTML = '<option value="">-- เลือกผู้ถูกกล่าวหา --</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
       opt.value = `${p.name} [${p.role}]`;
