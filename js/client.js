@@ -5373,19 +5373,20 @@ const ACADEMY_ROOMS_DATA = {
 };
 
 function initMapView() {
-  setMapDisplayMode(currentMapMode || 'floor');
+  setMapDisplayMode(currentMapMode || 'clean');
   selectMapRoom('laundry');
 }
 
 function setMapDisplayMode(mode) {
   currentMapMode = mode;
-  ['btnMapFloor', 'btnMapCutaway', 'btnMapSimulate'].forEach(id => {
+  ['btnMapClean', 'btnMapCrime', 'btnMapCutaway', 'btnMapSimulate'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active');
   });
 
   const containers = {
-    'floor': 'mapFloorContainer',
+    'clean': 'mapCleanContainer',
+    'crime': 'mapCrimeContainer',
     'cutaway': 'mapCutawayContainer',
     'simulate': 'mapSimulateContainer'
   };
@@ -5395,10 +5396,15 @@ function setMapDisplayMode(mode) {
     if (el) el.classList.add('hidden');
   });
 
-  if (mode === 'floor') {
-    const btn = document.getElementById('btnMapFloor');
+  if (mode === 'clean') {
+    const btn = document.getElementById('btnMapClean');
     if (btn) btn.classList.add('active');
-    const c = document.getElementById('mapFloorContainer');
+    const c = document.getElementById('mapCleanContainer');
+    if (c) c.classList.remove('hidden');
+  } else if (mode === 'crime') {
+    const btn = document.getElementById('btnMapCrime');
+    if (btn) btn.classList.add('active');
+    const c = document.getElementById('mapCrimeContainer');
     if (c) c.classList.remove('hidden');
   } else if (mode === 'cutaway') {
     const btn = document.getElementById('btnMapCutaway');
@@ -5465,7 +5471,7 @@ function setSimPhase(phase) {
   if (phase === 1) {
     if (badge) badge.innerText = 'เฟส 1: การเซ็ตกลไกรอกมรณะพลังน้ำ (18:10 น.)';
     if (title) title.innerText = 'คนร้ายลอบวางกับดักน้ำถ่วงเวลาในห้องซักรีด';
-    if (desc) desc.innerText = 'A นำเชือกตากผ้าไนลอนคล้องบ่วงที่คอ B ซึ่งนอนสลบ พาดผ่านราวท่อสแตนเลสเพดาน หย่อนถังใส่ผ้าซักเปล่า (หนักเพียง 2 กก.) ออกนอกหน้าต่างบานเลื่อนระบายอากาศสูง 3.5 ม. แล้วเปิดสายยางน้ำหรี่ไหลเอื่อยๆ 0.5 ลิตร/นาที เพื่อให้น้ำหนักแตะ 82.5 กก. ชนะน้ำหนัก B (68 กก.) ตอน 21:00 น. พอดี!';
+    if (desc) desc.innerText = 'A (ผู้เล่น INT สูง) คล้องเชือกตากผ้าไนลอนที่คอ B พาดผ่านราวท่อสแตนเลสเพดาน หย่อนถังเปล่า (2 กก.) ออกนอกหน้าต่างสูง 3.5 ม. และใช้ที่หนีบผ้าเหล็กล็อกสายยางติดขอบถัง หรี่น้ำ 0.5 ลิตร/นาที โดยร่าง B (68 กก.) ถ่วงเชือกไว้ ทำให้ถังลอยนิ่งอยู่ที่เดิมไม่ขยับลงเลยจนกว่าน้ำจะเต็มตอน 21:00 น.!';
     
     if (victimAvatar) {
       victimAvatar.style.bottom = '25px';
@@ -5511,7 +5517,7 @@ function setSimPhase(phase) {
   } else if (phase === 3) {
     if (badge) badge.innerText = 'เฟส 3: วินาทีสังหาร & การตายที่แท้จริง (21:00 น.)';
     if (title) title.innerText = 'ถังน้ำ 100 กก. ร่วงกระแทกพื้น กระชากร่าง B คอหักตายคาที่!';
-    if (desc) desc.innerText = '21:00 น. เครื่องอบผ้าเริ่มหมุนเสียงดังตึงตัง ถังน้ำหนัก 82.5 กก. ร่วงวูบ 3.5 ม. กระแทกพื้นลานปูนดัง "โครม!!" เกิดแรงกระชากมหาศาล (Shock Load) ดึงร่าง B ลอยหวือขึ้นเพดาน เงื่อนฮาร์เนสหลุด บ่วงรูดขึ้นรัดคอและกระแทกราวท่อสแตนเลสเพดานจนคอหักเสียชีวิตทันที! B จึงกลายเป็น Blackened ปลิดชีพตนเอง!';
+    if (desc) desc.innerText = '21:00 น. เครื่องอบผ้าหมุนเสียงดังตึงตัง ถังน้ำหนัก 82.5 กก. ชนะน้ำหนัก B จึงร่วงวูบ 3.5 ม. กระแทกพื้นลานปูนดัง "โครม!!" แรงกระชากกระตุกสายยางหลุดกระเด็นออกจากก๊อก และดึงร่าง B ลอยหวือขึ้นเพดาน เงื่อนฮาร์เนสหลุด บ่วงรูดขึ้นรัดคอกระแทกราวสแตนเลสจนคอหักเสียชีวิตทันที! B จึงกลายเป็น Blackened ปลิดชีพตนเอง!';
     
     if (victimAvatar) {
       victimAvatar.style.bottom = 'auto';
