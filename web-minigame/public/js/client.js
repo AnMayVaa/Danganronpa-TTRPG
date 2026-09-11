@@ -1888,7 +1888,8 @@ const ALL_CLUES_DATA = [
   { id: "EVD-07", aliases: ["RAIL-07", "PIPE-07", "7", "E7"], name: "ราวท่อสแตนเลสเพดานห้องซักรีดสูง 4 เมตร", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (เพดานสูง 4 ม.)", desc: "ราวท่อสแตนเลสแขวนผ้าแห้ง มีรอยไหม้เสียดสีของเชือกไนลอนพาดผ่านจากพื้นห้องซักรีด ลอดออกไปนอกบานหน้าต่างบานเลื่อนสูง 3.5 ม." },
   { id: "EVD-09", aliases: ["DRYER-09", "BOOTS-09", "9", "E9"], name: "เครื่องอบผ้า & รองเท้าบูทของ B", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (เครื่องอบผ้า DRY-1)", desc: "เครื่องอบผ้าตั้งเวลา Delay 21:00 น. ภายในมีรองเท้าบูทคู่หนักของเหยื่อ B หมุนเหวี่ยงกระแทกสร้างเสียงต่อสู้ลวงตา ตรงกับร่าง B ที่ถูกพบในสภาพเท้าเปล่าสวมแต่ถุงเท้า!" },
   { id: "EVD-17", aliases: ["TEST-05", "PC5-17", "17", "E17", "ALIBI-05"], name: "คำให้การของ PC 5 (เวรทำอาหารมื้อค่ำตามกฎโรงเรียน)", importance: "MUST", secretType: "TESTIMONY", typeLabel: "คำให้การนักเรียน", loc: "ได้จากการใช้คำสั่ง Converse ถาม PC 5 (1 AP)", desc: "คำให้การ: \\\"ตามตารางเวรบน Monopad คืนนี้ฉันมีหน้าที่เป็นเวรทำอาหารมื้อค่ำ เลยอยู่ในครัวต้มสตูว์เนื้อตั้งแต่ 17:45 - 18:30 น. กลิ่นสตูว์หอมฟุ้ง ฉันไม่เคยออกไปไหนเลยนะ!\\\"" },
-  { id: "EVD-27", aliases: ["TOWEL-27", "27", "E27"], name: "ผ้าขนหนูสีกรมท่าตราห้องซักรีด (ซุกก้นถังขยะครัว)", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องครัว (ใต้ถุงขยะดำก้นถัง)", desc: "ผ้าขนหนูสีกรมท่ามีตราปัก '1F LAUNDRY ROOM - PROPERTY' ขยำซุกอยู่ก้นถังขยะครัว มีคราบเลือดแห้งกรังของ B ด้านใน ตรงกับราวแขวนในห้องซักรีดที่ผ้าหายไป 1 ผืนพอดี!" },
+  { id: "EVD-27", aliases: ["TOWEL-27", "27", "E27", "BLOOD-27"], name: "ผ้าขนหนูสีกรมท่าเปื้อนเลือด (ซุกก้นถังขยะครัว)", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องครัว (ใต้ถุงขยะดำก้นถัง)", desc: "ผ้าขนหนูสีกรมท่าผืนหนามาตรฐานโรงเรียน ถูกขยำซุกไว้ใต้ถุงขยะดำก้นถังขยะในห้องครัว ด้านในมีคราบเลือดแห้งกรังของเหยื่อ B ซึมติดอยู่ เป็นผ้าแบบและสีเดียวกับผ้าขนหนูบนราวแขวนในห้องซักรีด" },
+  { id: "EVD-31", aliases: ["TOWEL-31", "RACK-31", "31", "E31", "LAUNDRY-31"], name: "ผ้าขนหนูสีกรมท่าบนราวแขวน (ห้องซักรีด)", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (ราวแขวนผ้าข้างอ่างล้าง)", desc: "ผ้าขนหนูสีกรมท่าผืนมาตรฐานสำหรับใช้งานในโรงเรียน แขวนเรียงอยู่บนราวสแตนเลสข้างอ่างล้างห้องซักรีด โดยมีช่องว่างที่ผ้าขนหนูสีกรมท่าหายไปจากราว 1 ผืนพอดี ตรงกับผืนที่พบเปื้อนเลือดซุกก้นถังขยะครัว!" },
   { id: "EVD-03", aliases: ["FREEZER-03", "ICE-03", "3", "E3"], name: "ตู้ฟรีซและคราบน้ำแข็งละลายในห้องครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องครัว (ช่องฟรีซ)", desc: "ช่องแช่แข็งมีคราบน้ำแข็งละลายจากการเปิดหยิบของสดชิ้นใหญ่ออกไปช่วง 17:30 น. และมีถุงเนื้อหมูแช่แข็งฉีกขาดตกอยู่" },
   { id: "EVD-08", aliases: ["HOSE-08", "SPLASH-08", "8", "E8"], name: "สายยางหลุดกระเด็นและคราบน้ำประปาเปียกผนัง", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องซักรีด (ก๊อกน้ำและผนัง)", desc: "ปลายสายยางกระชากหลุดจากหัวก๊อกน้ำ น้ำประปาพุ่งเปียกผนัง เกิดจากแรงดึงกระชากฉับพลันตอนถัง 82.5 กก. ร่วง ยืนยันเวลาเกิดเหตุ 21:00 น." },
   { id: "EVD-10", aliases: ["VEND-10", "COIN-10", "10", "E10"], name: "ตู้กดน้ำอัตโนมัติโถงกลางและเหรียญติดขัด", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "โถงทางเดินกลาง (CORR-100)", desc: "ตู้กดน้ำมีรอยทุบกระแทกและมีเหรียญติดขัดที่ช่องหยอด จุดที่ PC 1 ยืนก้มหน้าทุบตู้ตอน 17:45 น. เปิดช่องให้คนร้ายห่อกระดูกหมูเดินผ่านหลังโดยไม่ถูกมองเห็น" },
@@ -4605,6 +4606,19 @@ function filterPrintClues(cat) {
   renderPrintableClues();
 }
 
+function getNeutralClueCategory(c) {
+  if (c.id === 'EVD-01') return '📑 ผลชันสูตรทางการ';
+  if (c.id === 'EVD-11') return '🗺️ ผังอาคารสถานที่';
+  if (c.id === 'EVD-12') return '📊 ข้อมูลสาธารณูปโภค';
+  if (c.secretType === 'TESTIMONY') return '💬 คำให้การนักเรียน';
+  if (['EVD-02', 'EVD-04', 'EVD-05', 'EVD-27'].includes(c.id)) return '📦 วัตถุพยานคดี';
+  if (['EVD-06', 'EVD-07', 'EVD-09'].includes(c.id)) return '⚙️ ชิ้นส่วนกลไก';
+  if (['EVD-25', 'EVD-26'].includes(c.id)) return '🧠 ความทรงจำ / ประสาทสัมผัส';
+  if (c.id === 'EVD-30') return '📋 กฎและตารางเวร';
+  if (['EVD-22', 'EVD-23', 'EVD-24'].includes(c.id)) return '📦 สิ่งของทั่วไป';
+  return '🏢 ร่องรอยสถานที่';
+}
+
 function renderPrintableClues() {
   const sheet = document.getElementById('printableCluesSheet');
   if (!sheet) return;
@@ -4619,36 +4633,51 @@ function renderPrintableClues() {
   });
 
   filtered.forEach(c => {
-    const qrTargetUrl = `https://danganronpa-ttrpg.vercel.app/play?room=${roomCode}&clue=${c.id}`;
-    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrTargetUrl)}`;
+    const qrTargetUrl = `https://danganronpa-ttrpg.vercel.app/play?room=${encodeURIComponent(roomCode)}&clue=${encodeURIComponent(c.id)}`;
+    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=2&data=${encodeURIComponent(qrTargetUrl)}`;
+    const catTag = getNeutralClueCategory(c);
 
-    let impBadge = '';
+    // DM Secret Badge: Shown only on screen for DM, completely hidden in @media print
+    let dmBadge = '';
     if (c.importance === 'MUST') {
-      impBadge = '<span class="print-clue-secret-badge core" style="background:#dc2626; color:#fff;">🔴 ต้องเก็บ (Crucial)</span>';
+      dmBadge = '<span class="p-card-dm-badge print-hide dm-core" title="ความสำคัญต่อคดี: ต้องเก็บ">🔴 ต้องเก็บ</span>';
     } else if (c.importance === 'GOOD') {
-      impBadge = '<span class="print-clue-secret-badge supp" style="background:#0284c7; color:#fff;">🔵 มีก็ดี (Supporting)</span>';
+      dmBadge = '<span class="p-card-dm-badge print-hide dm-supp" title="ความสำคัญต่อคดี: มีก็ดีช่วยเสริม">🔵 มีก็ดี</span>';
     } else if (c.secretType === 'HERR') {
-      impBadge = '<span class="print-clue-secret-badge herr" style="background:#ca8a04; color:#000;">🟡 ตัวหลอก (Red Herring)</span>';
+      dmBadge = '<span class="p-card-dm-badge print-hide dm-herr" title="ความสำคัญต่อคดี: ตัวหลอก">🟡 ตัวหลอก</span>';
     } else if (c.secretType === 'TRASH') {
-      impBadge = '<span class="print-clue-secret-badge trash" style="background:#475569; color:#fff;">⚫ ขยะ (Trash)</span>';
+      dmBadge = '<span class="p-card-dm-badge print-hide dm-trash" title="ความสำคัญต่อคดี: ขยะ">⚪ ขยะ</span>';
     } else {
-      impBadge = '<span class="print-clue-secret-badge" style="background:#10b981; color:#fff;">💬 คำให้การ</span>';
+      dmBadge = '<span class="p-card-dm-badge print-hide dm-test" title="คำให้การนักเรียน">💬 คำให้การ</span>';
     }
 
     const card = document.createElement('div');
     card.className = 'print-clue-card printable-clue-card';
     card.innerHTML = `
-      <div class="p-card-top" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span class="p-card-id" style="font-weight:900; font-size:1rem; color:var(--mono-yellow);">[${c.id}]</span>
-        ${impBadge}
+      <div class="p-card-top">
+        <div class="p-card-top-left">
+          <span class="p-card-id">[${c.id}]</span>
+          <span class="p-card-category">${catTag}</span>
+        </div>
+        ${dmBadge}
       </div>
-      <h4 class="p-card-title" style="font-size:0.95rem; margin:4px 0 6px 0; color:#fff; font-weight:800;">${escapeHtml(c.name)}</h4>
-      <div class="p-card-loc" style="font-size:0.8rem; color:#38bdf8; margin-bottom:6px;">📍 สถานที่พบ: ${escapeHtml(c.loc)}</div>
-      <div class="print-clue-qr p-card-qr-box">
-        <img src="${qrImgUrl}" alt="QR ${c.id}" class="p-card-qr-img" onerror="this.style.display='none';">
+      <div class="p-card-title">${escapeHtml(c.name)}</div>
+      <div class="p-card-loc"><span class="p-loc-lbl">📍 สถานที่พบ:</span> <span class="p-loc-val">${escapeHtml(c.loc)}</span></div>
+      <div class="p-card-body">
+        <div class="p-card-qr-col">
+          <div class="p-card-qr-box">
+            <img src="${qrImgUrl}" alt="QR ${c.id}" class="p-card-qr-img" onerror="this.style.display='none';">
+          </div>
+          <div class="p-card-code-pill">รหัส: <strong>${c.id}</strong></div>
+        </div>
+        <div class="p-card-desc-col">
+          <div class="p-card-desc">${escapeHtml(c.desc)}</div>
+        </div>
       </div>
-      <div class="p-card-code-hint" style="font-size:0.8rem; color:#aaa; margin:4px 0;">รหัสสแกน / กรอกด้วยตนเอง: <strong style="color:#fff;">${c.id}</strong></div>
-      <p class="p-card-desc" style="font-size:0.8rem; color:#ddd; margin:6px 0 0 0; line-height:1.4;">${escapeHtml(c.desc)}</p>
+      <div class="p-card-footer">
+        <span>HOPE'S PEAK ACADEMY • INVESTIGATION LOG</span>
+        <span>MONOPAD ARCHIVE v3.2</span>
+      </div>
     `;
     sheet.appendChild(card);
   });
@@ -4663,6 +4692,11 @@ function adminOpenPrintCluesModal() {
     titleEl.innerText = `🖨️ บัตรหลักฐาน & คำให้การ QR (${ALL_CLUES_DATA.length} ใบ)`;
   }
 
+  const mustCount = ALL_CLUES_DATA.filter(c => c.importance === 'MUST').length;
+  const goodCount = ALL_CLUES_DATA.filter(c => c.importance === 'GOOD').length;
+  const optCount = ALL_CLUES_DATA.filter(c => c.importance === 'OPTIONAL').length;
+  const testCount = ALL_CLUES_DATA.filter(c => c.secretType === 'TESTIMONY').length;
+
   // Ensure filter bar exists
   let bar = document.getElementById('printClueFilterBar');
   if (!bar) {
@@ -4676,15 +4710,18 @@ function adminOpenPrintCluesModal() {
       bar.style.flexWrap = 'wrap';
       bar.style.gap = '6px';
       bar.style.margin = '10px 0';
-      bar.innerHTML = `
-        <button class="small-btn" data-cat="ALL" onclick="filterPrintClues('ALL')" style="padding:6px 12px; font-size:0.8rem; background:var(--mono-pink); color:#fff; font-weight:800;">ทั้งหมด (${ALL_CLUES_DATA.length})</button>
-        <button class="small-btn" data-cat="MUST" onclick="filterPrintClues('MUST')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">🔴 ต้องเก็บ (9)</button>
-        <button class="small-btn" data-cat="GOOD" onclick="filterPrintClues('GOOD')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">🔵 มีก็ดี (14)</button>
-        <button class="small-btn" data-cat="OPT" onclick="filterPrintClues('OPT')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">⚪ ตัวหลอก & ขยะ (7)</button>
-        <button class="small-btn" data-cat="TEST" onclick="filterPrintClues('TEST')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">💬 คำให้การ (5)</button>
-      `;
       titleBar.insertAdjacentElement('afterend', bar);
     }
+  }
+
+  if (bar) {
+    bar.innerHTML = `
+      <button class="small-btn" data-cat="ALL" onclick="filterPrintClues('ALL')" style="padding:6px 12px; font-size:0.8rem; background:var(--mono-pink); color:#fff; font-weight:800;">ทั้งหมด (${ALL_CLUES_DATA.length})</button>
+      <button class="small-btn" data-cat="MUST" onclick="filterPrintClues('MUST')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">🔴 ต้องเก็บ (${mustCount})</button>
+      <button class="small-btn" data-cat="GOOD" onclick="filterPrintClues('GOOD')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">🔵 มีก็ดี (${goodCount})</button>
+      <button class="small-btn" data-cat="OPT" onclick="filterPrintClues('OPT')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">⚪ ตัวหลอก & ขยะ (${optCount})</button>
+      <button class="small-btn" data-cat="TEST" onclick="filterPrintClues('TEST')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">💬 คำให้การ (${testCount})</button>
+    `;
   }
 
   currentPrintFilter = 'ALL';
