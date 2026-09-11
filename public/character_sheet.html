@@ -357,7 +357,7 @@
     /* ========================================================= */
     .main-grid {
       display: grid;
-      grid-template-columns: 82px 1fr;
+      grid-template-columns: 96px 1fr;
       grid-template-rows: auto 1fr;
       gap: 6px;
       flex: 1;
@@ -375,6 +375,7 @@
       display: flex;
       flex-direction: column;
       gap: 5px;
+      height: 100%;
     }
 
     /* 8 Stats Table */
@@ -472,13 +473,16 @@
       text-align: center;
     }
     .cred-label {
-      font-size: 0.48rem;
+      font-size: 0.42rem;
       font-weight: 900;
       line-height: 1.1;
       margin-bottom: 2px;
       font-family: 'Chakra Petch', sans-serif;
       text-transform: uppercase;
       color: #374151;
+      white-space: nowrap;
+      text-align: center;
+      letter-spacing: -0.2px;
     }
     .hearts-row {
       display: flex;
@@ -556,9 +560,8 @@
       box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
-      height: 80px;
+      flex: 1;
       min-height: 80px;
-      max-height: 80px;
     }
     .conditions-header {
       display: flex;
@@ -617,6 +620,7 @@
       flex-direction: column;
       gap: 6px;
       justify-content: space-between;
+      height: 100%;
     }
 
     /* Top Right: Portrait + Student Bio Group */
@@ -1254,6 +1258,8 @@
               <div class="dotted-write-line"></div>
               <div class="dotted-write-line"></div>
               <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
             </div>
           </div>
 
@@ -1305,6 +1311,8 @@
           <div class="dotted-write-line"></div>
         `,
         notes: `
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
           <div class="dotted-write-line"></div>
           <div class="dotted-write-line"></div>
           <div class="dotted-write-line"></div>
