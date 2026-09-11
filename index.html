@@ -991,9 +991,9 @@
         <!-- Panel 1: Court Projector Screen (Strictly 16:9) -->
         <div class="sim-device-panel court-panel">
           <div class="sim-panel-header">
-            <span class="sim-icon">🖥️</span>
+            <span class="sim-icon">📽️</span>
             <span class="sim-panel-title">1. จอหลักศาลชั้นเรียน (Court Screen / Projector - 16:9)</span>
-            <span class="sim-panel-status live">LIVE STREAM</span>
+            <span class="sim-panel-status live">🔴 LIVE PROJECTOR</span>
           </div>
           <div class="sim-iframe-wrap court-wrap">
             <iframe id="simFrameCourt" class="sim-iframe" src="about:blank" title="Court Projector Screen"></iframe>
@@ -1002,16 +1002,20 @@
 
         <!-- 5 Vertical Controllers: Admin + 4 Mobile PCs (Strictly 9:16) -->
         <div class="sim-sub-grid">
-          <!-- Panel 2: Admin Controller (9:16 default with 16:9 PC option) -->
+          <!-- Panel 2: Admin Controller -->
           <div class="sim-device-panel admin-panel" id="simAdminPanel">
             <div class="sim-panel-header">
               <span class="sim-icon">👑</span>
               <span class="sim-panel-title">2. ผู้ดูแลศาล (DM Admin - 9:16)</span>
+              <span class="sim-panel-status live">DM READY</span>
+            </div>
+            <div class="sim-panel-control-bar">
+              <span class="sim-control-label">📐 ขนาดจอ:</span>
               <div class="sim-mode-toggle-group">
                 <button type="button" class="sim-mode-btn active" id="btnAdminModeMobile" onclick="setAdminSimAspect('9:16')" title="โหมดมือถือ (9:16)">📱 9:16</button>
+                <button type="button" class="sim-mode-btn" id="btnAdminModeIpad" onclick="setAdminSimAspect('4:3')" title="โหมด iPad/แท็บเล็ต (4:3)">📟 4:3</button>
                 <button type="button" class="sim-mode-btn" id="btnAdminModePc" onclick="setAdminSimAspect('16:9')" title="โหมดจอคอม (16:9)">💻 16:9</button>
               </div>
-              <span class="sim-panel-status live">DM READY</span>
             </div>
             <div class="sim-iframe-wrap mobile-wrap" id="simAdminIframeWrap">
               <iframe id="simFrameAdmin" class="sim-iframe" src="about:blank" title="DM Admin Dashboard"></iframe>

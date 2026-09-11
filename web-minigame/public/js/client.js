@@ -2318,8 +2318,8 @@ function updateTimerDisplay() {
   }
 }
 
-function updateInfluenceDisplay() { /* influence gauge removed */ }%`;
-  if (txt) txt.innerText = `${gameState.influence}%`;
+function updateInfluenceDisplay() {
+  // Influence gauge removed per requirement
 }
 
 function logCourt(text) {
@@ -4080,8 +4080,6 @@ function adminSelectRebuttalChallengers() {
     showToast('⚠️ ผู้ท้าชิงและฝ่ายตรงข้ามต้องไม่ใช่คนเดียวกัน!');
     return;
   }
-  // Reassign rebSel for the rest of the function
-  const rebOppSel = document.getElementById('adminRebuttalOpponentSelect');
   if (rebSel) gameState.stg3Challenger = rebSel.value;
   if (rebOppSel) gameState.stg3Opponent = rebOppSel.value;
   updateRebuttalDisplay();
@@ -5118,26 +5116,33 @@ function setAdminSimAspect(mode) {
   const panel = document.getElementById('simAdminPanel');
   const wrap = document.getElementById('simAdminIframeWrap');
   const btnMob = document.getElementById('btnAdminModeMobile');
+  const btnIpad = document.getElementById('btnAdminModeIpad');
   const btnPc = document.getElementById('btnAdminModePc');
   const title = panel ? panel.querySelector('.sim-panel-title') : null;
 
+  if (wrap) {
+    wrap.classList.remove('mobile-wrap', 'court-wrap', 'ipad-wrap');
+  }
+  if (panel) {
+    panel.classList.remove('admin-pc-full', 'admin-ipad-full');
+  }
+  if (btnMob) btnMob.classList.remove('active');
+  if (btnIpad) btnIpad.classList.remove('active');
+  if (btnPc) btnPc.classList.remove('active');
+
   if (mode === '16:9') {
-    if (wrap) {
-      wrap.classList.remove('mobile-wrap');
-      wrap.classList.add('court-wrap');
-    }
+    if (wrap) wrap.classList.add('court-wrap');
     if (panel) panel.classList.add('admin-pc-full');
-    if (btnMob) btnMob.classList.remove('active');
     if (btnPc) btnPc.classList.add('active');
     if (title) title.innerText = '2. ผู้ดูแลศาล (DM Admin - 16:9)';
+  } else if (mode === '4:3') {
+    if (wrap) wrap.classList.add('ipad-wrap');
+    if (panel) panel.classList.add('admin-ipad-full');
+    if (btnIpad) btnIpad.classList.add('active');
+    if (title) title.innerText = '2. ผู้ดูแลศาล (DM Admin - 4:3 iPad)';
   } else {
-    if (wrap) {
-      wrap.classList.remove('court-wrap');
-      wrap.classList.add('mobile-wrap');
-    }
-    if (panel) panel.classList.remove('admin-pc-full');
+    if (wrap) wrap.classList.add('mobile-wrap');
     if (btnMob) btnMob.classList.add('active');
-    if (btnPc) btnPc.classList.remove('active');
     if (title) title.innerText = '2. ผู้ดูแลศาล (DM Admin - 9:16)';
   }
 }

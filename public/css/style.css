@@ -4384,10 +4384,41 @@ select option:disabled {
 }
 
 .sim-device-panel.court-panel {
-  border-color: var(--mono-pink);
+  border: 2px solid var(--mono-pink);
+  border-radius: 12px;
   width: 100%;
-  max-width: 1040px;
+  max-width: 1120px;
   margin: 0 auto;
+  box-shadow: 0 0 25px rgba(255, 46, 99, 0.35), 0 10px 30px rgba(0, 0, 0, 0.7);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.sim-device-panel.court-panel .sim-panel-header {
+  background: linear-gradient(90deg, #2b1122 0%, #1c152a 50%, #151526 100%);
+  border-bottom: 2px solid var(--mono-pink);
+}
+
+.sim-device-panel.court-panel .sim-panel-title {
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 10px rgba(255, 46, 99, 0.5);
+}
+
+.sim-device-panel.court-panel .sim-panel-status.live {
+  background: rgba(255, 46, 99, 0.25);
+  color: #ff2e63;
+  border: 1px solid #ff2e63;
+  box-shadow: 0 0 12px rgba(255, 46, 99, 0.5);
+  animation: pulseCourtLive 2s infinite;
+}
+
+@keyframes pulseCourtLive {
+  0% { opacity: 0.8; box-shadow: 0 0 5px rgba(255, 46, 99, 0.3); }
+  50% { opacity: 1; box-shadow: 0 0 16px rgba(255, 46, 99, 0.8); }
+  100% { opacity: 0.8; box-shadow: 0 0 5px rgba(255, 46, 99, 0.3); }
 }
 
 .sim-device-panel.admin-panel {
@@ -4398,30 +4429,69 @@ select option:disabled {
   border-color: #00f0ff;
 }
 
+/* Universal Same-Sized Header for All Monitors */
 .sim-panel-header {
   background: #181828;
-  padding: 10px 14px;
+  padding: 8px 12px;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 8px;
   border-bottom: 1px solid #282838;
 }
 
+.sim-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .sim-panel-title {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 800;
   color: #eee;
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.sim-panel-status {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .sim-panel-status.live {
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 4px;
   background: rgba(0, 255, 136, 0.15);
   color: #00ff88;
   border: 1px solid #00ff88;
+}
+
+/* Stepped down toolbar for Monitor 2 (Admin Controller) */
+.sim-panel-control-bar {
+  background: #141422;
+  border-bottom: 1px solid #262638;
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  box-sizing: border-box;
+}
+
+.sim-control-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #8888aa;
+  white-space: nowrap;
 }
 
 /* Court Screen: Strictly 16:9 Aspect Ratio */
@@ -4455,11 +4525,31 @@ select option:disabled {
 
 .sim-device-panel.admin-panel.admin-pc-full {
   grid-column: 1 / -1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 .sim-device-panel.admin-panel.admin-pc-full .sim-iframe-wrap {
   max-width: 100% !important;
   aspect-ratio: 16 / 9 !important;
+}
+
+.sim-device-panel.admin-panel.admin-ipad-full {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.sim-iframe-wrap.ipad-wrap {
+  width: 100%;
+  max-width: 100% !important;
+  aspect-ratio: 4 / 3 !important;
+  height: auto;
+  margin: 0 auto;
+  background: #000;
+  position: relative;
 }
 
 .sim-mode-toggle-group {
