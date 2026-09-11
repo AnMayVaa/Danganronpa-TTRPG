@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=2.5.0">
+  <link rel="stylesheet" href="/css/style.css?v=3.1.0">
   <!-- Early view detection script: immediately hides other page navigation buttons on Court and PC views -->
   <script>
     (function() {
@@ -287,7 +287,7 @@
         <div class="discovery-tracker-panel">
           <div class="discovery-tracker-top">
             <span class="discovery-title">🔎 ความคืบหน้าการรวบรวมหลักฐานของชั้นเรียน (Class Progress):</span>
-            <span class="discovery-count-badge">ค้นพบแล้ว: <strong id="courtDiscoveredCount" class="court-gold-text">0</strong> / 16 ชิ้น</span>
+            <span class="discovery-count-badge">ค้นพบแล้ว: <strong id="courtDiscoveredCount" class="court-gold-text">0</strong> / 24 ชิ้น</span>
           </div>
           <div class="discovery-progress-bar">
             <div id="courtDiscoveryFill" class="discovery-progress-fill" style="width: 0%;"></div>
@@ -752,7 +752,7 @@
           <h2 class="admin-card-title">⚙️ จัดการห้อง & รีเซ็ตรอบ (Kahoot-Style)</h2>
           <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
             <button class="small-btn cyan" onclick="adminOpenPrintCluesModal()" style="padding:10px; font-size:0.92rem; font-weight:900;">
-              🖨️ บัตรหลักฐาน QR 16 ใบ (Print Clue Cards)
+              🖨️ บัตรหลักฐาน & คำให้การ QR (Print Clue Cards)
             </button>
             <button class="small-btn red" onclick="adminResetSession()" style="padding:10px; font-size:0.92rem; font-weight:900;">
               🔄 ล้างห้อง & เริ่มรอบใหม่ (Reset All Players)
@@ -2133,12 +2133,12 @@
   <div id="adminPrintCluesModal" class="modal-backdrop hidden">
     <div class="modal-dialog" style="max-width:960px;">
       <div class="modal-title-bar">
-        <h3 class="modal-title">🖨️ บัตรหลักฐาน QR 16 ใบ (Print Clue Cards)</h3>
+        <h3 class="modal-title">🖨️ บัตรหลักฐาน & คำให้การ QR (Print Clue Cards)</h3>
         <button class="modal-close-btn" onclick="closeAdminPrintCluesModal()">✕</button>
       </div>
       <div class="print-hide" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; background:#141420; padding:12px; border-radius:8px; border:1px solid #333348;">
         <span style="font-size:0.88rem; color:#bbb;">
-          💡 คุณสามารถสั่งพิมพ์หน้านี้ (A4) ตัดเป็นการ์ด 16 ใบ เพื่อนำไปวางซ่อนตามจุดเกิดเหตุในช่วงสืบสวน!
+          💡 คุณสามารถสั่งพิมพ์หน้านี้ (A4) ตัดเป็นการ์ดหลักฐานเพื่อนำไปซ่อนตามจุดเกิดเหตุและแจกในการเล่น TTRPG เพื่อนำไปวางซ่อนตามจุดเกิดเหตุในช่วงสืบสวน!
         </span>
         <button class="small-btn pink" onclick="window.print()" style="font-weight:900; padding:8px 18px;">
           🖨️ สั่งพิมพ์การ์ดทั้งหมด (Print)
@@ -2151,6 +2151,6 @@
     </div>
   </div>
 
-  <script src="/js/client.js?v=2.5.0"></script>
+  <script src="/js/client.js?v=3.1.0"></script>
 </body>
 </html>

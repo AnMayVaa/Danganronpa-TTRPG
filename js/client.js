@@ -1880,23 +1880,37 @@ function renderPlayerCharSheet() {
 }
 
 const ALL_CLUES_DATA = [
-  { id: 'EVD-01', aliases: ['FILE-01', 'AUTOP-01', '1', 'E1'], name: 'Monokuma File #1 (เอกสารชันสูตรศพทางการ)', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'แจกทุกคนทันทีที่พบศพ', desc: 'ระบุเวลาตายโดยประมาณ 21:00 น., เหตุตายหลัก: กระดูกคอข้อที่ 1-2 หักสะบั้นและขาดอากาศหายใจฉับพลัน, พบบาดแผลแตกท้ายทอยจากของแข็งไม่มีคมเกิดก่อนตาย 1-2 ชม. (ไม่ใช่เหตุตายหลัก)' },
-  { id: 'EVD-02', aliases: ['BONE-02', 'STEW-02', '2', 'E2'], name: 'ท่อนกระดูกหมูสับในหม้อสตูว์เนื้อ', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องครัว (ก้นหม้อสตูว์)', desc: 'กระดูกขาหมูสับสองท่อน ผิวกระดูกมีรอยแตกร้าวจากการใช้ฟาดกระแทกอย่างแรง มีคราบสนิมเหล็กของเลือดสดมนุษย์ต้มเปื่อยปนในน้ำซุปสตูว์เค็มจัด' },
-  { id: 'EVD-03', aliases: ['FREEZER-03', 'ICE-03', '3', 'E3'], name: 'ตู้ฟรีซและคราบน้ำแข็งละลายในห้องครัว', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ห้องครัว (ช่องฟรีซ)', desc: 'ช่องแช่แข็งมีคราบน้ำแข็งละลายจากการเปิดหยิบของสดชิ้นใหญ่ออกไปช่วง 17:30 น. และมีถุงเนื้อหมูแช่แข็งฉีกขาดตกอยู่' },
-  { id: 'EVD-04', aliases: ['ROPE-04', 'CUT-04', '4', 'E4'], name: 'เชือกตากผ้าไนลอนสีชมพูรอยตัดเรียบกริบ', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องซักรีด (พื้นข้างศพ B)', desc: 'เชือกตากผ้าไนลอนสีชมพู ปลายเชือกมีรอยตัดเรียบกริบด้วยของมีคม ไม่ใช่รอยขาดจากแรงดึง ยืนยันว่าเหยื่อ B ตัดเชือกด้วยตัวเอง!' },
-  { id: 'EVD-05', aliases: ['KNIFE-05', 'BLADE-05', '5', 'E5'], name: 'มีดพกพับเดินป่าในกระเป๋าเสื้อเหยื่อ B', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ร่างเหยื่อ B (กระเป๋าเสื้อแจ็กเก็ต)', desc: 'มีดพกอเนกประสงค์พับได้ ปลายใบมีดมีเศษเส้นใยไนลอนสีชมพูติดอยู่ ยืนยันว่า B ใช้มีดเล่มนี้ตัดเชือกที่คอตนเองจนหลุด' },
-  { id: 'EVD-06', aliases: ['BUCKET-06', 'TUB-06', '6', 'E6'], name: 'ซากถังซักผ้าแตกและรูมือจับร้อยสายยาง', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ลานปูนด้านหลัง (ใต้หน้าต่างห้องซักรีด)', desc: 'ถังใส่ผ้าซักพลาสติกแตกกระจาย มีสายยางร้อยทะลุรูมือจับของถัง (Molded Handle Slot) มัดประคองด้วยเชือกไนลอน ท่อไม่ถูกกดบีบ น้ำจึงไหลเติมได้เต็มที่' },
-  { id: 'EVD-07', aliases: ['RAIL-07', 'PIPE-07', '7', 'E7'], name: 'ราวท่อสแตนเลสเพดานห้องซักรีดสูง 4 เมตร', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องซักรีด (เพดานสูง 4 ม.)', desc: 'ราวท่อสแตนเลสแขวนผ้าแห้ง มีรอยไหม้เสียดสีของเชือกไนลอนพาดผ่านจากพื้นห้องซักรีด ลอดออกไปนอกบานหน้าต่างบานเลื่อนสูง 3.5 ม.' },
-  { id: 'EVD-08', aliases: ['HOSE-08', 'SPLASH-08', '8', 'E8'], name: 'สายยางหลุดกระเด็นและคราบน้ำประปาเปียกผนัง', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ห้องซักรีด (ก๊อกน้ำและผนัง)', desc: 'ปลายสายยางกระชากหลุดจากหัวก๊อกน้ำ น้ำประปาพุ่งเปียกผนัง เกิดจากแรงดึงกระชากฉับพลันตอนถัง 82.5 กก. ร่วง ยืนยันเวลาเกิดเหตุ 21:00 น.' },
-  { id: 'EVD-09', aliases: ['DRYER-09', 'BOOTS-09', '9', 'E9'], name: 'เครื่องอบผ้าตั้งเวลา Delay หมุนรองเท้าบูท', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องซักรีด (เครื่องอบผ้า DRY-1)', desc: 'เครื่องอบผ้าถูกตั้งเวลา Delay ให้เริ่มหมุนตอน 21:00 น. ข้างในมีรองเท้าบูทคู่หนักหมุนเหวี่ยงกระแทกถังเสียงดัง \"ตึง! ตึง!\" เพื่อสร้างเสียงต่อสู้ลวงตา' },
-  { id: 'EVD-10', aliases: ['VEND-10', 'COIN-10', '10', 'E10'], name: 'ตู้กดน้ำอัตโนมัติโถงกลางและเหรียญติดขัด', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'โถงทางเดินกลาง (CORR-100)', desc: 'ตู้กดน้ำมีรอยทุบกระแทกและมีเหรียญติดขัดที่ช่องหยอด จุดที่ PC 1 ยืนก้มหน้าทุบตู้ตอน 17:45 น. เปิดช่องให้คนร้ายห่อกระดูกหมูเดินผ่านหลังโดยไม่ถูกมองเห็น' },
-  { id: 'EVD-11', aliases: ['MAP-11', 'BOARD-11', '11', 'E11'], name: 'แผนผังอาคารและบอร์ดประชาสัมพันธ์โรงเรียน', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'โถงทางเข้าหลัก (ข้าง Blast Gate)', desc: 'บอร์ดประชาสัมพันธ์ยืนยันว่าลานปูนซักล้างด้านหลังเป็นลานปิดตาย กำแพงคอนกรีตสูง 5 เมตร ไร้ประตูทางออกหรือบันไดหนีไฟ บุคคลภายนอกไม่สามารถปีนเข้ามาได้' },
-  { id: 'EVD-12', aliases: ['METER-12', 'WATER-12', '12', 'E12'], name: 'แผงมิเตอร์น้ำประปาหลักและอัตราการไหล', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'โถงทางเข้าหลัก (ข้าง Blast Gate)', desc: 'เข็มมิเตอร์น้ำหมุนต่อเนื่อง แสดงว่ามีการเปิดก๊อกน้ำหรี่ 0.5 ลิตร/นาที ตั้งแต่ 18:15 ถึง 21:00 น. รวมน้ำประปาที่ไหลสะสมลงถังคือ 82.5 ลิตร' },
-  { id: 'EVD-13', aliases: ['TEST-01', 'PC1-13', '13', 'E13'], name: 'คำให้การของ PC 1 (ช่วงเวลาทุบตู้กดน้ำ 17:45 น.)', secretType: 'TESTIMONY', typeLabel: 'คำให้การนักเรียน', loc: 'ได้จากการใช้คำสั่ง Converse ถาม PC 1 (1 AP)', desc: 'คำให้การ: \"ตอน 17:45 ฉันก้มหน้าทุบตู้กดน้ำโถงกลางที่กินเหรียญ ได้ยินเสียงน้ำไหลฮัมในแนวกำแพงห้องซักรีด แต่ไม่ได้หันไปมองด้านหลัง\"' },
-  { id: 'EVD-14', aliases: ['TEST-02', 'PC2-14', '14', 'E14'], name: 'คำให้การของ PC 2 (ช่วงเวลาสำรวจโรงยิม 17:30 - 18:00 น.)', secretType: 'TESTIMONY', typeLabel: 'คำให้การนักเรียน', loc: 'ได้จากการใช้คำสั่ง Converse ถาม PC 2 (1 AP)', desc: 'คำให้การ: \"ตอน 17:30 ฉันสำรวจโรงยิมและงัดล็อกเกอร์ ตอน 18:00 เดินออกมาโถงกลางเห็นไฟนีออนกะพริบวูบวาบ และไม่เห็นใครอยู่แถวโถงหน้าห้องซักรีด\"' },
-  { id: 'EVD-15', aliases: ['TEST-03', 'PC3-15', '15', 'E15'], name: 'คำให้การของ PC 3 (ช่วงเวลาตรวจ Blast Gate 17:30 - 18:15 น.)', secretType: 'TESTIMONY', typeLabel: 'คำให้การนักเรียน', loc: 'ได้จากการใช้คำสั่ง Converse ถาม PC 3 (1 AP)', desc: 'คำให้การ: \"ตอน 17:30 - 18:15 ฉันตรวจดู Blast Gate และเห็นมิเตอร์น้ำหมุนผิดปกติ ตอน 18:00 หันไปมองเห็น PC 4 กำลังเดินอยู่ในทางเดินกระจกใส\"' },
-  { id: 'EVD-16', aliases: ['TEST-04', 'PC4-16', '16', 'E16'], name: 'คำให้การของ PC 4 (ช่วงเวลาเดินเล่นทางเดินกระจก 17:30 - 18:15 น.)', secretType: 'TESTIMONY', typeLabel: 'คำให้การนักเรียน', loc: 'ได้จากการใช้คำสั่ง Converse ถาม PC 4 (1 AP)', desc: 'คำให้การ: \"ตอน 17:30 - 18:15 ฉันเดินรับลมที่ทางเดินกระจกรูปตัว L สังเกตเห็นเงาถังน้ำพลาสติกห้อยอยู่นอกหน้าต่างบานสูงห้องซักรีด แต่ไม่คิดว่าจะเป็นกับดัก\"' },
-  { id: 'EVD-17', aliases: ['TEST-05', 'PC5-17', '17', 'E17', 'ALIBI-05'], name: 'คำให้การของ PC 5 (Public Alibi: เตรียมมื้อค่ำสตูว์เนื้อ 17:45 - 18:30 น.)', secretType: 'TESTIMONY', typeLabel: 'คำให้การนักเรียน', loc: 'ได้จากการใช้คำสั่ง Converse ถาม PC 5 (1 AP)', desc: 'คำให้การ: \"ตอน 17:45 - 18:30 ฉันเห็นทุกคนเครียด เลยรีบเข้าไปในครัวต้มสตูว์เนื้อเตรียมมื้อค่ำเพื่อปลอบใจทุกคน กลิ่นสตูว์หอมฟุ้งไปทั่วทางเดิน\"' }
+  // 🔴 ต้องเก็บ (Must-Have Core Clues)
+  { id: 'EVD-01', aliases: ['FILE-01', 'AUTOP-01', '1', 'E1'], name: 'Monokuma File #1 (เอกสารชันสูตรศพทางการ)', importance: 'MUST', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'แจกทุกคนทันทีที่พบศพ', desc: 'ระบุเวลาตายโดยประมาณ 21:00 น., เหตุตายหลัก: กระดูกคอข้อที่ 1-2 หักสะบั้นและขาดอากาศหายใจฉับพลัน, พบบาดแผลแตกท้ายทอยเกิดก่อนตาย 1-2 ชม. (ไม่ใช่เหตุตายหลัก), สภาพเท้า: เท้าเปล่าสวมเพียงถุงเท้าผ้า ไม่สวมรองเท้า!' },
+  { id: 'EVD-02', aliases: ['BONE-02', 'STEW-02', '2', 'E2'], name: 'ท่อนกระดูกหมูสับในหม้อสตูว์เนื้อ', importance: 'MUST', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องครัว (ก้นหม้อสตูว์)', desc: 'กระดูกขาหมูสับสองท่อน ผิวกระดูกมีรอยแตกร้าวจากการใช้ฟาดกระแทกอย่างแรง มีคราบสนิมเหล็กของเลือดสดมนุษย์ต้มเปื่อยปนในน้ำซุปสตูว์เค็มจัด' },
+  { id: 'EVD-04', aliases: ['ROPE-04', 'CUT-04', '4', 'E4'], name: 'เชือกตากผ้าไนลอนสีชมพูรอยตัดเรียบกริบ', importance: 'MUST', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องซักรีด (พื้นข้างศพ B)', desc: 'เชือกตากผ้าไนลอนสีชมพู ปลายเชือกมีรอยตัดเรียบกริบด้วยของมีคม ไม่ใช่รอยขาดจากแรงดึง ยืนยันว่าเหยื่อ B ตัดเชือกด้วยตัวเอง!' },
+  { id: 'EVD-05', aliases: ['KNIFE-05', 'BLADE-05', '5', 'E5'], name: 'มีดพกพับเดินป่าในกระเป๋าเสื้อเหยื่อ B', importance: 'MUST', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ร่างเหยื่อ B (กระเป๋าเสื้อแจ็กเก็ต)', desc: 'มีดพกอเนกประสงค์พับได้ ปลายใบมีดมีเศษเส้นใยไนลอนสีชมพูติดอยู่ ยืนยันว่า B ใช้มีดเล่มนี้ตัดเชือกที่คอตนเองจนหลุด' },
+  { id: 'EVD-06', aliases: ['BUCKET-06', 'TUB-06', '6', 'E6'], name: 'ซากถังซักผ้าแตกและรูมือจับร้อยสายยาง', importance: 'MUST', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ลานปูนด้านหลัง (ใต้หน้าต่างห้องซักรีด)', desc: 'ถังใส่ผ้าซักพลาสติกแตกกระจาย มีสายยางร้อยทะลุรูมือจับของถัง (Molded Handle Slot) มัดประคองด้วยเชือกไนลอน ท่อไม่ถูกบีบ น้ำจึงไหลเติมได้เต็มที่' },
+  { id: 'EVD-07', aliases: ['RAIL-07', 'PIPE-07', '7', 'E7'], name: 'ราวท่อสแตนเลสเพดานห้องซักรีดสูง 4 เมตร', importance: 'MUST', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องซักรีด (เพดานสูง 4 ม.)', desc: 'ราวท่อสแตนเลสแขวนผ้าแห้ง มีรอยไหม้เสียดสีของเชือกไนลอนพาดผ่านจากพื้นห้องซักรีด ลอดออกไปนอกบานหน้าต่างบานเลื่อนสูง 3.5 ม.' },
+  { id: 'EVD-09', aliases: ['DRYER-09', 'BOOTS-09', '9', 'E9'], name: 'เครื่องอบผ้า Delay 21:00 & รองเท้าบูทของ B', importance: 'MUST', secretType: 'CORE', typeLabel: 'สำคัญแก่หลัก', loc: 'ห้องซักรีด (เครื่องอบผ้า DRY-1)', desc: 'เครื่องอบผ้าตั้งเวลา Delay ให้หมุนตอน 21:00 น. มีรองเท้าบูทคู่หนักของ B หมุนเหวี่ยงสร้างเสียงต่อสู้ลวงตา ตรงกับร่าง B ที่ถูกพบในสภาพเท้าเปล่าสวมแต่ถุงเท้า!' },
+  { id: 'EVD-17', aliases: ['TEST-05', 'PC5-17', '17', 'E17', 'ALIBI-05'], name: 'คำให้การของ PC 5 (Public Alibi: เตรียมมื้อค่ำสตูว์เนื้อ 17:45 - 18:30 น.)', importance: 'MUST', secretType: 'TESTIMONY', typeLabel: 'คำให้การนักเรียน', loc: 'ได้จากการใช้คำสั่ง Converse ถาม PC 5 (1 AP)', desc: 'คำให้การ: "ตอน 17:45 - 18:30 ฉันเห็นทุกคนเครียด เลยรีบเข้าไปในครัวต้มสตูว์เนื้อเตรียมมื้อค่ำเพื่อปลอบใจทุกคน กลิ่นสตูว์หอมฟุ้งไปทั่วทางเดิน"' },
+
+  // 🔵 มีก็ดีช่วยเสริม (Supporting Clues)
+  { id: 'EVD-03', aliases: ['FREEZER-03', 'ICE-03', '3', 'E3'], name: 'ตู้ฟรีซและคราบน้ำแข็งละลายในห้องครัว', importance: 'GOOD', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ห้องครัว (ช่องฟรีซ)', desc: 'ช่องแช่แข็งมีคราบน้ำแข็งละลายจากการเปิดหยิบของสดชิ้นใหญ่ออกไปช่วง 17:30 น. และมีถุงเนื้อหมูแช่แข็งฉีกขาดตกอยู่' },
+  { id: 'EVD-08', aliases: ['HOSE-08', 'SPLASH-08', '8', 'E8'], name: 'สายยางหลุดกระเด็นและคราบน้ำประปาเปียกผนัง', importance: 'GOOD', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'ห้องซักรีด (ก๊อกน้ำและผนัง)', desc: 'ปลายสายยางกระชากหลุดจากหัวก๊อกน้ำ น้ำประปาพุ่งเปียกผนัง เกิดจากแรงดึงกระชากฉับพลันตอนถัง 82.5 กก. ร่วง ยืนยันเวลาเกิดเหตุ 21:00 น.' },
+  { id: 'EVD-10', aliases: ['VEND-10', 'COIN-10', '10', 'E10'], name: 'ตู้กดน้ำอัตโนมัติโถงกลางและเหรียญติดขัด', importance: 'GOOD', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'โถงทางเดินกลาง (CORR-100)', desc: 'ตู้กดน้ำมีรอยทุบกระแทกและมีเหรียญติดขัดที่ช่องหยอด จุดที่ PC 1 ยืนก้มหน้าทุบตู้ตอน 17:45 น. เปิดช่องให้คนร้ายห่อกระดูกหมูเดินผ่านหลังโดยไม่ถูกมองเห็น' },
+  { id: 'EVD-11', aliases: ['MAP-11', 'BOARD-11', '11', 'E11'], name: 'แผนผังอาคารและบอร์ดประชาสัมพันธ์โรงเรียน', importance: 'GOOD', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'โถงทางเข้าหลัก (ข้าง Blast Gate)', desc: 'บอร์ดประชาสัมพันธ์ยืนยันว่าลานปูนซักล้างด้านหลังเป็นลานปิดตาย กำแพงคอนกรีตสูง 5 เมตร ไร้ประตูทางออกหรือบันไดหนีไฟ บุคคลภายนอกไม่สามารถปีนเข้ามาได้' },
+  { id: 'EVD-12', aliases: ['METER-12', 'WATER-12', '12', 'E12'], name: 'แผงมิเตอร์น้ำประปาหลักและอัตราการไหล', importance: 'GOOD', secretType: 'SUPP', typeLabel: 'มีก็ดีช่วยเสริม', loc: 'โถงทางเข้าหลัก (ข้าง Blast Gate)', desc: 'เข็มมิเตอร์น้ำหมุนต่อเนื่อง แสดงว่ามีการเปิดก๊อกน้ำหรี่ 0.5 ลิตร/นาที ตั้งแต่ 18:15 ถึง 21:00 น. รวมน้ำประปาที่ไหลสะสมลงถังคือ 82.5 ลิตร' },
+  { id: 'EVD-13', aliases: ['TEST-01', 'PC1-13', '13', 'E13'], name: 'คำให้การของ PC 1 (ช่วงเวลาทุบตู้กดน้ำ 17:45 น.)', importance: 'GOOD', secretType: 'TESTIMONY', typeLabel: 'คำให้การนักเรียน', loc: 'ได้จากการใช้คำสั่ง Converse ถาม PC 1 (1 AP)', desc: 'คำให้การ: "ตอน 17:45 ฉันก้มหน้าทุบตู้กดน้ำโถงกลางที่กินเหรียญ ได้ยินเสียงน้ำไหลฮัมในแนวกำแพงห้องซักรีด แต่ไม่ได้หันไปมองด้านหลัง"' },
+  { id: 'EVD-14', aliases: ['TEST-02', 'PC2-14', '14', 'E14'], name: 'คำให้การของ PC 2 (ช่วงเวลาสำรวจโรงยิม 17:30 - 18:00 น.)', importance: 'GOOD', secretType: 'TESTIMONY', typeLabel: 'คำให้การนักเรียน', loc: 'ได้จากการใช้คำสั่ง Converse ถาม PC 2 (1 AP)', desc: 'คำให้การ: "ตอน 17:30 ฉันสำรวจโรงยิมและงัดล็อกเกอร์ ตอน 18:00 เดินออกมาโถงกลางเห็นไฟนีออนกะพริบวูบวาบ และไม่เห็นใครอยู่แถวโถงหน้าห้องซักรีด"' },
+  { id: 'EVD-15', aliases: ['TEST-03', 'PC3-15', '15', 'E15'], name: 'คำให้การของ PC 3 (ช่วงเวลาตรวจ Blast Gate 17:30 - 18:15 น.)', importance: 'GOOD', secretType: 'TESTIMONY', typeLabel: 'คำให้การนักเรียน', loc: 'ได้จากการใช้คำสั่ง Converse ถาม PC 3 (1 AP)', desc: 'คำให้การ: "ตอน 17:30 - 18:15 ฉันตรวจดู Blast Gate และเห็นมิเตอร์น้ำหมุนผิดปกติ ตอน 18:00 หันไปมองเห็น PC 4 กำลังเดินอยู่ในทางเดินกระจกใส"' },
+  { id: 'EVD-16', aliases: ['TEST-04', 'PC4-16', '16', 'E16'], name: 'คำให้การของ PC 4 (ช่วงเวลาเดินเล่นทางเดินกระจก 17:30 - 18:15 น.)', importance: 'GOOD', secretType: 'TESTIMONY', typeLabel: 'คำให้การนักเรียน', loc: 'ได้จากการใช้คำสั่ง Converse ถาม PC 4 (1 AP)', desc: 'คำให้การ: "ตอน 17:30 - 18:15 ฉันเดินรับลมที่ทางเดินกระจกรูปตัว L สังเกตเห็นเงาถังน้ำพลาสติกห้อยอยู่นอกหน้าต่างบานสูงห้องซักรีด แต่ไม่คิดว่าจะเป็นกับดัก"' },
+
+  // ⚪ ตัวหลอก (Red Herrings)
+  { id: 'EVD-18', aliases: ['BLEACH-18', '18', 'E18'], name: 'แกลลอนน้ำยาฟอกขาวกลิ่นฉุนในถังขยะซักรีด', importance: 'OPTIONAL', secretType: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'ห้องซักรีด (ถังขยะข้างเครื่องซักผ้า)', desc: 'แกลลอนน้ำยาฟอกขาวคลอรีนเข้มข้นถูกเททิ้งจนหมดเกลี้ยง ส่งกลิ่นฉุนแสบจมูกคละคลุ้ง แต่เป็นของเก่าที่ทำหกเมื่อตอนบ่าย ไม่เกี่ยวกับคดี' },
+  { id: 'EVD-19', aliases: ['CHAIN-19', '19', 'E19'], name: 'รอยขูดและโซ่คล้องประตูหนีไฟโรงยิม', importance: 'OPTIONAL', secretType: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'โรงยิม (ประตูด้านหลัง)', desc: 'โซ่เหล็กเส้นใหญ่ที่คล้องล็อกประตูหนีไฟมีรอยเลื่อยเหล็กบากลึก มีเศษขี้เลื่อยเหล็กตกอยู่ที่พื้น แต่เป็นรอยเก่าที่ B พยายามเลื่อยหนีเมื่อ 2 วันก่อน' },
+  { id: 'EVD-20', aliases: ['MUG-20', '20', 'E20'], name: 'แก้วน้ำเก็บความเย็นตกแตกหน้าหอพัก', importance: 'OPTIONAL', secretType: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'โถงทางเดินหน้าหอพักนักเรียน', desc: 'แก้วน้ำสแตนเลสเก็บความเย็นตกบุบ มีคราบของเหลวสีแดงคล้ำหกเป็นทางยาว แต่เป็นคราบชาผลไม้ผสมกาแฟที่นักเรียนทำหกช่วงเย็น' },
+  { id: 'EVD-21', aliases: ['GLASS-21', '21', 'E21'], name: 'เศษกระจกหน้าต่างแตกที่เชิงบันไดชั้น 2', importance: 'OPTIONAL', secretType: 'HERR', typeLabel: 'หลอก (Red Herring)', loc: 'เชิงบันไดทางขึ้นชั้น 2', desc: 'ชิ้นส่วนกระจกหนาตกกระจายอยู่ที่ขั้นบันได มีคราบสีแดงคล้ำติดอยู่บนขอบกระจก แต่เป็นคราบสนิมเหล็กผสมสีทาอาคารจากโครงบันไดพัง' },
+
+  // ⚫ ขยะ (Trash Items)
+  { id: 'EVD-22', aliases: ['SNACK-22', '22', 'E22'], name: 'กล่องขนมปังกรอบรสสาหร่ายกินเหลือ', importance: 'OPTIONAL', secretType: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'ห้องอาหาร (ใต้เก้าอี้ทานข้าว)', desc: 'ซองขนมปังกรอบเปิดอ้าไว้จนเหนียว มีมดไต่ตอมเต็มซอง ไม่มีข้อมูลใดๆ เกี่ยวกับคดีฆาตกรรม' },
+  { id: 'EVD-23', aliases: ['NOTE-23', '23', 'E23'], name: 'เศษกระดาษโน้ตเล่นโอเอกซ์ (Tic-Tac-Toe)', importance: 'OPTIONAL', secretType: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'โถงทางเดินกลาง (CORR-100)', desc: 'กระดาษสมุดฉีกมีตารางโอเอกซ์เล่นค้างไว้ มีตัว O ชนะ 3 ตาติด และข้อความเขียนแซวเพื่อนเล่นๆ' },
+  { id: 'EVD-24', aliases: ['CLIP-24', '24', 'E24'], name: 'คลิปหนีบกระดาษขึ้นสนิม 3 ตัว', importance: 'OPTIONAL', secretType: 'TRASH', typeLabel: 'ขยะ (Trash)', loc: 'หน้าบอร์ดประชาสัมพันธ์โถงทางเข้าหลัก', desc: 'คลิปหนีบกระดาษเหล็กขึ้นสนิมสีน้ำตาลเข้ม 3 ตัวตกอยู่ในร่องพื้นปูน' }
 ];
 
 let currentUserClueTagFilter = 'ALL';
@@ -2098,7 +2112,9 @@ function renderPlayerCluesList() {
         <div class="clue-card">
           <div class="clue-header">
             <span class="clue-code" style="color:var(--mono-yellow); font-weight:900;">${c.id}</span>
-            <span style="font-size:0.75rem; color:#888;">กระสุนความจริง</span>
+            <span style="font-size:0.75rem; font-weight:800; color:${c.importance === 'MUST' ? '#ff3b69' : (c.importance === 'GOOD' ? '#38bdf8' : '#aaa')};">
+              ${c.importance === 'MUST' ? '🔴 ต้องเก็บ (Core)' : (c.importance === 'GOOD' ? '🔵 มีก็ดี (Supporting)' : (c.secretType === 'HERR' ? '🟡 ตัวหลอก' : '⚫ ขยะ'))}
+            </span>
           </div>
           <div class="clue-name">${c.name}</div>
           <div class="clue-location">📍 สถานที่พบ: ${c.loc}</div>
@@ -2411,7 +2427,7 @@ function updateDiscoveredCluesDisplay() {
   if (countEl) countEl.innerText = count;
 
   const fillEl = document.getElementById('courtDiscoveryFill');
-  if (fillEl) fillEl.style.width = `${Math.min(100, Math.round((count / 16) * 100))}%`;
+  if (fillEl) fillEl.style.width = `${Math.min(100, Math.round((count / ALL_CLUES_DATA.length) * 100))}%`;
 
   const mapStubs = {
     'kitchenClueList': ['EVD-02', 'EVD-03'],
@@ -4571,36 +4587,109 @@ function adminLaunchSelectedConfigGame() {
 }
 
 // ==========================================================
-// ADMIN PRINTABLE CLUES MODAL
+// ADMIN PRINTABLE CLUES MODAL (WITH CATEGORY FILTERS & IMPORTANCE BADGES)
 // ==========================================================
-function adminOpenPrintCluesModal() {
-  const modal = document.getElementById('adminPrintCluesModal');
-  const sheet = document.getElementById('printableCluesSheet');
-  if (!modal || !sheet) return;
+let currentPrintFilter = 'ALL';
 
+function filterPrintClues(cat) {
+  currentPrintFilter = cat;
+  const filterBtns = document.querySelectorAll('#printClueFilterBar button');
+  filterBtns.forEach(b => {
+    if (b.getAttribute('data-cat') === cat) {
+      b.style.background = 'var(--mono-pink)';
+      b.style.color = '#fff';
+    } else {
+      b.style.background = '#222238';
+      b.style.color = '#aaa';
+    }
+  });
+  renderPrintableClues();
+}
+
+function renderPrintableClues() {
+  const sheet = document.getElementById('printableCluesSheet');
+  if (!sheet) return;
   sheet.innerHTML = '';
-  ALL_CLUES_DATA.forEach(c => {
+
+  const filtered = ALL_CLUES_DATA.filter(c => {
+    if (currentPrintFilter === 'MUST') return c.importance === 'MUST';
+    if (currentPrintFilter === 'GOOD') return c.importance === 'GOOD';
+    if (currentPrintFilter === 'OPT') return c.importance === 'OPTIONAL';
+    if (currentPrintFilter === 'TEST') return c.secretType === 'TESTIMONY';
+    return true;
+  });
+
+  filtered.forEach(c => {
     const qrTargetUrl = `https://danganronpa-ttrpg.vercel.app/play?room=${roomCode}&clue=${c.id}`;
     const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrTargetUrl)}`;
 
+    let impBadge = '';
+    if (c.importance === 'MUST') {
+      impBadge = '<span class="print-clue-secret-badge core" style="background:#dc2626; color:#fff;">🔴 ต้องเก็บ (Crucial)</span>';
+    } else if (c.importance === 'GOOD') {
+      impBadge = '<span class="print-clue-secret-badge supp" style="background:#0284c7; color:#fff;">🔵 มีก็ดี (Supporting)</span>';
+    } else if (c.secretType === 'HERR') {
+      impBadge = '<span class="print-clue-secret-badge herr" style="background:#ca8a04; color:#000;">🟡 ตัวหลอก (Red Herring)</span>';
+    } else if (c.secretType === 'TRASH') {
+      impBadge = '<span class="print-clue-secret-badge trash" style="background:#475569; color:#fff;">⚫ ขยะ (Trash)</span>';
+    } else {
+      impBadge = '<span class="print-clue-secret-badge" style="background:#10b981; color:#fff;">💬 คำให้การ</span>';
+    }
+
     const card = document.createElement('div');
-    card.className = 'printable-clue-card';
+    card.className = 'print-clue-card printable-clue-card';
     card.innerHTML = `
-      <div class="p-card-top">
-        <span class="p-card-id">[${c.id}]</span>
-        <span class="p-card-type">[${c.typeLabel}]</span>
+      <div class="p-card-top" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span class="p-card-id" style="font-weight:900; font-size:1rem; color:var(--mono-yellow);">[${c.id}]</span>
+        ${impBadge}
       </div>
-      <h4 class="p-card-title">${escapeHtml(c.name)}</h4>
-      <div class="p-card-loc">📍 สถานที่พบ: ${escapeHtml(c.loc)}</div>
-      <div class="p-card-qr-box">
+      <h4 class="p-card-title" style="font-size:0.95rem; margin:4px 0 6px 0; color:#fff; font-weight:800;">${escapeHtml(c.name)}</h4>
+      <div class="p-card-loc" style="font-size:0.8rem; color:#38bdf8; margin-bottom:6px;">📍 สถานที่พบ: ${escapeHtml(c.loc)}</div>
+      <div class="print-clue-qr p-card-qr-box">
         <img src="${qrImgUrl}" alt="QR ${c.id}" class="p-card-qr-img" onerror="this.style.display='none';">
       </div>
-      <div class="p-card-code-hint">รหัสสแกน / กรอกด้วยตนเอง: <strong>${c.id}</strong></div>
-      <p class="p-card-desc">${escapeHtml(c.desc)}</p>
+      <div class="p-card-code-hint" style="font-size:0.8rem; color:#aaa; margin:4px 0;">รหัสสแกน / กรอกด้วยตนเอง: <strong style="color:#fff;">${c.id}</strong></div>
+      <p class="p-card-desc" style="font-size:0.8rem; color:#ddd; margin:6px 0 0 0; line-height:1.4;">${escapeHtml(c.desc)}</p>
     `;
     sheet.appendChild(card);
   });
+}
 
+function adminOpenPrintCluesModal() {
+  const modal = document.getElementById('adminPrintCluesModal');
+  if (!modal) return;
+
+  const titleEl = document.getElementById('adminPrintCluesModalTitle');
+  if (titleEl) {
+    titleEl.innerText = `🖨️ บัตรหลักฐาน & คำให้การ QR (${ALL_CLUES_DATA.length} ใบ)`;
+  }
+
+  // Ensure filter bar exists
+  let bar = document.getElementById('printClueFilterBar');
+  if (!bar) {
+    const dialog = modal.querySelector('.modal-dialog');
+    const titleBar = modal.querySelector('.modal-title-bar');
+    if (dialog && titleBar) {
+      bar = document.createElement('div');
+      bar.id = 'printClueFilterBar';
+      bar.className = 'print-hide';
+      bar.style.display = 'flex';
+      bar.style.flexWrap = 'wrap';
+      bar.style.gap = '6px';
+      bar.style.margin = '10px 0';
+      bar.innerHTML = `
+        <button class="small-btn" data-cat="ALL" onclick="filterPrintClues('ALL')" style="padding:6px 12px; font-size:0.8rem; background:var(--mono-pink); color:#fff; font-weight:800;">ทั้งหมด (${ALL_CLUES_DATA.length})</button>
+        <button class="small-btn" data-cat="MUST" onclick="filterPrintClues('MUST')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">🔴 ต้องเก็บ (8)</button>
+        <button class="small-btn" data-cat="GOOD" onclick="filterPrintClues('GOOD')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">🔵 มีก็ดี (9)</button>
+        <button class="small-btn" data-cat="OPT" onclick="filterPrintClues('OPT')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">⚪ ตัวหลอก & ขยะ (7)</button>
+        <button class="small-btn" data-cat="TEST" onclick="filterPrintClues('TEST')" style="padding:6px 12px; font-size:0.8rem; background:#222238; color:#aaa; font-weight:800;">💬 คำให้การ (5)</button>
+      `;
+      titleBar.insertAdjacentElement('afterend', bar);
+    }
+  }
+
+  currentPrintFilter = 'ALL';
+  renderPrintableClues();
   modal.classList.remove('hidden');
 }
 
