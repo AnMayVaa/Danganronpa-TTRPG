@@ -1721,7 +1721,7 @@ body.dangan-body {
    ========================================================== */
 .player-nav-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin: 10px 0 14px;
   width: 100%;

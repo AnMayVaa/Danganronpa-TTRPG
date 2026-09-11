@@ -3582,7 +3582,6 @@ function renderMobileTask(stage) {
         <h3 style="color:var(--court-gold); margin-bottom:6px; font-weight:900;">ศาลชั้นเรียนกำลังดำเนินอยู่</h3>
         <p style="color:#ddd; font-size:0.9rem; margin-bottom:14px;">ขณะนี้อยู่ในช่วงอภิปรายและไต่สวนคดี (Debate & Discussion) ให้ทุกคนซักถาม ถกเถียง และตรวจสอบข้อมูลผ่านแท็บด้านบน</p>
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <button class="p-task-btn" onclick="switchPlayerTab('char')" style="background:rgba(255,230,0,0.15); border-color:#ffe600; color:#fff;">📜 ดูแผ่นตัวละคร & ไทม์ไลน์ส่วนตัว</button>
           <button class="p-task-btn" onclick="switchPlayerTab('clues')" style="background:rgba(0,240,255,0.15); border-color:#00f0ff; color:#fff;">🔍 เปิด Monopad ตรวจสอบหลักฐาน</button>
           <button class="p-task-btn" onclick="switchPlayerTab('guide')" style="background:rgba(230,0,103,0.15); border-color:#e60067; color:#fff;">📋 ดูกฎการดีเบตศาลชั้นเรียน</button>
         </div>
