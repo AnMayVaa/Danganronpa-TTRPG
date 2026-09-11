@@ -1314,6 +1314,8 @@ function handleRoute() {
     switchView('court');
   } else if (lowerP === 'simulation' || lowerP === 'sim') {
     switchView('simulation');
+  } else if (lowerP === 'map') {
+    switchView('map');
   } else if (lowerP === 'admin') {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('pin') === ADMIN_CORRECT_PIN) {
@@ -1370,7 +1372,7 @@ function switchView(v) {
   }
 
   // Set active view class on root elements to control navigation button visibility
-  ['view-is-hub', 'view-is-court', 'view-is-admin', 'view-is-player', 'view-is-simulation'].forEach(cls => {
+  ['view-is-hub', 'view-is-court', 'view-is-admin', 'view-is-player', 'view-is-simulation', 'view-is-map'].forEach(cls => {
     document.documentElement.classList.remove(cls);
     document.body.classList.remove(cls);
   });
@@ -1381,13 +1383,13 @@ function switchView(v) {
     document.body.classList.add('in-iframe');
   }
 
-  const panels = ['viewHub', 'viewCourt', 'viewAdmin', 'viewPlayer', 'viewSimulation'];
+  const panels = ['viewHub', 'viewCourt', 'viewAdmin', 'viewPlayer', 'viewSimulation', 'viewMap'];
   panels.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
 
-  const tabs = ['tabHub', 'tabCourt', 'tabAdmin', 'tabPlayer', 'tabSimulation'];
+  const tabs = ['tabHub', 'tabCourt', 'tabAdmin', 'tabPlayer', 'tabSimulation', 'tabMap'];
   tabs.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active');
@@ -1426,6 +1428,12 @@ function switchView(v) {
     const tab = document.getElementById('tabSimulation');
     if (tab) tab.classList.add('active');
     initSimulationLab();
+  } else if (v === 'map') {
+    const el = document.getElementById('viewMap');
+    if (el) el.classList.remove('hidden');
+    const tab = document.getElementById('tabMap');
+    if (tab) tab.classList.add('active');
+    initMapView();
   }
 }
 
@@ -5250,4 +5258,293 @@ function setAdminSimAspect(mode) {
     if (btnMob) btnMob.classList.add('active');
     if (title) title.innerText = '2. ผู้ดูแลศาล (DM Admin - 9:16)';
   }
+}
+
+
+// ==========================================================
+// 1F ACADEMY BLUEPRINT & TRAP CUTAWAY INTERACTION ENGINE
+// ==========================================================
+let currentMapMode = 'floor'; // 'floor' | 'cutaway' | 'simulate'
+let currentSimPhase = 1; // 1 | 2 | 3
+let simAnimationTimer = null;
+
+const ACADEMY_ROOMS_DATA = {
+  'laundry': {
+    badge: '🧺 จุดเกิดเหตุสำคัญ (CRIME SCENE)',
+    title: 'ห้องซักรีด ปีกบริการชั้น 1 (Laundry Room)',
+    arch: 'ห้องซักรีดเพดานสูง 4.0 เมตร คานเพดานติดตั้งรอกเหล็กทดแรง 1:1 มีเครื่องซักผ้าและเครื่องอบผ้าตั้งเวลา ผนังด้านหลังมีหน้าต่างระบายอากาศบานกระทุ้งเหล็กดัด สูงจากพื้นลานปูนด้านนอก 3.5 เมตร และก๊อกน้ำประปาที่ต่อสายยางลอดออกนอกหน้าต่าง',
+    clues: [
+      '<strong>EVD-04 (เชือกขาด):</strong> เชือกไนลอนมีรอยมีดตัดเรียบกริบ (ไม่ใช่รอยขาดจากแรงกระชาก)',
+      '<strong>EVD-11 (เครื่องอบผ้า):</strong> หมุนรองเท้าบูทคู่หนัก ตั้งเวลา Delay 21:00 น. เพื่อสร้างเสียงต่อสู้หลอก',
+      '<strong>EVD-14 (สายยางน้ำ):</strong> ต่อจากก๊อกในห้องซักรีด ลอดออกไปนอกหน้าต่างสูง 3.5 ม.'
+    ],
+    timeline: '• <strong>17:30 น.:</strong> A ลอบเข้ามาฟาด B จนสลบ<br>• <strong>18:10 น.:</strong> A เซ็ตกลไกรอกมรณะพลังน้ำ แขวนถัง 100 ลิตรนอกหน้าต่าง<br>• <strong>20:45 น.:</strong> B ฟื้นขึ้นมาตัดเชือกและผูกฮาร์เนสแต่พลาด'
+  },
+  'courtyard': {
+    badge: '🌿 ลานซักล้างกลางแจ้ง',
+    title: 'ลานปูนซักล้างปิดตายด้านหลัง (Rear Courtyard)',
+    arch: 'ลานกลางแจ้งระดับพื้น ±0.00 ม. ล้อมรอบด้วยกำแพงคอนกรีตสูง 5.0 เมตร ไม่มีประตูทางออกสู่ภายนอก มีท่อระบายน้ำที่พื้นปูน เหนือศีรษะที่ระดับ 3.5 ม. มีหน้าต่างห้องซักรีด ซึ่งเป็นจุดที่ถังน้ำ 100 ลิตรถูกแขวนลอยอยู่',
+    clues: [
+      '<strong>EVD-05 (ซากถังน้ำ 100 ลิตร):</strong> ถังพลาสติกสีน้ำเงินตกแตกกระจายบนพื้นปูน',
+      '<strong>EVD-12 (คราบน้ำบนลานปูน):</strong> คราบน้ำปริมาณมหาศาล (~100 ลิตร) ไหลนองลงสู่ตะแกรงระบายน้ำ',
+      '<strong>ระยะตกอิสระ (Free Fall):</strong> วัดระยะจากหน้าต่างถึงพื้นลานปูนได้ 3.5 เมตร'
+    ],
+    timeline: '• <strong>18:10 น.:</strong> ถังเปล่าถูกแขวนนอกหน้าต่าง น้ำเริ่มหยดลงถัง<br>• <strong>21:00 น.:</strong> ถังน้ำหนัก 100 กก. ร่วงวูบ 3.5 ม. กระแทกพื้นปูนเสียงดังสนั่น "โครม!"'
+  },
+  'barrel': {
+    badge: '🪣 กลไกน้ำหนักถ่วง (COUNTERWEIGHT)',
+    title: 'ถังน้ำพลาสติก 100 ลิตร (Water-Timer Counterweight)',
+    arch: 'ถังพลาสติกหนาสีน้ำเงิน ความจุ 100 ลิตร ผูกติดกับปลายเชือกไนลอนที่โยงมาจากรอกในห้องซักรีด แขวนลอยอยู่ในอากาศสูง 3.5 เมตรเหนือพื้นลานปูน โดยมีสายยางน้ำประปาปล่อยน้ำไหลเอื่อยๆ ลงในถัง',
+    clues: [
+      '<strong>มวลน้ำเต็มถัง:</strong> 100 ลิตร = มวล 100 กิโลกรัม',
+      '<strong>คำนวณแรงกระชาก (Shock Load):</strong> เมื่อมวล 100 กก. ตกจากความสูง 3.5 ม. จะสร้างแรงกระตุกฉับพลันสูงถึง 250 - 300 กิโลกรัม-แรง!'
+    ],
+    timeline: '• <strong>18:10 น.:</strong> A ปล่อยน้ำไหลเอื่อยๆ กะเวลาให้เต็มตอน 21:00 น.<br>• <strong>21:00 น.:</strong> น้ำหนักเกินสมดุล ถังร่วงดึงร่าง B ขึ้นแขวนคอ'
+  },
+  'window': {
+    badge: '🪟 จุดเชื่อมต่อสถาปัตยกรรม (3.5 M WINDOW)',
+    title: 'หน้าต่างระบายอากาศบานกระทุ้งเหล็กดัด',
+    arch: 'ติดตั้งอยู่บนผนังระหว่างห้องซักรีดกับลานปูน อยู่สูงจากระดับพื้น 3.5 เมตร เป็นบานกระทุ้งเหล็กดัดป้องกันคนปีน แต่มีช่องว่างให้เชือกไนลอนและสายยางน้ำลอดผ่านออกไปได้',
+    clues: [
+      '<strong>ความสูง 3.5 เมตร:</strong> ไขข้อสงสัยว่าทำไมอยู่ชั้น 1 แต่ของร่วงลงไปข้างล่างได้ เพราะหน้าต่างอยู่สูงจากพื้นลานปูนถึง 3.5 ม.!',
+      '<strong>รอยเสียดสีของเชือก:</strong> มีรอยเชือกไนลอนเสียดสีกับขอบเหล็กดัด'
+    ],
+    timeline: '• ปลายเชือกและสายยางถูกลอดผ่านหน้าต่างนี้เพื่อสร้างกลไกแขวนคอพลังน้ำ'
+  },
+  'glass_corridor': {
+    badge: '👁️ จุดสังเกตการณ์',
+    title: 'ทางเดินกระจกใสเลียบลานปูน (Glass Corridor)',
+    arch: 'ทางเดินผนังกระจกนิรภัยใสหนาพิเศษ มองเห็นลานปูนซักล้างด้านหลังและถังน้ำที่แขวนอยู่นอกหน้าต่างห้องซักรีดได้อย่างชัดเจน',
+    clues: [
+      '<strong>ทัศนวิสัย:</strong> จากทางเดินนี้ สามารถมองเห็นเงาของถังน้ำที่แขวนอยู่นอกหน้าต่างได้ แต่แสงไฟสลัวตอนค่ำทำให้ผู้เล่นคิดว่าเป็นอุปกรณ์ช่างทั่วไป'
+    ],
+    timeline: '• <strong>17:45 - 18:15 น.:</strong> PC 4 เดินเลี่ยงมารับลมที่ทางเดินนี้ และมองเห็นเงาถังน้ำแขวนลอยอยู่'
+  },
+  'kitchen': {
+    badge: '🍳 ห้องครัว & ห้องอาหาร',
+    title: 'ห้องครัว & ห้องอาหาร (Kitchen & Dining Hall)',
+    arch: 'ประกอบด้วยโซนทำอาหาร, ตู้แช่แข็ง Walk-in Freezer, เตาแก๊สอุตสาหกรรม, และโต๊ะอาหารยาวสำหรับนักเรียนทุกคน',
+    clues: [
+      '<strong>EVD-01 (ท่อนกระดูกหมูต้มเปื่อย):</strong> พบในก้นหม้อสตูว์ มีรอยบิ่นแตกจากการใช้เป็นอาวุธฟาด B',
+      '<strong>EVD-07 (ขวดไวน์แดง):</strong> ถูกเปิดใช้เกือบหมดขวดเพื่อกลบสีและกลิ่นเลือดในน้ำซุปสตูว์'
+    ],
+    timeline: '• <strong>17:30 น.:</strong> A หยิบท่อนกระดูกหมูแช่แข็งจากตู้ฟรีซไปเป็นอาวุธ<br>• <strong>17:50 น.:</strong> A นำกระดูกเปื้อนเลือดมาต้มในหม้อสตูว์เพื่อทำลายคราบเลือด<br>• <strong>19:00 - 20:30 น.:</strong> ทุกคนนั่งกินสตูว์ร่วมกัน (สร้าง Alibi ให้ A)'
+  },
+  'gym': {
+    badge: '🥊 โรงยิม & เวทีปฐมนิเทศ',
+    title: 'โรงยิม & เวทีปฐมนิเทศ (Gymnasium)',
+    arch: 'โรงยิมขนาดใหญ่ มีเวทีปราศรัยของ Monokuma และห้องล็อกเกอร์เก็บอุปกรณ์กีฬาที่ถูกเชื่อมปิดตาย',
+    clues: [
+      '<strong>จุดประหาร NPC 1:</strong> พื้นถูกหุ่นยนต์ทำความสะอาดเช็ดจนเกลี้ยง ไม่มีรอยกระสุนเหลืออยู่',
+      '<strong>ล็อกเกอร์ปิดตาย:</strong> ตู้เก็บอุปกรณ์ถูกเชื่อมเหล็ก ป้องกันไม่ให้ผู้เล่นหยิบอาวุธ'
+    ],
+    timeline: '• <strong>14:00 น.:</strong> Monokuma ประหาร NPC 1 เพื่อเชือดไก่ให้ลิงดู<br>• <strong>17:45 น.:</strong> PC 2 เดินมาสำรวจโรงยิมและพยายามงัดล็อกเกอร์'
+  },
+  'corridor': {
+    badge: '🏛️ โถงทางเดินกลาง',
+    title: 'โถงทางเดินกลาง (Central Corridor)',
+    arch: 'ทางเดินกว้างเชื่อมต่อทุกโซนในอาคาร มีตู้กดเครื่องดื่มอัตโนมัติ และประตูห้องสมุดที่มีป้ายกฎโรงเรียน',
+    clues: [
+      '<strong>ตู้กดเครื่องดื่ม:</strong> ตู้กินเหรียญของ PC 1 ตอน 17:45 น.',
+      '<strong>เสียงฮัมในท่อ:</strong> เกิดจากการเปิดสายยางปล่อยน้ำเข้าถังอย่างต่อเนื่อง'
+    ],
+    timeline: '• จุดที่ PC 1 และ PC 2 เดินสวนกันและชวนกันไปกินข้าวตอน 18:15 น.'
+  },
+  'dorms': {
+    badge: '🛏️ โซนหอพักนักเรียน',
+    title: 'โซนหอพักนักเรียน (Student Dormitories)',
+    arch: 'ห้องพักส่วนตัว 6 ห้อง แต่ละห้องมีประตูล็อกดิจิทัล ปลดล็อกด้วย Monopad ประจำตัวเท่านั้น',
+    clues: [
+      '<strong>ห้องพัก B:</strong> B ไม่ได้กลับมาที่ห้องพักตั้งแต่ช่วงบ่าย เพราะเก็บตัวอยู่ที่ห้องซักรีด',
+      '<strong>Alibi ช่วง 20:00 - 21:00 น.:</strong> ผู้เล่นใช้ห้องพักและห้องนั่งเล่นในการประกาศกิจกรรมพักผ่อน'
+    ],
+    timeline: '• <strong>17:30 น.:</strong> PC 2 เดินทดสอบระบบกลอนประตูดิจิทัล<br>• <strong>20:00 น.:</strong> เสียงระฆังราตรี Night Time'
+  },
+  'entrance': {
+    badge: '🚪 โถงทางเข้าหลัก',
+    title: 'โถงทางเข้าหลัก (Main Entrance Hall)',
+    arch: 'ทางเข้าหลักถูกปิดผนึกด้วยประตูเหล็กยักษ์ Blast Gate เชื่อมต่อวงจรไฟฟ้าแรงสูง ข้างประตูมีตู้ควบคุมไฟฟ้าหลักและมิเตอร์น้ำประปา',
+    clues: [
+      '<strong>มิเตอร์วัดแรงดันน้ำ:</strong> เข็มสั่นระริก แสดงว่ามีก๊อกน้ำตัวหนึ่งเปิดทิ้งไว้ต่อเนื่องนับชั่วโมง',
+      '<strong>ตัวตั้งเวลา (Timer Relay):</strong> มีรอยต่อพ่วงกับเครื่องใช้ไฟฟ้าในปีกบริการ'
+    ],
+    timeline: '• <strong>17:30 - 18:15 น.:</strong> PC 3 มาตรวจดูประตูเหล็กและแผงควบคุมระบบ'
+  }
+};
+
+function initMapView() {
+  setMapDisplayMode(currentMapMode || 'floor');
+  selectMapRoom('laundry');
+}
+
+function setMapDisplayMode(mode) {
+  currentMapMode = mode;
+  ['btnMapFloor', 'btnMapCutaway', 'btnMapSimulate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+
+  const containers = {
+    'floor': 'mapFloorContainer',
+    'cutaway': 'mapCutawayContainer',
+    'simulate': 'mapSimulateContainer'
+  };
+
+  Object.values(containers).forEach(cid => {
+    const el = document.getElementById(cid);
+    if (el) el.classList.add('hidden');
+  });
+
+  if (mode === 'floor') {
+    const btn = document.getElementById('btnMapFloor');
+    if (btn) btn.classList.add('active');
+    const c = document.getElementById('mapFloorContainer');
+    if (c) c.classList.remove('hidden');
+  } else if (mode === 'cutaway') {
+    const btn = document.getElementById('btnMapCutaway');
+    if (btn) btn.classList.add('active');
+    const c = document.getElementById('mapCutawayContainer');
+    if (c) c.classList.remove('hidden');
+  } else if (mode === 'simulate') {
+    const btn = document.getElementById('btnMapSimulate');
+    if (btn) btn.classList.add('active');
+    const c = document.getElementById('mapSimulateContainer');
+    if (c) c.classList.remove('hidden');
+    setSimPhase(1);
+  }
+}
+
+function selectMapRoom(roomId) {
+  const data = ACADEMY_ROOMS_DATA[roomId];
+  if (!data) return;
+
+  const badgeEl = document.getElementById('inspectBadge');
+  const titleEl = document.getElementById('inspectTitle');
+  const archEl = document.getElementById('inspectArch');
+  const cluesEl = document.getElementById('inspectClues');
+  const timelineEl = document.getElementById('inspectTimeline');
+
+  if (badgeEl) badgeEl.innerText = data.badge;
+  if (titleEl) titleEl.innerText = data.title;
+  if (archEl) archEl.innerHTML = data.arch;
+  if (cluesEl) cluesEl.innerHTML = (data.clues || []).map(c => `<li>${c}</li>`).join('');
+  if (timelineEl) timelineEl.innerHTML = data.timeline;
+
+  // Flash inspection drawer
+  const drawer = document.getElementById('mapInspectionDrawer');
+  if (drawer) {
+    drawer.style.borderColor = '#38bdf8';
+    setTimeout(() => {
+      drawer.style.borderColor = '#000';
+    }, 400);
+  }
+}
+
+function setSimPhase(phase) {
+  currentSimPhase = phase;
+  ['btnSimPhase1', 'btnSimPhase2', 'btnSimPhase3'].forEach((id, idx) => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      if (idx + 1 === phase) btn.classList.add('active');
+      else btn.classList.remove('active');
+    }
+  });
+
+  const badge = document.getElementById('simNarrativeBadge');
+  const title = document.getElementById('simNarrativeTitle');
+  const desc = document.getElementById('simNarrativeDesc');
+  const victimAvatar = document.getElementById('simVictimAvatar');
+  const victimIcon = document.getElementById('simVictimIcon');
+  const victimTag = document.getElementById('simVictimTag');
+  const victimStatus = document.getElementById('simVictimStatus');
+  const ropeLeft = document.getElementById('simRopeLeft');
+  const barrelEntity = document.getElementById('simBarrelEntity');
+  const barrelWeight = document.getElementById('simBarrelWeight');
+  const pulleyWheel = document.getElementById('simPulleyWheel');
+
+  if (phase === 1) {
+    if (badge) badge.innerText = 'เฟส 1: การเซ็ตกลไกรอกมรณะพลังน้ำ (18:10 น.)';
+    if (title) title.innerText = 'คนร้ายลอบวางกับดักน้ำถ่วงเวลาในห้องซักรีด';
+    if (desc) desc.innerText = 'A มัดบ่วงคล้องคอ B ที่หมดสติอยู่บนพื้นห้องซักรีด โยงเชือกขึ้นรอกเพดานสูง 4.0 ม. ลอดออกหน้าต่างสูง 3.5 ม. ไปผูกถังพลาสติก 100 ลิตร แขวนลอยอยู่นอกหน้าต่าง และเปิดสายยางน้ำไหลเอื่อยๆ ลงในถัง กะเวลาให้น้ำเต็มตอน 21:00 น. พอดี!';
+    
+    if (victimAvatar) {
+      victimAvatar.style.bottom = '25px';
+      victimAvatar.style.top = 'auto';
+    }
+    if (victimIcon) victimIcon.innerText = '😴';
+    if (victimTag) victimTag.innerText = 'B (หมดสติที่พื้น)';
+    if (victimStatus) {
+      victimStatus.innerText = 'คล้องบ่วงที่คอ';
+      victimStatus.style.borderColor = '#f43f5e';
+      victimStatus.style.color = '#f43f5e';
+    }
+    if (ropeLeft) ropeLeft.style.height = '180px';
+    if (barrelEntity) {
+      barrelEntity.style.top = '60px';
+      barrelEntity.style.bottom = 'auto';
+    }
+    if (barrelWeight) barrelWeight.innerText = '10 L (~10 kg) [น้ำเริ่มไหล]';
+    if (pulleyWheel) pulleyWheel.style.transform = 'rotate(0deg)';
+  } else if (phase === 2) {
+    if (badge) badge.innerText = 'เฟส 2: แผนดัดหลังของเหยื่อที่ผิดพลาด (20:45 น.)';
+    if (title) title.innerText = 'B ฟื้นขึ้นมาตัดเชือก แต่ผูกเงื่อนฮาร์เนสตบตาพลาด!';
+    if (desc) desc.innerText = 'B ฟื้นสติขึ้นมา รู้ตัวว่าโดนลอบฆ่า จึงควักมีดพกตัดเชือกขาดสะบั้น! B รอดตายแล้ว 100%! แต่ด้วยความหยิ่ง B ต้องการดัดหลังคนร้ายในศาล จึงนำเศษเชือกมาผูกเซฟตี้ฮาร์เนสกับลำตัวใต้เสื้อเพื่อรับน้ำหนักแทนคอ แล้วเอาบ่วงหลวมๆ คล้องคอตบตา แต่ B มึนหัวจากแผลฟาดทำให้ผูกเงื่อนหลุดตำแหน่ง!';
+    
+    if (victimAvatar) {
+      victimAvatar.style.bottom = '25px';
+      victimAvatar.style.top = 'auto';
+    }
+    if (victimIcon) victimIcon.innerText = '😏';
+    if (victimTag) victimTag.innerText = 'B (ตัดเชือกสำเร็จ!)';
+    if (victimStatus) {
+      victimStatus.innerText = '✂️ ผูกฮาร์เนสดัดหลัง';
+      victimStatus.style.borderColor = '#10b981';
+      victimStatus.style.color = '#10b981';
+    }
+    if (ropeLeft) ropeLeft.style.height = '180px';
+    if (barrelEntity) {
+      barrelEntity.style.top = '60px';
+      barrelEntity.style.bottom = 'auto';
+    }
+    if (barrelWeight) barrelWeight.innerText = '80 L (~80 kg) [ใกล้เต็มถัง]';
+    if (pulleyWheel) pulleyWheel.style.transform = 'rotate(0deg)';
+  } else if (phase === 3) {
+    if (badge) badge.innerText = 'เฟส 3: วินาทีสังหาร & การตายที่แท้จริง (21:00 น.)';
+    if (title) title.innerText = 'ถังน้ำ 100 กก. ร่วงกระแทกพื้น กระชากร่าง B คอหักตายคาที่!';
+    if (desc) desc.innerText = '21:00 น. เครื่องอบผ้าเริ่มหมุนเสียงดังตึงตัง ถังน้ำหนัก 100 กก. ร่วงวูบ 3.5 ม. กระแทกพื้นลานปูนดัง "โครม!!" เกิดแรงกระชากมหาศาล (Shock Load) ดึงร่าง B ลอยหวือขึ้นเพดาน เงื่อนฮาร์เนสหลุด บ่วงรูดขึ้นรัดคอและกระแทกรอกเหล็กจนคอหักเสียชีวิตทันที! B จึงกลายเป็น Blackened ปลิดชีพตนเอง!';
+    
+    if (victimAvatar) {
+      victimAvatar.style.bottom = 'auto';
+      victimAvatar.style.top = '70px'; // Pulled up to ceiling!
+    }
+    if (victimIcon) victimIcon.innerText = '💀';
+    if (victimTag) victimTag.innerText = 'B (เสียชีวิตคาที่!)';
+    if (victimStatus) {
+      victimStatus.innerText = '⚡ กระชากคอหักบนเพดาน';
+      victimStatus.style.borderColor = '#ef4444';
+      victimStatus.style.color = '#ef4444';
+    }
+    if (ropeLeft) ropeLeft.style.height = '40px'; // Rope pulled up!
+    if (barrelEntity) {
+      barrelEntity.style.top = 'auto';
+      barrelEntity.style.bottom = '35px'; // Smashed on ground!
+    }
+    if (barrelWeight) barrelWeight.innerText = '100 L (แตกกระจายบนลานปูน!)';
+    if (pulleyWheel) pulleyWheel.style.transform = 'rotate(360deg)';
+
+    if (typeof playSfx === 'function') {
+      try { playSfx('gavel'); } catch(e) {}
+    }
+  }
+}
+
+function playTrapSimulation() {
+  if (simAnimationTimer) clearTimeout(simAnimationTimer);
+  setSimPhase(1);
+  simAnimationTimer = setTimeout(() => {
+    setSimPhase(2);
+    simAnimationTimer = setTimeout(() => {
+      setSimPhase(3);
+    }, 2500);
+  }, 2200);
 }
