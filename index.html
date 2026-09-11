@@ -1187,12 +1187,20 @@
             <text x="60" y="92" font-size="9.5" fill="#ef4444" font-weight="800">🚫 ลานบริการปิดตาย ไม่มีประตู/บันไดหนีไฟเชื่อมสู่ภายนอก (SEALED // NO ACCESS)</text>
             <text x="60" y="107" font-size="8.5" fill="#94a3b8">ระดับพื้นลานปูนระบายน้ำ (±0.00m) // ล้อมด้วยกำแพง ค.ส.ล. สูง 5.0 ม. รอบทิศทาง</text>
 
-            <!-- NORTH GLASS CORRIDOR (CORR-101) -->
-            <rect x="600" y="30" width="365" height="140" fill="#091829" stroke="#38bdf8" stroke-width="2"/>
-            <rect x="600" y="30" width="365" height="140" fill="url(#glassFill)"/>
+            <!-- CONTINUOUS L-SHAPED GLASS CORRIDOR (CORR-101 & EAST PASSAGE) -->
+            <polygon points="600,30 965,30 965,380 900,380 900,170 600,170" fill="#091829" stroke="#38bdf8" stroke-width="2"/>
+            <polygon points="600,30 965,30 965,380 900,380 900,170 600,170" fill="url(#glassFill)"/>
+            
+            <!-- Walking Flow Guide Line (Dashed Line turning at the corner seamlessly) -->
+            <path d="M 620 100 L 932 100 L 932 375" fill="none" stroke="rgba(56, 189, 248, 0.45)" stroke-width="2" stroke-dasharray="6,4"/>
+            <polygon points="932,378 927,368 937,368" fill="#38bdf8"/>
+            <polygon points="615,100 625,95 625,105" fill="#38bdf8"/>
+
             <rect x="615" y="55" width="290" height="24" fill="#05101d" stroke="#38bdf8" rx="3"/>
             <text x="625" y="71" font-size="11" fill="#38bdf8" font-weight="900">CORR-101: NORTH GLASS CORRIDOR [12.0m x 4.5m]</text>
-            <text x="625" y="90" font-size="9.5" fill="#94a3b8">ผนังกระจกนิรภัยหนาพิเศษ มองเห็นลานซักล้างภายนอก</text>
+            <text x="625" y="90" font-size="9.5" fill="#94a3b8">ทางเดินกระจกรูปตัว L เชื่อมตรงจากโถงกลางสู่ลานปีกหลัง</text>
+
+            <text x="932" y="275" font-size="8.5" fill="#38bdf8" font-weight="900" text-anchor="middle" transform="rotate(90, 932, 275)">◄ ทางเดินเชื่อมทะลุถึงกัน (EAST PASSAGE) ►</text>
 
             <!-- GLASS CURTAIN WALL SYMBOL between courtyard and glass corridor -->
             <line x1="600" y1="30" x2="600" y2="170" stroke="#38bdf8" stroke-width="4"/>
@@ -1251,15 +1259,29 @@
             <rect x="760" y="235" width="125" height="130" fill="#1e293b" stroke="#475569" rx="3"/>
             <text x="822" y="298" font-size="9" fill="#94a3b8" text-anchor="middle">STORAGE & LOCKERS</text>
 
-            <!-- PASSAGEWAY TO CORR-101 (East of Gym, x=900 to 965) -->
-            <rect x="900" y="170" width="65" height="210" fill="#091829" stroke="#38bdf8" stroke-width="1.5"/>
-            <rect x="900" y="170" width="65" height="210" fill="url(#glassFill)"/>
-            <text x="932" y="275" font-size="8.5" fill="#38bdf8" font-weight="900" text-anchor="middle" transform="rotate(90, 932, 275)">PASSAGE TO CORR-101 ▲</text>
+
 
             <!-- CENTRAL CORRIDOR (CORR-100) -->
             <rect x="35" y="380" width="930" height="80" fill="#090f1d" stroke="#38bdf8" stroke-width="1.5"/>
-            <rect x="45" y="405" width="230" height="24" fill="#0c1424" stroke="#38bdf8" rx="3"/>
-            <text x="55" y="421" font-size="11" fill="#38bdf8" font-weight="900">CORR-100: MAIN CENTRAL CORRIDOR</text>
+            <rect x="45" y="425" width="220" height="22" fill="#0c1424" stroke="#38bdf8" rx="3"/>
+            <text x="55" y="440" font-size="10.5" fill="#38bdf8" font-weight="900">CORR-100: MAIN CENTRAL CORRIDOR</text>
+
+            <!-- VENDING MACHINE (ตู้กดน้ำอัตโนมัติ - ระหว่างห้องซักรีดกับครัว) -->
+            <g id="cleanVendingMachine">
+              <rect x="235" y="384" width="55" height="30" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5" rx="3"/>
+              <rect x="239" y="387" width="47" height="11" fill="#0284c7" rx="1"/>
+              <text x="262" y="396" font-size="7.5" fill="#fff" font-weight="900" text-anchor="middle">DRINKS 🥫</text>
+              <rect x="252" y="402" width="21" height="8" fill="#ef4444" rx="1"/>
+              <text x="262" y="408" font-size="6" fill="#fff" font-weight="800" text-anchor="middle">COIN ERR</text>
+            </g>
+
+            <!-- NOTICE BOARD (บอร์ดประชาสัมพันธ์และผังอาคารโถงกลาง) -->
+            <g id="cleanNoticeBoard">
+              <rect x="430" y="384" width="55" height="25" fill="#1e293b" stroke="#eab308" stroke-width="1.5" rx="2"/>
+              <rect x="433" y="387" width="49" height="19" fill="#2d2208" rx="1"/>
+              <text x="457" y="399" font-size="7.5" fill="#facc15" font-weight="900" text-anchor="middle">📋 บอร์ดข่าวสาร</text>
+              <text x="457" y="415" font-size="6" fill="#94a3b8" font-weight="700" text-anchor="middle">NOTICE BOARD</text>
+            </g>
 
             <!-- DOORS WITH ARCHITECTURAL DOOR SWING ARCS -->
             <!-- Laundry Door (D-101) -->
@@ -1379,6 +1401,12 @@
             <text x="715" y="550" font-size="11" fill="#ef4444" font-weight="900" text-anchor="middle">⚡ MAIN BLAST GATE</text>
             <text x="715" y="567" font-size="8.5" fill="#fca5a5" text-anchor="middle">STEEL BARRIER // HIGH VOLTAGE</text>
 
+            <!-- Large Campus Directory & Notice Board (บอร์ดผังอาคารข้าง Blast Gate) -->
+            <g id="entranceNoticeBoard">
+              <rect x="620" y="590" width="130" height="26" fill="#0d281a" stroke="#10b981" stroke-width="1.5" rx="3"/>
+              <text x="685" y="607" font-size="9" fill="#34d399" font-weight="900" text-anchor="middle">📋 แผนผังอาคาร & บอร์ดประกาศ</text>
+            </g>
+
             <!-- Electrical & Water Breaker Panel -->
             <rect x="830" y="525" width="120" height="115" fill="#1e293b" stroke="#10b981" rx="3"/>
             <text x="890" y="555" font-size="10" fill="#10b981" font-weight="900" text-anchor="middle">CONTROL PANEL</text>
@@ -1440,19 +1468,22 @@
                 
                 <rect x="230" y="88" width="240" height="34" fill="#080c16" stroke="#38bdf8" rx="4"/>
                 <text x="240" y="103" font-size="10" fill="#38bdf8" font-weight="900">ถังใส่ผ้าซักเปล่า (2 กก.) แขวนลอยที่ 3.5 ม.</text>
-                <text x="240" y="115" font-size="9" fill="#eab308" font-weight="700">ที่หนีบผ้าเหล็กล็อกสายยาง / น้ำเต็ม 82.5 กก.</text>
+                <text x="240" y="115" font-size="9" fill="#eab308" font-weight="700">สายยางร้อยผ่านรูมือจับถังซักผ้า / น้ำเต็ม 82.5 กก.</text>
               </g>
 
               <!-- Impact Ground -->
               <text x="190" y="152" font-size="9" fill="#f43f5e" font-weight="800" text-anchor="middle">💥 EVD-05: ซากถังแตกกระจาย & EVD-12: คราบน้ำนองพื้น</text>
             </g>
 
-            <!-- GLASS CORRIDOR (CORR-101) - Sightline text removed as requested -->
+            <!-- CONTINUOUS L-SHAPED GLASS CORRIDOR (CRIME SCENE OVERLAY) -->
             <g class="map-interactive-zone" onclick="selectMapRoom('glass_corridor')">
-              <rect x="600" y="30" width="365" height="140" fill="#091829" stroke="#38bdf8" stroke-width="2"/>
+              <polygon points="600,30 965,30 965,380 900,380 900,170 600,170" fill="#091829" stroke="#38bdf8" stroke-width="2"/>
+              <polygon points="600,30 965,30 965,380 900,380 900,170 600,170" fill="url(#glassFill)"/>
+              <path d="M 620 100 L 932 100 L 932 375" fill="none" stroke="rgba(56, 189, 248, 0.45)" stroke-width="2" stroke-dasharray="6,4"/>
+              
               <rect x="615" y="40" width="270" height="24" fill="#071220" stroke="#38bdf8" rx="3"/>
-              <text x="625" y="56" font-size="11" fill="#38bdf8" font-weight="900">🪟 ทางเดินกระจกใสเลียบลานปูน</text>
-              <text x="625" y="80" font-size="9.5" fill="#94a3b8">ผนังกระจกนิรภัยหนาพิเศษ มองเห็นลานซักล้างด้านหลัง</text>
+              <text x="625" y="56" font-size="11" fill="#38bdf8" font-weight="900">🪟 ทางเดินกระจกใสรูปตัว L (CORR-101)</text>
+              <text x="625" y="80" font-size="9.5" fill="#94a3b8">เชื่อมต่อจากโถงกลางทะลุสู่ระเบียงกระจกปีกหลัง</text>
             </g>
 
             <!-- LAUNDRY ROOM (RM-101) - Placed below wall with zero window overlap -->
@@ -1529,14 +1560,24 @@
               <text x="710" y="348" font-size="9" fill="#ef4444" font-weight="800" text-anchor="middle">จุดประหาร NPC 1</text>
             </g>
 
-            <!-- Passageway from Central Corridor to North Glass Corridor -->
-            <rect x="900" y="170" width="65" height="210" fill="#091829" stroke="#38bdf8" stroke-width="1.5"/>
-            <rect x="900" y="170" width="65" height="210" fill="url(#glassFill)"/>
-            <text x="932" y="275" font-size="8" fill="#38bdf8" font-weight="800" text-anchor="middle" transform="rotate(90, 932, 275)">ทางเดินสู่ระเบียงกระจก ▲</text>
+
 
             <!-- CORRIDOR, DORMS & ENTRANCE WITH DOORS -->
             <rect x="35" y="380" width="930" height="80" fill="#090f1d" stroke="#334155" stroke-width="1.5"/>
-            <text x="50" y="425" font-size="12" fill="#38bdf8" font-weight="900">🏛️ โถงทางเดินกลาง (CORR-100: จุดที่ PC 1-2 สวนกันตอน 18:15 น.)</text>
+            <text x="50" y="440" font-size="11" fill="#38bdf8" font-weight="900">🏛️ โถงทางเดินกลาง (CORR-100: จุดที่ PC 1-2 สวนกันตอน 18:15 น.)</text>
+
+            <!-- Vending Machine with PC 1 Distraction Detail -->
+            <g class="map-interactive-point" onclick="event.stopPropagation(); selectMapRoom('corridor');" style="cursor:pointer;">
+              <rect x="235" y="384" width="55" height="30" fill="#1e1e38" stroke="#38bdf8" stroke-width="1.5" rx="3"/>
+              <text x="262" y="396" font-size="7.5" fill="#38bdf8" font-weight="900" text-anchor="middle">🥫 ตู้กดน้ำ</text>
+              <text x="262" y="408" font-size="6.5" fill="#ef4444" font-weight="800" text-anchor="middle">กินเหรียญ 17:45</text>
+            </g>
+
+            <!-- Notice board -->
+            <g class="map-interactive-point" onclick="event.stopPropagation(); selectMapRoom('entrance');" style="cursor:pointer;">
+              <rect x="430" y="384" width="55" height="25" fill="#1e293b" stroke="#eab308" stroke-width="1.5" rx="2"/>
+              <text x="457" y="400" font-size="7.5" fill="#facc15" font-weight="900" text-anchor="middle">📋 บอร์ดประกาศ</text>
+            </g>
 
             <!-- D-105 Door -->
             <g>
@@ -1571,7 +1612,7 @@
         <div id="mapCutawayContainer" class="map-svg-frame hidden">
           <div class="map-frame-header">
             <span class="map-frame-tag pink">CROSS-SECTION: CEILING LAUNDRY RAIL & 3.5 METER WINDOW</span>
-            <span class="map-frame-hint">💡 ภาพตัดขวางด้านข้าง: ราวท่อสแตนเลสเพดาน, หน้าต่างสูง 3.5 ม., และที่หนีบสายยาง</span>
+            <span class="map-frame-hint">💡 ภาพตัดขวางด้านข้าง: ราวท่อสแตนเลสเพดาน, หน้าต่างสูง 3.5 ม., และสายยางร้อยผ่านรูมือจับถังซักผ้า</span>
           </div>
 
           <svg class="cutaway-svg" viewBox="0 0 1000 640" xmlns="http://www.w3.org/2000/svg">
@@ -1632,7 +1673,7 @@
               
               <!-- Heavy-Duty Metal Laundry Clamp on Bucket Rim -->
               <rect x="655" y="185" width="12" height="16" fill="#eab308" stroke="#000" rx="2"/>
-              <text x="610" y="165" font-size="9" fill="#eab308" font-weight="900">📎 ที่หนีบผ้าเหล็กล็อกสายยางกับขอบถัง</text>
+              <text x="610" y="165" font-size="9" fill="#eab308" font-weight="900">🪢 สอดสายยางผ่านรูมือจับถังซักผ้า (น้ำไม่ตัน)</text>
               <line x1="662" y1="195" x2="662" y2="225" stroke="#00ffff" stroke-width="3"/>
             </g>
 
@@ -1721,7 +1762,7 @@
             <div class="sim-narrative-badge" id="simNarrativeBadge">เฟส 1: การเซ็ตกับดักเชือกตากผ้า (18:15 น.)</div>
             <h2 class="sim-narrative-title" id="simNarrativeTitle">คนร้ายลอบวางกับดักน้ำถ่วงเวลาในห้องซักรีด</h2>
             <p class="sim-narrative-desc" id="simNarrativeDesc">
-              A (ผู้มี INT สูง) นำเชือกตากผ้าไนลอนคล้องบ่วงที่คอ B ซึ่งนอนสลบ พาดผ่านราวท่อสแตนเลสเพดาน หย่อนถังใส่ผ้าซักเปล่า (หนัก 2 กก.) ออกนอกหน้าต่างบานเลื่อนระบายอากาศสูง 3.5 ม. ใช้ที่หนีบผ้าเหล็กล็อกสายยางติดขอบถัง และหรี่น้ำ 0.5 ลิตร/นาที โดยมีร่าง B (68 กก.) เป็นตัวถ่วงน้ำหนักรั้งถังไม่ให้ขยับจนกว่าน้ำจะเต็มตอน 21:00 น.!
+              A (ผู้มี INT สูง) นำเชือกตากผ้าไนลอนคล้องบ่วงที่คอ B ซึ่งนอนสลบ พาดผ่านราวท่อสแตนเลสเพดาน หย่อนถังใส่ผ้าซักเปล่า (หนัก 2 กก.) ออกนอกหน้าต่างบานเลื่อนระบายอากาศสูง 3.5 ม. สอดสายยางผ่านรูมือจับของถังซักผ้าและมัดประคองด้วยเชือกไนลอน (ทางน้ำเปิดโล่ง 100%) และหรี่น้ำ 0.5 ลิตร/นาที โดยมีร่าง B (68 กก.) เป็นตัวถ่วงน้ำหนักรั้งถังไม่ให้ขยับจนกว่าน้ำจะเต็มตอน 21:00 น.!
             </p>
           </div>
 
@@ -1788,7 +1829,7 @@
           <div class="inspection-col">
             <div class="inspection-subhead">⏱️ ไทม์ไลน์ & กลไกเวลา (18:15 - 21:00 น.)</div>
             <p id="inspectTimeline" class="inspection-text">
-              • <strong>18:15 น.:</strong> A (INT สูง) หย่อนถังเปล่า (2 กก.) ล็อกสายยางด้วยที่หนีบผ้า พาดเชือกบนราวสแตนเลส แล้วหรี่น้ำ 0.5 L/min<br>
+              • <strong>18:15 น.:</strong> A (INT สูง) หย่อนถังเปล่า (2 กก.) สอดสายยางผ่านรูมือจับถังซักผ้า พาดเชือกบนราวสแตนเลส แล้วหรี่น้ำ 0.5 L/min<br>
               • <strong>20:45 น.:</strong> B ฟื้นสติ ควักมีดพกตัดเชือก แล้วแอบผูกเซฟตี้ฮาร์เนสดัดหลังคนร้าย<br>
               • <strong>21:00 น.:</strong> ถังน้ำหนัก 82.5 กก. ร่วง 3.5 ม. กระชากสายยางหลุด และกระตุก B คอหักเสียชีวิตคาที่!
             </p>
