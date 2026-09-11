@@ -362,12 +362,14 @@
           <div class="fighter-card left">
             <div class="fighter-tag">BLADE OF TRUTH</div>
             <h3 id="rebuttalAccuser">ฝ่ายกล่าวหา</h3>
+            <div class="rebuttal-clue-badge left" id="rebuttalLeftClue" style="font-size:0.82rem; color:#00ff88; margin-top:4px; font-weight:700;">🗡️ หลักฐาน: (รอเลือก...)</div>
             <div class="score-pips" id="accuserPips">● ● ○</div>
           </div>
           <div class="vs-emblem">VS</div>
           <div class="fighter-card right">
             <div class="fighter-tag">BLADE OF DENIAL</div>
-            <h3 id="rebuttalSuspect">สุดยอดนักมายากล</h3>
+            <h3 id="rebuttalSuspect">ฝ่ายโต้แย้ง</h3>
+            <div class="rebuttal-clue-badge right" id="rebuttalRightClue" style="font-size:0.82rem; color:#ffe600; margin-top:4px; font-weight:700;">🛡️ หลักฐาน: (รอเลือก...)</div>
             <div class="score-pips" id="suspectPips">● ○ ○</div>
           </div>
         </div>
@@ -597,16 +599,16 @@
                 <div class="dm-select-row">
                   <span class="dm-select-label">ฝ่ายโต้แย้ง (PC 2):</span>
                   <select id="adminRebuttalOpponentSelect" onchange="adminSelectRebuttalChallengers()" class="dm-styled-select">
-                    <option value="สุดยอดนักมายากล">NPC: สุดยอดนักมายากล</option>
+                    <option value="">-- เลือกฝ่ายตรงข้าม --</option>
                   </select>
                 </div>
               </div>
               <div class="dm-dual-btn-row">
-                <button class="small-btn green" onclick="adminRebuttalVerdict(true)">
-                  🏆 ผู้เล่นชนะ (Break)
+                <button class="small-btn green" id="btnRebuttalWinChal" onclick="adminRebuttalVerdict(true)">
+                  🏆 ผู้ท้าชิง (PC1) ชนะ
                 </button>
-                <button class="small-btn red" onclick="adminRebuttalVerdict(false)">
-                  💀 ดวลล้มเหลว (Fail)
+                <button class="small-btn red" id="btnRebuttalWinOpp" onclick="adminRebuttalVerdict(false)">
+                  ⚔️ ฝ่ายตรงข้าม (PC2) ชนะ
                 </button>
               </div>
             </div>
@@ -615,15 +617,12 @@
                 <strong>4. Logic Dive</strong>
                 <span>สเก็ตบอร์ดดำดิ่งตรรกะ 3 ด่าน (Blind Vote)</span>
               </button>
-              <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
-                <button class="small-btn green" onclick="adminStartLogicDiveTimer()" style="padding:6px; font-weight:900; font-size:0.8rem;">
-                  ▶️ เริ่มจับเวลา (Start)
-                </button>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
                 <button class="small-btn yellow" onclick="adminRetryLogicDive()" style="padding:6px; font-weight:900; font-size:0.8rem;">
-                  🔄 คิดใหม่ (Retry)
+                  🔄 ให้โอกาสคิดใหม่ (Retry)
                 </button>
                 <button class="small-btn cyan" onclick="adminSkipLogicDive()" style="padding:6px; font-weight:900; font-size:0.8rem;">
-                  ⏭️ ข้ามข้อ (Skip)
+                  ⏭️ ข้ามไปข้อถัดไป (Skip)
                 </button>
               </div>
             </div>

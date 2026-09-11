@@ -915,7 +915,7 @@ function broadcast(msg) {
     'set_stage', 'admin_adjust_timer', 'admin_timer_stop', 'admin_timer_start',
     'adjust_influence', 'verdict', 'minigame_result', 'close_minigame_result',
     'execution_cutscene', 'close_execution_cutscene', 'stg1_evaluate',
-    'reveal_votes', 'sync_state', 'rebuttal_verdict'
+    'reveal_votes', 'sync_state', 'rebuttal_verdict', 'stg2_char'
   ];
   if (!alreadyHandledLocally.includes(msg.type)) {
     handleIncomingMessage(msg, null);
@@ -1155,9 +1155,23 @@ function handleIncomingMessage(msg, senderConn) {
       mobileFb.innerHTML = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${msg.winningChoice}] ซึ่งเป็นทางตัน (รอ DM สั่งการ)`;
     }
   } else if (msg.type === 'logic_dive_retry') {
-    // Re-render mobile task to rebuild DOM (old elements may be gone after sync_state)
-    if (gameState.currentStage === 'stage4') {
+    gameState.stg4Votes = {};
+    gameState.stg4Evaluating = false;
+    const crashNotice = document.getElementById('diveCrashNotice');
+    if (crashNotice) {
+      crashNotice.classList.add('hidden');
+      crashNotice.style.display = 'none';
+    }
+    ['A', 'B', 'C'].forEach(ch => {
+      const lane = document.getElementById('lane' + ch);
+      if (lane) lane.classList.remove('active-match', 'mismatch');
+    });
+    updateLogicDiveDisplay();
+    if (gameState.stage === 'stage4' || currentView === 'player') {
       renderMobileTask('stage4');
+    }
+    if (isHost) {
+      broadcast({ type: 'sync_state', state: gameState });
     }
   } else if (msg.type === 'stg5_scrum') {
     handleStg5Scrum(msg.delta);
@@ -1182,11 +1196,20 @@ function handleIncomingMessage(msg, senderConn) {
       setStage('trial');
     }
   } else if (msg.type === 'adjust_player_cred') {
-    if (gameState.players && gameState.players[msg.playerId]) {
-      gameState.players[msg.playerId].credibility = msg.credibility;
+    if (gameState.players) {
+      const p = gameState.players[msg.playerId] || Object.values(gameState.players).find(x => x.id === msg.playerId || x.name === msg.playerName || x.name === msg.playerId);
+      if (p) {
+        p.credibility = msg.credibility;
+      }
+      if (myPlayer && (myPlayer.id === msg.playerId || myPlayer.name === msg.playerName || (p && p.name === myPlayer.name))) {
+        myPlayer.credibility = msg.credibility;
+      }
       updatePlayerDisplays();
       updateAdminDisplay();
       updateMobileCredDisplay();
+      if (isHost) {
+        broadcast({ type: 'sync_state', state: gameState });
+      }
     }
   } else if (msg.type === 'rebuttal_challengers') {
     gameState.stg3Challenger = msg.challenger;
@@ -2521,6 +2544,9 @@ function autoUnlockTrialClues() {
 // ==========================================================
 function showMinigameResult(success, title, desc, details, skipBroadcast = false) {
   stopTimer();
+  if (currentView === 'admin' || currentView === 'simulation') {
+    return; // Popups must NEVER block DM Admin or parent simulation view!
+  }
   const modal = document.getElementById('courtResultModal');
   const card = document.getElementById('courtResultCard');
   const emblem = document.getElementById('resultEmblem');
@@ -2585,6 +2611,9 @@ function closeCourtResultModal(skipBroadcast = false) {
 
 function triggerMonokumaExecutionCutscene(isVictory, skipBroadcast = false) {
   stopTimer();
+  if (currentView === 'admin' || currentView === 'simulation') {
+    return; // Execution cutscene must NEVER block DM Admin or parent simulation view!
+  }
   const modal = document.getElementById('monokumaExecutionModal');
   const nameEl = document.getElementById('executionCulpritName');
   const verdictEl = document.getElementById('executionVerdictText');
@@ -2753,6 +2782,13 @@ function handleStg2Char(char) {
   if (!char || !gameState.stg2Target || !gameState.stg2Board) return;
   const upChar = char.toUpperCase();
 
+  // Track ALL guessed letters to strictly prevent double-counting mistakes
+  if (!gameState.stg2GuessedChars) gameState.stg2GuessedChars = [];
+  if (gameState.stg2GuessedChars.includes(upChar)) {
+    return; // Already guessed! Strictly 1 mistake per letter
+  }
+  gameState.stg2GuessedChars.push(upChar);
+
   // Prevent turn-skipping exploits on already revealed characters
   const alreadyRevealed = gameState.stg2Board.some(c => c.toUpperCase() === upChar);
   if (alreadyRevealed) {
@@ -2843,12 +2879,26 @@ function updateHangmanHealthDisplay() {
 
 // 3. Rebuttal Showdown
 function handleRebuttalSlash(bulletId, pName) {
-  const clue = ALL_CLUES_DATA.find(c => c.id === bulletId) || { name: bulletId || 'กระสุนความจริง' };
+  const clue = ALL_CLUES_DATA.find(c => c.id === bulletId) || { id: bulletId, name: bulletId || 'กระสุนความจริง' };
   playSfx('blade');
   logCourt(`⚔️ [TRUTH BLADE]: ${pName || 'ผู้เล่น'} กวัดแกว่ง [${clue.name}] เข้าปะทะข้อโต้แย้ง!`);
 
+  // Display chosen evidence prominently on Court Screen under corresponding duelist
+  const challenger = gameState.stg3Challenger || '';
+  const isChallenger = Boolean(pName && challenger && (pName === challenger || pName.includes(challenger) || challenger.includes(pName)));
+  const leftClueEl = document.getElementById('rebuttalLeftClue');
+  const rightClueEl = document.getElementById('rebuttalRightClue');
+
+  if (isChallenger) {
+    gameState.stg3LeftClue = `[${clue.id}] ${clue.name}`;
+    if (leftClueEl) leftClueEl.innerText = `🗡️ หลักฐาน: [${clue.id}] ${clue.name}`;
+  } else {
+    gameState.stg3RightClue = `[${clue.id}] ${clue.name}`;
+    if (rightClueEl) rightClueEl.innerText = `🛡️ หลักฐาน: [${clue.id}] ${clue.name}`;
+  }
+
   const slashEl = document.getElementById('rebuttalSlashFx');
-  if (slashEl) {
+  if (slashEl && (isHost || currentView === 'court')) {
     slashEl.classList.remove('hidden');
     slashEl.style.display = 'flex';
     setTimeout(() => {
@@ -2856,6 +2906,7 @@ function handleRebuttalSlash(bulletId, pName) {
       slashEl.style.display = 'none';
     }, 700);
   }
+  if (isHost) broadcast({ type: 'sync_state', state: gameState });
 }
 
 function triggerRebuttalVerdict(isWin, skipBroadcast = false) {
@@ -3062,7 +3113,7 @@ function evaluateLogicDiveMajority() {
 
 function adminRetryLogicDive() {
   gameState.stg4Votes = {};
-  gameState.stg4Evaluating = false; // Reset so evaluation can run again
+  gameState.stg4Evaluating = false;
   const crashNotice = document.getElementById('diveCrashNotice');
   if (crashNotice) {
     crashNotice.classList.add('hidden');
@@ -3073,7 +3124,6 @@ function adminRetryLogicDive() {
     if (lane) lane.classList.remove('active-match', 'mismatch');
   });
   updateLogicDiveDisplay();
-  if (isHost) broadcast({ type: 'sync_state', state: gameState }); // Trigger mobile re-render
   broadcast({ type: 'logic_dive_retry' });
   showToast('🔄 ให้โอกาสผู้เล่นคิดและเลือกเส้นทางใหม่');
 }
@@ -3301,7 +3351,13 @@ function updateClosingDisplay() {
 // 8. Voting & Verdict
 function handleVoteSubmitted(candidate, voterId) {
   if (!gameState.votesCast) gameState.votesCast = {};
-  gameState.votesCast[voterId] = candidate; // Store name, not boolean
+  if (!gameState.votes) gameState.votes = {};
+
+  // Strictly count 1 vote per voter to prevent duplication
+  if (gameState.votesCast[voterId]) {
+    return; // Already voted!
+  }
+  gameState.votesCast[voterId] = candidate;
   gameState.votes[candidate] = (gameState.votes[candidate] || 0) + 1;
   updateVoteDisplay();
 
@@ -3589,7 +3645,10 @@ function renderMobileTask(stage) {
 
     const renderRow = (letters) => `
       <div style="display:flex; justify-content:center; gap:5px; margin-bottom:6px;">
-        ${letters.map(ch => `<button class="p-task-btn letter-btn" style="min-width:30px; padding:8px 4px; font-weight:900; font-size:1rem; opacity: ${isMyTurn ? '1' : '0.35'};" ${isMyTurn ? '' : 'disabled'} onclick="sendStg2Char('${ch}')">${ch}</button>`).join('')}
+        ${letters.map(ch => {
+          const isGuessed = (gameState.stg2GuessedChars || []).includes(ch);
+          return `<button class="p-task-btn letter-btn" style="min-width:30px; padding:8px 4px; font-weight:900; font-size:1rem; opacity: ${(isMyTurn && !isGuessed) ? '1' : '0.25'};" ${(isMyTurn && !isGuessed) ? '' : 'disabled'} onclick="sendStg2Char('${ch}')">${ch}</button>`;
+        }).join('')}
       </div>
     `;
 
@@ -4046,12 +4105,15 @@ function triggerFx(fx) {
 
 function adminAdjustPlayerCred(peerId, delta) {
   if (!peerId) return;
-  const p = gameState.players[peerId];
+  let p = gameState.players[peerId];
+  if (!p) {
+    p = Object.values(gameState.players || {}).find(x => x.id === peerId || x.name === peerId);
+  }
   if (!p) return;
   p.credibility = Math.max(0, Math.min(5, ((typeof p.credibility === 'number') ? p.credibility : 5) + delta));
   updatePlayerDisplays();
   updateAdminDisplay();
-  broadcast({ type: 'adjust_player_cred', playerId: peerId, credibility: p.credibility });
+  broadcast({ type: 'adjust_player_cred', playerId: p.id || peerId, playerName: p.name, credibility: p.credibility });
   logCourt(`💔 [CREDIBILITY]: DM ปรับความน่าเชื่อถือของ [${p.name}] เป็น ${p.credibility}/5 ดวง`);
 }
 
@@ -4060,8 +4122,24 @@ function updateRebuttalDisplay() {
   const oppEl = document.getElementById('rebuttalSuspect');
   if (accEl) accEl.innerText = gameState.stg3Challenger ? `ฝ่ายกล่าวหา: ${gameState.stg3Challenger}` : 'ฝ่ายกล่าวหา';
   if (oppEl) oppEl.innerText = gameState.stg3Opponent ? `ฝ่ายโต้แย้ง: ${gameState.stg3Opponent}` : 'ฝ่ายโต้แย้ง';
+  const leftClueEl = document.getElementById('rebuttalLeftClue');
+  const rightClueEl = document.getElementById('rebuttalRightClue');
+  if (leftClueEl) leftClueEl.innerText = gameState.stg3LeftClue ? `🗡️ หลักฐาน: ${gameState.stg3LeftClue}` : '🗡️ หลักฐาน: (รอเลือก...)';
+  if (rightClueEl) rightClueEl.innerText = gameState.stg3RightClue ? `🛡️ หลักฐาน: ${gameState.stg3RightClue}` : '🛡️ หลักฐาน: (รอเลือก...)';
   const stmtEl = document.getElementById('rebuttalStatement');
   if (stmtEl && gameState.stg3Argument) stmtEl.innerText = `"${gameState.stg3Argument}"`;
+
+  // Update DM Rebuttal verdict buttons to show PC1 and PC2 names
+  const btnChal = document.getElementById('btnRebuttalWinChal');
+  const btnOpp = document.getElementById('btnRebuttalWinOpp');
+  if (btnChal) {
+    const chalName = gameState.stg3Challenger ? gameState.stg3Challenger.split(' ')[0] : 'ผู้ท้าชิง';
+    btnChal.innerText = `🏆 ${chalName} ชนะ`;
+  }
+  if (btnOpp) {
+    const oppName = gameState.stg3Opponent ? gameState.stg3Opponent.split(' ')[0] : 'ฝ่ายตรงข้าม';
+    btnOpp.innerText = `⚔️ ${oppName} ชนะ`;
+  }
 }
 
 function adminStartRebuttal() {
@@ -4208,7 +4286,15 @@ function updatePlayerDisplays() {
 function updateMobileCredDisplay() {
   const el = document.getElementById('pMyCredHearts');
   if (!el) return;
-  const p = myPlayer || (currentUserHash ? gameState.players[currentUserHash] : null);
+  let p = null;
+  if (myPlayer) {
+    p = Object.values(gameState.players || {}).find(x => x.name === myPlayer.name || x.id === myPlayer.id) || myPlayer;
+    if (p && typeof p.credibility === 'number') {
+      myPlayer.credibility = p.credibility;
+    }
+  } else if (currentUserHash && gameState.players) {
+    p = gameState.players[currentUserHash];
+  }
   const cred = (p && typeof p.credibility === 'number') ? p.credibility : 5;
   let str = '';
   for (let i = 1; i <= 5; i++) {

@@ -4967,3 +4967,18 @@ html.in-iframe.view-is-player #viewPlayer {
     padding: 8px 24px !important;
   }
 }
+
+
+/* Pop-ups and cutscenes NEVER block DM Admin or the outer Simulation page */
+html.view-admin .court-result-overlay,
+html.view-admin .execution-cutscene-overlay,
+html.view-simulation .court-result-overlay,
+html.view-simulation .execution-cutscene-overlay,
+body.view-admin .court-result-overlay,
+body.view-admin .execution-cutscene-overlay,
+body.view-simulation .court-result-overlay,
+body.view-simulation .execution-cutscene-overlay {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
