@@ -357,7 +357,7 @@
     /* ========================================================= */
     .main-grid {
       display: grid;
-      grid-template-columns: 74px 1fr;
+      grid-template-columns: 82px 1fr;
       grid-template-rows: auto 1fr;
       gap: 6px;
       flex: 1;
@@ -482,9 +482,11 @@
     }
     .hearts-row {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      padding: 0 1px;
+      gap: 3px;
+      padding: 1px 0;
+      width: 100%;
     }
     .heart-icon {
       line-height: 1;
@@ -493,13 +495,15 @@
       align-items: center;
       justify-content: center;
       transition: transform 0.1s ease;
-      padding: 1px;
+      padding: 0;
     }
     .heart-icon:hover {
       transform: scale(1.18);
     }
     .heart-icon svg {
       display: block;
+      width: 11px;
+      height: 11px;
     }
     .heart-icon svg path {
       fill: #ffffff;
@@ -559,14 +563,19 @@
     .conditions-header {
       display: flex;
       flex-direction: column;
+      align-items: center;
       gap: 1px;
       margin-bottom: 2px;
     }
     .conditions-header .section-tag {
-      font-size: 0.60rem;
-      padding: 1px 4px;
+      font-size: 0.54rem;
+      padding: 1px 2px;
       text-align: center;
-      border-left: 2.5px solid #ff0055;
+      display: block;
+      width: 100%;
+      border-left: none;
+      letter-spacing: 0.4px;
+      box-sizing: border-box;
     }
     .cond-sub-tag {
       font-size: 0.48rem;
@@ -574,6 +583,7 @@
       color: #4b5563;
       text-align: center;
       line-height: 1;
+      display: block;
     }
     .conditions-content {
       font-size: 0.65rem;
@@ -589,7 +599,7 @@
     /* Dotted Writing Lines (Notebook Lines) */
     .dotted-write-line {
       width: 100%;
-      height: 21px;
+      height: 18px;
       border-bottom: 1.5px dotted #9ca3af;
       margin-bottom: 2px;
       flex-shrink: 0;
@@ -619,7 +629,8 @@
     /* Portrait Box with Mounting Photo Brackets */
     .portrait-card {
       border: 2px solid #1a1a24;
-      height: 175px;
+      height: 100%;
+      min-height: 100%;
       position: relative;
       background: #f9fafb;
       display: flex;
@@ -649,7 +660,7 @@
 
     .portrait-body {
       width: 100%;
-      height: 100%;
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -686,6 +697,7 @@
 
     /* Student Bio Info */
     .bio-fields-wrap {
+      height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -1068,19 +1080,19 @@
                 <div class="cred-label">CREDIBILITY (ความน่าเชื่อถือ)</div>
                 <div class="hearts-row">
                   <span class="heart-icon" onclick="toggleHeart(this)" title="คลิกเพื่อระบายทึบ/ลบ">
-                    <svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg>
+                    <svg viewBox="0 0 24 24" width="11" height="11"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg>
                   </span>
                   <span class="heart-icon" onclick="toggleHeart(this)" title="คลิกเพื่อระบายทึบ/ลบ">
-                    <svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg>
+                    <svg viewBox="0 0 24 24" width="11" height="11"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg>
                   </span>
                   <span class="heart-icon" onclick="toggleHeart(this)" title="คลิกเพื่อระบายทึบ/ลบ">
-                    <svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg>
+                    <svg viewBox="0 0 24 24" width="11" height="11"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg>
                   </span>
                   <span class="heart-icon" onclick="toggleHeart(this)" title="คลิกเพื่อระบายทึบ/ลบ">
-                    <svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg>
+                    <svg viewBox="0 0 24 24" width="11" height="11"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg>
                   </span>
                   <span class="heart-icon" onclick="toggleHeart(this)" title="คลิกเพื่อระบายทึบ/ลบ">
-                    <svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg>
+                    <svg viewBox="0 0 24 24" width="11" height="11"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg>
                   </span>
                 </div>
               </div>
@@ -1190,60 +1202,29 @@
               </div>
 
               <div class="talents-content" contenteditable="true" id="txtTalents">
-                <div class="talent-feat">
-                  <span class="talent-feat-title">ความสามารถพิเศษประจำตัว (Ultimate Feat):</span>
-                  <div class="dotted-write-line"></div>
-                  <div class="dotted-write-line"></div>
-                </div>
-
-                <div class="rules-grid">
-                  <div class="rule-box">
-                    <strong>🔍 สืบสวนหาเบาะแส (Investigation Check):</strong><br>
-                    ทอย 2d6 + INT หรือ WIS vs DC (ง่าย 6 / ปานกลาง 8 / ยาก 10 / เชิงลึก 12)
-                  </div>
-                  <div class="rule-box">
-                    <strong>⚖️ ดีเบต & หักล้าง (Contested Debate Roll):</strong><br>
-                    ทอย 2d6 + CHA หรือ INT ปะทะ 2d6 + WIS หรือ EGO ของฝ่ายตรงข้าม
-                  </div>
-                  <div class="rule-box">
-                    <strong>👁️ จับโกหก & สังเกตพิรุธ (Detect Lie / Insight):</strong><br>
-                    ทอย 2d6 + WIS หรือ EGO vs DC 8
-                  </div>
-                  <div class="rule-box">
-                    <strong>💔 เสียสติ & สิ้นหวัง (Panic State):</strong><br>
-                    ถูกจับโกหกเสีย 1 แต้มความน่าเชื่อถือ (หมด 5 แต้ม = เสียสิทธิโต้แย้ง 1 หัวข้อ)
-                  </div>
-                </div>
+                <div class="dotted-write-line"></div>
+                <div class="dotted-write-line"></div>
+                <div class="dotted-write-line"></div>
+                <div class="dotted-write-line"></div>
+                <div class="dotted-write-line"></div>
+                <div class="dotted-write-line"></div>
+                <div class="dotted-write-line"></div>
+                <div class="dotted-write-line"></div>
               </div>
             </div>
 
-            <!-- Bottom Wide: Backpack Card (Keep 3 Truth Bullets) -->
+            <!-- Bottom Wide: Backpack Card -->
             <div class="backpack-card">
               <div class="talents-top-bar">
                 <span class="section-tag">Backpack</span>
-                <span style="font-size:0.70rem; font-weight:700; color:#374151;">สัมภาระติดตัว, บัตรนักเรียน Monopad & กระสุนความจริง (Truth Bullets)</span>
+                <span style="font-size:0.70rem; font-weight:700; color:#374151;">สัมภาระติดตัว, บัตรนักเรียน Monopad</span>
               </div>
 
               <div class="backpack-content" contenteditable="true" id="txtBackpack">
-                <div class="bp-cols">
-                  <div>
-                    <span class="bp-heading">สัมภาระติดตัว (Equipment):</span>
-                    <ul class="bp-list">
-                      <li>Monopad โรงเรียนคิโบกามิเนะ (Student Digital ID)</li>
-                      <li>กุญแจห้องพักนักเรียนส่วนตัว</li>
-                      <li class="dotted-write-line dense" style="list-style:none;"></li>
-                      <li class="dotted-write-line dense" style="list-style:none;"></li>
-                    </ul>
-                  </div>
-                  <div>
-                    <span class="bp-heading">กระสุนความจริง & บันทึก (Truth Bullets):</span>
-                    <ul class="bp-list">
-                      <li class="dotted-write-line dense" style="list-style:none;">[ ] ................................................................</li>
-                      <li class="dotted-write-line dense" style="list-style:none;">[ ] ................................................................</li>
-                      <li class="dotted-write-line dense" style="list-style:none;">[ ] ................................................................</li>
-                    </ul>
-                  </div>
-                </div>
+                <div class="dotted-write-line"></div>
+                <div class="dotted-write-line"></div>
+                <div class="dotted-write-line"></div>
+                <div class="dotted-write-line"></div>
               </div>
             </div>
 
@@ -1256,6 +1237,14 @@
               <span style="font-size:0.70rem; font-weight:700; color:#374151;">บันทึกเบาะแส ความเชื่อมโยง และข้อสังเกตในคดี (Investigation Notes)</span>
             </div>
             <div class="notes-content" contenteditable="true" id="txtNotes">
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
               <div class="dotted-write-line"></div>
               <div class="dotted-write-line"></div>
               <div class="dotted-write-line"></div>
@@ -1300,52 +1289,30 @@
           <div class="dotted-write-line dense"></div>
         `,
         talents: `
-          <div class="talent-feat">
-            <span class="talent-feat-title">ความสามารถพิเศษประจำตัว (Ultimate Feat):</span>
-            <div class="dotted-write-line"></div>
-            <div class="dotted-write-line"></div>
-          </div>
-          <div class="rules-grid">
-            <div class="rule-box">
-              <strong>🔍 สืบสวนหาเบาะแส (Investigation Check):</strong><br>
-              ทอย 2d6 + INT หรือ WIS vs DC (ง่าย 6 / ปานกลาง 8 / ยาก 10 / เชิงลึก 12)
-            </div>
-            <div class="rule-box">
-              <strong>⚖️ ดีเบต & หักล้าง (Contested Debate Roll):</strong><br>
-              ทอย 2d6 + CHA หรือ INT ปะทะ 2d6 + WIS หรือ EGO ของฝ่ายตรงข้าม
-            </div>
-            <div class="rule-box">
-              <strong>👁️ จับโกหก & สังเกตพิรุธ (Detect Lie / Insight):</strong><br>
-              ทอย 2d6 + WIS หรือ EGO vs DC 8
-            </div>
-            <div class="rule-box">
-              <strong>💔 เสียสติ & สิ้นหวัง (Panic State):</strong><br>
-              ถูกจับโกหกเสีย 1 แต้มความน่าเชื่อถือ (หมด 5 แต้ม = เสียสิทธิโต้แย้ง 1 หัวข้อ)
-            </div>
-          </div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
         `,
         backpack: `
-          <div class="bp-cols">
-            <div>
-              <span class="bp-heading">สัมภาระติดตัว (Equipment):</span>
-              <ul class="bp-list">
-                <li>Monopad โรงเรียนคิโบกามิเนะ (Student Digital ID)</li>
-                <li>กุญแจห้องพักนักเรียนส่วนตัว</li>
-                <li class="dotted-write-line dense" style="list-style:none;"></li>
-                <li class="dotted-write-line dense" style="list-style:none;"></li>
-              </ul>
-            </div>
-            <div>
-              <span class="bp-heading">กระสุนความจริง & บันทึก (Truth Bullets):</span>
-              <ul class="bp-list">
-                <li class="dotted-write-line dense" style="list-style:none;">[ ] ................................................................</li>
-                <li class="dotted-write-line dense" style="list-style:none;">[ ] ................................................................</li>
-                <li class="dotted-write-line dense" style="list-style:none;">[ ] ................................................................</li>
-              </ul>
-            </div>
-          </div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
         `,
         notes: `
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
+          <div class="dotted-write-line"></div>
           <div class="dotted-write-line"></div>
           <div class="dotted-write-line"></div>
           <div class="dotted-write-line"></div>
@@ -1842,11 +1809,11 @@
                     <div class="cred-box">
                       <div class="cred-label">CREDIBILITY (ความน่าเชื่อถือ)</div>
                       <div class="hearts-row">
-                        <span class="heart-icon"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg></span>
-                        <span class="heart-icon"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg></span>
-                        <span class="heart-icon"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg></span>
-                        <span class="heart-icon"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg></span>
-                        <span class="heart-icon"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg></span>
+                        <span class="heart-icon"><svg viewBox="0 0 24 24" width="11" height="11"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg></span>
+                        <span class="heart-icon"><svg viewBox="0 0 24 24" width="11" height="11"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg></span>
+                        <span class="heart-icon"><svg viewBox="0 0 24 24" width="11" height="11"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg></span>
+                        <span class="heart-icon"><svg viewBox="0 0 24 24" width="11" height="11"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg></span>
+                        <span class="heart-icon"><svg viewBox="0 0 24 24" width="11" height="11"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffffff" stroke="#1a1a24" stroke-width="2.4"/></svg></span>
                       </div>
                     </div>
                   </div>
@@ -1890,7 +1857,7 @@
                     <div class="talents-content">${d.talents}</div>
                   </div>
                   <div class="backpack-card">
-                    <div class="talents-top-bar"><span class="section-tag">Backpack</span><span style="font-size:0.70rem; font-weight:700;">สัมภาระ & บันทึกส่วนตัว</span></div>
+                    <div class="talents-top-bar"><span class="section-tag">Backpack</span><span style="font-size:0.70rem; font-weight:700;">สัมภาระติดตัว, บัตรนักเรียน Monopad</span></div>
                     <div class="backpack-content">${d.backpack}</div>
                   </div>
                 </div>
