@@ -1143,7 +1143,7 @@
         <div id="mapCleanContainer" class="map-svg-frame">
           <div class="map-frame-header">
             <span class="map-frame-tag">CAMPUS SCHEMATIC // GROUND FLOOR (1F) STANDARD BLUEPRINT</span>
-            <span class="map-frame-hint">📐 สัญลักษณ์สถาปัตยกรรม: กำแพงหนา, บานประตูสวิง 90°, หน้าต่างบานเลื่อน, เสา ค.ส.ล.</span>
+            <span class="map-frame-hint">📐 สัญลักษณ์สถาปัตยกรรม: กำแพง ค.ส.ล., ประตูสวิง (D-101 - D-107), หน้าต่างบานเลื่อน (W-101), เสาโครงสร้าง</span>
           </div>
 
           <svg class="blueprint-svg" viewBox="0 0 1000 680" xmlns="http://www.w3.org/2000/svg">
@@ -1169,18 +1169,20 @@
               <text x="10" y="45">1</text><text x="10" y="180">2</text><text x="10" y="400">3</text><text x="10" y="480">4</text><text x="10" y="660">5</text>
             </g>
 
-            <!-- EXTERIOR REAR COURTYARD (EXT-101) -->
+            <!-- EXTERIOR REAR COURTYARD (EXT-101) - ENCLOSED / NO ACCESS -->
             <rect x="35" y="30" width="565" height="140" fill="#0d1424" stroke="#475569" stroke-width="2"/>
             <rect x="35" y="30" width="565" height="140" fill="url(#concreteFill)"/>
             
-            <!-- Perimeter Security Wall (5.0m Concrete Wall) -->
-            <rect x="35" y="30" width="565" height="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
-            <text x="45" y="40" font-size="8.5" fill="#eab308" font-weight="900">EXTERIOR SECURITY PERIMETER // CONCRETE WALL H=5.0m</text>
+            <!-- Perimeter Security Wall (5.0m Concrete Wall) - Fully framed North & West -->
+            <rect x="25" y="25" width="575" height="14" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+            <rect x="25" y="25" width="14" height="153" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+            <text x="50" y="36" font-size="8.5" fill="#eab308" font-weight="900">EXTERIOR SECURITY PERIMETER // CONCRETE WALL H=5.0m [ENCLOSED // ปิดตายรอบด้าน]</text>
             
             <!-- Room Tag -->
-            <rect x="50" y="55" width="280" height="24" fill="#0b1320" stroke="#38bdf8" rx="3"/>
+            <rect x="50" y="55" width="310" height="24" fill="#0b1320" stroke="#38bdf8" rx="3"/>
             <text x="60" y="71" font-size="11" fill="#38bdf8" font-weight="900">EXT-101: REAR SERVICE COURTYARD [18.0m x 6.5m]</text>
-            <text x="60" y="90" font-size="9.5" fill="#94a3b8">ระดับพื้นลานปูนระบายน้ำ (Elevation ±0.00m)</text>
+            <text x="60" y="92" font-size="9.5" fill="#ef4444" font-weight="800">🚫 ลานบริการปิดตาย ไม่มีประตู/บันไดหนีไฟเชื่อมสู่ภายนอก (SEALED // NO ACCESS)</text>
+            <text x="60" y="107" font-size="8.5" fill="#94a3b8">ระดับพื้นลานปูนระบายน้ำ (±0.00m) // ล้อมด้วยกำแพง ค.ส.ล. สูง 5.0 ม. รอบทิศทาง</text>
 
             <!-- NORTH GLASS CORRIDOR (CORR-101) -->
             <rect x="600" y="30" width="365" height="140" fill="#091829" stroke="#38bdf8" stroke-width="2"/>
@@ -1194,20 +1196,14 @@
             <line x1="603" y1="30" x2="603" y2="170" stroke="#00ffff" stroke-width="1" stroke-dasharray="8,2"/>
 
             <!-- SOLID STRUCTURAL WALL BETWEEN LAUNDRY & COURTYARD -->
-            <!-- Solid 8px wall with architectural window opening -->
             <rect x="35" y="170" width="120" height="8" fill="#e2e8f0"/>
-            <!-- WINDOW SYMBOL: Opening at x=155 to x=225 (Width 70px) -->
+            <!-- WINDOW SYMBOL: Opening at x=155 to x=225 (Width 70px) - W-101 Architectural Opening -->
             <g id="cleanWindowSymbol">
-              <!-- Wall cut lines -->
               <rect x="155" y="166" width="70" height="16" fill="#060913" stroke="#eab308" stroke-width="1.5"/>
-              <!-- Triple Glass Pane Lines (Standard Architectural Window Symbol) -->
               <line x1="155" y1="171" x2="225" y2="171" stroke="#38bdf8" stroke-width="1.5"/>
               <line x1="155" y1="174" x2="225" y2="174" stroke="#eab308" stroke-width="2"/>
               <line x1="155" y1="177" x2="225" y2="177" stroke="#38bdf8" stroke-width="1.5"/>
-              <!-- Architectural Window Tag with Leader Line (Above wall, NO overlap!) -->
-              <polyline points="190,166 190,140 240,140" fill="none" stroke="#eab308" stroke-width="1.5"/>
-              <rect x="245" y="128" width="220" height="24" fill="#111827" stroke="#eab308" rx="3"/>
-              <text x="255" y="144" font-size="9.5" fill="#eab308" font-weight="900">WIN-101: บานเลื่อนระบายอากาศ (สูง 3.5 ม.)</text>
+              <text x="190" y="163" font-size="8" fill="#eab308" font-weight="900" text-anchor="middle">W-101</text>
             </g>
             <rect x="225" y="170" width="375" height="8" fill="#e2e8f0"/>
 
@@ -1229,7 +1225,6 @@
 
             <!-- RM-102: KITCHEN & RM-103: DINING HALL -->
             <rect x="300" y="178" width="300" height="202" fill="#111827" stroke="#475569" stroke-width="2"/>
-            <!-- Kitchen partition wall -->
             <line x1="440" y1="178" x2="440" y2="380" stroke="#334155" stroke-width="2" stroke-dasharray="4,3"/>
             
             <rect x="310" y="195" width="120" height="22" fill="#1e293b" stroke="#64748b" rx="3"/>
@@ -1241,49 +1236,51 @@
 
             <rect x="450" y="195" width="140" height="22" fill="#1e293b" stroke="#64748b" rx="3"/>
             <text x="460" y="210" font-size="10" fill="#fff" font-weight="900">RM-103: DINING HALL</text>
-            <!-- Dining Table -->
             <rect x="465" y="235" width="115" height="120" fill="#1e293b" stroke="#64748b" stroke-dasharray="3,2" rx="4"/>
             <text x="522" y="298" font-size="10" fill="#94a3b8" text-anchor="middle">DINING TABLE</text>
 
-            <!-- RM-104: GYMNASIUM -->
-            <rect x="600" y="178" width="365" height="202" fill="#141324" stroke="#475569" stroke-width="2"/>
-            <rect x="615" y="195" width="280" height="24" fill="#1e293b" stroke="#64748b" rx="3"/>
-            <text x="625" y="211" font-size="11" fill="#fff" font-weight="900">RM-104: GYMNASIUM [12.0m x 10.0m]</text>
-            <!-- Stage -->
-            <rect x="615" y="235" width="140" height="50" fill="#1e293b" stroke="#64748b" rx="3"/>
-            <text x="685" y="264" font-size="9.5" fill="#c084fc" font-weight="800" text-anchor="middle">ASSEMBLY STAGE</text>
-            <!-- Lockers -->
-            <rect x="830" y="235" width="120" height="130" fill="#1e293b" stroke="#475569" rx="3"/>
-            <text x="890" y="298" font-size="9" fill="#94a3b8" text-anchor="middle">STORAGE & LOCKERS</text>
+            <!-- RM-104: GYMNASIUM (Width 300px, x=600 to 900) -->
+            <rect x="600" y="178" width="300" height="202" fill="#141324" stroke="#475569" stroke-width="2"/>
+            <rect x="615" y="195" width="260" height="24" fill="#1e293b" stroke="#64748b" rx="3"/>
+            <text x="625" y="211" font-size="11" fill="#fff" font-weight="900">RM-104: GYMNASIUM [10.0m x 10.0m]</text>
+            <rect x="615" y="235" width="130" height="50" fill="#1e293b" stroke="#64748b" rx="3"/>
+            <text x="680" y="264" font-size="9.5" fill="#c084fc" font-weight="800" text-anchor="middle">ASSEMBLY STAGE</text>
+            <rect x="760" y="235" width="125" height="130" fill="#1e293b" stroke="#475569" rx="3"/>
+            <text x="822" y="298" font-size="9" fill="#94a3b8" text-anchor="middle">STORAGE & LOCKERS</text>
+
+            <!-- PASSAGEWAY TO CORR-101 (East of Gym, x=900 to 965) -->
+            <rect x="900" y="170" width="65" height="210" fill="#091829" stroke="#38bdf8" stroke-width="1.5"/>
+            <rect x="900" y="170" width="65" height="210" fill="url(#glassFill)"/>
+            <text x="932" y="275" font-size="8.5" fill="#38bdf8" font-weight="900" text-anchor="middle" transform="rotate(90, 932, 275)">PASSAGE TO CORR-101 ▲</text>
 
             <!-- CENTRAL CORRIDOR (CORR-100) -->
             <rect x="35" y="380" width="930" height="80" fill="#090f1d" stroke="#38bdf8" stroke-width="1.5"/>
-            <rect x="45" y="405" width="260" height="24" fill="#0c1424" stroke="#38bdf8" rx="3"/>
-            <text x="55" y="421" font-size="11" fill="#38bdf8" font-weight="900">CORR-100: MAIN CENTRAL CORRIDOR [W=3.5m]</text>
+            <rect x="45" y="405" width="230" height="24" fill="#0c1424" stroke="#38bdf8" rx="3"/>
+            <text x="55" y="421" font-size="11" fill="#38bdf8" font-weight="900">CORR-100: MAIN CENTRAL CORRIDOR</text>
 
             <!-- DOORS WITH ARCHITECTURAL DOOR SWING ARCS -->
-            <!-- Laundry Door (Swinging into Laundry) -->
+            <!-- Laundry Door (D-101) -->
             <g id="doorLaundry">
               <line x1="160" y1="380" x2="160" y2="350" stroke="#38bdf8" stroke-width="2.5"/>
               <path d="M 160 380 A 30 30 0 0 1 190 380" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3,2"/>
               <text x="175" y="375" font-size="8" fill="#38bdf8">D-101</text>
             </g>
 
-            <!-- Kitchen Door -->
+            <!-- Kitchen Door (D-102) -->
             <g id="doorKitchen">
               <line x1="340" y1="380" x2="340" y2="350" stroke="#38bdf8" stroke-width="2.5"/>
               <path d="M 340 380 A 30 30 0 0 1 370 380" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3,2"/>
               <text x="355" y="375" font-size="8" fill="#38bdf8">D-102</text>
             </g>
 
-            <!-- Dining Hall Door -->
+            <!-- Dining Hall Door (D-103) -->
             <g id="doorDining">
               <line x1="500" y1="380" x2="500" y2="350" stroke="#38bdf8" stroke-width="2.5"/>
               <path d="M 500 380 A 30 30 0 0 1 530 380" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3,2"/>
               <text x="515" y="375" font-size="8" fill="#38bdf8">D-103</text>
             </g>
 
-            <!-- Gymnasium Double Doors -->
+            <!-- Gymnasium Double Doors (D-104) -->
             <g id="doorGym">
               <line x1="680" y1="380" x2="680" y2="355" stroke="#38bdf8" stroke-width="2.5"/>
               <line x1="730" y1="380" x2="730" y2="355" stroke="#38bdf8" stroke-width="2.5"/>
@@ -1292,10 +1289,26 @@
               <text x="705" y="375" font-size="8" fill="#38bdf8" text-anchor="middle">D-104 (DOUBLE)</text>
             </g>
 
+            <!-- North Glass Corridor Access Door (D-105) -->
+            <g id="doorNorthPassage">
+              <line x1="910" y1="380" x2="910" y2="350" stroke="#38bdf8" stroke-width="2.5"/>
+              <path d="M 910 380 A 30 30 0 0 1 940 380" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3,2"/>
+              <text x="945" y="375" font-size="8" fill="#38bdf8" font-weight="900">D-105</text>
+            </g>
+
             <!-- DORMITORY WING (RM-105 to RM-110) -->
             <rect x="35" y="460" width="565" height="195" fill="#0c1220" stroke="#475569" stroke-width="2"/>
-            <rect x="45" y="475" width="280" height="24" fill="#1e293b" stroke="#64748b" rx="3"/>
-            <text x="55" y="491" font-size="11" fill="#fff" font-weight="900">STUDENT DORMITORY WING [6 UNITS]</text>
+            
+            <!-- Dormitory Hallway & Entrance Door (D-106) -->
+            <g id="doorDormWing">
+              <rect x="130" y="456" width="60" height="8" fill="#090f1d"/>
+              <line x1="140" y1="460" x2="140" y2="490" stroke="#38bdf8" stroke-width="2.5"/>
+              <path d="M 140 460 A 30 30 0 0 0 170 460" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3,2"/>
+              <text x="175" y="475" font-size="8.5" fill="#38bdf8" font-weight="900">D-106 (DORM ENTRY)</text>
+            </g>
+
+            <rect x="230" y="472" width="260" height="24" fill="#1e293b" stroke="#64748b" rx="3"/>
+            <text x="240" y="488" font-size="10.5" fill="#fff" font-weight="900">STUDENT DORMITORY WING [6 UNITS]</text>
 
             <!-- 6 Dorm Rooms with Architectural Inward Door Swings -->
             <g transform="translate(45, 510)">
@@ -1344,21 +1357,32 @@
 
             <!-- MAIN ENTRANCE & BLAST GATE (ENT-100) -->
             <rect x="600" y="460" width="365" height="195" fill="#101c22" stroke="#10b981" stroke-width="2"/>
-            <rect x="615" y="475" width="280" height="24" fill="#0d281a" stroke="#10b981" rx="3"/>
-            <text x="625" y="491" font-size="11" fill="#34d399" font-weight="900">ENT-100: MAIN ENTRANCE HALL & BLAST GATE</text>
+            
+            <!-- Main Entrance Hall Double Doors (D-107) -->
+            <g id="doorEntranceHall">
+              <rect x="710" y="456" width="60" height="8" fill="#090f1d"/>
+              <line x1="720" y1="460" x2="720" y2="485" stroke="#10b981" stroke-width="2.5"/>
+              <line x1="760" y1="460" x2="760" y2="485" stroke="#10b981" stroke-width="2.5"/>
+              <path d="M 720 460 A 20 20 0 0 0 740 460" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="3,2"/>
+              <path d="M 760 460 A 20 20 0 0 1 740 460" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="3,2"/>
+              <text x="740" y="475" font-size="8.5" fill="#10b981" font-weight="900" text-anchor="middle">D-107 (SECURITY GATE)</text>
+            </g>
+
+            <rect x="615" y="485" width="280" height="24" fill="#0d281a" stroke="#10b981" rx="3"/>
+            <text x="625" y="501" font-size="11" fill="#34d399" font-weight="900">ENT-100: MAIN ENTRANCE HALL & BLAST GATE</text>
 
             <!-- Blast Gate symbol -->
-            <rect x="615" y="520" width="200" height="55" fill="#1e293b" stroke="#ef4444" stroke-width="3" rx="3"/>
-            <text x="715" y="545" font-size="11" fill="#ef4444" font-weight="900" text-anchor="middle">⚡ MAIN BLAST GATE</text>
-            <text x="715" y="562" font-size="8.5" fill="#fca5a5" text-anchor="middle">STEEL BARRIER // HIGH VOLTAGE</text>
+            <rect x="615" y="525" width="200" height="55" fill="#1e293b" stroke="#ef4444" stroke-width="3" rx="3"/>
+            <text x="715" y="550" font-size="11" fill="#ef4444" font-weight="900" text-anchor="middle">⚡ MAIN BLAST GATE</text>
+            <text x="715" y="567" font-size="8.5" fill="#fca5a5" text-anchor="middle">STEEL BARRIER // HIGH VOLTAGE</text>
 
             <!-- Electrical & Water Breaker Panel -->
-            <rect x="830" y="520" width="120" height="115" fill="#1e293b" stroke="#10b981" rx="3"/>
-            <text x="890" y="550" font-size="10" fill="#10b981" font-weight="900" text-anchor="middle">CONTROL PANEL</text>
-            <text x="890" y="575" font-size="8.5" fill="#cbd5e1" text-anchor="middle">MAIN BREAKER</text>
-            <text x="890" y="595" font-size="8.5" fill="#cbd5e1" text-anchor="middle">WATER METER</text>
+            <rect x="830" y="525" width="120" height="115" fill="#1e293b" stroke="#10b981" rx="3"/>
+            <text x="890" y="555" font-size="10" fill="#10b981" font-weight="900" text-anchor="middle">CONTROL PANEL</text>
+            <text x="890" y="580" font-size="8.5" fill="#cbd5e1" text-anchor="middle">MAIN BREAKER</text>
+            <text x="890" y="600" font-size="8.5" fill="#cbd5e1" text-anchor="middle">WATER METER</text>
 
-            <!-- STRUCTURAL REINFORCED COLUMNS (16 Pillars at grid junctions) -->
+            <!-- STRUCTURAL REINFORCED COLUMNS -->
             <g fill="#38bdf8" stroke="#000" stroke-width="1.5">
               <rect x="30" y="25" width="12" height="12"/>
               <rect x="295" y="25" width="12" height="12"/>
@@ -1399,10 +1423,10 @@
             <!-- OUTER WALLS -->
             <rect x="25" y="25" width="950" height="630" fill="none" stroke="#1e293b" stroke-width="12" rx="8"/>
 
-            <!-- REAR COURTYARD with Evidence Markers -->
+            <!-- REAR COURTYARD with Evidence Markers (EXT-101) -->
             <g class="map-interactive-zone" onclick="selectMapRoom('courtyard')">
               <rect x="35" y="30" width="565" height="140" fill="#0f172a" stroke="#f43f5e" stroke-width="2"/>
-              <rect x="45" y="40" width="280" height="24" fill="#200d18" stroke="#f43f5e" rx="3"/>
+              <rect x="45" y="40" width="310" height="24" fill="#200d18" stroke="#f43f5e" rx="3"/>
               <text x="55" y="56" font-size="11" fill="#f43f5e" font-weight="900">🌿 ลานปูนซักล้าง (CRIME SCENE: จุดตกกระแทก)</text>
 
               <!-- Suspended Bucket with clamp details -->
@@ -1411,66 +1435,64 @@
                 <circle cx="190" cy="105" r="16" fill="#0284c7" stroke="#38bdf8" stroke-width="2"/>
                 <text x="190" y="111" font-size="15" text-anchor="middle">🪣</text>
                 
-                <rect x="230" y="88" width="220" height="34" fill="#080c16" stroke="#38bdf8" rx="4"/>
-                <text x="240" y="103" font-size="10" fill="#38bdf8" font-weight="900">ถังใส่ผ้าซักเปล่า (หนัก 2 กก.)</text>
-                <text x="240" y="115" font-size="9" fill="#eab308" font-weight="700">มีที่หนีบผ้าเหล็กล็อกสายยาง / หนัก 82 กก.</text>
+                <rect x="230" y="88" width="240" height="34" fill="#080c16" stroke="#38bdf8" rx="4"/>
+                <text x="240" y="103" font-size="10" fill="#38bdf8" font-weight="900">ถังใส่ผ้าซักเปล่า (2 กก.) แขวนลอยที่ 3.5 ม.</text>
+                <text x="240" y="115" font-size="9" fill="#eab308" font-weight="700">ที่หนีบผ้าเหล็กล็อกสายยาง / น้ำเต็ม 82.5 กก.</text>
               </g>
 
               <!-- Impact Ground -->
               <text x="190" y="152" font-size="9" fill="#f43f5e" font-weight="800" text-anchor="middle">💥 EVD-05: ซากถังแตกกระจาย & EVD-12: คราบน้ำนองพื้น</text>
             </g>
 
-            <!-- GLASS CORRIDOR -->
+            <!-- GLASS CORRIDOR (CORR-101) - Sightline text removed as requested -->
             <g class="map-interactive-zone" onclick="selectMapRoom('glass_corridor')">
               <rect x="600" y="30" width="365" height="140" fill="#091829" stroke="#38bdf8" stroke-width="2"/>
               <rect x="615" y="40" width="270" height="24" fill="#071220" stroke="#38bdf8" rx="3"/>
               <text x="625" y="56" font-size="11" fill="#38bdf8" font-weight="900">🪟 ทางเดินกระจกใสเลียบลานปูน</text>
-              <!-- Sightline ray -->
-              <line x1="615" y1="100" x2="455" y2="105" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,4"/>
-              <polygon points="455,105 465,100 465,110" fill="#38bdf8"/>
-              <text x="620" y="95" font-size="10" fill="#38bdf8" font-weight="800">👁️ มองเห็นถังน้ำลอยอยู่นอกหน้าต่าง</text>
-              <text x="620" y="115" font-size="9.5" fill="#94a3b8">จุดที่ PC 4 เดินผ่านช่วง 18:00 น.</text>
+              <text x="625" y="80" font-size="9.5" fill="#94a3b8">ผนังกระจกนิรภัยหนาพิเศษ มองเห็นลานซักล้างด้านหลัง</text>
             </g>
 
-            <!-- WALL & WINDOW WITH CLOTHESLINE AND HOSE -->
-            <rect x="35" y="170" width="150" height="8" fill="#e2e8f0"/>
-            <g class="map-interactive-point" onclick="event.stopPropagation(); selectMapRoom('window');">
-              <rect x="185" y="165" width="70" height="18" fill="#eab308" stroke="#000" stroke-width="2" rx="3"/>
-              <text x="220" y="178" font-size="9" fill="#000" font-weight="900" text-anchor="middle">WINDOW 3.5m</text>
-            </g>
-            <rect x="255" y="170" width="345" height="8" fill="#e2e8f0"/>
-
-            <!-- Clothesline: Pink Line through window -->
-            <line x1="190" y1="240" x2="190" y2="105" stroke="#e60067" stroke-width="3"/>
-            <!-- Water hose: Cyan Line through window -->
-            <line x1="245" y1="210" x2="195" y2="105" stroke="#00ffff" stroke-width="2" stroke-dasharray="3,2"/>
-
-            <!-- LAUNDRY ROOM -->
+            <!-- LAUNDRY ROOM (RM-101) - Placed below wall with zero window overlap -->
             <g class="map-interactive-zone" onclick="selectMapRoom('laundry')">
               <rect x="35" y="178" width="265" height="202" fill="#130d1d" stroke="#f43f5e" stroke-width="2"/>
-              <rect x="45" y="188" width="245" height="24" fill="#280c18" stroke="#f43f5e" rx="3"/>
-              <text x="55" y="204" font-size="11.5" fill="#f43f5e" font-weight="900">🧺 ห้องซักรีด (CRIME SCENE: พบศพ B)</text>
+              <!-- Badge placed at y=210 for clean 30px clearance from window -->
+              <rect x="45" y="210" width="240" height="24" fill="#280c18" stroke="#f43f5e" rx="3"/>
+              <text x="55" y="226" font-size="11" fill="#f43f5e" font-weight="900">🧺 ห้องซักรีด (CRIME SCENE: พบศพ B)</text>
 
               <!-- Stainless Clothes Rail -->
-              <rect x="120" y="235" width="130" height="12" fill="#e2e8f0" stroke="#94a3b8" rx="4"/>
-              <circle cx="190" cy="241" r="5" fill="#e60067"/>
-              <text x="120" y="260" font-size="9" fill="#e2e8f0" font-weight="800">ราวท่อสแตนเลสเพดาน H=4m</text>
+              <rect x="110" y="255" width="140" height="12" fill="#e2e8f0" stroke="#94a3b8" rx="4"/>
+              <circle cx="190" cy="261" r="5" fill="#e60067"/>
+              <text x="180" y="280" font-size="9" fill="#e2e8f0" font-weight="800" text-anchor="middle">ราวท่อสแตนเลสเพดาน H=4m</text>
 
               <!-- Dryer 21:00 -->
-              <rect x="45" y="255" width="45" height="45" fill="#1e293b" stroke="#eab308" stroke-width="2" rx="3"/>
-              <text x="67" y="278" font-size="8.5" fill="#eab308" font-weight="900" text-anchor="middle">DRYER</text>
-              <text x="67" y="291" font-size="8" fill="#eab308" text-anchor="middle">⏱️ 21:00</text>
+              <rect x="45" y="270" width="45" height="45" fill="#1e293b" stroke="#eab308" stroke-width="2" rx="3"/>
+              <text x="67" y="293" font-size="8.5" fill="#eab308" font-weight="900" text-anchor="middle">DRYER</text>
+              <text x="67" y="306" font-size="8" fill="#eab308" text-anchor="middle">⏱️ 21:00</text>
 
               <!-- Sink -->
-              <rect x="235" y="195" width="30" height="30" fill="#1e293b" stroke="#00ffff" rx="2"/>
-              <text x="250" y="215" font-size="11" text-anchor="middle">🚿</text>
+              <rect x="245" y="245" width="30" height="30" fill="#1e293b" stroke="#00ffff" rx="2"/>
+              <text x="260" y="265" font-size="11" text-anchor="middle">🚿</text>
 
               <!-- Victim B Spot -->
-              <circle cx="190" cy="330" r="16" fill="rgba(230, 0, 103, 0.25)" stroke="#e60067" stroke-width="2"/>
-              <text x="190" y="336" font-size="14" text-anchor="middle">☠️</text>
-              <text x="190" y="360" font-size="10" fill="#e60067" font-weight="900" text-anchor="middle">จุดพบศพ B</text>
-              <text x="190" y="372" font-size="8.5" fill="#cbd5e1" text-anchor="middle">(มีดพก & เชือกมีรอยตัด)</text>
+              <circle cx="190" cy="335" r="16" fill="rgba(230, 0, 103, 0.25)" stroke="#e60067" stroke-width="2"/>
+              <text x="190" y="341" font-size="14" text-anchor="middle">☠️</text>
+              <text x="190" y="363" font-size="10" fill="#e60067" font-weight="900" text-anchor="middle">จุดพบศพ B</text>
+              <text x="190" y="375" font-size="8.5" fill="#cbd5e1" text-anchor="middle">(มีดพก & เชือกมีรอยตัด)</text>
             </g>
+
+            <!-- SOLID WALL & WINDOW - DRAWN ON TOP FOR ZERO OVERLAP -->
+            <rect x="35" y="170" width="135" height="8" fill="#e2e8f0"/>
+            <!-- Prominent Window Badge with Zero Overlap -->
+            <g class="map-interactive-point" onclick="event.stopPropagation(); selectMapRoom('window');" style="cursor:pointer;">
+              <rect x="170" y="158" width="95" height="24" fill="#0f172a" stroke="#eab308" stroke-width="2" rx="4"/>
+              <text x="217" y="174" font-size="9.5" fill="#eab308" font-weight="900" text-anchor="middle">🪟 WINDOW 3.5m</text>
+            </g>
+            <rect x="265" y="170" width="335" height="8" fill="#e2e8f0"/>
+
+            <!-- Clothesline: Pink Line through window -->
+            <line x1="190" y1="255" x2="190" y2="105" stroke="#e60067" stroke-width="3"/>
+            <!-- Water hose: Cyan Line through window -->
+            <line x1="255" y1="245" x2="195" y2="105" stroke="#00ffff" stroke-width="2" stroke-dasharray="3,2"/>
 
             <!-- KITCHEN & DINING -->
             <g class="map-interactive-zone" onclick="selectMapRoom('kitchen')">
@@ -1493,26 +1515,50 @@
               <text x="527" y="315" font-size="8.5" fill="#eab308" text-anchor="middle">Alibi 19:00 - 20:30</text>
             </g>
 
-            <!-- GYMNASIUM -->
+            <!-- GYMNASIUM & CORR-101 PASSAGE -->
             <g class="map-interactive-zone" onclick="selectMapRoom('gym')">
-              <rect x="600" y="178" width="365" height="202" fill="#191526" stroke="#a855f7" stroke-width="2"/>
-              <rect x="615" y="188" width="300" height="24" fill="#240f3b" stroke="#a855f7" rx="3"/>
-              <text x="625" y="204" font-size="11.5" fill="#c084fc" font-weight="900">🥊 โรงยิม (จุดประหาร NPC 1 เชือดไก่)</text>
+              <rect x="600" y="178" width="300" height="202" fill="#191526" stroke="#a855f7" stroke-width="2"/>
+              <rect x="615" y="188" width="260" height="24" fill="#240f3b" stroke="#a855f7" rx="3"/>
+              <text x="625" y="204" font-size="11.5" fill="#c084fc" font-weight="900">🥊 โรงยิม (จุดประหาร NPC 1)</text>
 
               <circle cx="710" cy="315" r="18" fill="rgba(239, 68, 68, 0.2)" stroke="#ef4444" stroke-width="2"/>
               <text x="710" y="321" font-size="14" text-anchor="middle">💀</text>
               <text x="710" y="348" font-size="9" fill="#ef4444" font-weight="800" text-anchor="middle">จุดประหาร NPC 1</text>
             </g>
 
-            <!-- CORRIDOR, DORMS & ENTRANCE -->
+            <!-- Passageway from Central Corridor to North Glass Corridor -->
+            <rect x="900" y="170" width="65" height="210" fill="#091829" stroke="#38bdf8" stroke-width="1.5"/>
+            <rect x="900" y="170" width="65" height="210" fill="url(#glassFill)"/>
+            <text x="932" y="275" font-size="8" fill="#38bdf8" font-weight="800" text-anchor="middle" transform="rotate(90, 932, 275)">ทางเดินสู่ระเบียงกระจก ▲</text>
+
+            <!-- CORRIDOR, DORMS & ENTRANCE WITH DOORS -->
             <rect x="35" y="380" width="930" height="80" fill="#090f1d" stroke="#334155" stroke-width="1.5"/>
-            <text x="50" y="425" font-size="12" fill="#38bdf8" font-weight="900">🏛️ โถงทางเดินกลาง (จุดที่ PC 1-2 สวนกันตอน 18:15 น.)</text>
+            <text x="50" y="425" font-size="12" fill="#38bdf8" font-weight="900">🏛️ โถงทางเดินกลาง (CORR-100: จุดที่ PC 1-2 สวนกันตอน 18:15 น.)</text>
 
+            <!-- D-105 Door -->
+            <g>
+              <line x1="910" y1="380" x2="910" y2="350" stroke="#38bdf8" stroke-width="2"/>
+              <text x="940" y="375" font-size="8" fill="#38bdf8">D-105</text>
+            </g>
+
+            <!-- Dormitory Zone with D-106 -->
             <rect x="35" y="460" width="565" height="195" fill="#0c1220" stroke="#475569" stroke-width="2"/>
-            <text x="55" y="485" font-size="12" fill="#818cf8" font-weight="900">🛏️ โซนหอพักนักเรียน 1-6 (จุดพักผ่อนช่วงระฆังราตรี 20:00 น.)</text>
+            <g>
+              <rect x="130" y="456" width="60" height="8" fill="#090f1d"/>
+              <line x1="140" y1="460" x2="140" y2="485" stroke="#38bdf8" stroke-width="2"/>
+              <text x="175" y="475" font-size="8" fill="#38bdf8">D-106</text>
+            </g>
+            <text x="55" y="495" font-size="11.5" fill="#818cf8" font-weight="900">🛏️ โซนหอพักนักเรียน 1-6 (จุดพักผ่อนช่วงระฆังราตรี 20:00 น.)</text>
 
+            <!-- Main Entrance with D-107 -->
             <rect x="600" y="460" width="365" height="195" fill="#101c22" stroke="#10b981" stroke-width="2"/>
-            <text x="620" y="485" font-size="12" fill="#34d399" font-weight="900">🚪 โถงทางเข้าหลัก (Blast Gate & มิเตอร์น้ำประปา)</text>
+            <g>
+              <rect x="710" y="456" width="60" height="8" fill="#090f1d"/>
+              <line x1="720" y1="460" x2="720" y2="485" stroke="#10b981" stroke-width="2"/>
+              <line x1="760" y1="460" x2="760" y2="485" stroke="#10b981" stroke-width="2"/>
+              <text x="740" y="475" font-size="8" fill="#10b981" text-anchor="middle">D-107</text>
+            </g>
+            <text x="620" y="495" font-size="11.5" fill="#34d399" font-weight="900">🚪 โถงทางเข้าหลัก (Blast Gate & มิเตอร์น้ำประปา)</text>
           </svg>
         </div>
 
