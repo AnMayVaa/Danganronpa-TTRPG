@@ -252,9 +252,9 @@
 
     /* 2d6 Angular Seal with Cyber Gold & Slate Styling */
     .d20-seal {
-      width: 66px;
-      height: 46px;
-      border: 2.5px solid #1a1a24;
+      width: 72px;
+      height: 48px;
+      border: 2px solid #1a1a24;
       outline: 1.5px solid #e5a93b;
       outline-offset: 1.5px;
       background: linear-gradient(135deg, #1b1d28 0%, #0d0e15 100%);
@@ -266,26 +266,33 @@
       flex-shrink: 0;
       position: relative;
       box-shadow: 2px 2px 0px rgba(229, 169, 59, 0.3);
+      padding: 2px 0;
+      overflow: hidden;
+      box-sizing: border-box;
     }
     .d20-seal .num {
       font-family: 'Chakra Petch', monospace, sans-serif;
-      font-size: 1.95rem;
+      font-size: 1.72rem;
       font-weight: 900;
-      letter-spacing: -1.5px;
-      line-height: 0.9;
+      letter-spacing: -1px;
+      line-height: 0.85;
       color: #fff;
+      margin: 0;
     }
     .d20-seal .sub {
-      font-size: 0.52rem;
+      font-size: 0.44rem;
       font-weight: 900;
       font-family: 'Chakra Petch', sans-serif;
-      letter-spacing: 1px;
+      letter-spacing: 0.4px;
       text-transform: uppercase;
       background: #ff0055;
       color: #fff;
-      padding: 0 4px;
+      padding: 1px 4px;
       margin-top: 2px;
       border-radius: 1px;
+      line-height: 1;
+      white-space: nowrap;
+      display: inline-block;
     }
 
     /* Header Main Center Text */
@@ -358,7 +365,7 @@
     .main-grid {
       display: grid;
       grid-template-columns: 96px 1fr;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: auto auto 1fr;
       gap: 6px;
       flex: 1;
       margin-left: 6px;
@@ -367,15 +374,25 @@
     }
 
     /* ========================================================= */
-    /* LEFT COLUMN: 8 Stats, Mental Grid, HP/WP, Status/Injury   */
+    /* ROW 1: UPPER-LEFT (Stats, Mental, HP/WP) & UPPER-RIGHT    */
     /* ========================================================= */
-    .col-left {
+    .upper-left {
       grid-column: 1;
       grid-row: 1;
       display: flex;
       flex-direction: column;
       gap: 5px;
       height: 100%;
+      justify-content: space-between;
+    }
+    .upper-right {
+      grid-column: 2;
+      grid-row: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      height: 100%;
+      justify-content: space-between;
     }
 
     /* 8 Stats Table */
@@ -554,14 +571,16 @@
 
     /* Conditions & Injuries Card (Compact & Balanced) */
     .conditions-card {
+      grid-column: 1;
+      grid-row: 2;
       border: 2px solid #1a1a24;
       padding: 3px 4px;
       background: #fff;
       box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
-      flex: 1;
-      min-height: 80px;
+      height: 100%;
+      box-sizing: border-box;
     }
     .conditions-header {
       display: flex;
@@ -612,16 +631,7 @@
       margin-bottom: 1px;
     }
 
-    /* ========================================================= */
-    /* RIGHT AREA: Bio + Talents + Backpack + Clues/Notes        */
-    /* ========================================================= */
-    .col-right {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      justify-content: space-between;
-      height: 100%;
-    }
+
 
     /* Top Right: Portrait + Student Bio Group */
     .bio-group-grid {
@@ -770,6 +780,7 @@
       flex-direction: column;
       gap: 3px;
       box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+      flex: 1;
     }
     .talents-top-bar {
       display: flex;
@@ -816,6 +827,8 @@
     /* BACKPACK BOX                                              */
     /* ========================================================= */
     .backpack-card {
+      grid-column: 2;
+      grid-row: 2;
       border: 2px solid #1a1a24;
       padding: 5px 8px 6px 8px;
       background: #fff;
@@ -823,6 +836,8 @@
       flex-direction: column;
       gap: 3px;
       box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+      height: 100%;
+      box-sizing: border-box;
     }
     .backpack-content {
       font-size: 0.75rem;
@@ -859,7 +874,7 @@
     /* ========================================================= */
     .notes-card {
       grid-column: 1 / -1;
-      grid-row: 2;
+      grid-row: 3;
       border: 2px solid #1a1a24;
       padding: 6px 8px 6px 8px;
       background: #fff;
@@ -1019,11 +1034,11 @@
           </div>
         </header>
 
-        <!-- Main Content 2-Column Grid -->
+        <!-- Main Content Structured Grid -->
         <div class="main-grid">
           
-          <!-- LEFT COLUMN: 8 Stats, Mental, HP/WP, Status/Injuries -->
-          <div class="col-left">
+          <!-- ROW 1 LEFT: 8 Stats, Mental, HP/WP -->
+          <div class="upper-left">
             
             <!-- 8 Stats Table -->
             <div class="stats-card">
@@ -1102,7 +1117,7 @@
               </div>
             </div>
 
-            <!-- HP & WP Twin Gauges -->
+            <!-- HP & WP Twin Gauges (Aligns bottom with Talents) -->
             <div class="hp-wp-grid">
               <div class="gauge-block">
                 <span class="lbl">HP</span>
@@ -1114,23 +1129,10 @@
               </div>
             </div>
 
-            <!-- Conditions Card -->
-            <div class="conditions-card">
-              <div class="conditions-header">
-                <span class="section-tag">CONDITIONS</span>
-                <span class="cond-sub-tag">สภาพร่างกาย</span>
-              </div>
-              <div class="conditions-content" contenteditable="true" id="txtConditions">
-                <div class="dotted-write-line dense"></div>
-                <div class="dotted-write-line dense"></div>
-                <div class="dotted-write-line dense"></div>
-              </div>
-            </div>
-
           </div>
 
-          <!-- RIGHT AREA: Bio Top + Talents Middle + Backpack Bottom + Clues/Notes -->
-          <div class="col-right">
+          <!-- ROW 1 RIGHT: Portrait + Bio & Talents (Aligns bottom with HP/WP) -->
+          <div class="upper-right">
             
             <!-- Top Right: Portrait + Student Bio Details -->
             <div class="bio-group-grid">
@@ -1148,7 +1150,6 @@
                     <svg viewBox="0 0 24 24">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                     </svg>
-                    <span>คลิกเพื่อใส่รูปถ่าย<br>(Upload Sprite)</span>
                   </div>
                   <img id="portraitImg" class="portrait-preview-img" style="display:none;" alt="Character Portrait">
                 </div>
@@ -1198,7 +1199,7 @@
 
             </div>
 
-            <!-- Middle Wide: Talents Card -->
+            <!-- Middle Wide: Talents Card (Aligns bottom with HP & WP) -->
             <div class="talents-card">
               <div class="talents-top-bar">
                 <span class="section-tag">Talents</span>
@@ -1217,21 +1218,35 @@
               </div>
             </div>
 
-            <!-- Bottom Wide: Backpack Card -->
-            <div class="backpack-card">
-              <div class="talents-top-bar">
-                <span class="section-tag">Backpack</span>
-                <span style="font-size:0.70rem; font-weight:700; color:#374151;">สัมภาระติดตัว, บัตรนักเรียน Monopad</span>
-              </div>
+          </div>
 
-              <div class="backpack-content" contenteditable="true" id="txtBackpack">
-                <div class="dotted-write-line"></div>
-                <div class="dotted-write-line"></div>
-                <div class="dotted-write-line"></div>
-                <div class="dotted-write-line"></div>
-              </div>
+          <!-- ROW 2 LEFT: Conditions Card (Same top & bottom level as Backpack) -->
+          <div class="conditions-card">
+            <div class="conditions-header">
+              <span class="section-tag">CONDITIONS</span>
+              <span class="cond-sub-tag">สภาพร่างกาย</span>
+            </div>
+            <div class="conditions-content" contenteditable="true" id="txtConditions">
+              <div class="dotted-write-line dense"></div>
+              <div class="dotted-write-line dense"></div>
+              <div class="dotted-write-line dense"></div>
+              <div class="dotted-write-line dense"></div>
+            </div>
+          </div>
+
+          <!-- ROW 2 RIGHT: Backpack Card (Same top & bottom level as Conditions) -->
+          <div class="backpack-card">
+            <div class="talents-top-bar">
+              <span class="section-tag">Backpack</span>
+              <span style="font-size:0.70rem; font-weight:700; color:#374151;">สัมภาระติดตัว, บัตรนักเรียน Monopad</span>
             </div>
 
+            <div class="backpack-content" contenteditable="true" id="txtBackpack">
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
+              <div class="dotted-write-line"></div>
+            </div>
           </div>
 
           <!-- Bottom Wide: Clues & Investigation Notes (Full Width across bottom) -->
@@ -1290,6 +1305,7 @@
         str: "", agi: "", dex: "", tou: "", int: "", wis: "", cha: "", ego: "",
         hp: "", wp: "",
         conditions: `
+          <div class="dotted-write-line dense"></div>
           <div class="dotted-write-line dense"></div>
           <div class="dotted-write-line dense"></div>
           <div class="dotted-write-line dense"></div>
@@ -1793,7 +1809,7 @@
                 </div>
               </header>
               <div class="main-grid">
-                <div class="col-left">
+                <div class="upper-left">
                   <div class="stats-card">
                     <div class="stats-card-header">CORE STATS</div>
                     <div class="stat-row"><span class="stat-title">STR</span><div class="stat-mod-box">${d.str}</div></div>
@@ -1829,15 +1845,8 @@
                     <div class="gauge-block"><span class="lbl">HP</span><div class="val-box">${d.hp}</div></div>
                     <div class="gauge-block"><span class="lbl">WP</span><div class="val-box">${d.wp}</div></div>
                   </div>
-                  <div class="conditions-card">
-                    <div class="conditions-header">
-                      <span class="section-tag">CONDITIONS</span>
-                      <span class="cond-sub-tag">สภาพร่างกาย</span>
-                    </div>
-                    <div class="conditions-content">${d.conditions}</div>
-                  </div>
                 </div>
-                <div class="col-right">
+                <div class="upper-right">
                   <div class="bio-group-grid">
                     <div class="portrait-card">
                       <span class="section-tag portrait-tag">Portrait</span>
@@ -1845,7 +1854,6 @@
                       <div class="portrait-body">
                         <div class="portrait-placeholder">
                           <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                          <span>Hope's Peak File</span>
                         </div>
                       </div>
                     </div>
@@ -1864,10 +1872,17 @@
                     <div class="talents-top-bar"><span class="section-tag">Talents</span><span style="font-size:0.70rem; font-weight:700;">ความสามารถ & การกระทำในศาล</span></div>
                     <div class="talents-content">${d.talents}</div>
                   </div>
-                  <div class="backpack-card">
-                    <div class="talents-top-bar"><span class="section-tag">Backpack</span><span style="font-size:0.70rem; font-weight:700;">สัมภาระติดตัว, บัตรนักเรียน Monopad</span></div>
-                    <div class="backpack-content">${d.backpack}</div>
+                </div>
+                <div class="conditions-card">
+                  <div class="conditions-header">
+                    <span class="section-tag">CONDITIONS</span>
+                    <span class="cond-sub-tag">สภาพร่างกาย</span>
                   </div>
+                  <div class="conditions-content">${d.conditions}</div>
+                </div>
+                <div class="backpack-card">
+                  <div class="talents-top-bar"><span class="section-tag">Backpack</span><span style="font-size:0.70rem; font-weight:700;">สัมภาระติดตัว, บัตรนักเรียน Monopad</span></div>
+                  <div class="backpack-content">${d.backpack}</div>
                 </div>
                 <div class="notes-card">
                   <div class="talents-top-bar"><span class="section-tag">Clues & Notes</span><span style="font-size:0.70rem; font-weight:700;">บันทึกเบาะแส & ข้อสังเกต</span></div>
