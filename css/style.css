@@ -3847,18 +3847,20 @@ select option:disabled {
    UNIVERSAL MINIGAME RESULT OVERLAY & MODAL
    ========================================================== */
 .court-result-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
+  max-width: 100%;
   height: 100%;
-  background: rgba(8, 8, 16, 0.90);
+  min-height: 100vh;
+  background: rgba(8, 8, 16, 0.92);
   backdrop-filter: blur(8px);
-  z-index: 1000;
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   box-sizing: border-box;
   animation: fadeInModal 0.3s ease-out;
 }
@@ -4488,10 +4490,46 @@ select option:disabled {
   color: #fff;
 }
 
-/* In-iframe compact scale for narrow viewports */
+/* In-iframe layout rules for narrow viewports (zero displaced hitboxes) */
+body.in-iframe:not(.view-is-court) .dangan-header,
+html.in-iframe:not(.view-is-court) .dangan-header {
+  display: none !important;
+}
+
+html.in-iframe,
+body.in-iframe,
+html.view-is-player,
+body.view-is-player,
+html.view-is-admin,
+body.view-is-admin {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#viewPlayer,
+#viewAdmin {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 body.in-iframe.view-is-admin #viewAdmin,
 html.in-iframe.view-is-admin #viewAdmin {
-  zoom: 0.92;
+  padding: 6px 4px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+body.in-iframe.view-is-player #viewPlayer,
+html.in-iframe.view-is-player #viewPlayer {
+  padding: 6px 4px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .sim-iframe {
@@ -4692,23 +4730,26 @@ html.in-iframe.view-is-admin #viewAdmin {
   border: 1px solid #555;
   color: #fff;
   font-weight: 900;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   line-height: 1;
-  transition: all 0.1s;
+  transition: all 0.15s;
+  touch-action: manipulation;
 }
 
-.cred-btn:hover {
+.cred-btn:hover,
+.cred-btn:active {
   background: #ff0055;
   border-color: #ff0055;
 }
-
 
 /* Missing Animation Keyframes (Fixes G-02) */
 @keyframes fadeInCourt {
@@ -4719,4 +4760,136 @@ html.in-iframe.view-is-admin #viewAdmin {
 @keyframes fadeInModal {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* ==========================================================
+   MINI-GAME MOBILE RESPONSIVE & INTERACTION REFINEMENTS
+   ========================================================== */
+
+/* Stage 2 (Hangman's Gambit): Fluid virtual keyboard scaling without horizontal overflow */
+.hangman-keyboard-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0 2px;
+  margin: 0 auto;
+}
+
+.hangman-keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: clamp(2px, 0.8vw, 4px);
+  margin-bottom: 5px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.p-task-btn.letter-btn {
+  flex: 1 1 0;
+  max-width: 34px;
+  min-width: 0 !important;
+  padding: clamp(6px, 1.2vh, 9px) 2px !important;
+  font-size: clamp(0.72rem, 3.2vw, 0.95rem) !important;
+  text-align: center !important;
+  border-radius: 6px;
+  box-sizing: border-box;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.p-task-btn.letter-btn:disabled,
+.p-task-btn.letter-btn.guessed {
+  opacity: 0.22 !important;
+  text-decoration: line-through;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  filter: grayscale(1);
+  border-color: #333 !important;
+}
+
+/* Stage 4 (Logic Dive): Visual progression for lanes */
+.choice-lane.active-match {
+  border-color: #00ff88 !important;
+  background: rgba(0, 255, 136, 0.22) !important;
+  box-shadow: 0 0 25px rgba(0, 255, 136, 0.6) !important;
+  color: #fff !important;
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+}
+
+.choice-lane.mismatch {
+  border-color: #ff2244 !important;
+  background: rgba(255, 34, 68, 0.22) !important;
+  box-shadow: 0 0 25px rgba(255, 34, 68, 0.5) !important;
+}
+
+/* Mobile Task Area & Buttons: Compact layout preventing clipping in 9:16 viewports */
+@media (max-width: 600px), (max-aspect-ratio: 1/1) {
+  .p-task-btn {
+    padding: 10px 10px !important;
+    font-size: clamp(0.8rem, 3.2vw, 0.92rem) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  .big-action-btn {
+    padding: 12px 10px !important;
+    font-size: clamp(0.88rem, 3.2vw, 1.02rem) !important;
+    min-height: 48px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  .mobile-task-content {
+    padding: 12px 8px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  .char-sheet-card {
+    padding: 10px 8px !important;
+  }
+
+  .dr1-handbook-card {
+    padding: 12px 8px !important;
+  }
+
+  /* Universal Modal Dialogs Responsive Overhaul */
+  .court-result-card {
+    padding: 16px 12px !important;
+    width: 95% !important;
+    max-height: 88vh !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .court-result-card .result-title {
+    font-size: clamp(1.2rem, 5vw, 1.7rem) !important;
+  }
+
+  .court-result-card .result-desc {
+    font-size: clamp(0.8rem, 3.2vw, 0.95rem) !important;
+  }
+
+  .execution-content-box {
+    padding: 16px 10px !important;
+    width: 95% !important;
+    max-height: 88vh !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .punishment-headline {
+    font-size: clamp(1.5rem, 6vw, 2.4rem) !important;
+  }
+
+  .punishment-sub {
+    font-size: clamp(0.8rem, 3.2vw, 1rem) !important;
+    margin-bottom: 12px !important;
+  }
+
+  .guilty-rubber-stamp {
+    font-size: clamp(1.5rem, 6vw, 2.4rem) !important;
+    padding: 8px 24px !important;
+  }
 }

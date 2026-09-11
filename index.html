@@ -517,52 +517,6 @@
         <div id="verdictDetails" class="verdict-body"></div>
       </div>
 
-      <!-- UNIVERSAL MINIGAME FINAL RESULT MODAL OVERLAY -->
-      <div id="courtResultModal" class="court-result-overlay hidden">
-        <div class="court-result-card" id="courtResultCard">
-          <div class="result-emblem" id="resultEmblem">🏆</div>
-          <div class="result-badge-strip" id="resultBadge">MINI-GAME CLEARED</div>
-          <h1 class="result-title" id="resultTitle">VICTORY</h1>
-          <p class="result-desc" id="resultDesc">คำอธิบายผลลัพธ์มินิเกม</p>
-          <div class="result-details-box" id="resultDetails" style="display:none;"></div>
-          <div class="result-actions">
-            <button class="small-btn yellow" onclick="closeCourtResultModal()" style="font-weight:900; padding:8px 20px;">✕ ปิดหน้าต่างนี้</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- MONOKUMA PUNISHMENT EXECUTION CUTSCENE -->
-      <div id="monokumaExecutionModal" class="execution-cutscene-overlay hidden">
-        <div class="execution-siren-light"></div>
-        <div class="execution-content-box">
-          <div class="execution-top-banner">
-            <span class="slanted-banner pink" style="font-size:1.1rem; padding:6px 20px;">DANGANRONPA EXECUTION</span>
-          </div>
-          <h1 class="punishment-headline">PUNISHMENT TIME</h1>
-          <div class="punishment-sub">ถึงเวลาลงทัณฑ์แห่งความสิ้นหวัง... อุปุ๊ปุ๊!</div>
-          
-          <div class="guilty-stamp-container">
-            <div id="guiltyStamp" class="guilty-rubber-stamp">
-              GUILTY
-              <span class="stamp-sub">มีความผิดจริง</span>
-            </div>
-          </div>
-
-          <div class="culprit-reveal-card" id="executionCulpritCard">
-            <div class="culprit-avatar" id="executionCulpritAvatar">💀</div>
-            <div class="culprit-info">
-              <h2 id="executionCulpritName" style="color:var(--court-gold); margin:0 0 6px 0;">???</h2>
-              <div id="executionVerdictText" style="color:#ddd; font-size:1rem; line-height:1.5;"></div>
-            </div>
-          </div>
-
-          <div class="execution-actions">
-            <button class="small-btn red" onclick="closeExecutionModal()" style="font-weight:900; padding:10px 24px; font-size:1rem;">
-              🏛️ สิ้นสุดการลงทัณฑ์ & กลับสู่ศาล
-            </button>
-          </div>
-        </div>
-      </div>
 
     </section>
 
@@ -1131,6 +1085,56 @@
     </div>
   </main>
 
+  <!-- ============================================== -->
+  <!-- UNIVERSAL MINIGAME FINAL RESULT MODAL OVERLAY  -->
+  <!-- ============================================== -->
+  <div id="courtResultModal" class="court-result-overlay hidden">
+    <div class="court-result-card" id="courtResultCard">
+      <div class="result-emblem" id="resultEmblem">🏆</div>
+      <div class="result-badge-strip" id="resultBadge">MINI-GAME CLEARED</div>
+      <h1 class="result-title" id="resultTitle">VICTORY</h1>
+      <p class="result-desc" id="resultDesc">คำอธิบายผลลัพธ์มินิเกม</p>
+      <div class="result-details-box" id="resultDetails" style="display:none;"></div>
+      <div class="result-actions">
+        <button class="small-btn yellow" onclick="closeCourtResultModal()" style="font-weight:900; padding:8px 20px;">✕ ปิดหน้าต่างนี้</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MONOKUMA PUNISHMENT EXECUTION CUTSCENE         -->
+  <!-- ============================================== -->
+  <div id="monokumaExecutionModal" class="execution-cutscene-overlay hidden">
+    <div class="execution-siren-light"></div>
+    <div class="execution-content-box">
+      <div class="execution-top-banner">
+        <span class="slanted-banner pink" style="font-size:1.1rem; padding:6px 20px;">DANGANRONPA EXECUTION</span>
+      </div>
+      <h1 class="punishment-headline">PUNISHMENT TIME</h1>
+      <div class="punishment-sub">ถึงเวลาลงทัณฑ์แห่งความสิ้นหวัง... อุปุ๊ปุ๊!</div>
+      
+      <div class="guilty-stamp-container">
+        <div id="guiltyStamp" class="guilty-rubber-stamp">
+          GUILTY
+          <span class="stamp-sub">มีความผิดจริง</span>
+        </div>
+      </div>
+
+      <div class="culprit-reveal-card" id="executionCulpritCard">
+        <div class="culprit-avatar" id="executionCulpritAvatar">💀</div>
+        <div class="culprit-info">
+          <h2 id="executionCulpritName" style="color:var(--court-gold); margin:0 0 6px 0;">???</h2>
+          <div id="executionVerdictText" style="color:#ddd; font-size:1rem; line-height:1.5;"></div>
+        </div>
+      </div>
+
+      <div class="execution-actions">
+        <button class="small-btn red" onclick="closeExecutionModal()" style="font-weight:900; padding:10px 24px; font-size:1rem;">
+          🏛️ สิ้นสุดการลงทัณฑ์ & กลับสู่ศาล
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ============================================== -->
   <!-- PIN MODAL FOR /ADMIN (PIN: 295437)             -->

@@ -332,31 +332,18 @@ function playSfx(type) {
     }
   } catch(e) {}
 
-  // 3. Audio debounce: prevent identical SFX from firing faster than 250ms (stops rapid-fire stutter)
+  // 3. Audio debounce: prevent identical SFX from firing faster than 100ms (stops rapid-fire stutter while preserving responsive cues)
   const now = Date.now();
-  if (lastSfxPlayTimes[type] && (now - lastSfxPlayTimes[type] < 250)) {
+  if (lastSfxPlayTimes[type] && (now - lastSfxPlayTimes[type] < 100)) {
     return;
   }
   lastSfxPlayTimes[type] = now;
-
-  // Prevent audio overlapping: stop previous soundboard SFX immediately
-  if (activeSfxAudio) {
-    try {
-      activeSfxAudio.pause();
-      activeSfxAudio.currentTime = 0;
-    } catch(e) {}
-    activeSfxAudio = null;
-  }
 
   const file = SOUND_FILES[type];
   if (file) {
     try {
       const audio = new Audio(file);
       audio.volume = 0.88;
-      activeSfxAudio = audio;
-      audio.onended = () => {
-        if (activeSfxAudio === audio) activeSfxAudio = null;
-      };
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
@@ -1162,6 +1149,12 @@ function handleIncomingMessage(msg, senderConn) {
       crashNotice.style.display = 'block';
       crashNotice.innerText = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${msg.winningChoice}] ซึ่งเป็นทางตัน (-15% Influence)`;
     }
+    const mobileFb = document.getElementById('diveChoiceFeedback');
+    if (mobileFb) {
+      mobileFb.style.display = 'block';
+      mobileFb.style.color = '#ff2244';
+      mobileFb.innerHTML = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${msg.winningChoice}] ซึ่งเป็นทางตัน (รอ DM สั่งการ)`;
+    }
   } else if (msg.type === 'logic_dive_retry') {
     const choicesBox = document.getElementById('diveMobileChoices');
     const feedback = document.getElementById('diveChoiceFeedback');
@@ -1344,6 +1337,14 @@ function switchView(v) {
   if (v !== 'court' && courtHeartbeatInterval) {
     clearInterval(courtHeartbeatInterval);
     courtHeartbeatInterval = null;
+  }
+  if (v !== 'simulation' && simEventSource) {
+    try { simEventSource.close(); } catch(e) {}
+    simEventSource = null;
+  }
+  if (cameraScanningInterval) {
+    clearInterval(cameraScanningInterval);
+    cameraScanningInterval = null;
   }
 
   // Set active view class on root elements to control navigation button visibility
@@ -2217,6 +2218,9 @@ function setStage(stage, config) {
     gameState.stg6Wave = 1;
     gameState.stg6MaxWave = 4;
     gameState.stg6Shield = 100;
+    gameState.stg6Finished = false;
+    gameState.stg6FinalReady = false;
+    stg6FinalBlowSent = false;
     gameState.stg6TargetPlayer = config?.targetPlayer || (document.getElementById('adminArmamentTargetSelect')?.value) || 'นักมายากล (A)';
     if (config && config.scream) {
       gameState.stg6Statement = config.scream;
@@ -2754,9 +2758,17 @@ function getActiveHangmanPlayer() {
 }
 
 function handleStg2Char(char) {
+  if (!char || !gameState.stg2Target || !gameState.stg2Board) return;
+  const upChar = char.toUpperCase();
+
+  // Prevent turn-skipping exploits on already revealed characters
+  const alreadyRevealed = gameState.stg2Board.some(c => c.toUpperCase() === upChar);
+  if (alreadyRevealed) {
+    return;
+  }
+
   let matched = false;
   let newlyRevealed = false;
-  const upChar = char.toUpperCase();
   gameState.stg2Target.forEach((targetChar, idx) => {
     if (targetChar.toUpperCase() === upChar) {
       if (gameState.stg2Board[idx] === '_') {
@@ -3014,6 +3026,9 @@ function evaluateLogicDiveMajority() {
       crashNotice.innerText = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${winningChoice}] ซึ่งเป็นทางตัน (-15% Influence)`;
     }
 
+    const lane = document.getElementById('lane' + winningChoice);
+    if (lane) lane.classList.add('mismatch');
+
     gameState.stg4Evaluating = false;
     logCourt(`⚠️ [LOGIC DIVE CRASH]: เสียงข้างมากเลือกข้อ [${winningChoice}] ผิดทาง! ชนผนังอุโมงค์ (-15% Influence)`);
     broadcast({ type: 'logic_dive_crash', winningChoice: winningChoice });
@@ -3027,6 +3042,10 @@ function adminRetryLogicDive() {
     crashNotice.classList.add('hidden');
     crashNotice.style.display = 'none';
   }
+  ['A', 'B', 'C'].forEach(ch => {
+    const lane = document.getElementById('lane' + ch);
+    if (lane) lane.classList.remove('active-match', 'mismatch');
+  });
   updateLogicDiveDisplay();
   startTimer(40);
   broadcast({ type: 'logic_dive_retry' });
