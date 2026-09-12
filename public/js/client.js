@@ -13,7 +13,6 @@ function updateMonopadPhaseTabs(stage) {
   const currentStage = stage || (gameState && gameState.stage) || 'idle';
   const isIdle = (currentStage === 'idle' || currentStage === 'lobby');
   const isInvestigation = (currentStage === 'investigation');
-  const isTrialOrGame = (!isIdle && !isInvestigation); // 'trial' or 'stage1'..'stage8'
 
   const tabGame = document.getElementById('pTabGame');
   const tabClues = document.getElementById('pTabClues');
@@ -21,40 +20,95 @@ function updateMonopadPhaseTabs(stage) {
   const tabGuide = document.getElementById('pTabGuide');
   const tabRules = document.getElementById('pTabRules');
 
-  // Rules and Map are always visible across all phases
+  // Rules, Map, and Activity (ช่วงกิจกรรม) are ALWAYS visible across all phases!
   if (tabRules) tabRules.style.display = 'flex';
   if (tabMap) tabMap.style.display = 'flex';
+  if (tabGame) tabGame.style.display = 'flex';
 
   if (isIdle) {
-    // Phase 1 (Daily Life / Lobby): Only School Rules and Map
-    if (tabGame) tabGame.style.display = 'none';
+    // Phase 1 (Daily Life / Lobby): Activity, Rules, Map
     if (tabClues) tabClues.style.display = 'none';
     if (tabGuide) tabGuide.style.display = 'none';
 
-    // If currently on a hidden tab, auto-switch to rules
     const activeTabEl = document.querySelector('.player-nav-tabs .p-nav-btn.active');
-    if (activeTabEl && (activeTabEl.id === 'pTabGame' || activeTabEl.id === 'pTabClues' || activeTabEl.id === 'pTabGuide')) {
-      switchPlayerTab('rules');
+    if (activeTabEl && (activeTabEl.id === 'pTabClues' || activeTabEl.id === 'pTabGuide')) {
+      switchPlayerTab('game');
     }
   } else if (isInvestigation) {
-    // Phase 2 (Investigation): School Rules, Map, and Clues
+    // Phase 2 (Investigation): Activity, Clues, Rules, Map
     if (tabClues) tabClues.style.display = 'flex';
-    if (tabGame) tabGame.style.display = 'none';
     if (tabGuide) tabGuide.style.display = 'none';
 
     const activeTabEl = document.querySelector('.player-nav-tabs .p-nav-btn.active');
-    if (activeTabEl && (activeTabEl.id === 'pTabGame' || activeTabEl.id === 'pTabGuide')) {
+    if (activeTabEl && activeTabEl.id === 'pTabGuide') {
       switchPlayerTab('clues');
     }
   } else {
     // Phase 3 (Class Trial / Minigames): All tabs visible
-    if (tabGame) tabGame.style.display = 'flex';
     if (tabClues) tabClues.style.display = 'flex';
     if (tabGuide) tabGuide.style.display = 'flex';
 
     if (currentStage.startsWith('stage')) {
       switchPlayerTab('game');
     }
+  }
+
+  // Render phase status card inside mobileTaskArea when not in a mini-game
+  renderMobilePhaseCard(currentStage);
+}
+
+function renderMobilePhaseCard(stage) {
+  const area = document.getElementById('mobileTaskArea');
+  if (!area) return;
+  if (stage && stage.startsWith('stage')) {
+    // Stage-specific mini-game renders itself via renderMobileTask
+    return;
+  }
+
+  if (stage === 'idle' || stage === 'lobby') {
+    area.innerHTML = `
+      <div style="background:rgba(56,189,248,0.06); border:2px solid #38bdf8; border-radius:12px; padding:20px 16px; text-align:center;">
+        <div style="font-size:2rem; margin-bottom:8px;">☕</div>
+        <h3 style="color:#38bdf8; font-weight:900; margin-bottom:8px; font-size:1.15rem;">ช่วงชีวิตประจำวัน (Daily Life)</h3>
+        <p style="color:#cbd5e1; font-size:0.88rem; line-height:1.5; margin-bottom:14px;">
+          ขณะนี้โรงเรียนเปิดภาคการศึกษาปกติ นักเรียนสามารถศึกษา <strong>📜 กฎโรงเรียน</strong> และทำความคุ้นเคยกับ <strong>🗺️ ผังโรงเรียน</strong> ผ่าน Monopad
+        </p>
+        <div style="display:inline-block; background:rgba(56,189,248,0.15); border:1px solid #38bdf8; border-radius:20px; padding:6px 14px; font-size:0.8rem; color:#38bdf8; font-weight:800;">
+          ⏳ รอผู้ดูแลศาลเปิดช่วงสืบสวน...
+        </div>
+      </div>
+    `;
+  } else if (stage === 'investigation') {
+    area.innerHTML = `
+      <div style="background:rgba(234,179,8,0.06); border:2px solid #eab308; border-radius:12px; padding:20px 16px; text-align:center;">
+        <div style="font-size:2rem; margin-bottom:8px;">🔍</div>
+        <h3 style="color:#eab308; font-weight:900; margin-bottom:8px; font-size:1.15rem;">ช่วงเวลาสืบสวนหาหลักฐาน (Investigation Phase)</h3>
+        <p style="color:#cbd5e1; font-size:0.88rem; line-height:1.5; margin-bottom:14px;">
+          พบศพผู้เสียชีวิตแล้ว! นักเรียนทุกคนกำลังอยู่ในช่วงตรวจค้นสถานที่เกิดเหตุและรวบรวมพยานหลักฐานเพื่อเตรียมใช้ในศาลชั้นเรียน
+        </p>
+        <button class="small-btn cyan" onclick="switchPlayerTab('clues')" style="padding:8px 18px; font-weight:900; font-size:0.88rem; cursor:pointer; margin-bottom:10px;">
+          🔎 เปิดแท็บหลักฐาน (Monopad) สแกน QR ↗
+        </button>
+        <div>
+          <span style="display:inline-block; background:rgba(234,179,8,0.15); border:1px solid #eab308; border-radius:20px; padding:4px 12px; font-size:0.75rem; color:#eab308; font-weight:800;">
+            ⏱️ กำลังดำเนินการสืบสวนรอบอาคาร
+          </span>
+        </div>
+      </div>
+    `;
+  } else if (stage === 'trial') {
+    area.innerHTML = `
+      <div style="background:rgba(230,0,103,0.06); border:2px solid #e60067; border-radius:12px; padding:20px 16px; text-align:center;">
+        <div style="font-size:2rem; margin-bottom:8px;">⚖️</div>
+        <h3 style="color:#e60067; font-weight:900; margin-bottom:8px; font-size:1.15rem;">ศาลชั้นเรียนเริ่มขึ้นแล้ว (Class Trial)</h3>
+        <p style="color:#cbd5e1; font-size:0.88rem; line-height:1.5; margin-bottom:14px;">
+          การพิจารณาคดีความตายของเหยื่อเริ่มต้นขึ้นแล้ว เตรียมกระสุนความจริงในแท็บหลักฐานให้พร้อม
+        </p>
+        <div style="display:inline-block; background:rgba(230,0,103,0.15); border:1px solid #e60067; border-radius:20px; padding:6px 14px; font-size:0.8rem; color:#ff0077; font-weight:800;">
+          ⚔️ รอผู้ดูแลศาลเปิดช่วงกิจกรรมดีเบต...
+        </div>
+      </div>
+    `;
   }
 }
 // ==========================================================
@@ -252,6 +306,9 @@ async function fetchActiveRooms() {
         <button class="small-btn pink" style="flex:1; padding:6px 10px; font-size:0.8rem; font-weight:900;" onclick="joinRoomAsPlayer('${r.roomCode}')">
           📱 เข้าเล่น
         </button>
+        <button class="small-btn" style="padding:6px 10px; font-size:0.8rem; font-weight:900; background:#dc2626; color:#fff; border:1px solid #ef4444;" onclick="closeRoomSession('${r.roomCode}')" title="ปิดห้องศาลและเตะทุกคนออก">
+          🛑 ปิดห้อง
+        </button>
       </div>
     `;
     listEl.appendChild(card);
@@ -262,6 +319,27 @@ function joinRoomAsAdmin(code) {
   sessionStorage.setItem('dangan_target_room', code);
   roomCode = code;
   showPinModal();
+}
+
+async function closeRoomSession(code) {
+  if (!code) return;
+  if (!confirm(`คุณต้องการปิดห้องศาล [${code}] และเตะผู้เล่นทุกคนออกจากห้องใช่หรือไม่?`)) return;
+  try {
+    // 1. Broadcast kick message to all clients connected to this room
+    await broadcastMessage({
+      type: 'room_closed',
+      roomCode: code,
+      reason: `ห้องศาล [${code}] ถูกปิดโดยผู้ดูแล`
+    });
+  } catch(e) {}
+
+  // 2. Request server to delete room from registry
+  await deleteActiveRoom(code);
+
+  showToast(`🛑 ปิดห้องศาล [${code}] เรียบร้อยแล้ว`, 'danger');
+
+  // 3. Immediately refresh active rooms list in Hub
+  setTimeout(fetchActiveRooms, 250);
 }
 
 function joinRoomAsPlayer(code) {
@@ -2014,11 +2092,11 @@ const ALL_CLUES_DATA = [
   { id: "EVD-16", pin: "369842", aliases: ["PC5-16", "16", "E16"], name: "คำให้การของ PC 5", importance: "MUST", secretType: "TESTIMONY", typeLabel: "คำให้การ (Core)", loc: "ได้จากการถาม PC 5 (1 AP)", desc: "คำให้การ: \"ฉันมีเวรทำอาหารมื้อค่ำตามตารางใน Monopad อยู่ในครัวต้มสตูว์เนื้อตลอดเวลาช่วง 17:45 - 18:30 น. ไม่ได้ออกไปข้างนอก\"" },
   { id: "EVD-17", pin: "785130", aliases: ["DROP-17", "17", "E17"], name: "รอยหยดน้ำบนพื้นโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "รอยหยดน้ำขนาดเล็กกระจายตัวเป็นแนวยาวบนพื้นกระเบื้องโถงทางเดิน ระหว่างบริเวณหน้าห้องซักรีดไปจนถึงหน้าประตูห้องครัว" },
   { id: "EVD-18", pin: "417285", aliases: ["GLASS-18", "18", "E18"], name: "เศษกระจกบริเวณเชิงบันได", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "เชิงบันไดทางขึ้นชั้น 2", desc: "เศษกระจกใสความหนา 5 มม. แตกกระจายอยู่บนขั้นบันไดทางขึ้นชั้น 2 บนขอบกระจกชิ้นหนึ่งมีคราบสีส้มอมแดงเกาะติดอยู่" },
-  { id: "EVD-19", pin: "175936", aliases: ["BUCKET-19", "19", "E19"], name: "ซากถังพลาสติกและสายยาง", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ลานปูนด้านหลัง (ใต้หน้าต่าง)", desc: "ถังพลาสติก 80 ลิตร ตกแตกบนลานปูน ปลายสายยางสอดผ่านช่องมือจับของถังและมีเชือกไนลอนผูกยึดไว้" },
+  { id: "EVD-19", pin: "175936", aliases: ["BUCKET-19", "19", "E19"], name: "ซากถังน้ำพลาสติกตกแตก", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ลานปูนซักล้างด้านหลัง (ใต้หน้าต่าง)", desc: "ถังพลาสติก 80 ลิตร ตกแตกกระจายบนพื้นลานปูนด้านนอก มีน้ำสาดกระจายเปียกทั่วบริเวณลานปูน หูจับถังมีรอยเชือกไนลอนผูกติดอยู่" },
   { id: "EVD-20", pin: "472890", aliases: ["PC1-20", "20", "E20"], name: "คำให้การของ PC 1", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 1 (1 AP)", desc: "คำให้การ: \"ช่วง 17:45 น. ฉันทุบตู้กดน้ำที่กินเหรียญอยู่ที่โถงกลาง ได้ยินเสียงน้ำไหลเบาๆ ในแนวกำแพงข้างห้องซักรีด\"" },
   { id: "EVD-21", pin: "904712", aliases: ["TOWEL-21", "21", "E21"], name: "ผ้าขนหนูสีกรมท่าเปื้อนเลือด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องครัว (ใต้ถุงขยะดำก้นถัง)", desc: "ผ้าขนหนูสีกรมท่าเนื้อหนาถูกขยำอยู่ใต้ถุงขยะดำก้นถังในครัว เมื่อคลี่ออกพบรอยเปื้อนสีน้ำตาลคล้ำแห้งกรัง" },
   { id: "EVD-22", pin: "194836", aliases: ["NOTE-22", "22", "E22"], name: "แผ่นกระดาษโน้ตบนพื้นโถงทางเดิน", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "กระดาษสมุดฉีกขนาดฝ่ามือ มีลายมือเขียนตารางเกมโอเอกซ์และข้อความสั้นๆ ตกอยู่บนพื้นกระเบื้องโถงทางเดิน" },
-  { id: "EVD-23", pin: "541682", aliases: ["FAUCET-23", "23", "E23"], name: "ก๊อกน้ำและผนังห้องซักรีด", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องซักรีด (ก๊อกน้ำและผนัง)", desc: "วาล์วก๊อกน้ำห้องซักรีดเปิดอยู่ ปลายสายยางหลุดตกที่พื้น ผนังปูนและพื้นกระเบื้องรอบก๊อกน้ำเปียกน้ำเป็นวงกว้าง" },
+  { id: "EVD-23", pin: "541682", aliases: ["FAUCET-23", "23", "E23"], name: "สายยางน้ำเปิดทิ้งและน้ำท่วมขัง", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องซักรีด (แนวก๊อกน้ำและพื้นห้อง)", desc: "สายยางสีเขียวยาวต่ออยู่กับก๊อกน้ำที่เปิดวาล์วทิ้งไว้ ปลายสายยางดีดสะบัดตกอยู่บนพื้นห้องซักรีด น้ำไหลทะลักออกมาอย่างต่อเนื่องจนเจิ่งนองท่วมขังพื้นกระเบื้องทั่วห้อง" },
   { id: "EVD-24", pin: "249581", aliases: ["MAP-24", "24", "E24"], name: "แผนผังอาคารบนบอร์ดประชาสัมพันธ์", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "แผนผังอาคารชั้น 1 แสดงลานบริการด้านหลังเป็นพื้นที่ปิด ล้อมด้วยกำแพงคอนกรีตสูง 5 ม. ไร้ประตูทางออก" },
   { id: "EVD-25", pin: "612847", aliases: ["RACK-25", "25", "E25"], name: "ราวแขวนผ้าขนหนูห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "ร่องรอย/สิ่งของ (Core)", loc: "ห้องซักรีด (ราวแขวนผ้า)", desc: "ราวแขวนผ้าสแตนเลสข้างอ่างล้างห้องซักรีด มีผ้าขนหนูสีกรมท่าแขวนอยู่ 4 ผืน และมีช่องว่างเว้น 1 จุด" },
   { id: "EVD-26", pin: "248356", aliases: ["WINE-26", "26", "E26"], name: "ขวดไวน์และคราบบนเคาน์เตอร์ครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (เคาน์เตอร์ปรุงอาหาร)", desc: "ขวดไวน์แดงสำหรับปรุงอาหารเปิดฝาวางอยู่บนเคาน์เตอร์ครัว มีไวน์เหลืออยู่ก้นขวดเล็กน้อย บริเวณเคาน์เตอร์ข้างเตาพบรอยของเหลวสีแดงหกหยดเป็นจุดๆ" },
@@ -5551,7 +5629,7 @@ const ACADEMY_ROOMS_DATA = {
     clues: [
       '<strong>EVD-04 (เชือกขาด):</strong> เชือกตากผ้าไนลอนมีรอยมีดตัดเรียบกริบ (ไม่ใช่รอยขาดจากแรงกระชาก)',
       '<strong>EVD-11 (เครื่องอบผ้า):</strong> หมุนรองเท้าบูทคู่หนัก ตั้งเวลา Delay 21:00 น. เพื่อสร้างเสียงต่อสู้หลอก',
-      '<strong>EVD-14 (สายยางน้ำ):</strong> ต่อจากก๊อกในห้องซักรีด ลอดออกไปนอกหน้าต่างสูง 3.5 ม.'
+      '<strong>EVD-23 (สายยางน้ำดีดกลับ):</strong> สายยางต่อจากก๊อกในห้องซักรีด ดีดกลับเข้ามาในห้องหลังถังตก น้ำไหลท่วมเจิ่งนองทั่วพื้น'
     ],
     timeline: '• <strong>17:30 น.:</strong> A ลอบเข้ามาฟาด B จนสลบ<br>• <strong>18:10 น.:</strong> A เซ็ตกลไกรอกมรณะพลังน้ำ แขวนถัง 100 ลิตรนอกหน้าต่าง<br>• <strong>20:45 น.:</strong> B ฟื้นขึ้นมาตัดเชือกและผูกฮาร์เนสแต่พลาด'
   },

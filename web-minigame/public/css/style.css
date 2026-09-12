@@ -2935,11 +2935,23 @@ body.dangan-body {
 
 .investigation-map-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   width: 100%;
-  max-width: 950px;
+  max-width: 1320px;
   margin: 0 auto 30px auto;
+}
+
+@media (max-width: 1120px) {
+  .investigation-map-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .investigation-map-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .investigation-loc-card {
@@ -5929,10 +5941,23 @@ body.view-simulation .execution-cutscene-overlay {
 
 @page {
   size: A4 landscape;
-  margin: 5mm;
+  margin: 3mm;
 }
 
 @media print {
+  html, body {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #060913 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
   body.printing-blueprint > *:not(#blueprintPrintSection) {
     display: none !important;
   }
@@ -5942,28 +5967,28 @@ body.view-simulation .execution-cutscene-overlay {
     margin: 0 !important;
     padding: 0 !important;
     width: 100vw !important;
-    min-height: 100vh !important;
-    overflow: visible !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color-adjust: exact !important;
+    height: 100vh !important;
+    overflow: hidden !important;
   }
 
   body.printing-blueprint #blueprintPrintSection {
     display: flex !important;
     flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
     width: 100% !important;
-    max-width: 100% !important;
+    height: calc(100vh - 6mm) !important;
+    max-height: calc(100vh - 6mm) !important;
     margin: 0 auto !important;
     padding: 0 !important;
     background: #060913 !important;
-    border: 2px solid #38bdf8 !important;
+    border: 1.5px solid #38bdf8 !important;
     box-sizing: border-box !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color-adjust: exact !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: avoid !important;
+    break-inside: avoid !important;
+    overflow: hidden !important;
   }
 
   body.printing-blueprint #blueprintPrintSection .map-frame-header {
@@ -5971,35 +5996,39 @@ body.view-simulation .execution-cutscene-overlay {
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
     background: #0b1320 !important;
-    border-bottom: 2px solid #38bdf8 !important;
-    padding: 6px 14px !important;
+    border-bottom: 1.5px solid #38bdf8 !important;
+    padding: 2px 10px !important;
     color: #38bdf8 !important;
     font-family: monospace, sans-serif !important;
     box-sizing: border-box !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    flex-shrink: 0 !important;
   }
 
   body.printing-blueprint #blueprintPrintSection .map-frame-tag {
     font-weight: 900 !important;
     color: #38bdf8 !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
   }
 
   body.printing-blueprint #blueprintPrintSection .map-frame-hint {
     color: #94a3b8 !important;
-    font-size: 9px !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
   }
 
   body.printing-blueprint #blueprintPrintSection .blueprint-svg {
     display: block !important;
     width: 100% !important;
-    height: auto !important;
-    max-height: calc(100vh - 45px) !important;
+    height: calc(100% - 26px) !important;
+    max-height: calc(100% - 26px) !important;
+    flex: 1 1 auto !important;
     background: #060913 !important;
     box-sizing: border-box !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    object-fit: contain !important;
   }
 }

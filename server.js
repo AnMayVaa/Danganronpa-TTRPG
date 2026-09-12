@@ -288,7 +288,9 @@ function requestHandler(req, res) {
           roomMessageBuffers.delete(code);
           const subs = roomSubscribers.get(code);
           if (subs) {
+            const kickMsg = `data: ${JSON.stringify({ type: 'room_closed', roomCode: code, reason: `ห้องศาล [${code}] ถูกปิดโดยผู้ดูแล` })}\n\n`;
             subs.forEach(clientRes => {
+              try { clientRes.write(kickMsg); } catch(e) {}
               try { clientRes.end('event: room_closed\ndata: {"closed":true}\n\n'); } catch(e) {}
             });
             roomSubscribers.delete(code);
