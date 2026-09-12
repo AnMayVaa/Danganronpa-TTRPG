@@ -177,7 +177,11 @@
         <span style="color:#fff; font-weight:900; font-size:1.1rem; letter-spacing:1px;">⚖️ CLASS TRIAL SESSION // ศาลชั้นเรียน</span>
       </div>
 
-
+      <!-- Desktop Court Controls (Fullscreen & Pop-out) -->
+      <div class="court-desktop-controls" style="display:flex; align-items:center; gap:8px;">
+        <button class="small-btn blue pc-only-btn" onclick="openCourtPopout()" title="เปิดหน้าต่างศาลแยกสำหรับต่อจอที่สอง (Dual Monitor)">⧉ Pop-out</button>
+        <button class="small-btn pink pc-only-btn" onclick="toggleCourtFullscreen()" title="เปิดโหมดเต็มจอ 16:9 (Hotkey: F / F11)">⛶ Fullscreen</button>
+      </div>
 
       <!-- Monokuma Countdown Clock (Shown only during timed mini-games) -->
       <div class="monokuma-clock hidden">
@@ -2356,6 +2360,7 @@
           <button id="cfgTabStage4" class="stage-tab-btn" onclick="selectConfigTab('stage4')">4. Logic Dive</button>
           <button id="cfgTabStage5" class="stage-tab-btn" onclick="selectConfigTab('stage5')">5. Debate Scrum</button>
           <button id="cfgTabStage6" class="stage-tab-btn" onclick="selectConfigTab('stage6')">6. Argument</button>
+          <button id="cfgTabStage7" class="stage-tab-btn" onclick="selectConfigTab('stage7')">7. Closing</button>
         </div>
 
         <!-- Stage 1 Config -->
@@ -2363,26 +2368,30 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets:</span>
             <div class="preset-btn-row">
-              <button class="preset-chip" onclick="applyPresetStage1('bone')">อาวุธหม้อสตูว์ (EVD-02)</button>
-              <button class="preset-chip" onclick="applyPresetStage1('knife')">การตัดเชือกของ B (EVD-12)</button>
-              <button class="preset-chip" onclick="applyPresetStage1('dryer')">กลไกเครื่องอบผ้า (EVD-05)</button>
+              <button class="preset-chip" onclick="applyPresetStage1('bone')">🍖 อาวุธทุบสลบในครัว (EVD-02)</button>
+              <button class="preset-chip" onclick="applyPresetStage1('rope')">🪢 เชือกยกร่างติดเพดาน (EVD-09)</button>
+              <button class="preset-chip" onclick="applyPresetStage1('window')">🪟 ราวท่อเพดาน & หน้าต่างสูง (EVD-14)</button>
+              <button class="preset-chip" onclick="applyPresetStage1('barrel')">🛢️ ซากถังน้ำถ่วงน้ำหนัก (EVD-19)</button>
+              <button class="preset-chip" onclick="applyPresetStage1('meter')">💧 มาตรวัดน้ำประปาหลัก (EVD-10)</button>
+              <button class="preset-chip" onclick="applyPresetStage1('dryer')">⏱️ เครื่องอบผ้าสร้างเสียงหลอก (EVD-05)</button>
             </div>
           </div>
           <div style="margin-top:10px;">
             <label style="font-size:0.85rem; color:#ccc;">คำถาม/ข้อโต้แย้งของ Monokuma บนจอใหญ่:</label>
-            <input type="text" id="cfgStg1Prompt" class="manual-code-input" style="width:100%; margin-top:4px;" value="อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?">
+            <input type="text" id="cfgStg1Prompt" class="manual-code-input" style="width:100%; margin-top:4px;" value="อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบในครัวตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?">
           </div>
           <div style="margin-top:8px;">
             <label style="font-size:0.85rem; color:#ccc;">รหัสหลักฐานที่ถูกต้องที่ต้องยิง:</label>
             <select id="cfgStg1TargetClue" class="manual-code-input" style="width:100%; margin-top:4px;">
-              <option value="EVD-01">EVD-01: Monokuma File #1 (แผลท้ายทอย 1-2 ชม. ก่อนตาย ไม่ใช่เหตุตาย)</option>
-              <option value="EVD-02">EVD-02: ท่อนกระดูกหมูสับในก้นหม้อสตูว์เนื้อ</option>
-              <option value="EVD-04">EVD-04: เชือกตากผ้าไนลอนรอยตัดเรียบกริบ</option>
-              <option value="EVD-05">EVD-05: มีดพกพับเดินป่าในกระเป๋าเสื้อ B</option>
-              <option value="EVD-06">EVD-06: ซากถังซักผ้าแตกและรูมือจับร้อยสายยาง</option>
-              <option value="EVD-08">EVD-08: สายยางหลุดกระเด็น & คราบน้ำเปียกผนัง</option>
-              <option value="EVD-09">EVD-09: เครื่องอบผ้าตั้งเวลา Delay หมุนรองเท้าบูท</option>
-              <option value="EVD-12">EVD-12: แผงมิเตอร์น้ำประปาหลัก (อัตราไหล 0.4 L/min)</option>
+              <option value="EVD-02">EVD-02: ท่อนกระดูกหมูในหม้อสตูว์ (อาวุธทุบสลบ)</option>
+              <option value="EVD-05">EVD-05: เครื่องอบผ้า DRY-1 (ตั้งเวลาหมุนรองเท้าบูท)</option>
+              <option value="EVD-07">EVD-07: Monokuma File #1 (แผลท้ายทอย 1-2 ชม. ก่อนตาย ไม่ใช่เหตุตาย)</option>
+              <option value="EVD-09">EVD-09: เชือกไนลอนสีชมพูบนพื้น (พาดท่อยกร่างออกนอกหน้าต่าง)</option>
+              <option value="EVD-10">EVD-10: มาตรวัดน้ำประปาหลัก (อัตราไหล 0.4 L/min)</option>
+              <option value="EVD-12">EVD-12: มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ (B)</option>
+              <option value="EVD-14">EVD-14: ราวท่อสแตนเลสเพดานห้องซักรีด (รอกชักร่าง)</option>
+              <option value="EVD-19">EVD-19: ซากถังน้ำพลาสติกตกแตก (ถังถ่วงน้ำหนักนอกหน้าต่าง)</option>
+              <option value="EVD-23">EVD-23: สายยางน้ำเปิดทิ้งและน้ำท่วมขัง (ท่อส่งน้ำ)</option>
             </select>
           </div>
         </div>
@@ -2392,12 +2401,12 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets (Hangman):</span>
             <div class="preset-btn-row">
-              <button class="preset-chip" onclick="applyPresetStage2('นาฬิกาน้ำ', 'ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!')">นาฬิกาน้ำ</button>
-              <button class="preset-chip" onclick="applyPresetStage2('BLOODY BONE', 'DECODE THE HIDDEN BLUNT WEAPON IN THE STEW POT!')">BLOODY BONE</button>
-              <button class="preset-chip" onclick="applyPresetStage2('WATER CLOCK', 'DECODE THE GRAVITY WATER TIMER DEVICE!')">WATER CLOCK</button>
-              <button class="preset-chip" onclick="applyPresetStage2('ท่อนกระดูกหมู', 'ถอดรหัสอาวุธสังหารที่ซ่อนอยู่ในหม้อสตูว์!')">ท่อนกระดูกหมู</button>
-              <button class="preset-chip" onclick="applyPresetStage2('สายรัดปีนเขา', 'ถอดรหัสอุปกรณ์บนตัวเหยื่อที่กลายเป็นบ่วงมรณะ!')">สายรัดปีนเขา</button>
-              <button class="preset-chip" onclick="applyPresetStage2('CYANIDE', 'DECODE THE FAKE POISON LABELED IN THE TRASH!')">CYANIDE</button>
+              <button class="preset-chip" onclick="applyPresetStage2('WATER CLOCK', 'ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!')">WATER CLOCK</button>
+              <button class="preset-chip" onclick="applyPresetStage2('COUNTERWEIGHT', 'ถอดรหัสน้ำหนักถ่วงนอกหน้าต่างที่ดึงร่างขึ้นเพดาน!')">COUNTERWEIGHT</button>
+              <button class="preset-chip" onclick="applyPresetStage2('PORK BONE', 'ถอดรหัสอาวุธทุบสลบที่ซ่อนอยู่ในหม้อสตูว์!')">PORK BONE</button>
+              <button class="preset-chip" onclick="applyPresetStage2('CEILING PIPE', 'ถอดรหัสจุดพาดเชือกไนลอนทำหน้าที่เป็นรอก!')">CEILING PIPE</button>
+              <button class="preset-chip" onclick="applyPresetStage2('WATER HOSE', 'ถอดรหัสสายยางส่งน้ำข้ามห้องไปยังถังถ่วงน้ำหนัก!')">WATER HOSE</button>
+              <button class="preset-chip" onclick="applyPresetStage2('STAGING', 'ถอดรหัสแผนการจัดฉากฆาตกรรมและอำพรางเวลาตาย!')">STAGING</button>
             </div>
           </div>
           <div style="margin-top:10px;">
@@ -2406,7 +2415,7 @@
           </div>
           <div style="margin-top:8px;">
             <label style="font-size:0.85rem; color:#ccc;">คำศัพท์เป้าหมาย (Target Word):</label>
-            <input type="text" id="cfgStg2Word" class="manual-code-input" style="width:100%; margin-top:4px;" value="นาฬิกาน้ำ">
+            <input type="text" id="cfgStg2Word" class="manual-code-input" style="width:100%; margin-top:4px;" value="WATER CLOCK">
           </div>
         </div>
 
@@ -2415,8 +2424,10 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets:</span>
             <div class="preset-btn-row">
-              <button class="preset-chip" onclick="applyPresetStage3('นักมายากล (A)', 'ฉันอยู่แต่ในครัวตลอดเวลา จะไปเอาเวลาที่ไหนไปทำร้ายหมอนั่นได้!?')">ข้ออ้างครัว</button>
-              <button class="preset-chip" onclick="applyPresetStage3('นักมายากล (A)', 'ตอนไฟดับ 20:30 น. ฉันอยู่กับนักดนตรีตลอดเวลา ไม่มีทางไปชักรอกได้!')">ข้ออ้างเวลาไฟดับ</button>
+              <button class="preset-chip" onclick="applyPresetStage3('นักมายากล (A)', 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?')">ข้ออ้างห้องครัว</button>
+              <button class="preset-chip" onclick="applyPresetStage3('นักมายากล (A)', 'ตอนไฟดับ 20:30 น. ฉันก็อยู่กับคนอื่น จะเอาเวลาที่ไหนไปดึงเชือกยกร่าง B ขึ้นไปบนเพดานได้!?')">ข้ออ้างเวลาไฟดับ</button>
+              <button class="preset-chip" onclick="applyPresetStage3('นักมายากล (A)', 'หน้าต่างห้องซักผ้าสูงตั้ง 3.5 เมตร แถมไม่มีบันได ใครจะปีนออกไปผูกเชือกข้างนอกได้กันล่ะ!?')">ข้ออ้างหน้าต่างสูง</button>
+              <button class="preset-chip" onclick="applyPresetStage3('นักมายากล (A)', 'เรียวตะเป็นคนถือมีดและผูกเงื่อนบ่วงเชือกเอง นี่มันการฆ่าตัวตายชัดๆ ไม่เกี่ยวกับฉันสักหน่อย!')">ข้ออ้างฆ่าตัวตาย</button>
             </div>
           </div>
           <div style="margin-top:10px;">
@@ -2425,20 +2436,21 @@
           </div>
           <div style="margin-top:8px;">
             <label style="font-size:0.85rem; color:#ccc;">คำพูดค้าน (Argument Statement):</label>
-            <input type="text" id="cfgStg3Arg" class="manual-code-input" style="width:100%; margin-top:4px;" value="ฉันอยู่แต่ในครัวตลอดเวลา จะไปเอาเวลาที่ไหนไปทำร้ายหมอนั่นได้!?">
+            <input type="text" id="cfgStg3Arg" class="manual-code-input" style="width:100%; margin-top:4px;" value="ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?">
           </div>
         </div>
 
         <!-- Stage 4 Config (Logic Dive) -->
         <div id="cfgPaneStage4" class="cfg-pane hidden">
           <div class="preset-group">
-            <span class="preset-title">⚡ 1-Click Presets:</span>
+            <span class="preset-title">⚡ 1-Click Route Presets:</span>
             <div class="preset-btn-row">
-              <button class="preset-chip" onclick="applyPresetStage4('standard')">เส้นทางตรรกะมาตรฐาน (มีดพก -> สายรัด -> Shock Load)</button>
+              <button class="preset-chip" onclick="applyPresetStage4('pulley')">🎯 Route 1: ไขกลไกรอกเพดาน & ถังน้ำหนัก (The Ceiling Pulley Trap)</button>
+              <button class="preset-chip" onclick="applyPresetStage4('timeline')">⏱️ Route 2: คลี่คลายเวลาตาย & แผนคนร้าย (The Blackened Timeline)</button>
             </div>
           </div>
-          <div style="margin-top:8px; font-size:0.85rem; color:#aaa;">
-            ประกอบด้วย 3 สเตจ: วิเคราะห์มีดพกเปื้อนเชือก, วิเคราะห์เงื่อนโบว์ไลน์, และคลี่คลายกลไก Shock Load มวลน้ำ
+          <div id="cfgStg4Summary" style="margin-top:10px; font-size:0.85rem; color:#bbb; line-height:1.6; background:#141424; padding:10px; border-radius:6px; border:1px solid #333348;">
+            ประกอบด้วย 3 สเตจ: 1) ถังน้ำหนักตกชักรอก 2) เชือกพาดผ่านท่อเพดานออกนอกหน้าต่าง 3) สาเหตุเสียชีวิตจากการแขวนติดเพดาน
           </div>
         </div>
 
@@ -2447,22 +2459,24 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets:</span>
             <div class="preset-btn-row">
-              <button class="preset-chip" onclick="applyPresetStage5('ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?', '🔴 โหวต A (นักมายากล)', '🟢 โหวต B (ตัวเหยื่อเอง)')">A จัดฉาก vs B ฆ่าตัวตาย</button>
-              <button class="preset-chip" onclick="applyPresetStage5('เวลาเสียชีวิตที่แท้จริงของเหยื่อเรียวตะ (B)?', '🔴 ก่อนเวลาไฟดับ (20:30)', '🟢 หลังเวลาไฟดับ (20:45)')">เวลาตาย ก่อน vs หลัง 20:30</button>
+              <button class="preset-chip" onclick="applyPresetStage5('คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?', '🔴 ฆาตกรรมจัดฉากโดย A', '🟢 ฆ่าตัวตายโดย B')">ฆาตกรรม vs ฆ่าตัวตาย</button>
+              <button class="preset-chip" onclick="applyPresetStage5('การยกร่างเหยื่อขึ้นเพดาน เกิดจากแรงคนดึงสดๆ หรือกลไกถ่วงน้ำหนัก!?', '🔴 คนร้ายดึงเชือกด้วยตนเอง', '🟢 ถังน้ำหนักดึงอัตโนมัติ')">แรงคน vs ถังน้ำหนักอัตโนมัติ</button>
+              <button class="preset-chip" onclick="applyPresetStage5('เวลาที่เรียวตะ (B) ถูกแขวนคอเสียชีวิต เกิดขึ้นก่อนหรือตอนที่ไฟดับ!?', '🔴 ตายก่อนไฟดับ (20:15)', '🟢 ตายตอนไฟดับ (20:30)')">ตายก่อน vs หลังไฟดับ</button>
+              <button class="preset-chip" onclick="applyPresetStage5('ใครคือ Blackened ผู้บงการกลไกมรณะในครั้งนี้!?', '🔴 โหวต A (นักมายากล)', '🟢 โหวตบุคคลอื่นในคดี')">ตัดสิน Blackened</button>
             </div>
           </div>
           <div style="margin-top:10px;">
             <label style="font-size:0.85rem; color:#ccc;">หัวข้อการโต้เถียง (Scrum Topic):</label>
-            <input type="text" id="cfgStg5Topic" class="manual-code-input" style="width:100%; margin-top:4px;" value="ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?">
+            <input type="text" id="cfgStg5Topic" class="manual-code-input" style="width:100%; margin-top:4px;" value="คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?">
           </div>
           <div style="display:flex; gap:8px; margin-top:8px;">
             <div style="flex:1;">
               <label style="font-size:0.85rem; color:#ccc;">ฝ่ายซ้าย:</label>
-              <input type="text" id="cfgStg5Left" class="manual-code-input" style="width:100%; margin-top:4px;" value="🔴 โหวต A (นักมายากล)">
+              <input type="text" id="cfgStg5Left" class="manual-code-input" style="width:100%; margin-top:4px;" value="🔴 ฆาตกรรมจัดฉากโดย A">
             </div>
             <div style="flex:1;">
               <label style="font-size:0.85rem; color:#ccc;">ฝ่ายขวา:</label>
-              <input type="text" id="cfgStg5Right" class="manual-code-input" style="width:100%; margin-top:4px;" value="🟢 โหวต B (ตัวเหยื่อเอง)">
+              <input type="text" id="cfgStg5Right" class="manual-code-input" style="width:100%; margin-top:4px;" value="🟢 ฆ่าตัวตายโดย B">
             </div>
           </div>
         </div>
@@ -2472,13 +2486,33 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets:</span>
             <div class="preset-btn-row">
-              <button class="preset-chip" onclick="applyPresetStage6('นักมายากล (A)', 'ไม่มีทาง! แผนการมายากลอันสมบูรณ์แบบของฉันไม่มีวันล้มเหลวเด็ดขาด!!')">ปฏิเสธแผนมายากล</button>
-              <button class="preset-chip" onclick="applyPresetStage6('นักมายากล (A)', 'พวกแกคิดว่าตัวเองฉลาดนักเหรอ!? ไม่มีหลักฐานมัดตัวฉันได้หรอก!')">ท้าทายหลักฐาน</button>
+              <button class="preset-chip" onclick="applyPresetStage6('นักมายากล (A)', 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!')">ปฏิเสธกลไกเชือกและน้ำ</button>
+              <button class="preset-chip" onclick="applyPresetStage6('นักมายากล (A)', 'กระดูกหมูในหม้อสตูว์ก็แค่ของทำอาหาร! จะมาปรักปรำว่าเป็นอาวุธฟาดหัวได้ยังไงกัน!?')">ข้ออ้างกระดูกหมู</button>
+              <button class="preset-chip" onclick="applyPresetStage6('นักมายากล (A)', 'พวกแกไม่มีหลักฐานมัดตัวฉันหรอก! มายากลอันสมบูรณ์แบบของฉัน... ไม่มีวันพังทลายเด็ดขาด!!')">คำดิ้นรนสุดท้าย</button>
             </div>
           </div>
           <div style="margin-top:10px;">
             <label style="font-size:0.85rem; color:#ccc;">คำพูดดิ้นรนของคนร้าย:</label>
-            <input type="text" id="cfgStg6Scream" class="manual-code-input" style="width:100%; margin-top:4px;" value="ไม่มีทาง! แผนการมายากลอันสมบูรณ์แบบของฉันไม่มีวันล้มเหลวเด็ดขาด!!">
+            <input type="text" id="cfgStg6Scream" class="manual-code-input" style="width:100%; margin-top:4px;" value="ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!">
+          </div>
+        </div>
+
+        <!-- Stage 7 Config (Closing Argument) -->
+        <div id="cfgPaneStage7" class="cfg-pane hidden">
+          <div class="preset-group">
+            <span class="preset-title">⚡ 1-Click Presets (Closing Argument):</span>
+            <div class="preset-btn-row">
+              <button class="preset-chip" onclick="applyPresetStage7('full')">📖 โหลดลำดับมังงะคดีห้องซักผ้าฉบับสมบูรณ์</button>
+            </div>
+          </div>
+          <div style="margin-top:10px; font-size:0.85rem; color:#bbb; line-height:1.6; background:#141424; padding:10px; border-radius:6px; border:1px solid #333348;">
+            <strong>ลำดับเหตุการณ์คดี:</strong><br>
+            1. 17:30 น. B ถูกทุบสลบในครัวด้วยท่อนกระดูกหมูสตูว์<br>
+            2. คนร้ายเคลื่อนย้ายร่าง B ที่หมดสติมายังห้องซักผ้า<br>
+            3. พาดเชือกไนลอนสีชมพูผ่านท่อเพดาน ออกนอกหน้าต่างสูงไปยังถังน้ำนอกอาคาร<br>
+            4. ต่อสายยางน้ำประปาปล่อยน้ำเติมลงถังถ่วงน้ำหนักอย่างช้าๆ<br>
+            5. ตั้งเครื่องอบผ้าหมุนรองเท้าบูท สร้างเสียงต่อสู้หลอกเวลา 21:00 น.<br>
+            6. มวลน้ำถ่วงเต็มที่ ถังน้ำตกลงสู่พื้นคอร์ทยาร์ด ดึงร่าง B แขวนติดเพดานห้องซักผ้า!
           </div>
         </div>
 
@@ -2517,8 +2551,54 @@
     </div>
   </div>
 
+  <!-- ============================================== -->
+  <!-- MODAL 4: PC KEYBOARD HOTKEYS GUIDE MODAL       -->
+  <!-- ============================================== -->
+  <div id="hotkeysModal" class="modal-backdrop hidden">
+    <div class="modal-dialog" style="max-width:680px;">
+      <div class="modal-title-bar">
+        <h3 class="modal-title">⌨️ PC KEYBOARD SHORTCUTS // คีย์ลัดคอมพิวเตอร์</h3>
+        <button class="modal-close-btn" onclick="closeHotkeysModal()">✕</button>
+      </div>
+      <div class="hotkeys-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px;">
+        <!-- DM Section -->
+        <div class="hotkey-section" style="background:#141424; padding:12px; border-radius:8px; border:1px solid #333348;">
+          <h4 style="color:#ff2a8d; margin-top:0; margin-bottom:8px; font-size:0.95rem;">👑 สำหรับ DM Admin</h4>
+          <ul style="list-style:none; padding:0; margin:0; font-size:0.85rem; line-height:1.8;">
+            <li><kbd class="key-badge">Space</kbd> เริ่ม / หยุด นาฬิกาจับเวลา</li>
+            <li><kbd class="key-badge">1</kbd> – <kbd class="key-badge">8</kbd> สลับมินิเกม Stage 1-8 ทันที</li>
+            <li><kbd class="key-badge">0</kbd> กลับสู่หน้าแท่นศาล (Trial Podium)</li>
+            <li><kbd class="key-badge">P</kbd> เปิดหน้าต่าง Presets มินิเกม</li>
+            <li><kbd class="key-badge">G</kbd> ยิง Glitch / Shake ไปยังจอศาล</li>
+            <li><kbd class="key-badge">M</kbd> ปิด / เปิดเสียง BGM & บรรยากาศ</li>
+          </ul>
+        </div>
+        <!-- Player Section -->
+        <div class="hotkey-section" style="background:#141424; padding:12px; border-radius:8px; border:1px solid #333348;">
+          <h4 style="color:#00e5ff; margin-top:0; margin-bottom:8px; font-size:0.95rem;">🎮 สำหรับผู้เล่น (Player)</h4>
+          <ul style="list-style:none; padding:0; margin:0; font-size:0.85rem; line-height:1.8;">
+            <li><kbd class="key-badge">1</kbd> – <kbd class="key-badge">5</kbd> หรือ <kbd class="key-badge">Tab</kbd> สลับแท็บหน้าจอ</li>
+            <li><kbd class="key-badge">←</kbd> <kbd class="key-badge">→</kbd> เลื่อนเปิดดูการ์ดหลักฐาน</li>
+            <li><kbd class="key-badge">Enter</kbd> ยืนยันการโหวต / ส่งหลักฐาน</li>
+            <li><kbd class="key-badge">O</kbd> ลุกขึ้นแย้ง (Objection!)</li>
+            <li><kbd class="key-badge">Esc</kbd> ปิดหน้าต่างหรือ Popup ทุกชนิด</li>
+            <li><kbd class="key-badge">?</kbd> เปิด/ปิด หน้าต่างคีย์ลัดนี้</li>
+          </ul>
+        </div>
+      </div>
+      <div style="text-align:right; margin-top:16px;">
+        <button class="small-btn pink" onclick="closeHotkeysModal()">รับทราบ (Close)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Desktop PC Hotkeys Help Button -->
+  <button id="btnOpenHotkeys" class="floating-hotkeys-btn pc-only-btn" onclick="openHotkeysModal()" title="ดูรายการคีย์ลัดคอมพิวเตอร์ (Hotkey: ?)">
+    ⌨️ Hotkeys
+  </button>
+
   <script src="/js/jsQR.min.js"></script>
-  <script src="/js/client.js?v=3.3.0"></script>
+  <script src="/js/client.js?v=3.4.0"></script>
   <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>

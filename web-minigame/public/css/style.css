@@ -6032,3 +6032,263 @@ body.view-simulation .execution-cutscene-overlay {
     object-fit: contain !important;
   }
 }
+
+/* ==========================================================
+   DESKTOP PC OPTIMIZATION & ERGONOMICS ENGINE
+   ========================================================== */
+
+/* PC Keyboard Shortcuts Guide Modal & Badges */
+#hotkeysModal .modal-dialog {
+  max-width: 680px;
+  background: #0d0d1a;
+  border: 2px solid var(--mono-pink);
+  box-shadow: 0 0 30px rgba(255, 42, 141, 0.35);
+}
+
+.key-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #fff;
+  background: #1e1e32;
+  border: 1px solid #4a4a6e;
+  border-bottom: 2.5px solid #5a5a88;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  margin-right: 6px;
+}
+
+.floating-hotkeys-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  background: rgba(18, 18, 32, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid var(--mono-pink);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.floating-hotkeys-btn:hover {
+  background: var(--mono-pink);
+  color: #000;
+  box-shadow: 0 0 20px rgba(255, 42, 141, 0.8);
+  transform: translateY(-2px) scale(1.04);
+}
+
+.court-desktop-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .pc-only-btn {
+    display: none !important;
+  }
+}
+
+/* Court Screen 16:9 Aspect Ratio & Cinema Letterbox */
+#viewCourt {
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+#viewCourt:fullscreen,
+#viewCourt:-webkit-full-screen,
+#viewCourt.court-fullscreen-mode {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  background: #000 !important;
+  padding: 12px 20px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+#viewCourt:fullscreen .court-top-bar,
+#viewCourt:-webkit-full-screen .court-top-bar,
+#viewCourt.court-fullscreen-mode .court-top-bar {
+  width: 100% !important;
+  max-width: 177.78vh !important;
+  flex-shrink: 0 !important;
+}
+
+#viewCourt:fullscreen .court-stage-arena,
+#viewCourt:-webkit-full-screen .court-stage-arena,
+#viewCourt.court-fullscreen-mode .court-stage-arena {
+  width: 100% !important;
+  max-width: 177.78vh !important;
+  aspect-ratio: 16 / 9 !important;
+  flex: 1 1 auto !important;
+}
+
+/* DM Admin 3-Column Command Dashboard on PC (>= 1180px) */
+@media (min-width: 1180px) {
+  #viewAdmin {
+    max-width: 1760px;
+    width: 96%;
+    margin: 0 auto;
+  }
+
+  #viewAdmin .admin-grid {
+    display: grid !important;
+    grid-template-columns: 310px minmax(520px, 1fr) 350px !important;
+    gap: 20px !important;
+    align-items: start !important;
+  }
+
+  #viewAdmin .admin-col.master-col,
+  #viewAdmin .admin-col.side-col {
+    display: contents !important;
+  }
+
+  /* Center Column: Stage & Minigame Selector */
+  #viewAdmin .admin-col.master-col > .admin-card:nth-child(1) {
+    grid-column: 2 / 3 !important;
+    grid-row: 1 / 4 !important;
+  }
+
+  /* Left Column Top: Timer Controls */
+  #viewAdmin .admin-col.master-col > .admin-card:nth-child(2) {
+    grid-column: 1 / 2 !important;
+    grid-row: 1 / 2 !important;
+  }
+
+  /* Left Column Mid: Verdict Execution */
+  #viewAdmin .admin-col.master-col > .admin-card:nth-child(3) {
+    grid-column: 1 / 2 !important;
+    grid-row: 2 / 3 !important;
+  }
+
+  /* Left Column Bottom: Session / Reset Management */
+  #viewAdmin .admin-col.side-col > .admin-card:nth-child(3) {
+    grid-column: 1 / 2 !important;
+    grid-row: 3 / 4 !important;
+  }
+
+  /* Right Column Top: Connected Players Table */
+  #viewAdmin .admin-col.side-col > .admin-card:nth-child(1) {
+    grid-column: 3 / 4 !important;
+    grid-row: 1 / 2 !important;
+  }
+
+  /* Right Column Bottom: Monokuma Soundboard */
+  #viewAdmin .admin-col.side-col > .admin-card:nth-child(2) {
+    grid-column: 3 / 4 !important;
+    grid-row: 2 / 4 !important;
+  }
+}
+
+/* Player Screen Desktop Dual-Pane Layout (>= 1024px) */
+@media (min-width: 1024px) and (hover: hover) {
+  #viewPlayer {
+    max-width: 1560px;
+    width: 96%;
+    margin: 0 auto;
+  }
+
+  #viewPlayer #mobileGameScreen {
+    max-width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 430px 1fr !important;
+    grid-template-rows: auto auto 1fr !important;
+    gap: 16px !important;
+    align-items: start !important;
+  }
+
+  #viewPlayer .player-top-strip {
+    grid-column: 1 / -1 !important;
+  }
+
+  #viewPlayer .monopad-device-bar {
+    grid-column: 1 / -1 !important;
+  }
+
+  #viewPlayer .player-nav-tabs {
+    grid-column: 2 / 3 !important;
+  }
+
+  /* Left pane: Permanent Truth Bullet Monopad */
+  #viewPlayer #playerSectionClues {
+    grid-column: 1 / 2 !important;
+    grid-row: 2 / 4 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #0f0f1c !important;
+    border: 1px solid #2e2e4e !important;
+    border-radius: 10px !important;
+    padding: 16px !important;
+    height: calc(100vh - 160px) !important;
+    max-height: calc(100vh - 160px) !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  #viewPlayer #playerSectionClues .p-clues-grid {
+    grid-template-columns: 1fr !important;
+    max-height: none !important;
+  }
+
+  /* Right pane: Active Task or Alternate Nav Tabs */
+  #viewPlayer .player-tab-pane:not(#playerSectionClues) {
+    grid-column: 2 / 3 !important;
+    grid-row: 3 / 4 !important;
+    min-height: calc(100vh - 240px) !important;
+    max-height: calc(100vh - 160px) !important;
+    overflow-y: auto !important;
+  }
+
+  #viewPlayer .player-tab-pane.hidden:not(#playerSectionClues) {
+    display: none !important;
+  }
+}
+
+/* Desktop Ergonomics & Polish */
+@media (hover: hover) {
+  .clue-card:hover {
+    border-color: var(--court-gold);
+    box-shadow: 0 0 16px rgba(255, 230, 0, 0.35);
+    transform: translateY(-2px);
+  }
+
+  .dm-act-btn:hover {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .sound-btn:hover {
+    border-color: var(--mono-pink);
+    color: var(--mono-pink);
+    box-shadow: 0 0 10px rgba(255, 42, 141, 0.4);
+    transform: scale(1.02);
+  }
+
+  .preset-chip:hover {
+    background: var(--mono-pink);
+    color: #000;
+    border-color: var(--mono-pink);
+    box-shadow: 0 0 10px rgba(255, 42, 141, 0.6);
+  }
+}
+

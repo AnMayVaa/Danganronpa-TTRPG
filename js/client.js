@@ -410,7 +410,7 @@ let gameState = {
   stg6Statement: "ฉันไม่ได้ทำอะไรทั้งนั้น! ตอนนั้นฉันต้มน้ำซุปอยู่ในครัวคนเดียว!!",
   stg6Denials: [
     "ฉันไม่ได้ทำอะไรทั้งนั้น! ตอนนั้นฉันต้มน้ำซุปอยู่ในครัวคนเดียว!!",
-    "แล้วเชือกนั่นล่ะ? ถ้าไม่มีใครตัด เชือกมันจะขาดสะบั้นเองได้ยังไง?!",
+    "หน้าต่างห้องซักผ้าสูงตั้ง 3.5 เมตร ใครจะไปปีนออกไปผูกเชือกชักรอกร่างขึ้นเพดานได้?!",
     "หม้อสตูว์ใบนั้นไม่มีรอยเลือดของฉันสักหยดเดียวเลยนะ!!",
     "พวกแกไม่มีหลักฐานชิ้นสุดท้ายที่จะพิสูจน์การกระทำของฉันหรอก!!"
   ],
@@ -466,7 +466,14 @@ function getAudio() {
   return audioCtx;
 }
 
+let isAudioMuted = false;
+function toggleCourtAudioMute() {
+  isAudioMuted = !isAudioMuted;
+  showToast(isAudioMuted ? '🔇 ปิดเสียง (Audio Muted)' : '🔊 เปิดเสียง (Audio Unmuted)');
+}
+
 function playSfx(type) {
+  if (isAudioMuted) return;
   // 1. Check if muted via URL query parameter (?muted=1)
   try {
     const urlParams = new URLSearchParams(window.location.search);
@@ -510,6 +517,7 @@ function playSfx(type) {
 }
 
 function playSynthSfx(type) {
+  if (isAudioMuted) return;
   try {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('muted') === '1') return;
@@ -2408,14 +2416,15 @@ function setStage(stage, config) {
     playSfx('gavel');
   } else if (stage === 'stage2') {
     autoUnlockTrialClues();
-    gameState.stg2Word = "WATER CLOCK";
-    gameState.stg2Target = ["W", "A", "T", "E", "R", " ", "C", "L", "O", "C", "K"];
+    const word = (config && config.targetWord) ? config.targetWord.toUpperCase() : "WATER CLOCK";
+    gameState.stg2Word = word;
+    gameState.stg2Target = word.split('');
     gameState.stg2Board = gameState.stg2Target.map(c => c === ' ' ? ' ' : '_');
     gameState.stg2Mistakes = 0;
     gameState.stg2MaxMistakes = 5;
     gameState.hangmanTurnIdx = 0;
-    if (config) {
-      if (config.prompt) gameState.stg2Prompt = config.prompt;
+    if (config && config.prompt) {
+      gameState.stg2Prompt = config.prompt;
     }
     updateHangmanHealthDisplay();
     updateHangmanDisplay();
@@ -2440,6 +2449,13 @@ function setStage(stage, config) {
     playSfx('rebuttal');
   } else if (stage === 'stage4') {
     autoUnlockTrialClues();
+    if (config && config.route && typeof LOGIC_DIVE_ROUTES !== 'undefined' && LOGIC_DIVE_ROUTES[config.route]) {
+      gameState.stg4Route = config.route;
+      LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES[config.route];
+    } else if (!gameState.stg4Route) {
+      gameState.stg4Route = 'pulley';
+      if (typeof LOGIC_DIVE_ROUTES !== 'undefined') LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES.pulley;
+    }
     gameState.stg4Step = 1;
     gameState.stg4Votes = {};
     const crashNotice = document.getElementById('diveCrashNotice');
@@ -3214,38 +3230,74 @@ function adminSelectRebuttalChallenger() {
 }
 
 // 4. Logic Dive (Crash Without Revealing Answer + Admin Retry/Skip)
-const LOGIC_DIVE_DATA = [
-  {
-    step: 1,
-    question: "สาเหตุที่น้ำในถังหนักขึ้นเรื่อยๆ จนกระชากกลไกรอกเกิดจากอะไร?",
-    choices: {
-      A: "ฝนตกลงมาจากช่องระบายอากาศ",
-      B: "น้ำจากก๊อกที่เปิดไหลทิ้งไว้",
-      C: "มีคนแอบนำก้อนน้ำแข็งมาวาง"
+const LOGIC_DIVE_ROUTES = {
+  pulley: [
+    {
+      step: 1,
+      question: "ร่างของเหยื่อเรียวตะ (B) ถูกดึงขึ้นไปแขวนติดเพดานห้องซักผ้าได้อย่างไร?",
+      choices: {
+        A: "มีคนแอบซ่อนอยู่บนฝ้าเพดานช่วยดึง",
+        B: "ถังน้ำหนักนอกหน้าต่างตกลงมาถ่วงดึงเชือก",
+        C: "มอเตอร์เครื่องซักผ้ากระชากสายพาน"
+      },
+      correct: "B"
     },
-    correct: "B"
-  },
-  {
-    step: 2,
-    question: "เชือกที่ผูกกับถังน้ำขาดสะบั้นออกจากกันได้อย่างไร?",
-    choices: {
-      A: "เหยื่อเรียวตะ (B) ใช้มีดพกตัดเชือกเองจนหลุด",
-      B: "เชือกเปื่อยยุ่ยเพราะถูกน้ำแช่เป็นเวลานาน",
-      C: "มีดของคนร้ายบาดขาดระหว่างการต่อสู้"
+    {
+      step: 2,
+      question: "เชือกไนลอนพาดผ่านจุดไหนเพื่อยกตัวเหยื่อขึ้นสู่เพดาน?",
+      choices: {
+        A: "พาดผ่านท่อเหล็กบนเพดานออกไปนอกหน้าต่างสูง",
+        B: "ผูกติดกับใบพัดลมระบายอากาศบนผนัง",
+        C: "ร้อยผ่านรูระบายน้ำทิ้งที่พื้นห้อง"
+      },
+      correct: "A"
     },
-    correct: "A"
-  },
-  {
-    step: 3,
-    question: "สาเหตุการเสียชีวิตที่แท้จริงของเหยื่อเรียวตะ (B) คืออะไร?",
-    choices: {
-      A: "จมน้ำขาดอากาศหายใจในถัง",
-      B: "ถูกกะโหลกแตกด้วยหม้อสตูว์",
-      C: "คอหักจากการกระทำสุดท้ายที่ตนเองผูกบ่วงเชือก"
+    {
+      step: 3,
+      question: "สาเหตุการเสียชีวิตที่แท้จริงของเหยื่อเรียวตะ (B) คืออะไร?",
+      choices: {
+        A: "จมน้ำขาดอากาศหายใจในถัง",
+        B: "ถูกกะโหลกแตกด้วยหม้อสตูว์",
+        C: "ขาดอากาศหายใจจากการถูกเชือกดึงแขวนติดเพดาน"
+      },
+      correct: "C"
+    }
+  ],
+  timeline: [
+    {
+      step: 1,
+      question: "ใครหรือสิ่งใดเป็นตัวเติมน้ำลงในถังถ่วงน้ำหนักจนเกิดแรงดึง?",
+      choices: {
+        A: "น้ำประปาเปิดทิ้งไว้ล่วงหน้าผ่านสายยาง",
+        B: "ฝนที่ตกลงมาใส่ถังอย่างกะทันหัน",
+        C: "เหยื่อเป็นคนแบกน้ำไปเทใส่ถังเอง"
+      },
+      correct: "A"
     },
-    correct: "C"
-  }
-];
+    {
+      step: 2,
+      question: "เสียงตึงตังโครมครามเวลา 21:00 น. แท้จริงคืออะไร?",
+      choices: {
+        A: "เสียงการต่อสู้จริงระหว่างคนร้ายกับเหยื่อ",
+        B: "รองเท้าบูทหมุนในเครื่องอบผ้าที่ตั้งเวลาดีเลย์ไว้",
+        C: "เสียงถังน้ำตกกระทบพื้นคอร์ทยาร์ดภายนอก"
+      },
+      correct: "B"
+    },
+    {
+      step: 3,
+      question: "ใครคือผู้จัดวางกลไกทั้งหมดนี้โดยใช้ความเชี่ยวชาญ?",
+      choices: {
+        A: "นักมายากล (A) ผู้คุ้นเคยกับรอกและกลลวง",
+        B: "คนครัวผู้ทำสตูว์เนื้อ",
+        C: "ช่างซ่อมบำรุงประจำอาคาร"
+      },
+      correct: "A"
+    }
+  ]
+};
+
+let LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES.pulley;
 
 function handleLogicDiveVote(qStep, choice, voterId, pName) {
   if (gameState.stg4Step !== qStep) return;
@@ -3271,6 +3323,9 @@ function handleLogicDiveVote(qStep, choice, voterId, pName) {
 
 function evaluateLogicDiveMajority() {
   if (gameState.stg4Evaluating) return;
+  if (gameState.stg4Route && LOGIC_DIVE_ROUTES[gameState.stg4Route]) {
+    LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES[gameState.stg4Route];
+  }
   const currentData = LOGIC_DIVE_DATA.find(d => d.step === gameState.stg4Step);
   if (!currentData) return;
   gameState.stg4Evaluating = true;
@@ -3307,7 +3362,7 @@ function evaluateLogicDiveMajority() {
         showMinigameResult(
           true,
           "LOGIC DIVE CLEAR!",
-          "ทะลวงตรรกะจนพบความจริง! B ตัดเชือกและผูกบ่วงคอหักตายเอง!",
+          "ทะลวงตรรกะจนพบความจริง! ร่างของเรียวตะถูกกลไกรอกน้ำถ่วงดึงแขวนติดเพดานห้องซักผ้า!",
           "เส้นทางความคิดทั้งหมดเชื่อมโยงสู่ข้อสรุปที่แท้จริง!"
         );
       } else {
@@ -4668,7 +4723,7 @@ function closeAdminMinigameModal() {
 
 function selectConfigTab(stageKey) {
   currentSelectedConfigStage = stageKey;
-  const stages = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'];
+  const stages = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7'];
   stages.forEach(stg => {
     const tabBtn = document.getElementById('cfgTab' + stg.charAt(0).toUpperCase() + stg.slice(1));
     const pane = document.getElementById('cfgPane' + stg.charAt(0).toUpperCase() + stg.slice(1));
@@ -4690,14 +4745,26 @@ function applyPresetStage1(presetKey) {
   if (!pInput || !tSelect) return;
 
   if (presetKey === 'bone') {
-    pInput.value = "อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?";
+    pInput.value = "อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบในครัวตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?";
     tSelect.value = "EVD-02";
-  } else if (presetKey === 'knife') {
-    pInput.value = "B ใช้สิ่งใดในการตัดเชือกเพื่อพยายามหนีเอาชีวิตรอดจนเกิดการสะบัดหลุด!?";
-    tSelect.value = "EVD-12";
+  } else if (presetKey === 'rope') {
+    pInput.value = "หลักฐานชิ้นใดที่เชื่อมโยงร่างของเหยื่อเรียวตะจากท่อเพดานออกไปนอกหน้าต่างสูง 3.5 เมตร!?";
+    tSelect.value = tSelect.querySelector('option[value="EVD-09"]') ? "EVD-09" : (tSelect.querySelector('option[value="EVD-04"]') ? "EVD-04" : tSelect.value);
+  } else if (presetKey === 'window' || presetKey === 'pipe') {
+    pInput.value = "จุดใดในห้องซักรีดที่คนร้ายใช้พาดเชือกไนลอนเพื่อทำหน้าที่แทนรอกชักร่างขึ้นสู่ที่สูง!?";
+    tSelect.value = tSelect.querySelector('option[value="EVD-14"]') ? "EVD-14" : (tSelect.querySelector('option[value="EVD-04"]') ? "EVD-04" : tSelect.value);
+  } else if (presetKey === 'barrel') {
+    pInput.value = "วัตถุชิ้นใดภายนอกอาคารที่ทำหน้าที่เป็นน้ำหนักถ่วง (Counterweight) ดึงร่างเหยื่อขึ้นแขวนเพดาน!?";
+    tSelect.value = tSelect.querySelector('option[value="EVD-19"]') ? "EVD-19" : (tSelect.querySelector('option[value="EVD-06"]') ? "EVD-06" : tSelect.value);
+  } else if (presetKey === 'meter' || presetKey === 'hose') {
+    pInput.value = "อุปกรณ์ใดถูกปล่อยให้ทำงานอย่างต่อเนื่อง เพื่อค่อยๆ เติมน้ำหนักลงในถังถ่วงน้ำหนักจนถึงเวลาตาย!?";
+    tSelect.value = tSelect.querySelector('option[value="EVD-10"]') ? "EVD-10" : (tSelect.querySelector('option[value="EVD-12"]') ? "EVD-12" : tSelect.value);
   } else if (presetKey === 'dryer' || presetKey === 'timer') {
-    pInput.value = "อุปกรณ์ใดถูกตั้งเวลาล่วงหน้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น.!?";
+    pInput.value = "อุปกรณ์ใดถูกตั้งเวลาล่วงหน้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น. ในห้องซักรีด!?";
     tSelect.value = "EVD-05";
+  } else if (presetKey === 'knife') {
+    pInput.value = "สิ่งใดอยู่ในกระเป๋าเสื้อเหยื่อเรียวตะ (B) ที่ยืนยันว่าไม่มีการต่อสู้ระยะประชิดในห้องซักรีด!?";
+    tSelect.value = "EVD-12";
   }
 }
 
@@ -4716,7 +4783,15 @@ function applyPresetStage3(opp, arg) {
 }
 
 function applyPresetStage4(key) {
-  // Standard logic dive route
+  if (key === 'timeline') {
+    LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES.timeline;
+    gameState.stg4Route = 'timeline';
+    showToast("🛹 สลับ Logic Dive: Route 2 (The Blackened Timeline)");
+  } else {
+    LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES.pulley;
+    gameState.stg4Route = 'pulley';
+    showToast("🛹 สลับ Logic Dive: Route 1 (The Ceiling Pulley Trap)");
+  }
 }
 
 function applyPresetStage5(topic, left, right) {
@@ -4733,24 +4808,30 @@ function applyPresetStage6(opp, scream) {
   if (sInput) sInput.value = scream;
 }
 
+function applyPresetStage7(mode) {
+  showToast("📖 โหลดพรีเซ็ตคดีห้องซักผ้าฉบับสมบูรณ์เรียบร้อย");
+  logCourt("📖 [CLOSING PRESET]: DM โหลดพรีเซ็ตมังงะสรุปคดีห้องซักผ้าฉบับสมบูรณ์ (The Culprit B Timeline)");
+}
+
 function adminLaunchSelectedConfigGame() {
   const stg = currentSelectedConfigStage || 'stage1';
   let config = {};
 
   if (stg === 'stage1') {
     const prompt = document.getElementById('cfgStg1Prompt') ? document.getElementById('cfgStg1Prompt').value : '';
-    const target = document.getElementById('cfgStg1TargetClue') ? document.getElementById('cfgStg1TargetClue').value : 'EVD-01';
+    const target = document.getElementById('cfgStg1TargetClue') ? document.getElementById('cfgStg1TargetClue').value : 'EVD-02';
     config = { prompt: prompt, correctClueId: target };
   } else if (stg === 'stage2') {
     const prompt = document.getElementById('cfgStg2Prompt') ? document.getElementById('cfgStg2Prompt').value : '';
-    const word = document.getElementById('cfgStg2Word') ? document.getElementById('cfgStg2Word').value.trim() : 'นาฬิกาน้ำ';
+    const word = document.getElementById('cfgStg2Word') ? document.getElementById('cfgStg2Word').value.trim().toUpperCase() : 'WATER CLOCK';
     config = { prompt: prompt, targetWord: word };
   } else if (stg === 'stage3') {
     const opp = document.getElementById('cfgStg3Opponent') ? document.getElementById('cfgStg3Opponent').value : 'นักมายากล (A)';
     const arg = document.getElementById('cfgStg3Arg') ? document.getElementById('cfgStg3Arg').value : '';
     config = { opponent: opp, argument: arg };
   } else if (stg === 'stage4') {
-    config = {};
+    const route = (gameState.stg4Route === 'timeline' || LOGIC_DIVE_DATA === LOGIC_DIVE_ROUTES.timeline) ? 'timeline' : 'pulley';
+    config = { route: route };
   } else if (stg === 'stage5') {
     const topic = document.getElementById('cfgStg5Topic') ? document.getElementById('cfgStg5Topic').value : '';
     const left = document.getElementById('cfgStg5Left') ? document.getElementById('cfgStg5Left').value : '';
@@ -4759,12 +4840,194 @@ function adminLaunchSelectedConfigGame() {
   } else if (stg === 'stage6') {
     const scream = document.getElementById('cfgStg6Scream') ? document.getElementById('cfgStg6Scream').value : '';
     config = { opponent: 'นักมายากล (A)', scream: scream };
+  } else if (stg === 'stage7') {
+    config = { mode: 'full' };
+    setStage('closing', config);
+    broadcast({ type: 'set_stage', stage: 'closing', config: config });
+    closeAdminMinigameModal();
+    logCourt(`🎮 [MINIGAME LAUNCH]: DM เริ่มต้น CLOSING ARGUMENT พร้อมการตั้งค่าที่กำหนด`);
+    return;
   }
 
   setStage(stg, config);
   broadcast({ type: 'set_stage', stage: stg, config: config });
   closeAdminMinigameModal();
   logCourt(`🎮 [MINIGAME LAUNCH]: DM เริ่มต้น ${stg.toUpperCase()} พร้อมการตั้งค่าที่กำหนด`);
+}
+
+// ==========================================================
+// PC / DESKTOP CONTROLS: FULLSCREEN, POPOUT & HOTKEYS MODAL
+// ==========================================================
+function toggleCourtFullscreen() {
+  const courtEl = document.getElementById('viewCourt');
+  if (!courtEl) return;
+  if (!document.fullscreenElement) {
+    if (courtEl.requestFullscreen) {
+      courtEl.requestFullscreen().catch(err => {
+        console.warn('Fullscreen request failed:', err);
+        courtEl.classList.toggle('court-fullscreen-mode');
+      });
+    } else if (courtEl.webkitRequestFullscreen) {
+      courtEl.webkitRequestFullscreen();
+    } else {
+      courtEl.classList.toggle('court-fullscreen-mode');
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  }
+}
+
+function openCourtPopout() {
+  const url = window.location.origin + '/?view=court';
+  const popout = window.open(url, 'DanganronpaCourtScreen', 'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no,resizable=yes');
+  if (popout) {
+    popout.focus();
+    showToast('📺 เปิดหน้าต่างจอศาล (Court Screen) สำหรับแยกแสดงผลเรียบร้อย');
+  } else {
+    showToast('⚠️ เบราว์เซอร์บล็อก Pop-up กรุณาอนุญาต Pop-up บนเว็บไซต์นี้');
+  }
+}
+
+function openHotkeysModal() {
+  const modal = document.getElementById('hotkeysModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeHotkeysModal() {
+  const modal = document.getElementById('hotkeysModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function initGlobalKeyboardShortcuts() {
+  window.addEventListener('keydown', (e) => {
+    const tag = document.activeElement ? document.activeElement.tagName.toUpperCase() : '';
+    const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || document.activeElement.isContentEditable;
+
+    if (e.key === 'Escape') {
+      const modals = document.querySelectorAll('.modal-backdrop:not(.hidden)');
+      if (modals.length > 0) {
+        modals.forEach(m => m.classList.add('hidden'));
+        e.preventDefault();
+        return;
+      }
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+        e.preventDefault();
+        return;
+      }
+      if (isInput) {
+        document.activeElement.blur();
+        return;
+      }
+    }
+
+    if (isInput) return;
+
+    if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+      const hotkeysModal = document.getElementById('hotkeysModal');
+      if (hotkeysModal) {
+        if (hotkeysModal.classList.contains('hidden')) openHotkeysModal();
+        else closeHotkeysModal();
+        e.preventDefault();
+        return;
+      }
+    }
+
+    if (currentView === 'court') {
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleCourtFullscreen();
+        return;
+      }
+      if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        toggleCourtAudioMute();
+        return;
+      }
+    }
+
+    if (currentView === 'admin') {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        adminToggleTimer();
+        return;
+      }
+      if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        openAdminMinigameModal(currentSelectedConfigStage || 'stage1');
+        return;
+      }
+      if (e.key === 'g' || e.key === 'G') {
+        e.preventDefault();
+        triggerFx('glitch');
+        return;
+      }
+      if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        toggleCourtAudioMute();
+        return;
+      }
+      if (e.key >= '1' && e.key <= '8' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        const stageMap = {
+          '1': 'stage1',
+          '2': 'stage2',
+          '3': 'stage3',
+          '4': 'stage4',
+          '5': 'stage5',
+          '6': 'stage6',
+          '7': 'closing',
+          '8': 'stage7'
+        };
+        const targetStg = stageMap[e.key];
+        if (targetStg) {
+          if (targetStg === 'stage3') adminStartRebuttal();
+          else if (targetStg === 'stage6') adminStartArmament();
+          else adminSetGame(targetStg);
+          showToast(`⚡ DM Hotkey [${e.key}]: สลับไปยัง ${targetStg.toUpperCase()}`);
+        }
+        return;
+      }
+      if (e.key === '0') {
+        e.preventDefault();
+        adminSetGame('lobby');
+        showToast('⚡ DM Hotkey [0]: กลับสู่หน้าแท่นศาล (Lobby)');
+        return;
+      }
+    }
+
+    if (currentView === 'player' || currentView === 'mobile') {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const pTabs = ['game', 'clues', 'map', 'guide', 'rules'];
+        const activeTabEl = document.querySelector('.player-nav-tabs .p-nav-btn.active');
+        let nextIdx = 0;
+        if (activeTabEl) {
+          const curTab = activeTabEl.id.replace('pTab', '').toLowerCase();
+          const curIdx = pTabs.indexOf(curTab);
+          nextIdx = (curIdx + 1) % pTabs.length;
+        }
+        switchPlayerTab(pTabs[nextIdx]);
+        return;
+      }
+      if (['1', '2', '3', '4', '5'].includes(e.key) && !e.ctrlKey && !e.altKey) {
+        const tabList = { '1': 'game', '2': 'clues', '3': 'map', '4': 'guide', '5': 'rules' };
+        switchPlayerTab(tabList[e.key]);
+        e.preventDefault();
+        return;
+      }
+      if (e.key === 'o' || e.key === 'O') {
+        e.preventDefault();
+        triggerFx('counter');
+        showToast('⚡ ลุกขึ้นยืนแย้ง (OBJECTION!)');
+        return;
+      }
+    }
+  });
 }
 
 // ==========================================================
@@ -5134,6 +5397,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   handleRoute();
   initRealtime();
+  initGlobalKeyboardShortcuts();
 });
 
 window.addEventListener('beforeunload', () => {
