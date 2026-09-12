@@ -622,6 +622,11 @@ function setupPeerJS() {
   // Always connect to high-speed SSE real-time relay bus
   setupServerStream(roomCode);
 
+  if (typeof Peer === 'undefined') {
+    console.warn('[WEBRTC] PeerJS not loaded; using server relay.');
+    return;
+  }
+
   const hostPeerId = `dangan-court-${roomCode.toLowerCase()}`;
 
   // ONLY Courtroom main projector screen is Host!
@@ -706,6 +711,11 @@ function setupPeerJS() {
 
 function connectToHostPeer(hostId, onConnected) {
   isHost = false;
+
+  if (typeof Peer === 'undefined') {
+    console.warn('[WEBRTC] PeerJS not loaded; using server relay.');
+    return;
+  }
 
   // 1. If already connected and open, invoke callback immediately
   if (hostPeer && hostPeer.open) {
@@ -798,6 +808,11 @@ function setupServerStream(code) {
     serverStreamSource = null;
   }
   activeServerRoomCode = code;
+
+  if (typeof EventSource === 'undefined') {
+    console.warn('[SSE] EventSource not available.');
+    return;
+  }
 
   const sseUrl = '/api/rooms/' + encodeURIComponent(code) + '/stream';
   console.log('[SSE] Connecting to real-time message stream:', sseUrl);
@@ -1367,10 +1382,10 @@ function switchView(v) {
     try { simEventSource.close(); } catch(e) {}
     simEventSource = null;
   }
-  if (cameraScanningInterval) {
-    clearInterval(cameraScanningInterval);
-    cameraScanningInterval = null;
+  if (typeof stopCameraStream === 'function') {
+    try { stopCameraStream(); } catch(e) {}
   }
+
 
   // Set active view class on root elements to control navigation button visibility
   ['view-is-hub', 'view-is-court', 'view-is-admin', 'view-is-player', 'view-is-simulation', 'view-is-map'].forEach(cls => {
@@ -4343,7 +4358,9 @@ function updateMobileCredDisplay() {
 }
 
 function adminChangeRoomCode() {
-  const newCode = document.getElementById('inputNewRoomCode').value.trim().toUpperCase();
+  const el = document.getElementById('inputNewRoomCode');
+  if (!el) return;
+  const newCode = el.value.trim().toUpperCase();
   if (newCode) {
     roomCode = newCode;
     window.location.href = window.location.pathname + '?room=' + roomCode + '&view=' + currentView;
@@ -4728,6 +4745,7 @@ function closeAdminPrintCluesModal() {
 // ==========================================================
 let cameraStream = null;
 let cameraScanningRaf = null;
+let cameraScanningInterval = null;
 
 function openClueScannerModal() {
   const modal = document.getElementById('clueScanModal');
