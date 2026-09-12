@@ -949,9 +949,16 @@ function handleIncomingMessage(msg, senderConn) {
     applyState(msg.state);
   } else if (msg.type === 'request_claim_character') {
     if (!isHost) return;
-    const reqRole = msg.role;
+    let reqRole = msg.role;
     const reqName = msg.playerName;
     const senderId = senderConn ? senderConn.peer : (msg.userHash || currentUserHash || ('p_' + Math.random().toString(36).substr(2, 6)));
+
+    // Auto-assign available role if not specified
+    if (!reqRole) {
+      const defaultRoles = ['นักแต่งนิยาย', 'นักกีฬา', 'นักมายากล', 'นักชิม', 'นักแสดงผาดโผน', 'ช่างกล'];
+      const takenRoles = Object.values(gameState.players).map(p => p.role);
+      reqRole = defaultRoles.find(r => !takenRoles.includes(r)) || `นักเรียน (${Object.keys(gameState.players).length + 1})`;
+    }
 
     // Check if name is already claimed by someone else
     const existing = Object.values(gameState.players).find(p => (reqRole ? p.role === reqRole : p.name.toLowerCase() === reqName.toLowerCase()) && p.id !== senderId && p.userHash !== msg.userHash);
@@ -1032,7 +1039,7 @@ function handleIncomingMessage(msg, senderConn) {
     document.getElementById('mobileGameScreen').classList.remove('hidden');
 
     document.getElementById('pMyName').innerText = myPlayer.name;
-    document.getElementById('pMyRole').innerText = `[${myPlayer.role}]`;
+    document.getElementById('pMyRole').innerText = myPlayer.role ? `[${myPlayer.role}]` : '';
     const pHash = document.getElementById('pMyHash');
     if (pHash) pHash.innerText = '#' + (currentUserHash || 'USER');
 
@@ -3548,6 +3555,9 @@ function playerJoin() {
 
   if (!room) { alert('กรุณากรอกรหัสห้อง 6 หลัก'); return; }
   if (!name) { alert('กรุณากรอกชื่อของคุณ'); return; }
+
+  const roleSelect = document.getElementById('mobileRoleSelect');
+  const role = roleSelect ? roleSelect.value : (new URLSearchParams(window.location.search).get('role') || '');
 
   roomCode = room;
   localStorage.setItem('dangan_current_room', roomCode);

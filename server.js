@@ -92,6 +92,17 @@ function requestHandler(req, res) {
   }
 
   let cleanUrl = (req.url || '/').split('?')[0];
+  try {
+    const urlObj = new URL(req.url || '/', 'http://localhost');
+    const routeParam = urlObj.searchParams.get('__route');
+    if (routeParam) {
+      cleanUrl = '/api/' + routeParam;
+    } else if (req.headers && req.headers['x-matched-path'] && req.headers['x-matched-path'].startsWith('/api')) {
+      cleanUrl = req.headers['x-matched-path'];
+    } else if (req.headers && req.headers['x-vercel-matched-path'] && req.headers['x-vercel-matched-path'].startsWith('/api')) {
+      cleanUrl = req.headers['x-vercel-matched-path'];
+    }
+  } catch(e) {}
 
   // -------------------------------------------------------------
   // 1. SSE REAL-TIME STREAM: GET /api/rooms/:code/stream (Fixes BUG-08, BUG-11, BUG-20)
