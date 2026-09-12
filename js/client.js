@@ -5652,7 +5652,8 @@ const ACADEMY_ROOMS_DATA = {
   'laundry': {
     badge: '🧺 จุดเกิดเหตุสำคัญ (CRIME SCENE)',
     title: 'ห้องซักรีด ปีกบริการชั้น 1 (Laundry Room)',
-    image: 'assets/crime_scene_victim_discovery.jpg',
+    image: 'assets/room_laundry.jpg',
+    crimeImage: 'assets/crime_scene_laundry.jpg',
     arch: 'ห้องซักรีดเพดานสูง 4.0 เมตร คานเพดานติดตั้งราวท่อสแตนเลสกลมแขวนผ้าแห้ง (ผิวเรียบมัน ทนแรงดึงสูง) มีเครื่องซักผ้าและเครื่องอบผ้าตั้งเวลา ผนังด้านหลังมีหน้าต่างระบายอากาศบานกระทุ้งเหล็กดัด สูงจากพื้นลานปูนด้านนอก 3.5 เมตร และก๊อกน้ำประปาที่ต่อสายยางลอดออกนอกหน้าต่าง',
     clues: [
       '<strong>EVD-04 (เชือกขาด):</strong> เชือกตากผ้าไนลอนมีรอยมีดตัดเรียบกริบ (ไม่ใช่รอยขาดจากแรงกระชาก)',
@@ -5730,7 +5731,7 @@ const ACADEMY_ROOMS_DATA = {
   'corridor': {
     badge: '🏛️ โถงทางเดินกลาง',
     title: 'โถงทางเดินกลาง (Central Corridor)',
-    image: 'assets/item_vending_machine.jpg',
+    image: 'assets/room_central_corridor.jpg',
     arch: 'ทางเดินกว้างเชื่อมต่อทุกโซนในอาคาร มีตู้กดเครื่องดื่มอัตโนมัติ (กินเหรียญ 17:45 น.) และบอร์ดประชาสัมพันธ์โรงเรียน',
     clues: [
       '<strong>ตู้กดน้ำกินเหรียญ (17:45 น.):</strong> PC 1 ยืนก้มหน้าทุบตู้เสียงดัง เปิดช่องให้คนร้ายห่อกระดูกเดินผ่านหลังเข้าครัว!',
