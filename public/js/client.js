@@ -1672,8 +1672,8 @@ function initPlayerSession(hash) {
 let currentClueFilter = 'ALL';
 
 function switchPlayerTab(tab) {
-  const tabs = ['pTabGame', 'pTabChar', 'pTabClues', 'pTabGuide'];
-  const panes = ['playerSectionGame', 'playerSectionChar', 'playerSectionClues', 'playerSectionGuide'];
+  const tabs = ['pTabGame', 'pTabChar', 'pTabClues', 'pTabMap', 'pTabGuide', 'pTabRules'];
+  const panes = ['playerSectionGame', 'playerSectionChar', 'playerSectionClues', 'playerSectionMap', 'playerSectionGuide', 'playerSectionRules'];
 
   tabs.forEach(t => {
     const el = document.getElementById(t);
@@ -1701,9 +1701,19 @@ function switchPlayerTab(tab) {
     if (t) t.classList.add('active');
     if (p) p.classList.remove('hidden');
     renderPlayerCluesList();
+  } else if (tab === 'map') {
+    const t = document.getElementById('pTabMap');
+    const p = document.getElementById('playerSectionMap');
+    if (t) t.classList.add('active');
+    if (p) p.classList.remove('hidden');
   } else if (tab === 'guide') {
     const t = document.getElementById('pTabGuide');
     const p = document.getElementById('playerSectionGuide');
+    if (t) t.classList.add('active');
+    if (p) p.classList.remove('hidden');
+  } else if (tab === 'rules') {
+    const t = document.getElementById('pTabRules');
+    const p = document.getElementById('playerSectionRules');
     if (t) t.classList.add('active');
     if (p) p.classList.remove('hidden');
   }
@@ -1880,13 +1890,13 @@ function renderPlayerCharSheet() {
 }
 
 const ALL_CLUES_DATA = [
-  { id: "EVD-01", aliases: ["FILE-01", "AUTOP-01", "1", "E1"], name: "Monokuma File #1", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "แจกทุกคนทันทีที่เริ่มการสืบสวน", desc: "รายงานชันสูตรศพเหยื่อ B: เวลาเสียชีวิตโดยประมาณ 21:00 น. สภาพศพพบบาดแผลแตกฉีกขาดที่บริเวณท้ายทอย และพบการแตกหักของกระดูกคอข้อที่ 1-2 ร่วมกับภาวะขาดอากาศหายใจ สภาพการแต่งกายสวมถุงเท้าผ้า ไม่สวมรองเท้า" },
+  { id: "EVD-01", aliases: ["FILE-01", "AUTOP-01", "1", "E1"], name: "Monokuma File #1", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "แจกทุกคนทันทีที่เริ่มการสืบสวน", desc: "รายงานชันสูตรศพเหยื่อเรียวตะ (B): เวลาเสียชีวิตโดยประมาณ 21:00 น. สภาพศพพบบาดแผลแตกฉีกขาดที่บริเวณท้ายทอย และพบการแตกหักของกระดูกคอข้อที่ 1-2 ร่วมกับภาวะขาดอากาศหายใจ น้ำหนักตัว 65 กิโลกรัม สภาพการแต่งกายสวมถุงเท้าผ้า ไม่สวมรองเท้า" },
   { id: "EVD-02", aliases: ["BONE-02", "STEW-02", "2", "E2"], name: "ท่อนกระดูกหมูในหม้อสตูว์", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องครัว (ก้นหม้อสตูว์)", desc: "ท่อนกระดูกหมูต้มสุกขนาดความยาวประมาณ 25 ซม. 2 ท่อนจมอยู่ก้นหม้อสตูว์เนื้อ บนผิวกระดูกท่อนหนึ่งพบรอยแตกร้าวและคราบสีคล้ำติดแน่นตามรอยแยก" },
   { id: "EVD-04", aliases: ["ROPE-04", "CUT-04", "4", "E4"], name: "เชือกไนลอนสีชมพูบนพื้น", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (พื้นข้างศพ B)", desc: "เชือกไนลอนถักสีชมพูขนาดเส้นผ่านศูนย์กลาง 8 มม. ขดอยู่บนพื้นห้องซักรีด ปลายเชือกด้านหนึ่งผูกเป็นบ่วงเงื่อนคล้อง ส่วนปลายเชือกอีกด้านหนึ่งมีรอยตัดผิวเรียบ" },
-  { id: "EVD-05", aliases: ["KNIFE-05", "BLADE-05", "5", "E5"], name: "มีดพับในกระเป๋าเสื้อเหยื่อ B", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ร่างเหยื่อ B (กระเป๋าเสื้อแจ็กเก็ต)", desc: "มีดพับอเนกประสงค์ขนาดความยาวใบมีด 7 ซม. ในสภาพกางใบมีดค้างไว้ พบอยู่ในกระเป๋าเสื้อแจ็กเก็ตของเหยื่อ B บริเวณโคนใบมีดมีเศษเส้นใยสังเคราะห์สีชมพูติดอยู่" },
+  { id: "EVD-05", aliases: ["KNIFE-05", "BLADE-05", "5", "E5"], name: "มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ (B)", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ร่างเหยื่อเรียวตะ (B) (กระเป๋าเสื้อแจ็กเก็ต)", desc: "มีดพับอเนกประสงค์ขนาดความยาวใบมีด 7 ซม. ในสภาพกางใบมีดค้างไว้ พบอยู่ในกระเป๋าเสื้อแจ็กเก็ตของเหยื่อเรียวตะ (B) บริเวณโคนใบมีดมีเศษเส้นใยสังเคราะห์สีชมพูติดอยู่" },
   { id: "EVD-06", aliases: ["BUCKET-06", "TUB-06", "6", "E6"], name: "ซากถังพลาสติกและสายยาง", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ลานปูนด้านหลัง (ใต้แนวหน้าต่างห้องซักรีด)", desc: "ถังพลาสติกใส่ผ้าซักทรงกระบอกความจุประมาณ 80 ลิตร ตกแตกกระจายบนพื้นคอนกรีต ปลายสายยางสีฟ้าสอดผ่านช่องมือจับของตัวถังและมีปลายเชือกไนลอนผูกยึดไว้กับโครงถัง" },
   { id: "EVD-07", aliases: ["RAIL-07", "PIPE-07", "7", "E7"], name: "ราวท่อสแตนเลสเพดานห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (เพดานสูง 4 เมตร)", desc: "ท่อสแตนเลสแขวนผ้าติดตั้งขนานกับแนวเพดานที่ระดับความสูง 4 เมตร เหนือบานหน้าต่างบานเลื่อน บริเวณผิวด้านบนของท่อมีรอยขูดถลอกเป็นแถบแนวยาว" },
-  { id: "EVD-09", aliases: ["DRYER-09", "BOOTS-09", "9", "E9"], name: "เครื่องอบผ้า DRY-1", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (เครื่องอบผ้าอุตสาหกรรม)", desc: "เครื่องอบผ้าอุตสาหกรรม DRY-1 หน้าปัดดิจิทัลแสดงสถานะทำงานเสร็จสิ้น ภายในถังซักพบรองเท้าบูทหนังหุ้มข้อ 1 คู่ ป้ายผ้าที่ลิ้นรองเท้าระบุชื่อของเหยื่อ B" },
+  { id: "EVD-09", aliases: ["DRYER-09", "BOOTS-09", "9", "E9"], name: "เครื่องอบผ้า DRY-1", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (เครื่องอบผ้าอุตสาหกรรม)", desc: "เครื่องอบผ้าอุตสาหกรรม DRY-1 หน้าปัดดิจิทัลแสดงสถานะทำงานเสร็จสิ้น ภายในถังซักพบรองเท้าบูทหนังหุ้มข้อ 1 คู่ ป้ายผ้าที่ลิ้นรองเท้าระบุชื่อของเหยื่อเรียวตะ (B)" },
   { id: "EVD-17", aliases: ["TEST-05", "PC5-17", "17", "E17", "ALIBI-05"], name: "คำให้การของ PC 5", importance: "MUST", secretType: "TESTIMONY", typeLabel: "คำให้การนักเรียน", loc: "ห้องครัว / ห้องอาหาร (สอบถาม PC 5)", desc: "คำให้การ: \"ฉันมีเวรทำอาหารมื้อค่ำตามตารางใน Monopad ตั้งแต่ 17:45 ถึง 18:30 น. ฉันอยู่ในห้องครัวต้มสตูว์เนื้อตลอดเวลา ไม่ได้ออกไปข้างนอก\"" },
   { id: "EVD-27", aliases: ["TOWEL-27", "27", "E27", "BLOOD-27"], name: "ผ้าขนหนูสีกรมท่าในถังขยะครัว", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องครัว (ใต้ถุงขยะดำก้นถัง)", desc: "ผ้าขนหนูสีกรมท่าเนื้อหนาถูกขยำอยู่ใต้ถุงขยะสีดำบริเวณก้นถังขยะในครัว เมื่อคลี่ออกพบรอยเปื้อนสีน้ำตาลคล้ำแห้งกรังกระจายอยู่บนผืนผ้า" },
   { id: "EVD-31", aliases: ["TOWEL-31", "RACK-31", "31", "E31", "LAUNDRY-31"], name: "ราวแขวนผ้าขนหนูห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (ราวแขวนผ้าข้างอ่างล้าง)", desc: "ราวสแตนเลสข้างอ่างล้างมือมีผ้าขนหนูสีกรมท่าแขวนเรียงอยู่ 4 ผืน โดยมีช่องว่างของตะขอแขวนว่างเว้นอยู่ 1 จุด" },
@@ -1894,7 +1904,7 @@ const ALL_CLUES_DATA = [
   { id: "EVD-08", aliases: ["HOSE-08", "SPLASH-08", "8", "E8"], name: "ก๊อกน้ำและผนังห้องซักรีด", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องซักรีด (ก๊อกน้ำข้างอ่างล้าง)", desc: "วาล์วก๊อกน้ำผนังห้องซักรีดอยู่ในตำแหน่งเปิด ปลายสายยางหลุดออกจากหัวก๊อกตกอยู่ที่พื้น ผนังปูนและพื้นกระเบื้องโดยรอบมีรอยน้ำสาดเปียก" },
   { id: "EVD-10", aliases: ["VEND-10", "COIN-10", "10", "E10"], name: "ตู้กดน้ำอัตโนมัติโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "โถงทางเดินกลาง (CORR-100)", desc: "ตู้กดเครื่องดื่มอัตโนมัติบริเวณโถงทางเดินกลาง มีรอยบุบที่แผงข้างตู้ และมีเหรียญโลหะติดค้างอยู่ในช่องหยอดเหรียญ" },
   { id: "EVD-11", aliases: ["MAP-11", "BOARD-11", "11", "E11"], name: "แผนผังอาคารบนบอร์ดประชาสัมพันธ์", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "แผนผังอาคารเรียนชั้น 1 แสดงพื้นที่ลานบริการด้านหลังเป็นพื้นที่ปิด ล้อมรอบด้วยแนวกำแพงคอนกรีตสูง 5 เมตร โดยไม่มีช่องประตูหรือบันไดทางออกสู่ภายนอก" },
-  { id: "EVD-12", aliases: ["METER-12", "WATER-12", "12", "E12"], name: "มาตรวัดน้ำประปาหลัก", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "มาตรวัดน้ำประปาของอาคาร ตัวเลขหน้าปัดแสดงปริมาณน้ำใช้งานสะสม 82.5 ลิตร เข็มวัดปริมาณน้ำยังคงหมุนช้าๆ ด้วยอัตราการไหลประมาณ 0.5 ลิตรต่อนาที" },
+  { id: "EVD-12", aliases: ["METER-12", "WATER-12", "12", "E12"], name: "มาตรวัดน้ำประปาหลัก", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "มาตรวัดน้ำประปาของอาคาร ตัวเลขหน้าปัดแสดงปริมาณน้ำใช้งานสะสม 65.2 ลิตร เข็มวัดปริมาณน้ำยังคงหมุนช้าๆ ด้วยอัตราการไหลประมาณ 0.4 ลิตรต่อนาที" },
   { id: "EVD-13", aliases: ["TEST-01", "PC1-13", "13", "E13"], name: "คำให้การของ PC 1", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การนักเรียน", loc: "โถงทางเดินกลาง (สอบถาม PC 1)", desc: "คำให้การ: \"ช่วงประมาณ 17:45 น. ฉันทุบตู้กดน้ำที่กินเหรียญอยู่ที่โถงทางเดินกลาง ได้ยินเสียงน้ำไหลเบาๆ ในแนวกำแพงข้างห้องซักรีด\"" },
   { id: "EVD-14", aliases: ["TEST-02", "PC2-14", "14", "E14"], name: "คำให้การของ PC 2", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การนักเรียน", loc: "โรงยิม (สอบถาม PC 2)", desc: "คำให้การ: \"ตอน 17:30 ถึง 18:00 น. ฉันอยู่ในโรงยิม พอเดินออกมาที่โถงทางเดินเห็นหลอดไฟนีออนกะพริบ และไม่พบใครบริเวณนั้น\"" },
   { id: "EVD-15", aliases: ["TEST-03", "PC3-15", "15", "E15"], name: "คำให้การของ PC 3", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การนักเรียน", loc: "โถงทางเข้าหลัก (สอบถาม PC 3)", desc: "คำให้การ: \"ช่วง 17:30 ถึง 18:15 น. ฉันสำรวจประตูกล Blast Gate และมาตรวัดน้ำ ช่วงประมาณ 18:00 น. มองเห็น PC 4 เดินอยู่ที่ทางเดินกระจกใส\"" },
@@ -1903,7 +1913,7 @@ const ALL_CLUES_DATA = [
   { id: "EVD-26", aliases: ["SOUND-26", "26", "E26"], name: "เสียงกระแทกจากห้องซักรีดตอน 21:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ความทรงจำของผู้เล่น", desc: "เสียงวัตถุของแข็งกระทบกันเป็นจังหวะสม่ำเสมอดังมาจากห้องซักรีดช่วงเวลาประมาณ 21:00 น. ก่อนจะมีเสียงวัตถุหนักตกกระแทกพื้นด้านนอกอาคาร" },
   { id: "EVD-28", aliases: ["WINE-28", "28", "E28"], name: "ขวดไวน์และคราบบนเคาน์เตอร์ครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องครัว (เคาน์เตอร์ปรุงอาหาร)", desc: "ขวดไวน์แดงสำหรับปรุงอาหารเปิดฝาวางอยู่บนเคาน์เตอร์ครัว มีไวน์เหลืออยู่ก้นขวดเล็กน้อย บริเวณเคาน์เตอร์ข้างเตาพบรอยของเหลวสีแดงหกหยดเป็นจุดๆ" },
   { id: "EVD-29", aliases: ["TRAIL-29", "29", "E29"], name: "รอยหยดน้ำบนพื้นโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "โถงทางเดินกลาง (แนวกำแพง)", desc: "รอยหยดน้ำขนาดเล็กกระจายตัวเป็นแนวยาวบนพื้นกระเบื้องโถงทางเดิน ระหว่างบริเวณหน้าห้องซักรีดไปจนถึงหน้าประตูห้องครัว" },
-  { id: "EVD-30", aliases: ["DUTY-30", "30", "E30"], name: "การรวมตัวมื้อค่ำเวลา 19:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องอาหาร (โต๊ะมื้อค่ำ)", desc: "การรวมตัวรับประทานอาหารมื้อค่ำเวลา 19:00 น. มีสตูว์เนื้อปรุงเสร็จโดย PC 5 ตามตารางเวรบน Monopad โดยเหยื่อ B ไม่ได้มาร่วมโต๊ะอาหาร" },
+  { id: "EVD-30", aliases: ["DUTY-30", "30", "E30"], name: "การรวมตัวมื้อค่ำเวลา 19:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องอาหาร (โต๊ะมื้อค่ำ)", desc: "การรวมตัวรับประทานอาหารมื้อค่ำเวลา 19:00 น. มีสตูว์เนื้อปรุงเสร็จโดย PC 5 ตามตารางเวรบน Monopad โดยเหยื่อเรียวตะ (B) ไม่ได้มาร่วมโต๊ะอาหาร" },
   { id: "EVD-18", aliases: ["BLEACH-18", "18", "E18"], name: "แกลลอนน้ำยาฟอกขาวในถังขยะ", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "ห้องซักรีด (ถังขยะข้างเครื่องซักผ้า)", desc: "แกลลอนพลาสติกบรรจุน้ำยาฟอกขาวถูกทิ้งอยู่ในถังขยะห้องซักรีด ภายในแกลลอนว่างเปล่าและส่งกลิ่นคลอรีนรุนแรง" },
   { id: "EVD-19", aliases: ["CHAIN-19", "19", "E19"], name: "โซ่คล้องประตูหนีไฟโรงยิม", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โรงยิม (ประตูด้านหลัง)", desc: "โซ่เหล็กคล้องล็อกประตูหนีไฟด้านหลังโรงยิม ข้อโซ่ข้อหนึ่งมีรอยบากลึกจากใบเลื่อย และมีเศษผงเหล็กตกอยู่บนพื้นใต้บานประตู" },
   { id: "EVD-20", aliases: ["MUG-20", "20", "E20"], name: "แก้วเก็บความเย็นหน้าหอพัก", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โถงทางเดินหน้าหอพักนักเรียน", desc: "แก้วสแตนเลสเก็บความเย็นตกอยู่บนพื้นทางเดินหน้าหอพัก ตัวแก้วมีรอยบุบที่ขอบก้นแก้ว และมีคราบของเหลวสีน้ำตาลแดงแห้งติดอยู่บนพื้น" },
@@ -2140,14 +2150,14 @@ function renderPlayerCluesList() {
         </div>
       `;
     } else {
-      // Locked clue card
+      // Locked clue card (Anonymous: hides ID and location to prevent guessing)
       html += `
         <div class="clue-locked-card">
           <div>
-            <div style="color:#aaa; font-weight:700; font-size:0.9rem;">🔒 ${c.id}: [ยังไม่ถูกค้นพบ]</div>
-            <div style="font-size:0.8rem; color:#777; margin-top:3px;">📍 เบาะแสสถานที่: ${c.loc}</div>
+            <div style="color:#aaa; font-weight:700; font-size:0.9rem;">🔒 เบาะแสที่ยังไม่ถูกค้นพบ</div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:3px;">(สแกน QR Code หรือใช้คำสั่งสืบสวนเพื่อปลดล็อก)</div>
           </div>
-          <button class="small-btn cyan" onclick="openClueScannerModal('${c.id}')" style="font-size:0.75rem; padding:6px 10px;">
+          <button class="small-btn cyan" onclick="openClueScannerModal()" style="font-size:0.75rem; padding:6px 12px; font-weight:800;">
             สแกน
           </button>
         </div>
@@ -2158,6 +2168,10 @@ function renderPlayerCluesList() {
   if (visibleCount === 0) {
     container.innerHTML = `<div style="text-align:center; padding:30px; color:#888;">ไม่พบการ์ดหลักฐานที่ตรงกับเงื่อนไข</div>`;
   } else {
+    if (currentUserClueTagFilter === 'LOCKED') {
+      const remainingCount = ALL_CLUES_DATA.length - unlocked.length;
+      html = `<div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:0.85rem; color:#38bdf8; font-weight:800; display:flex; justify-content:space-between; align-items:center;"><span>🔒 ยังไม่ค้นพบอีก ${remainingCount} รายการ</span><span style="font-size:0.75rem; color:#94a3b8;">(ค้นพบแล้ว ${unlocked.length}/${ALL_CLUES_DATA.length})</span></div>` + html;
+    }
     container.innerHTML = html;
   }
 }
@@ -3060,7 +3074,7 @@ const LOGIC_DIVE_DATA = [
     step: 2,
     question: "เชือกที่ผูกกับถังน้ำขาดสะบั้นออกจากกันได้อย่างไร?",
     choices: {
-      A: "เหยื่อ B ใช้มีดปอกผลไม้ตัดเชือกเองจนหลุด",
+      A: "เหยื่อเรียวตะ (B) ใช้มีดพกตัดเชือกเองจนหลุด",
       B: "เชือกเปื่อยยุ่ยเพราะถูกน้ำแช่เป็นเวลานาน",
       C: "มีดของคนร้ายบาดขาดระหว่างการต่อสู้"
     },
@@ -3068,7 +3082,7 @@ const LOGIC_DIVE_DATA = [
   },
   {
     step: 3,
-    question: "สาเหตุการเสียชีวิตที่แท้จริงของเหยื่อ B คืออะไร?",
+    question: "สาเหตุการเสียชีวิตที่แท้จริงของเหยื่อเรียวตะ (B) คืออะไร?",
     choices: {
       A: "จมน้ำขาดอากาศหายใจในถัง",
       B: "ถูกกะโหลกแตกด้วยหม้อสตูว์",
@@ -3353,11 +3367,11 @@ function handleClosingSubmit(slot, cardId, pName) {
   if (slot == 1 && (cardId === 'EVD-14' || cardId === 'ACTION-CUT')) {
     gameState.closingSlots[1] = true;
     correct = true;
-    logCourt(`📖 [CLOSING ACT 3]: ${pName} เติมมังงะช่องที่ 1 สำเร็จ! "เหยื่อ B ฟื้นสติและใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง"`);
+    logCourt(`📖 [CLOSING ACT 3]: ${pName} เติมมังงะช่องที่ 1 สำเร็จ! "เหยื่อเรียวตะ (B) ฟื้นสติและใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง"`);
   } else if (slot == 2 && (cardId === 'EVD-11' || cardId === 'ACTION-NOOSE')) {
     gameState.closingSlots[2] = true;
     correct = true;
-    logCourt(`📖 [CLOSING ACT 4]: ${pName} เติมมังงะช่องที่ 2 สำเร็จ! "เหยื่อ B นำบ่วงเชือกมาคล้องคอตนเองเพื่อจัดฉากกลั่นแกล้ง"`);
+    logCourt(`📖 [CLOSING ACT 4]: ${pName} เติมมังงะช่องที่ 2 สำเร็จ! "เหยื่อเรียวตะ (B) นำบ่วงเชือกมาคล้องคอตนเองเพื่อจัดฉากกลั่นแกล้ง"`);
   }
 
   if (correct) {
@@ -3392,7 +3406,7 @@ function updateClosingDisplay() {
       const art = document.getElementById('mangaSlot1Art');
       const desc = document.getElementById('mangaSlot1Desc');
       if (art) art.innerText = '🔪';
-      if (desc) desc.innerText = 'เหยื่อ B ฟื้นสติขึ้นมา และใช้มีดปอกผลไม้ในกระเป๋าตัดเชือกที่มัดมือออกเองจนหลุด!';
+      if (desc) desc.innerText = 'เหยื่อเรียวตะ (B) ฟื้นสติขึ้นมา และใช้มีดปอกผลไม้ในกระเป๋าตัดเชือกที่มัดมือออกเองจนหลุด!';
     }
   }
   if (gameState.closingSlots && gameState.closingSlots[2]) {
@@ -3401,7 +3415,7 @@ function updateClosingDisplay() {
       const art = document.getElementById('mangaSlot2Art');
       const desc = document.getElementById('mangaSlot2Desc');
       if (art) art.innerText = '🪢';
-      if (desc) desc.innerText = 'เหยื่อ B ผูกบ่วงเชือกเส้นใหม่มาคล้องคอตนเอง หวังจัดฉากฆาตกรรมกลั่นแกล้งคนอื่น!';
+      if (desc) desc.innerText = 'เหยื่อเรียวตะ (B) ผูกบ่วงเชือกเส้นใหม่มาคล้องคอตนเอง หวังจัดฉากฆาตกรรมกลั่นแกล้งคนอื่น!';
     }
   }
 }
@@ -3857,9 +3871,9 @@ function renderMobileTask(stage) {
     }
   } else if (stage === 'closing') {
     const allCards = [
-      { id: 'EVD-14', title: 'เหยื่อ B ฟื้นสติและใช้มีดพกตัดเชือกตากผ้าไนลอนที่คอออกเอง' },
-      { id: 'EVD-11', title: 'เหยื่อ B นำบ่วงเชือกมาสวมและผูกฮาร์เนสตบตาเพื่อดัดหลังคนร้าย' },
-      { id: 'ACT-ESCAPE', title: 'เหยื่อ B วิ่งหนีขึ้นบันไดไปตามคนมาช่วย' },
+      { id: 'EVD-14', title: 'เหยื่อเรียวตะ (B) ฟื้นสติและใช้มีดพกตัดเชือกตากผ้าไนลอนที่คอออกเอง' },
+      { id: 'EVD-11', title: 'เหยื่อเรียวตะ (B) นำบ่วงเชือกมาสวมและผูกฮาร์เนสตบตาเพื่อดัดหลังคนร้าย' },
+      { id: 'ACT-ESCAPE', title: 'เหยื่อเรียวตะ (B) วิ่งหนีขึ้นบันไดไปตามคนมาช่วย' },
       { id: 'ACT-CHECK', title: 'คนร้ายกลับมาที่ห้องซักรีดเพื่อตรวจผลงาน' }
     ];
 
@@ -5446,7 +5460,7 @@ const ACADEMY_ROOMS_DATA = {
   'barrel': {
     badge: '🪣 กลไกน้ำหนักถ่วง (COUNTERWEIGHT)',
     title: 'ถังน้ำพลาสติก 100 ลิตร (Water-Timer Counterweight)',
-    arch: 'ถังใส่ผ้าซักพลาสติกเปล่า (หนักเพียง 2 กก.) ที่หย่อนออกไปนอกหน้าต่าง แล้วต่อสายยางปล่อยน้ำเข้าจนหนัก 82.5 กก. ผูกติดกับปลายเชือกตากผ้าไนลอนที่โยงมาจากรอกในห้องซักรีด แขวนลอยอยู่ในอากาศสูง 3.5 เมตรเหนือพื้นลานปูน โดยมีสายยางน้ำประปาปล่อยน้ำไหลเอื่อยๆ ลงในถัง',
+    arch: 'ถังใส่ผ้าซักพลาสติกเปล่า (หนักเพียง 2 กก.) ที่หย่อนออกไปนอกหน้าต่าง แล้วต่อสายยางปล่อยน้ำเข้าจนหนัก 65.2 กก. ผูกติดกับปลายเชือกตากผ้าไนลอนที่โยงมาจากรอกในห้องซักรีด แขวนลอยอยู่ในอากาศสูง 3.5 เมตรเหนือพื้นลานปูน โดยมีสายยางน้ำประปาปล่อยน้ำไหลเอื่อยๆ ลงในถัง',
     clues: [
       '<strong>มวลน้ำเต็มถัง:</strong> 100 ลิตร = มวล 100 กิโลกรัม',
       '<strong>คำนวณแรงกระชาก (Shock Load):</strong> เมื่อมวล 100 กก. ตกจากความสูง 3.5 ม. จะสร้างแรงกระตุกฉับพลันสูงถึง 250 - 300 กิโลกรัม-แรง!'
@@ -5487,10 +5501,10 @@ const ACADEMY_ROOMS_DATA = {
     title: 'โรงยิม & เวทีปฐมนิเทศ (Gymnasium)',
     arch: 'โรงยิมขนาดใหญ่ มีเวทีปราศรัยของ Monokuma และห้องล็อกเกอร์เก็บอุปกรณ์กีฬาที่ถูกเชื่อมปิดตาย',
     clues: [
-      '<strong>จุดประหาร NPC 1:</strong> พื้นถูกหุ่นยนต์ทำความสะอาดเช็ดจนเกลี้ยง ไม่มีรอยกระสุนเหลืออยู่',
+      '<strong>จุดประหาร ไดกิ (NPC 1):</strong> พื้นถูกหุ่นยนต์ทำความสะอาดเช็ดจนเกลี้ยง ไม่มีรอยกระสุนเหลืออยู่',
       '<strong>ล็อกเกอร์ปิดตาย:</strong> ตู้เก็บอุปกรณ์ถูกเชื่อมเหล็ก ป้องกันไม่ให้ผู้เล่นหยิบอาวุธ'
     ],
-    timeline: '• <strong>14:00 น.:</strong> Monokuma ประหาร NPC 1 เพื่อเชือดไก่ให้ลิงดู<br>• <strong>17:45 น.:</strong> PC 2 เดินมาสำรวจโรงยิมและพยายามงัดล็อกเกอร์'
+    timeline: '• <strong>14:00 น.:</strong> Monokuma ประหาร ไดกิ (NPC 1) เพื่อเชือดไก่ให้ลิงดู<br>• <strong>17:45 น.:</strong> PC 2 เดินมาสำรวจโรงยิมและพยายามงัดล็อกเกอร์'
   },
   'corridor': {
     badge: '🏛️ โถงทางเดินกลาง',
@@ -5549,29 +5563,46 @@ function setMapDisplayMode(mode) {
     if (el) el.classList.add('hidden');
   });
 
+  const drawer = document.getElementById('mapInspectionDrawer');
+
   if (mode === 'clean') {
     const btn = document.getElementById('btnMapClean');
     if (btn) btn.classList.add('active');
     const c = document.getElementById('mapCleanContainer');
     if (c) c.classList.remove('hidden');
+    if (drawer) drawer.classList.add('hidden');
   } else if (mode === 'crime') {
     const btn = document.getElementById('btnMapCrime');
     if (btn) btn.classList.add('active');
     const c = document.getElementById('mapCrimeContainer');
     if (c) c.classList.remove('hidden');
+    if (drawer) drawer.classList.remove('hidden');
+    selectMapRoom('laundry');
   } else if (mode === 'cutaway') {
     const btn = document.getElementById('btnMapCutaway');
     if (btn) btn.classList.add('active');
     const c = document.getElementById('mapCutawayContainer');
     if (c) c.classList.remove('hidden');
+    if (drawer) drawer.classList.remove('hidden');
   } else if (mode === 'simulate') {
     const btn = document.getElementById('btnMapSimulate');
     if (btn) btn.classList.add('active');
     const c = document.getElementById('mapSimulateContainer');
     if (c) c.classList.remove('hidden');
+    if (drawer) drawer.classList.remove('hidden');
     setSimPhase(1);
   }
 }
+
+function printCleanBlueprint() {
+  setMapDisplayMode('clean');
+  document.body.classList.add('printing-blueprint');
+  window.print();
+}
+
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('printing-blueprint');
+});
 
 function selectMapRoom(roomId) {
   const data = ACADEMY_ROOMS_DATA[roomId];
@@ -5670,7 +5701,7 @@ function setSimPhase(phase) {
   } else if (phase === 3) {
     if (badge) badge.innerText = 'เฟส 3: วินาทีสังหาร & การตายที่แท้จริง (21:00 น.)';
     if (title) title.innerText = 'ถังน้ำ 100 กก. ร่วงกระแทกพื้น กระชากร่าง B คอหักตายคาที่!';
-    if (desc) desc.innerText = '21:00 น. เครื่องอบผ้าหมุนเสียงดังตึงตัง ถังน้ำหนัก 82.5 กก. ชนะน้ำหนัก B จึงร่วงวูบ 3.5 ม. กระแทกพื้นลานปูนดัง "โครม!!" แรงกระชากกระตุกสายยางหลุดกระเด็นออกจากก๊อก และดึงร่าง B ลอยหวือขึ้นเพดาน เงื่อนฮาร์เนสหลุด บ่วงรูดขึ้นรัดคอกระแทกราวสแตนเลสจนคอหักเสียชีวิตทันที! B จึงกลายเป็น Blackened ปลิดชีพตนเอง!';
+    if (desc) desc.innerText = '21:00 น. เครื่องอบผ้าหมุนเสียงดังตึงตัง ถังน้ำหนัก 65.2 กก. ชนะน้ำหนัก B จึงร่วงวูบ 3.5 ม. กระแทกพื้นลานปูนดัง "โครม!!" แรงกระชากกระตุกสายยางหลุดกระเด็นออกจากก๊อก และดึงร่างเรียวตะลอยหวือขึ้นเพดาน เงื่อนฮาร์เนสหลุด บ่วงรูดขึ้นรัดคอกระแทกราวสแตนเลสจนคอหักเสียชีวิตทันที! เรียวตะ จึงกลายเป็น Blackened ปลิดชีพตนเอง!';
     
     if (victimAvatar) {
       victimAvatar.style.bottom = 'auto';
