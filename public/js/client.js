@@ -938,8 +938,8 @@ function handleIncomingMessage(msg, senderConn) {
     const reqName = msg.playerName;
     const senderId = senderConn ? senderConn.peer : (msg.userHash || currentUserHash || ('p_' + Math.random().toString(36).substr(2, 6)));
 
-    // Check if role is already claimed by someone else
-    const existing = Object.values(gameState.players).find(p => p.role === reqRole && p.id !== senderId && p.userHash !== msg.userHash);
+    // Check if name is already claimed by someone else
+    const existing = Object.values(gameState.players).find(p => (reqRole ? p.role === reqRole : p.name.toLowerCase() === reqName.toLowerCase()) && p.id !== senderId && p.userHash !== msg.userHash);
     if (existing) {
       const rejectPacket = {
         type: 'claim_rejected',
@@ -1303,6 +1303,7 @@ function handleRoute() {
   if (autoClue) {
     setTimeout(() => {
       unlockClue(autoClue);
+      switchPlayerTab('clues');
     }, 600);
   }
 
@@ -1890,37 +1891,37 @@ function renderPlayerCharSheet() {
 }
 
 const ALL_CLUES_DATA = [
-  { id: "EVD-01", pin: "482915", aliases: ["FILE-01", "AUTOP-01", "1", "E1"], name: "Monokuma File #1", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "แจกทุกคนทันทีที่เริ่มการสืบสวน", desc: "รายงานชันสูตรศพเหยื่อเรียวตะ (B): เวลาเสียชีวิตโดยประมาณ 21:00 น. สภาพศพพบบาดแผลแตกฉีกขาดที่บริเวณท้ายทอย และพบการแตกหักของกระดูกคอข้อที่ 1-2 ร่วมกับภาวะขาดอากาศหายใจ น้ำหนักตัว 65 กิโลกรัม สภาพการแต่งกายสวมถุงเท้าผ้า ไม่สวมรองเท้า" },
-  { id: "EVD-02", pin: "719304", aliases: ["BONE-02", "STEW-02", "2", "E2"], name: "ท่อนกระดูกหมูในหม้อสตูว์", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องครัว (ก้นหม้อสตูว์)", desc: "ท่อนกระดูกหมูต้มสุกขนาดความยาวประมาณ 25 ซม. 2 ท่อนจมอยู่ก้นหม้อสตูว์เนื้อ บนผิวกระดูกท่อนหนึ่งพบรอยแตกร้าวและคราบสีคล้ำติดแน่นตามรอยแยก" },
-  { id: "EVD-04", pin: "852179", aliases: ["ROPE-04", "CUT-04", "4", "E4"], name: "เชือกไนลอนสีชมพูบนพื้น", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (พื้นข้างศพ B)", desc: "เชือกไนลอนถักสีชมพูขนาดเส้นผ่านศูนย์กลาง 8 มม. ขดอยู่บนพื้นห้องซักรีด ปลายเชือกด้านหนึ่งผูกเป็นบ่วงเงื่อนคล้อง ส่วนปลายเชือกอีกด้านหนึ่งมีรอยตัดผิวเรียบ" },
-  { id: "EVD-05", pin: "394820", aliases: ["KNIFE-05", "BLADE-05", "5", "E5"], name: "มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ (B)", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ร่างเหยื่อเรียวตะ (B) (กระเป๋าเสื้อแจ็กเก็ต)", desc: "มีดพับอเนกประสงค์ขนาดความยาวใบมีด 7 ซม. ในสภาพกางใบมีดค้างไว้ พบอยู่ในกระเป๋าเสื้อแจ็กเก็ตของเหยื่อเรียวตะ (B) บริเวณโคนใบมีดมีเศษเส้นใยสังเคราะห์สีชมพูติดอยู่" },
-  { id: "EVD-06", pin: "175936", aliases: ["BUCKET-06", "TUB-06", "6", "E6"], name: "ซากถังพลาสติกและสายยาง", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ลานปูนด้านหลัง (ใต้แนวหน้าต่างห้องซักรีด)", desc: "ถังพลาสติกใส่ผ้าซักทรงกระบอกความจุประมาณ 80 ลิตร ตกแตกกระจายบนพื้นคอนกรีต ปลายสายยางสีฟ้าสอดผ่านช่องมือจับของตัวถังและมีปลายเชือกไนลอนผูกยึดไว้กับโครงถัง" },
-  { id: "EVD-07", pin: "928413", aliases: ["RAIL-07", "PIPE-07", "7", "E7"], name: "ราวท่อสแตนเลสเพดานห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (เพดานสูง 4 เมตร)", desc: "ท่อสแตนเลสแขวนผ้าติดตั้งขนานกับแนวเพดานที่ระดับความสูง 4 เมตร เหนือบานหน้าต่างบานเลื่อน บริเวณผิวด้านบนของท่อมีรอยขูดถลอกเป็นแถบแนวยาว" },
-  { id: "EVD-09", pin: "306795", aliases: ["DRYER-09", "BOOTS-09", "9", "E9"], name: "เครื่องอบผ้า DRY-1", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (เครื่องอบผ้าอุตสาหกรรม)", desc: "เครื่องอบผ้าอุตสาหกรรม DRY-1 หน้าปัดดิจิทัลแสดงสถานะทำงานเสร็จสิ้น ภายในถังซักพบรองเท้าบูทหนังหุ้มข้อ 1 คู่ ป้ายผ้าที่ลิ้นรองเท้าระบุชื่อของเหยื่อเรียวตะ (B)" },
-  { id: "EVD-17", pin: "369842", aliases: ["TEST-05", "PC5-17", "17", "E17", "ALIBI-05"], name: "คำให้การของ PC 5", importance: "MUST", secretType: "TESTIMONY", typeLabel: "คำให้การนักเรียน", loc: "ห้องครัว / ห้องอาหาร (สอบถาม PC 5)", desc: "คำให้การ: \"ฉันมีเวรทำอาหารมื้อค่ำตามตารางใน Monopad ตั้งแต่ 17:45 ถึง 18:30 น. ฉันอยู่ในห้องครัวต้มสตูว์เนื้อตลอดเวลา ไม่ได้ออกไปข้างนอก\"" },
-  { id: "EVD-27", pin: "904712", aliases: ["TOWEL-27", "27", "E27", "BLOOD-27"], name: "ผ้าขนหนูสีกรมท่าในถังขยะครัว", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องครัว (ใต้ถุงขยะดำก้นถัง)", desc: "ผ้าขนหนูสีกรมท่าเนื้อหนาถูกขยำอยู่ใต้ถุงขยะสีดำบริเวณก้นถังขยะในครัว เมื่อคลี่ออกพบรอยเปื้อนสีน้ำตาลคล้ำแห้งกรังกระจายอยู่บนผืนผ้า" },
-  { id: "EVD-31", pin: "612847", aliases: ["TOWEL-31", "RACK-31", "31", "E31", "LAUNDRY-31"], name: "ราวแขวนผ้าขนหนูห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "สำคัญแก่หลัก", loc: "ห้องซักรีด (ราวแขวนผ้าข้างอ่างล้าง)", desc: "ราวสแตนเลสข้างอ่างล้างมือมีผ้าขนหนูสีกรมท่าแขวนเรียงอยู่ 4 ผืน โดยมีช่องว่างของตะขอแขวนว่างเว้นอยู่ 1 จุด" },
-  { id: "EVD-03", pin: "630841", aliases: ["FREEZER-03", "ICE-03", "3", "E3"], name: "ช่องแช่แข็งในห้องครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องครัว (ตู้เย็นช่องฟรีซ)", desc: "ช่องแช่แข็งของตู้เย็นในครัวมีเกล็ดน้ำแข็งละลายเป็นแอ่งน้ำบริเวณถาดชั้นวาง และพบถุงพลาสติกบรรจุเนื้อสัตว์แช่แข็งที่ถูกฉีกเปิดทิ้งไว้" },
-  { id: "EVD-08", pin: "541682", aliases: ["HOSE-08", "SPLASH-08", "8", "E8"], name: "ก๊อกน้ำและผนังห้องซักรีด", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องซักรีด (ก๊อกน้ำข้างอ่างล้าง)", desc: "วาล์วก๊อกน้ำผนังห้องซักรีดอยู่ในตำแหน่งเปิด ปลายสายยางหลุดออกจากหัวก๊อกตกอยู่ที่พื้น ผนังปูนและพื้นกระเบื้องโดยรอบมีรอยน้ำสาดเปียก" },
-  { id: "EVD-10", pin: "684129", aliases: ["VEND-10", "COIN-10", "10", "E10"], name: "ตู้กดน้ำอัตโนมัติโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "โถงทางเดินกลาง (CORR-100)", desc: "ตู้กดเครื่องดื่มอัตโนมัติบริเวณโถงทางเดินกลาง มีรอยบุบที่แผงข้างตู้ และมีเหรียญโลหะติดค้างอยู่ในช่องหยอดเหรียญ" },
-  { id: "EVD-11", pin: "249581", aliases: ["MAP-11", "BOARD-11", "11", "E11"], name: "แผนผังอาคารบนบอร์ดประชาสัมพันธ์", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "แผนผังอาคารเรียนชั้น 1 แสดงพื้นที่ลานบริการด้านหลังเป็นพื้นที่ปิด ล้อมรอบด้วยแนวกำแพงคอนกรีตสูง 5 เมตร โดยไม่มีช่องประตูหรือบันไดทางออกสู่ภายนอก" },
-  { id: "EVD-12", pin: "815307", aliases: ["METER-12", "WATER-12", "12", "E12"], name: "มาตรวัดน้ำประปาหลัก", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "มาตรวัดน้ำประปาของอาคาร ตัวเลขหน้าปัดแสดงปริมาณน้ำใช้งานสะสม 65.2 ลิตร เข็มวัดปริมาณน้ำยังคงหมุนช้าๆ ด้วยอัตราการไหลประมาณ 0.4 ลิตรต่อนาที" },
-  { id: "EVD-13", pin: "472890", aliases: ["TEST-01", "PC1-13", "13", "E13"], name: "คำให้การของ PC 1", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การนักเรียน", loc: "โถงทางเดินกลาง (สอบถาม PC 1)", desc: "คำให้การ: \"ช่วงประมาณ 17:45 น. ฉันทุบตู้กดน้ำที่กินเหรียญอยู่ที่โถงทางเดินกลาง ได้ยินเสียงน้ำไหลเบาๆ ในแนวกำแพงข้างห้องซักรีด\"" },
-  { id: "EVD-14", pin: "936154", aliases: ["TEST-02", "PC2-14", "14", "E14"], name: "คำให้การของ PC 2", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การนักเรียน", loc: "โรงยิม (สอบถาม PC 2)", desc: "คำให้การ: \"ตอน 17:30 ถึง 18:00 น. ฉันอยู่ในโรงยิม พอเดินออกมาที่โถงทางเดินเห็นหลอดไฟนีออนกะพริบ และไม่พบใครบริเวณนั้น\"" },
-  { id: "EVD-15", pin: "180472", aliases: ["TEST-03", "PC3-15", "15", "E15"], name: "คำให้การของ PC 3", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การนักเรียน", loc: "โถงทางเข้าหลัก (สอบถาม PC 3)", desc: "คำให้การ: \"ช่วง 17:30 ถึง 18:15 น. ฉันสำรวจประตูกล Blast Gate และมาตรวัดน้ำ ช่วงประมาณ 18:00 น. มองเห็น PC 4 เดินอยู่ที่ทางเดินกระจกใส\"" },
-  { id: "EVD-16", pin: "527391", aliases: ["TEST-04", "PC4-16", "16", "E16"], name: "คำให้การของ PC 4", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การนักเรียน", loc: "ทางเดินกระจกใส (สอบถาม PC 4)", desc: "คำให้การ: \"ช่วง 17:30 ถึง 18:15 น. ฉันเดินอยู่ที่ทางเดินกระจก มองเห็นเงาวัตถุทรงกระบอกห้อยอยู่นอกหน้าต่างห้องซักรีด\"" },
-  { id: "EVD-25", pin: "328691", aliases: ["SMELL-25", "25", "E25"], name: "กลิ่นและรสชาติของน้ำซุปสตูว์", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องครัว / โต๊ะอาหารมื้อค่ำ", desc: "น้ำซุปสตูว์เนื้อในหม้อมีรสเปรี้ยวและเค็มจัดของไวน์แดงปรุงอาหาร พร้อมกลิ่นคาวจางๆ คล้ายสนิมเหล็กปะปนอยู่ในน้ำซุป" },
-  { id: "EVD-26", pin: "561479", aliases: ["SOUND-26", "26", "E26"], name: "เสียงกระแทกจากห้องซักรีดตอน 21:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ความทรงจำของผู้เล่น", desc: "เสียงวัตถุของแข็งกระทบกันเป็นจังหวะสม่ำเสมอดังมาจากห้องซักรีดช่วงเวลาประมาณ 21:00 น. ก่อนจะมีเสียงวัตถุหนักตกกระแทกพื้นด้านนอกอาคาร" },
-  { id: "EVD-28", pin: "248356", aliases: ["WINE-28", "28", "E28"], name: "ขวดไวน์และคราบบนเคาน์เตอร์ครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องครัว (เคาน์เตอร์ปรุงอาหาร)", desc: "ขวดไวน์แดงสำหรับปรุงอาหารเปิดฝาวางอยู่บนเคาน์เตอร์ครัว มีไวน์เหลืออยู่ก้นขวดเล็กน้อย บริเวณเคาน์เตอร์ข้างเตาพบรอยของเหลวสีแดงหกหยดเป็นจุดๆ" },
-  { id: "EVD-29", pin: "785130", aliases: ["TRAIL-29", "29", "E29"], name: "รอยหยดน้ำบนพื้นโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "โถงทางเดินกลาง (แนวกำแพง)", desc: "รอยหยดน้ำขนาดเล็กกระจายตัวเป็นแนวยาวบนพื้นกระเบื้องโถงทางเดิน ระหว่างบริเวณหน้าห้องซักรีดไปจนถึงหน้าประตูห้องครัว" },
-  { id: "EVD-30", pin: "439268", aliases: ["DUTY-30", "30", "E30"], name: "การรวมตัวมื้อค่ำเวลา 19:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "มีก็ดีช่วยเสริม", loc: "ห้องอาหาร (โต๊ะมื้อค่ำ)", desc: "การรวมตัวรับประทานอาหารมื้อค่ำเวลา 19:00 น. มีสตูว์เนื้อปรุงเสร็จโดย PC 5 ตามตารางเวรบน Monopad โดยเหยื่อเรียวตะ (B) ไม่ได้มาร่วมโต๊ะอาหาร" },
-  { id: "EVD-18", pin: "741953", aliases: ["BLEACH-18", "18", "E18"], name: "แกลลอนน้ำยาฟอกขาวในถังขยะ", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "ห้องซักรีด (ถังขยะข้างเครื่องซักผ้า)", desc: "แกลลอนพลาสติกบรรจุน้ำยาฟอกขาวถูกทิ้งอยู่ในถังขยะห้องซักรีด ภายในแกลลอนว่างเปล่าและส่งกลิ่นคลอรีนรุนแรง" },
-  { id: "EVD-19", pin: "295418", aliases: ["CHAIN-19", "19", "E19"], name: "โซ่คล้องประตูหนีไฟโรงยิม", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โรงยิม (ประตูด้านหลัง)", desc: "โซ่เหล็กคล้องล็อกประตูหนีไฟด้านหลังโรงยิม ข้อโซ่ข้อหนึ่งมีรอยบากลึกจากใบเลื่อย และมีเศษผงเหล็กตกอยู่บนพื้นใต้บานประตู" },
-  { id: "EVD-20", pin: "830627", aliases: ["MUG-20", "20", "E20"], name: "แก้วเก็บความเย็นหน้าหอพัก", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โถงทางเดินหน้าหอพักนักเรียน", desc: "แก้วสแตนเลสเก็บความเย็นตกอยู่บนพื้นทางเดินหน้าหอพัก ตัวแก้วมีรอยบุบที่ขอบก้นแก้ว และมีคราบของเหลวสีน้ำตาลแดงแห้งติดอยู่บนพื้น" },
-  { id: "EVD-21", pin: "417285", aliases: ["GLASS-21", "21", "E21"], name: "เศษกระจกบริเวณเชิงบันได", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "เชิงบันไดทางขึ้นชั้น 2", desc: "เศษกระจกใสความหนา 5 มม. แตกกระจายอยู่บนขั้นบันไดทางขึ้นชั้น 2 บนขอบกระจกชิ้นหนึ่งมีคราบสีส้มอมแดงเกาะติดอยู่" },
-  { id: "EVD-22", pin: "659143", aliases: ["SNACK-22", "22", "E22"], name: "ซองขนมปังกรอบใต้เก้าอี้", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "ห้องอาหาร (ใต้เก้าอี้ทานข้าว)", desc: "ซองฟอยล์บรรจุขนมปังกรอบรสสาหร่ายถูกฉีกเปิดทิ้งไว้ใต้เก้าอี้ห้องอาหาร ภายในซองมีเศษขนมปังกรอบเหลืออยู่เล็กน้อย" },
-  { id: "EVD-23", pin: "194836", aliases: ["NOTE-23", "23", "E23"], name: "แผ่นกระดาษโน้ตบนพื้นโถงทางเดิน", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "กระดาษสมุดฉีกขนาดฝ่ามือ มีลายมือเขียนตารางเกมโอเอกซ์และข้อความสั้นๆ ตกอยู่บนพื้นกระเบื้องโถงทางเดิน" },
-  { id: "EVD-24", pin: "873205", aliases: ["CLIP-24", "24", "E24"], name: "คลิปหนีบกระดาษเหล็ก", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "หน้าบอร์ดประชาสัมพันธ์โถงทางเข้าหลัก", desc: "คลิปหนีบกระดาษทำจากลวดเหล็ก 3 ตัว สภาพมีคราบสนิมเกาะ ตกอยู่ในร่องรอยต่อของพื้นปูนหน้าบอร์ดประชาสัมพันธ์" },
+  { id: "EVD-01", pin: "830627", aliases: ["CUP-01", "1", "E01"], name: "แก้วเก็บความเย็นหน้าหอพัก", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โถงทางเดินหน้าหอพักนักเรียน", desc: "แก้วสแตนเลสเก็บความเย็นตกอยู่บนพื้นทางเดินหน้าหอพัก ตัวแก้วมีรอยบุบที่ขอบก้นแก้ว และมีคราบของเหลวสีน้ำตาลแดงแห้งติดอยู่บนพื้น" },
+  { id: "EVD-02", pin: "719304", aliases: ["BONE-02", "2", "E02"], name: "ท่อนกระดูกหมูในหม้อสตูว์", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องครัว (ก้นหม้อสตูว์)", desc: "ท่อนกระดูกหมูต้มสุก 2 ท่อนก้นหม้อสตูว์ บนผิวกระดูกท่อนหนึ่งมีรอยแตกร้าวและคราบสีคล้ำติดแน่นตามรอยแยก" },
+  { id: "EVD-03", pin: "936154", aliases: ["PC2-03", "3", "E03"], name: "คำให้การของ PC 2", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 2 (1 AP)", desc: "คำให้การ: \"ตอน 17:30 ถึง 18:00 น. ฉันอยู่ในโรงยิม พอเดินออกมาที่โถงทางเดินเห็นหลอดไฟนีออนกะพริบ และไม่พบใครบริเวณนั้น\"" },
+  { id: "EVD-04", pin: "873205", aliases: ["CLIP-04", "4", "E04"], name: "คลิปหนีบกระดาษเหล็ก", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "หน้าบอร์ดประชาสัมพันธ์โถงทางเข้าหลัก", desc: "คลิปหนีบกระดาษทำจากลวดเหล็ก 3 ตัว สภาพมีคราบสนิมเกาะ ตกอยู่ในร่องรอยต่อของพื้นปูนหน้าบอร์ดประชาสัมพันธ์" },
+  { id: "EVD-05", pin: "306795", aliases: ["DRY-05", "5", "E05"], name: "เครื่องอบผ้า DRY-1", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เครื่องอบผ้า)", desc: "เครื่องอบผ้าอุตสาหกรรม DRY-1 ทำงานเสร็จสิ้น ภายในมีรองเท้าบูทหนังหุ้มข้อของเหยื่อเรียวตะ (B) ที่หน้าปัดมีฟังก์ชันตั้งเวลาเริ่มทำงานล่วงหน้า (Delay Timer)" },
+  { id: "EVD-06", pin: "684129", aliases: ["VEND-06", "6", "E06"], name: "ตู้กดน้ำอัตโนมัติโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "ตู้กดเครื่องดื่มอัตโนมัติโถงทางเดินกลาง มีรอยบุบที่แผงด้านข้าง และมีเหรียญติดค้างในช่องหยอด" },
+  { id: "EVD-07", pin: "482915", aliases: ["FILE-07", "7", "E07"], name: "Monokuma File #1", importance: "MUST", secretType: "CORE", typeLabel: "ผลชันสูตรทางการ (Core)", loc: "ห้องซักรีด (ร่างของเหยื่อเรียวตะ (B))", desc: "รายงานชันสูตรทางการ: เวลาเสียชีวิต ~21:00 น. กระดูกคอหักและขาดอากาศหายใจ แผลแตกท้ายทอยเกิดก่อนตาย 1-2 ชม. สวมถุงเท้าไม่สวมรองเท้า น้ำหนักตัว 65.0 กก." },
+  { id: "EVD-08", pin: "659143", aliases: ["SNACK-08", "8", "E08"], name: "ซองขนมปังกรอบใต้เก้าอี้", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "ห้องอาหาร (ใต้เก้าอี้ทานข้าว)", desc: "ซองฟอยล์บรรจุขนมปังกรอบรสสาหร่ายถูกฉีกเปิดทิ้งไว้ใต้เก้าอี้ห้องอาหาร ภายในซองมีเศษขนมปังกรอบเหลืออยู่เล็กน้อย" },
+  { id: "EVD-09", pin: "852179", aliases: ["ROPE-09", "9", "E09"], name: "เชือกไนลอนสีชมพูบนพื้น", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (พื้นข้างศพเรียวตะ (B))", desc: "เชือกไนลอนถักสีชมพู 8 มม. ขดอยู่บนพื้น ปลายด้านหนึ่งผูกเป็นบ่วง ส่วนปลายอีกด้านมีรอยตัดผิวเรียบ" },
+  { id: "EVD-10", pin: "815307", aliases: ["METER-10", "10", "E10"], name: "มาตรวัดน้ำประปาหลัก", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "มาตรวัดน้ำประปาแสดงตัวเลขใช้น้ำสะสม 65.2 ลิตร และเข็มวัดยังหมุนด้วยอัตราประมาณ 0.4 ลิตร/นาที (24 ลิตร/ชม.)" },
+  { id: "EVD-11", pin: "741953", aliases: ["BLEACH-11", "11", "E11"], name: "แกลลอนน้ำยาฟอกขาวในถังขยะ", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "ห้องซักรีด (ถังขยะข้างเครื่องซักผ้า)", desc: "แกลลอนพลาสติกบรรจุน้ำยาฟอกขาวถูกทิ้งอยู่ในถังขยะห้องซักรีด ภายในแกลลอนว่างเปล่าและส่งกลิ่นคลอรีนรุนแรง" },
+  { id: "EVD-12", pin: "394820", aliases: ["KNIFE-12", "12", "E12"], name: "มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ (B)", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ร่างของเรียวตะ (B) (กระเป๋าเสื้อ)", desc: "มีดพับอเนกประสงค์ใบมีด 7 ซม. กางค้างไว้ในกระเป๋าเสื้อเหยื่อเรียวตะ (B) โคนใบมีดมีเศษเส้นใยสังเคราะห์สีชมพูติดอยู่" },
+  { id: "EVD-13", pin: "630841", aliases: ["FREEZE-13", "13", "E13"], name: "ช่องแช่แข็งในห้องครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (ช่องฟรีซ)", desc: "ช่องแช่แข็งตู้เย็นในครัวมีเกล็ดน้ำแข็งละลายเป็นแอ่งน้ำ และพบถุงพลาสติกบรรจุเนื้อสัตว์แช่แข็งถูกฉีกเปิดทิ้งไว้" },
+  { id: "EVD-14", pin: "928413", aliases: ["RAIL-14", "14", "E14"], name: "ราวท่อสแตนเลสเพดานห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เพดานสูง 4 ม.)", desc: "ท่อสแตนเลสขนานเพดานห้องซักรีดสูง 4 ม. เหนือแนวหน้าต่าง ผิวด้านบนของท่อมีรอยขูดถลอกเป็นแถบแนวยาว" },
+  { id: "EVD-15", pin: "295418", aliases: ["CHAIN-15", "15", "E15"], name: "โซ่คล้องประตูหนีไฟโรงยิม", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โรงยิม (ประตูด้านหลัง)", desc: "โซ่เหล็กคล้องล็อกประตูหนีไฟด้านหลังโรงยิม ข้อโซ่ข้อหนึ่งมีรอยบากลึกจากใบเลื่อย และมีเศษผงเหล็กตกอยู่บนพื้นใต้บานประตู" },
+  { id: "EVD-16", pin: "369842", aliases: ["PC5-16", "16", "E16"], name: "คำให้การของ PC 5", importance: "MUST", secretType: "TESTIMONY", typeLabel: "คำให้การ (Core)", loc: "ได้จากการถาม PC 5 (1 AP)", desc: "คำให้การ: \"ฉันมีเวรทำอาหารมื้อค่ำตามตารางใน Monopad อยู่ในครัวต้มสตูว์เนื้อตลอดเวลาช่วง 17:45 - 18:30 น. ไม่ได้ออกไปข้างนอก\"" },
+  { id: "EVD-17", pin: "785130", aliases: ["DROP-17", "17", "E17"], name: "รอยหยดน้ำบนพื้นโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "รอยหยดน้ำขนาดเล็กกระจายตัวเป็นแนวยาวบนพื้นกระเบื้องโถงทางเดิน ระหว่างบริเวณหน้าห้องซักรีดไปจนถึงหน้าประตูห้องครัว" },
+  { id: "EVD-18", pin: "417285", aliases: ["GLASS-18", "18", "E18"], name: "เศษกระจกบริเวณเชิงบันได", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "เชิงบันไดทางขึ้นชั้น 2", desc: "เศษกระจกใสความหนา 5 มม. แตกกระจายอยู่บนขั้นบันไดทางขึ้นชั้น 2 บนขอบกระจกชิ้นหนึ่งมีคราบสีส้มอมแดงเกาะติดอยู่" },
+  { id: "EVD-19", pin: "175936", aliases: ["BUCKET-19", "19", "E19"], name: "ซากถังพลาสติกและสายยาง", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ลานปูนด้านหลัง (ใต้หน้าต่าง)", desc: "ถังพลาสติก 80 ลิตร ตกแตกบนลานปูน ปลายสายยางสอดผ่านช่องมือจับของถังและมีเชือกไนลอนผูกยึดไว้" },
+  { id: "EVD-20", pin: "472890", aliases: ["PC1-20", "20", "E20"], name: "คำให้การของ PC 1", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 1 (1 AP)", desc: "คำให้การ: \"ช่วง 17:45 น. ฉันทุบตู้กดน้ำที่กินเหรียญอยู่ที่โถงกลาง ได้ยินเสียงน้ำไหลเบาๆ ในแนวกำแพงข้างห้องซักรีด\"" },
+  { id: "EVD-21", pin: "904712", aliases: ["TOWEL-21", "21", "E21"], name: "ผ้าขนหนูสีกรมท่าเปื้อนเลือด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องครัว (ใต้ถุงขยะดำก้นถัง)", desc: "ผ้าขนหนูสีกรมท่าเนื้อหนาถูกขยำอยู่ใต้ถุงขยะดำก้นถังในครัว เมื่อคลี่ออกพบรอยเปื้อนสีน้ำตาลคล้ำแห้งกรัง" },
+  { id: "EVD-22", pin: "194836", aliases: ["NOTE-22", "22", "E22"], name: "แผ่นกระดาษโน้ตบนพื้นโถงทางเดิน", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "กระดาษสมุดฉีกขนาดฝ่ามือ มีลายมือเขียนตารางเกมโอเอกซ์และข้อความสั้นๆ ตกอยู่บนพื้นกระเบื้องโถงทางเดิน" },
+  { id: "EVD-23", pin: "541682", aliases: ["FAUCET-23", "23", "E23"], name: "ก๊อกน้ำและผนังห้องซักรีด", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องซักรีด (ก๊อกน้ำและผนัง)", desc: "วาล์วก๊อกน้ำห้องซักรีดเปิดอยู่ ปลายสายยางหลุดตกที่พื้น ผนังปูนและพื้นกระเบื้องรอบก๊อกน้ำเปียกน้ำเป็นวงกว้าง" },
+  { id: "EVD-24", pin: "249581", aliases: ["MAP-24", "24", "E24"], name: "แผนผังอาคารบนบอร์ดประชาสัมพันธ์", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "แผนผังอาคารชั้น 1 แสดงลานบริการด้านหลังเป็นพื้นที่ปิด ล้อมด้วยกำแพงคอนกรีตสูง 5 ม. ไร้ประตูทางออก" },
+  { id: "EVD-25", pin: "612847", aliases: ["RACK-25", "25", "E25"], name: "ราวแขวนผ้าขนหนูห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "ร่องรอย/สิ่งของ (Core)", loc: "ห้องซักรีด (ราวแขวนผ้า)", desc: "ราวแขวนผ้าสแตนเลสข้างอ่างล้างห้องซักรีด มีผ้าขนหนูสีกรมท่าแขวนอยู่ 4 ผืน และมีช่องว่างเว้น 1 จุด" },
+  { id: "EVD-26", pin: "248356", aliases: ["WINE-26", "26", "E26"], name: "ขวดไวน์และคราบบนเคาน์เตอร์ครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (เคาน์เตอร์ปรุงอาหาร)", desc: "ขวดไวน์แดงสำหรับปรุงอาหารเปิดฝาวางอยู่บนเคาน์เตอร์ครัว มีไวน์เหลืออยู่ก้นขวดเล็กน้อย บริเวณเคาน์เตอร์ข้างเตาพบรอยของเหลวสีแดงหกหยดเป็นจุดๆ" },
+  { id: "EVD-27", pin: "180472", aliases: ["PC3-27", "27", "E27"], name: "คำให้การของ PC 3", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 3 (1 AP)", desc: "คำให้การ: \"ช่วง 17:30 ถึง 18:15 น. ฉันสำรวจประตูกล Blast Gate และมาตรวัดน้ำ ช่วงประมาณ 18:00 น. เห็น PC 4 เดินที่ทางเดินกระจกใส\"" },
+  { id: "EVD-28", pin: "328691", aliases: ["TASTE-28", "28", "E28"], name: "รสชาติของน้ำซุปสตูว์เนื้อ", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (หม้อสตูว์บนเตา)", desc: "น้ำซุปสตูว์เนื้อในหม้อมีกลิ่นหอมของเครื่องเทศและไวน์แดง แต่เมื่อชิมแล้วจะสัมผัสได้ถึงรสชาติฝาดเฝื่อนคล้ายสนิมเหล็กผสมอยู่จางๆ" },
+  { id: "EVD-29", pin: "561479", aliases: ["THUD-29", "29", "E29"], name: "เสียงกระแทกจากห้องซักรีดตอน 21:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องอาหาร (จุดรวมตัวเวลาราตรี)", desc: "ขณะที่ทุกคนรวมตัวอยู่ในห้องอาหารเวลา 21:00 น. มีเสียงเครื่องจักรหมุนกระแทกและเสียงวัตถุหนักตกกระทบดังสนั่นมาจากทางปีกห้องซักรีด" },
+  { id: "EVD-30", pin: "527391", aliases: ["PC4-30", "30", "E30"], name: "คำให้การของ PC 4", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 4 (1 AP)", desc: "คำให้การ: \"ช่วง 17:30 ถึง 18:15 น. ฉันเดินอยู่ที่ทางเดินกระจก มองเห็นเงาวัตถุทรงกระบอกห้อยอยู่นอกหน้าต่างห้องซักรีด\"" },
+  { id: "EVD-31", pin: "439268", aliases: ["DINNER-31", "31", "E31"], name: "การรวมตัวมื้อค่ำเวลา 19:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องอาหาร (โต๊ะมื้อค่ำ)", desc: "การรวมตัวรับประทานอาหารมื้อค่ำเวลา 19:00 น. มีสตูว์เนื้อปรุงเสร็จโดย PC 5 ตามตารางเวรบน Monopad โดยเหยื่อเรียวตะ (B) ไม่ได้มาร่วมโต๊ะอาหาร" },
 ];
 
 let currentUserClueTagFilter = 'ALL';
@@ -1931,35 +1932,6 @@ function getUnlockedClues() {
   if (raw) {
     try { unlocked = JSON.parse(raw); } catch(e) {}
   }
-  // Base starting clue for all students: Monokuma File #1 (EVD-01)
-  if (!unlocked.includes('EVD-01')) {
-    unlocked.push('EVD-01');
-  }
-
-  // Each player character starts with their own testimony card unlocked!
-  if (myPlayer) {
-    const role = (myPlayer.role || '').toLowerCase();
-    const name = (myPlayer.name || '').toLowerCase();
-    const id = (myPlayer.id || '').toString();
-
-    let myTestimony = null;
-    if (id.includes('1') || role.includes('นิยาย') || role.includes('novelist') || name.includes('นาเอกิ') || name.includes('1')) {
-      myTestimony = 'EVD-13';
-    } else if (id.includes('2') || role.includes('กีฬา') || role.includes('athlete') || name.includes('เคียวโกะ') || name.includes('2')) {
-      myTestimony = 'EVD-14';
-    } else if (id.includes('3') || role.includes('วิศวกร') || role.includes('engineer') || name.includes('โทกามิ') || name.includes('3')) {
-      myTestimony = 'EVD-15';
-    } else if (id.includes('4') || role.includes('นักเรียนดีเด่น') || role.includes('honor') || name.includes('เซเลส') || name.includes('4')) {
-      myTestimony = 'EVD-16';
-    } else if (id.includes('5') || role.includes('เชฟ') || role.includes('หมอดู') || role.includes('trapper') || name.includes('5')) {
-      myTestimony = 'EVD-17';
-    }
-
-    if (myTestimony && !unlocked.includes(myTestimony)) {
-      unlocked.push(myTestimony);
-    }
-  }
-
   return unlocked;
 }
 
@@ -2154,16 +2126,13 @@ function renderPlayerCluesList() {
         </div>
       `;
     } else {
-      // Locked clue card: Shows EVD-xx slot, but requires random 6-digit PIN to unlock
+      // Locked clue card: Clean display without redundant scan button
       html += `
         <div class="clue-locked-card">
           <div>
             <div style="color:#aaa; font-weight:700; font-size:0.9rem;">🔒 ${c.id}: [ยังไม่ถูกค้นพบ]</div>
-            <div style="font-size:0.75rem; color:#64748b; margin-top:3px;">(กรอกรหัส PIN 6 หลักจากบัตรหลักฐาน หรือสแกน QR Code)</div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:3px;">(ค้นหาบัตรหลักฐานเพื่อสแกน QR หรือกรอกรหัส PIN 6 หลัก)</div>
           </div>
-          <button class="small-btn cyan" onclick="openClueScannerModal()" style="font-size:0.75rem; padding:6px 12px; font-weight:800;">
-            สแกน / กรอก PIN
-          </button>
         </div>
       `;
     }
@@ -3368,11 +3337,11 @@ function handleClosingSubmit(slot, cardId, pName) {
   if (!gameState.closingSlots) gameState.closingSlots = { 1: false, 2: false };
   let correct = false;
 
-  if (slot == 1 && (cardId === 'EVD-14' || cardId === 'ACTION-CUT')) {
+  if (slot == 1 && (cardId === 'EVD-12' || cardId === 'EVD-14' || cardId === 'ACTION-CUT')) {
     gameState.closingSlots[1] = true;
     correct = true;
     logCourt(`📖 [CLOSING ACT 3]: ${pName} เติมมังงะช่องที่ 1 สำเร็จ! "เหยื่อเรียวตะ (B) ฟื้นสติและใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง"`);
-  } else if (slot == 2 && (cardId === 'EVD-11' || cardId === 'ACTION-NOOSE')) {
+  } else if (slot == 2 && (cardId === 'EVD-09' || cardId === 'EVD-11' || cardId === 'ACTION-NOOSE')) {
     gameState.closingSlots[2] = true;
     correct = true;
     logCourt(`📖 [CLOSING ACT 4]: ${pName} เติมมังงะช่องที่ 2 สำเร็จ! "เหยื่อเรียวตะ (B) นำบ่วงเชือกมาคล้องคอตนเองเพื่อจัดฉากกลั่นแกล้ง"`);
@@ -3559,19 +3528,11 @@ function resetJoinButton(errMsg) {
 
 function playerJoin() {
   getAudio();
-  const name = document.getElementById('mobileNameInput').value.trim();
-  const roleSelect = document.getElementById('mobileRoleSelect');
-  const role = roleSelect ? roleSelect.value : '';
+  const name = (document.getElementById('mobileNameInput').value || '').trim();
   const room = (document.getElementById('mobileRoomInput').value || '').trim().toUpperCase();
 
-  if (!name) { alert('กรุณากรอกชื่อของคุณ'); return; }
   if (!room) { alert('กรุณากรอกรหัสห้อง 6 หลัก'); return; }
-
-  const selectedOpt = roleSelect.options[roleSelect.selectedIndex];
-  if (selectedOpt && selectedOpt.disabled) {
-    alert(`บทบาท "${role}" ถูกผู้เล่นอื่นเลือกไปแล้ว กรุณาเลือกบทอื่น!`);
-    return;
-  }
+  if (!name) { alert('กรุณากรอกชื่อของคุณ'); return; }
 
   roomCode = room;
   localStorage.setItem('dangan_current_room', roomCode);
@@ -4350,7 +4311,7 @@ function updatePlayerDisplays() {
       seat.innerHTML = `
         <div class="podium-avatar">👤</div>
         <div class="podium-plate">${escapeHtml(p.name)}</div>
-        <span class="podium-role">[${escapeHtml(p.role)}]</span>
+        ${p.role ? `${p.role ? `<span class="podium-role">[${escapeHtml(p.role)}]</span>` : ''}` : ''}
         <div class="podium-cred-hearts" title="ความน่าเชื่อถือ: ${cred}/5">${heartsHtml}</div>
       `;
       targetList.appendChild(seat);
@@ -4492,9 +4453,18 @@ function courtTerminateSession() {
 // ==========================================================
 let currentSelectedConfigStage = 'stage1';
 
+function populateStg1CluesDropdown() {
+  const sel = document.getElementById('cfgStg1TargetClue');
+  if (!sel || !ALL_CLUES_DATA) return;
+  const currentVal = sel.value;
+  sel.innerHTML = ALL_CLUES_DATA.map(c => `<option value="${c.id}">[${c.id}] ${c.name} (${c.loc})</option>`).join('');
+  if (currentVal) sel.value = currentVal;
+}
+
 function openAdminMinigameModal(defaultTab) {
   const modal = document.getElementById('adminMinigameModal');
   if (!modal) return;
+  populateStg1CluesDropdown();
   modal.classList.remove('hidden');
   selectConfigTab(defaultTab || 'stage1');
 }
@@ -4522,19 +4492,20 @@ function selectConfigTab(stageKey) {
 }
 
 function applyPresetStage1(presetKey) {
+  populateStg1CluesDropdown();
   const pInput = document.getElementById('cfgStg1Prompt');
   const tSelect = document.getElementById('cfgStg1TargetClue');
   if (!pInput || !tSelect) return;
 
   if (presetKey === 'bone') {
     pInput.value = "อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?";
-    tSelect.value = "EVD-01";
+    tSelect.value = "EVD-02";
   } else if (presetKey === 'knife') {
     pInput.value = "B ใช้สิ่งใดในการตัดเชือกเพื่อพยายามหนีเอาชีวิตรอดจนเกิดการสะบัดหลุด!?";
-    tSelect.value = "EVD-02";
-  } else if (presetKey === 'timer') {
-    pInput.value = "อุปกรณ์ใดถูกดัดแปลงเพื่อทำให้ระบบไฟฟ้าและน้ำทำงานประสานกัน!?";
-    tSelect.value = "EVD-04";
+    tSelect.value = "EVD-12";
+  } else if (presetKey === 'dryer' || presetKey === 'timer') {
+    pInput.value = "อุปกรณ์ใดถูกตั้งเวลาล่วงหน้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น.!?";
+    tSelect.value = "EVD-05";
   }
 }
 
@@ -4652,7 +4623,8 @@ function renderPrintableClues() {
 
   filtered.forEach(c => {
     const cluePin = c.pin || '000000';
-    const qrTargetUrl = `https://danganronpa-ttrpg.vercel.app/play?room=${encodeURIComponent(roomCode)}&clue=${encodeURIComponent(cluePin)}`;
+    const origin = (window.location.origin && !window.location.origin.includes('localhost')) ? window.location.origin : 'https://danganronpa-ttrpg.vercel.app';
+    const qrTargetUrl = `${origin}/play?room=${encodeURIComponent(roomCode)}&clue=${encodeURIComponent(cluePin)}`;
     const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=2&data=${encodeURIComponent(qrTargetUrl)}`;
 
     // DM Secret Badge: Shown only on screen for DM, completely hidden in @media print
@@ -4752,10 +4724,10 @@ function closeAdminPrintCluesModal() {
 }
 
 // ==========================================================
-// MONOPAD CAMERA & QR SCANNER
+// MONOPAD CAMERA & QR SCANNER (Enhanced with jsQR engine)
 // ==========================================================
 let cameraStream = null;
-let cameraScanningInterval = null;
+let cameraScanningRaf = null;
 
 function openClueScannerModal() {
   const modal = document.getElementById('clueScanModal');
@@ -4777,12 +4749,13 @@ function closeClueScannerModal() {
 function submitManualClue() {
   const inp = document.getElementById('manualClueInput');
   if (!inp || !inp.value.trim()) {
-    alert('กรุณากรอกรหัสหลักฐาน เช่น EVD-01 หรือ C01');
+    alert('กรุณากรอกรหัส PIN 6 หลัก เช่น 482915');
     return;
   }
   const success = unlockClue(inp.value.trim());
   if (success) {
     closeClueScannerModal();
+    switchPlayerTab('clues');
   }
 }
 
@@ -4796,23 +4769,24 @@ function toggleCameraScanner() {
 
 async function startCameraStream() {
   const video = document.getElementById('cameraVideoFeed');
+  const canvas = document.getElementById('qrScanCanvas');
   const btn = document.getElementById('btnToggleCamera');
   const status = document.getElementById('cameraStatusText');
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    if (status) status.innerText = '❌ เบราว์เซอร์ไม่รองรับการเข้าถึงกล้อง กรุณาพิมพ์รหัสแทน';
+    if (status) status.innerText = '❌ เบราว์เซอร์ไม่รองรับการเข้าถึงกล้อง กรุณาพิมพ์รหัส PIN แทน';
     return;
   }
 
   try {
     if (status) status.innerText = 'กำลังเปิดกล้อง...';
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' } }
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 640 } }
     });
     cameraStream = stream;
     if (video) {
       video.srcObject = stream;
-      video.setAttribute('playsinline', true);
+      video.setAttribute('playsinline', 'true');
       video.style.display = 'block';
       await video.play();
     }
@@ -4822,32 +4796,54 @@ async function startCameraStream() {
     }
     if (status) status.innerText = '📷 นำกล้องส่องไปที่ QR Code บนบัตรหลักฐาน...';
 
-    // Start scanning frames if BarcodeDetector is available
-    if (window.BarcodeDetector) {
-      const detector = new BarcodeDetector({ formats: ['qr_code'] });
-      cameraScanningInterval = setInterval(async () => {
-        if (!video || video.readyState < 2) return;
-        try {
-          const barcodes = await detector.detect(video);
-          if (barcodes && barcodes.length > 0) {
-            handleQrPayload(barcodes[0].rawValue);
-          }
-        } catch(err) {}
-      }, 400);
-    } else {
-      if (status) status.innerText = '📷 หากกล้องไม่ตรวจจับอัตโนมัติ ให้กรอกรหัส หรืออัปโหลดรูป QR ด้านล่าง';
-    }
+    // Canvas frame scanning with jsQR (cross-browser compatibility for iOS & Android)
+    const scanFrame = () => {
+      if (!cameraStream || !video || video.readyState < 2) {
+        if (cameraStream) cameraScanningRaf = requestAnimationFrame(scanFrame);
+        return;
+      }
+
+      if (canvas) {
+        const w = video.videoWidth || 480;
+        const h = video.videoHeight || 480;
+        if (canvas.width !== w) canvas.width = w;
+        if (canvas.height !== h) canvas.height = h;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(video, 0, 0, w, h);
+
+        let detected = null;
+
+        // 1. Try jsQR
+        if (window.jsQR) {
+          try {
+            const imgData = ctx.getImageData(0, 0, w, h);
+            const qr = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+            if (qr && qr.data) detected = qr.data;
+          } catch(e) {}
+        }
+
+        if (detected) {
+          handleQrPayload(detected);
+          return;
+        }
+      }
+
+      cameraScanningRaf = requestAnimationFrame(scanFrame);
+    };
+
+    cameraScanningRaf = requestAnimationFrame(scanFrame);
+
   } catch(err) {
     console.error('Camera error:', err);
-    if (status) status.innerText = '❌ ไม่สามารถเปิดกล้องได้ (โปรดอนุญาตสิทธิ์กล้อง หรือใช้การกรอกรหัส)';
+    if (status) status.innerText = '❌ ไม่สามารถเปิดกล้องได้ (โปรดอนุญาตสิทธิ์กล้อง หรือใช้การกรอกรหัส PIN)';
     stopCameraStream();
   }
 }
 
 function stopCameraStream() {
-  if (cameraScanningInterval) {
-    clearInterval(cameraScanningInterval);
-    cameraScanningInterval = null;
+  if (cameraScanningRaf) {
+    cancelAnimationFrame(cameraScanningRaf);
+    cameraScanningRaf = null;
   }
   if (cameraStream) {
     cameraStream.getTracks().forEach(track => track.stop());
@@ -4870,17 +4866,23 @@ function stopCameraStream() {
 function handleQrPayload(rawStr) {
   if (!rawStr) return;
   stopCameraStream();
-  let clueCode = rawStr;
+  let clueCode = rawStr.trim();
+  
+  // Extract parameter if full URL
   try {
-    if (rawStr.includes('?')) {
-      const url = new URL(rawStr, window.location.origin);
-      clueCode = url.searchParams.get('clue') || url.searchParams.get('unlock') || rawStr;
+    if (clueCode.includes('?')) {
+      const url = new URL(clueCode, window.location.origin);
+      clueCode = url.searchParams.get('clue') || url.searchParams.get('unlock') || clueCode;
     }
   } catch(e) {}
+
+  const m = clueCode.match(/[?&](?:clue|unlock)=([a-zA-Z0-9_-]+)/);
+  if (m) clueCode = m[1];
 
   const success = unlockClue(clueCode);
   if (success) {
     closeClueScannerModal();
+    switchPlayerTab('clues');
   }
 }
 
@@ -4896,16 +4898,32 @@ async function handleQrFileUpload(event) {
     img.src = URL.createObjectURL(file);
     await img.decode();
 
-    if (window.BarcodeDetector) {
-      const detector = new BarcodeDetector({ formats: ['qr_code'] });
-      const barcodes = await detector.detect(img);
-      if (barcodes && barcodes.length > 0) {
-        handleQrPayload(barcodes[0].rawValue);
-        return;
-      }
+    const canvas = document.getElementById('qrScanCanvas') || document.createElement('canvas');
+    canvas.width = img.naturalWidth || img.width;
+    canvas.height = img.naturalHeight || img.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+
+    let detected = null;
+    if (window.jsQR) {
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const qr = jsQR(imgData.data, imgData.width, imgData.height);
+      if (qr && qr.data) detected = qr.data;
     }
 
-    if (status) status.innerText = '⚠️ ไม่สามารถอ่าน QR อัตโนมัติได้ กรุณากรอกรหัสด้วยตนเอง';
+    if (!detected && window.BarcodeDetector) {
+      try {
+        const detector = new BarcodeDetector({ formats: ['qr_code'] });
+        const barcodes = await detector.detect(img);
+        if (barcodes && barcodes.length > 0) detected = barcodes[0].rawValue;
+      } catch(e) {}
+    }
+
+    if (detected) {
+      handleQrPayload(detected);
+    } else {
+      if (status) status.innerText = '⚠️ ไม่พบ QR Code ในรูปภาพ กรุณากรอกรหัส PIN ด้วยตนเอง';
+    }
   } catch(err) {
     console.error('QR file scan error:', err);
     if (status) status.innerText = '❌ เกิดข้อผิดพลาดในการอ่านไฟล์ภาพ';
