@@ -770,7 +770,7 @@
     <!-- Player Join Card -->
     <div id="mobileJoinScreen" class="mobile-center-card">
       <div class="mobile-brand-tag">DANGANRONPA CLASS TRIAL</div>
-      <h2 class="neon-pink-text">เข้าสู่แท่นโพเดียม</h2>
+      <h2 class="neon-pink-text">เข้าสู่เกม</h2>
 
       <div class="user-hash-banner" style="background:#151528; border:1px solid #383858; border-radius:8px; padding:12px; margin: 15px 0; font-size:0.85rem; color:#aaa; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <div>
@@ -799,9 +799,6 @@
       <div class="player-top-strip">
         <div class="p-identity">
           <span id="pMyName" class="p-name">ชื่อผู้เล่น</span>
-          <span id="pMyRole" class="p-role">[อาชีพ]</span>
-          <span id="pMyHash" style="font-size:0.75rem; color:#888; margin-left:4px; font-family:monospace;">#USER</span>
-          <button class="icon-btn" onclick="copyPersonalLink()" title="คัดลอกลิงก์ส่วนตัว" style="font-size:0.8rem; padding:2px 6px; margin-left:4px;">📋</button>
         </div>
         <div class="p-cred-display-wrap" title="Personal Credibility Gauge (เกจความน่าเชื่อถือของคุณ - DM เป็นผู้ปรับ)">
           <span class="p-cred-label">CRED:</span>
@@ -816,12 +813,25 @@
         </div>
       </div>
 
+      <!-- Monopad Device Info Bar (Spacious Room PIN & Personal Link on Mobile) -->
+      <div class="monopad-device-bar">
+        <div class="monopad-device-item" onclick="copyRoomLink()" title="คลิกเพื่อคัดลอกลิงก์ห้อง">
+          <span>📍 ห้อง: <strong id="mPlayerRoomCode" style="color:var(--mono-yellow); font-family:monospace; font-size:0.95rem;">------</strong></span>
+          <button type="button" class="small-btn yellow" style="font-size:0.7rem; padding:2px 6px; font-weight:800;">📋 คัดลอก</button>
+        </div>
+        <div class="monopad-device-item" onclick="copyPersonalLink()" title="คลิกเพื่อคัดลอกลิงก์ส่วนตัว">
+          <span>👤 รหัส: <strong id="pMyHash" style="color:var(--mono-pink); font-family:monospace; font-size:0.85rem;">#USER</strong></span>
+          <button type="button" class="small-btn pink" style="font-size:0.7rem; padding:2px 6px; font-weight:800;">📋 ลิงก์ตัวละคร</button>
+        </div>
+      </div>
+
       <!-- Player Page Sub-Navigation -->
       <nav class="player-nav-tabs">
-        <button id="pTabGame" class="p-nav-btn active" onclick="switchPlayerTab('game')" title="มินิเกมศาล">
+        <button id="pTabGame" class="p-nav-btn active" onclick="switchPlayerTab('game')" title="ช่วงกิจกรรม">
           <span class="p-nav-icon">🎮</span>
-          <span class="p-nav-text">มินิเกม</span>
+          <span class="p-nav-text">ช่วงกิจกรรม</span>
         </button>
+
         <button id="pTabClues" class="p-nav-btn" onclick="switchPlayerTab('clues')" title="การ์ดหลักฐานการสืบสวน">
           <span class="p-nav-icon">🔍</span>
           <span class="p-nav-text">หลักฐาน</span>
@@ -845,7 +855,7 @@
         <div id="mobileTaskArea" class="mobile-task-content">
           <div class="idle-message">
             <div class="idle-spinner"></div>
-            <p>รอผู้ดูแลศาลเปิดมินิเกมประจำช่วง...</p>
+            <p>รอผู้ดูแลศาลเปิดช่วงกิจกรรม...</p>
           </div>
         </div>
       </div>
@@ -882,8 +892,8 @@
         <div class="p-reference-content" style="padding: 6px;">
           <div class="dr1-handbook-card" style="padding: 10px; background: #060913; border: 2px solid #38bdf8;">
             <div class="slanted-banner cyan">CAMPUS SCHEMATIC // 1F STANDARD BLUEPRINT</div>
-            <div style="font-size:0.78rem; color:#94a3b8; margin: 4px 0 8px 0;">
-              📐 ผังอาคารเรียนมาตรฐานชั้น 1 (ใช้ตรวจสอบตำแหน่งห้องและประตู D-101 - D-107 ประกอบการดีเบต)
+            <div style="font-size:0.85rem; color:#94a3b8; margin: 4px 0 8px 0; font-weight:700;">
+              📐 ผังอาคารเรียนมาตรฐานชั้น 1
             </div>
             <div class="player-blueprint-scroll" style="width: 100%; overflow-x: auto; border: 1px solid rgba(56,189,248,0.3); border-radius: 6px; background: #060913;">
               <svg class="blueprint-svg" viewBox="0 0 1000 680" xmlns="http://www.w3.org/2000/svg">

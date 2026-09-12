@@ -1,3 +1,62 @@
+
+// ==========================================================
+// MONOPAD PHASE FILTERING & DEVICE BAR HELPERS
+// ==========================================================
+function updateMonopadDeviceBar() {
+  const roomEl = document.getElementById('mPlayerRoomCode');
+  if (roomEl) roomEl.innerText = roomCode || '------';
+  const hashEl = document.getElementById('pMyHash');
+  if (hashEl) hashEl.innerText = '#' + (currentUserHash || 'USER');
+}
+
+function updateMonopadPhaseTabs(stage) {
+  const currentStage = stage || (gameState && gameState.stage) || 'idle';
+  const isIdle = (currentStage === 'idle' || currentStage === 'lobby');
+  const isInvestigation = (currentStage === 'investigation');
+  const isTrialOrGame = (!isIdle && !isInvestigation); // 'trial' or 'stage1'..'stage8'
+
+  const tabGame = document.getElementById('pTabGame');
+  const tabClues = document.getElementById('pTabClues');
+  const tabMap = document.getElementById('pTabMap');
+  const tabGuide = document.getElementById('pTabGuide');
+  const tabRules = document.getElementById('pTabRules');
+
+  // Rules and Map are always visible across all phases
+  if (tabRules) tabRules.style.display = 'flex';
+  if (tabMap) tabMap.style.display = 'flex';
+
+  if (isIdle) {
+    // Phase 1 (Daily Life / Lobby): Only School Rules and Map
+    if (tabGame) tabGame.style.display = 'none';
+    if (tabClues) tabClues.style.display = 'none';
+    if (tabGuide) tabGuide.style.display = 'none';
+
+    // If currently on a hidden tab, auto-switch to rules
+    const activeTabEl = document.querySelector('.player-nav-tabs .p-nav-btn.active');
+    if (activeTabEl && (activeTabEl.id === 'pTabGame' || activeTabEl.id === 'pTabClues' || activeTabEl.id === 'pTabGuide')) {
+      switchPlayerTab('rules');
+    }
+  } else if (isInvestigation) {
+    // Phase 2 (Investigation): School Rules, Map, and Clues
+    if (tabClues) tabClues.style.display = 'flex';
+    if (tabGame) tabGame.style.display = 'none';
+    if (tabGuide) tabGuide.style.display = 'none';
+
+    const activeTabEl = document.querySelector('.player-nav-tabs .p-nav-btn.active');
+    if (activeTabEl && (activeTabEl.id === 'pTabGame' || activeTabEl.id === 'pTabGuide')) {
+      switchPlayerTab('clues');
+    }
+  } else {
+    // Phase 3 (Class Trial / Minigames): All tabs visible
+    if (tabGame) tabGame.style.display = 'flex';
+    if (tabClues) tabClues.style.display = 'flex';
+    if (tabGuide) tabGuide.style.display = 'flex';
+
+    if (currentStage.startsWith('stage')) {
+      switchPlayerTab('game');
+    }
+  }
+}
 // ==========================================================
 // DANGANRONPA CLASS TRIAL UNIVERSAL REAL-TIME ENGINE
 // Supports: Vercel WebRTC (PeerJS) & Local Node (Socket.io)
@@ -953,30 +1012,21 @@ function handleIncomingMessage(msg, senderConn) {
     const reqName = msg.playerName;
     const senderId = senderConn ? senderConn.peer : (msg.userHash || currentUserHash || ('p_' + Math.random().toString(36).substr(2, 6)));
 
-    // Auto-assign available role if not specified
+    // Auto-assign available role internally if not specified
     if (!reqRole) {
       const defaultRoles = ['นักแต่งนิยาย', 'นักกีฬา', 'นักมายากล', 'นักชิม', 'นักแสดงผาดโผน', 'ช่างกล'];
       const takenRoles = Object.values(gameState.players).map(p => p.role);
       reqRole = defaultRoles.find(r => !takenRoles.includes(r)) || `นักเรียน (${Object.keys(gameState.players).length + 1})`;
     }
 
-    // Check if name is already claimed by someone else
-    const existing = Object.values(gameState.players).find(p => (reqRole ? p.role === reqRole : p.name.toLowerCase() === reqName.toLowerCase()) && p.id !== senderId && p.userHash !== msg.userHash);
-    if (existing) {
-      const rejectPacket = {
-        type: 'claim_rejected',
-        targetHash: msg.userHash || senderId,
-        role: reqRole,
-        reason: `บทบาท "${reqRole}" ถูกเลือกโดย "${existing.name}" ไปแล้ว กรุณาเลือกบทอื่น!`
-      };
-      if (senderConn && senderConn.open) {
-        try { senderConn.send(rejectPacket); } catch(e) {}
+    // Deduplication guard: Remove any prior entry matching the same userHash OR same name to prevent character doubling!
+    Object.keys(gameState.players).forEach(key => {
+      const p = gameState.players[key];
+      if (p && ((msg.userHash && p.userHash === msg.userHash) || (p.name && reqName && p.name.toLowerCase() === reqName.toLowerCase()))) {
+        delete gameState.players[key];
       }
-      broadcast(rejectPacket);
-      return;
-    }
+    });
 
-    // Role is free!
     const isKiller = (reqRole === 'นักมายากล');
     const playerObj = {
       id: senderId,
@@ -986,7 +1036,8 @@ function handleIncomingMessage(msg, senderConn) {
       roomCode: roomCode,
       userHash: msg.userHash || senderId
     };
-    gameState.players[senderId] = playerObj;
+    const canonicalKey = msg.userHash || senderId;
+    gameState.players[canonicalKey] = playerObj;
     updatePlayerDisplays();
 
     // Send approval back to player via both direct and broadcast channels
@@ -1013,7 +1064,7 @@ function handleIncomingMessage(msg, senderConn) {
       broadcast({ type: 'sync_state', state: gameState });
     }
 
-    logCourt(`👤 [PODIUM]: ${reqName} ยืนประจำแท่น [${reqRole}]`);
+    logCourt(`👤 [PODIUM]: ${reqName} ยืนประจำแท่น`);
   } else if (msg.type === 'claim_approved') {
     if (msg.targetHash && currentUserHash && msg.targetHash !== currentUserHash) return;
     if (typeof joinClaimTimeout !== 'undefined' && joinClaimTimeout) {
@@ -1053,7 +1104,9 @@ function handleIncomingMessage(msg, senderConn) {
       document.getElementById('mobileSaboteurPanel').classList.add('hidden');
     }
 
-    showToast(`✨ คุณได้สวมบทบาท [${myPlayer.role}] เข้าสู่ศาลแล้ว!`);
+    showToast(`✨ คุณ [${myPlayer.name}] เข้าสู่เกมเรียบร้อยแล้ว!`);
+    updateMonopadDeviceBar();
+    updateMonopadPhaseTabs(gameState.stage);
     playSfx('correct');
   } else if (msg.type === 'claim_rejected') {
     if (msg.targetHash && currentUserHash && msg.targetHash !== currentUserHash) return;
@@ -1103,10 +1156,18 @@ function handleIncomingMessage(msg, senderConn) {
     alert('🚪 เซสชันศาลชั้นเรียนนี้ถูกรีเซ็ตเรียบร้อยแล้ว ทุกคนจะถูกนำกลับสู่หน้าหลักเพื่อเริ่มรอบใหม่เหมือน Kahoot!');
     window.location.href = '/';
   } else if (msg.type === 'player_joined') {
-    gameState.players[msg.player.id] = msg.player;
-    updatePlayerDisplays();
-    logCourt(`👤 [JOIN]: ${msg.player.name} (${msg.player.role}) ยืนประจำโพเดียม`);
-    if (isHost) broadcast({ type: 'sync_state', state: gameState });
+    if (msg.player && msg.player.name) {
+      Object.keys(gameState.players).forEach(key => {
+        const p = gameState.players[key];
+        if (p && ((msg.player.userHash && p.userHash === msg.player.userHash) || (p.name && p.name.toLowerCase() === msg.player.name.toLowerCase()))) {
+          delete gameState.players[key];
+        }
+      });
+      gameState.players[msg.player.userHash || msg.player.id] = msg.player;
+      updatePlayerDisplays();
+      logCourt(`👤 [JOIN]: ${msg.player.name} ยืนประจำโพเดียม`);
+      if (isHost) broadcast({ type: 'sync_state', state: gameState });
+    }
   } else if (msg.type === 'request_sync_state') {
     if (isHost) {
       if (senderConn && senderConn.open) {
@@ -1261,10 +1322,26 @@ function handleIncomingMessage(msg, senderConn) {
 }
 
 function applyState(st) {
+  if (!st) return;
+  if (st.players) {
+    const deduped = {};
+    Object.values(st.players).forEach(p => {
+      if (!p || !p.name) return;
+      const key = p.userHash || p.id || p.name;
+      const existingKey = Object.keys(deduped).find(k => deduped[k].name.toLowerCase() === p.name.toLowerCase() || (p.userHash && deduped[k].userHash === p.userHash));
+      if (existingKey) {
+        delete deduped[existingKey];
+      }
+      deduped[key] = p;
+    });
+    st.players = deduped;
+  }
   gameState = st;
   updateTimerDisplay();
   updatePlayerDisplays();
   renderStage(gameState.stage);
+  updateMonopadPhaseTabs(gameState.stage);
+  updateMonopadDeviceBar();
   if (gameState.players) {
     Object.values(gameState.players).forEach(p => {
       const opt = document.getElementById('optRole_' + p.role);
@@ -1445,6 +1522,8 @@ function switchView(v) {
     const tab = document.getElementById('tabPlayer');
     if (tab) tab.classList.add('active');
     initRealtime();
+    updateMonopadDeviceBar();
+    updateMonopadPhaseTabs(gameState.stage);
   } else if (v === 'simulation') {
     const el = document.getElementById('viewSimulation');
     if (el) el.classList.remove('hidden');
@@ -1603,10 +1682,11 @@ window.addEventListener('keydown', (e) => {
 // USER HASH & PLAYER SESSION RESTORATION
 // ==========================================================
 function initPlayerSession(hash) {
+  if (hash) currentUserHash = hash;
   const disp = document.getElementById('displayUserHash');
-  if (disp) disp.innerText = '#' + hash;
+  if (disp) disp.innerText = '#' + (hash || currentUserHash || 'USER');
   const pHash = document.getElementById('pMyHash');
-  if (pHash) pHash.innerText = '#' + hash;
+  if (pHash) pHash.innerText = '#' + (hash || currentUserHash || 'USER');
 
   const urlParams = new URLSearchParams(window.location.search);
   const qRoom = urlParams.get('room');
@@ -1619,6 +1699,9 @@ function initPlayerSession(hash) {
     const roomInp = document.getElementById('mobileRoomInput');
     if (roomInp) roomInp.value = roomCode;
   }
+  updateMonopadDeviceBar();
+  updateMonopadPhaseTabs(gameState.stage);
+
   if (qName) {
     const nameInp = document.getElementById('mobileNameInput');
     if (nameInp) nameInp.value = qName;
@@ -2191,6 +2274,7 @@ function splitGraphemes(str) {
 
 function setStage(stage, config) {
   gameState.stage = stage;
+  updateMonopadPhaseTabs(stage);
   stopTimer();
   closeCourtResultModal(true);
   closeExecutionModal(true);
@@ -3016,7 +3100,7 @@ function populateArmamentTargetSelect() {
   players.forEach(p => {
     const opt = document.createElement('option');
     opt.value = p.name;
-    opt.textContent = `${p.name} [${p.role || '?'}]`;
+    opt.textContent = p.name;
     sel.appendChild(opt);
   });
   if (currentVal && sel.querySelector(`option[value="${CSS.escape(currentVal)}"]`)) {
@@ -3036,7 +3120,7 @@ function populateRebuttalSelects() {
     players.forEach(p => {
       const opt = document.createElement('option');
       opt.value = p.name;
-      opt.textContent = `${p.name} [${p.role || '?'}]`;
+      opt.textContent = p.name;
       sel.appendChild(opt);
     });
     if (currentVal) sel.value = currentVal;
@@ -3445,10 +3529,10 @@ function getVotingCandidates() {
   const list = [];
   if (players.length > 0) {
     players.forEach(p => {
-      list.push(`${p.name} [${p.role}]`);
+      list.push(p.name);
     });
   } else {
-    list.push('PC 1 (นักแต่งนิยาย)', 'PC 2 (นักกีฬา)');
+    list.push('ผู้เล่น 1', 'ผู้เล่น 2');
   }
   list.push('NPC B');
   return list;
@@ -4247,8 +4331,8 @@ function updateAdminDisplay() {
     rebSel.innerHTML = '<option value="">(ทุกคนในห้อง / อิสระ)</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
-      opt.value = `${p.name} [${p.role}]`;
-      opt.innerText = `${p.name} [${p.role}]`;
+      opt.value = p.name;
+      opt.innerText = p.name;
       if (opt.value === curVal || p.name === curVal) opt.selected = true;
       rebSel.appendChild(opt);
     });
@@ -4259,8 +4343,8 @@ function updateAdminDisplay() {
     rebOppSel.innerHTML = '<option value="">-- เลือกฝ่ายตรงข้าม --</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
-      opt.value = `${p.name} [${p.role}]`;
-      opt.innerText = `${p.name} [${p.role}]`;
+      opt.value = p.name;
+      opt.innerText = p.name;
       if (opt.value === curOpp || p.name === curOpp) opt.selected = true;
       rebOppSel.appendChild(opt);
     });
@@ -4272,8 +4356,8 @@ function updateAdminDisplay() {
     armTargetSel.innerHTML = '<option value="">-- เลือกผู้ถูกกล่าวหา --</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
-      opt.value = `${p.name} [${p.role}]`;
-      opt.innerText = `${p.name} [${p.role}]`;
+      opt.value = p.name;
+      opt.innerText = p.name;
       if (opt.value === curVal || p.name === curVal) opt.selected = true;
       armTargetSel.appendChild(opt);
     });
@@ -4292,7 +4376,6 @@ function updateAdminDisplay() {
       <div class="admin-p-info">
         <div>
           <strong>${escapeHtml(p.name)}</strong>
-          <span class="admin-p-role">[${escapeHtml(p.role)}]</span>
           ${p.isKiller ? '<span class="admin-p-saboteur">[SABOTEUR]</span>' : ''}
         </div>
         <div class="admin-p-cred">
@@ -4336,7 +4419,6 @@ function updatePlayerDisplays() {
       seat.innerHTML = `
         <div class="podium-avatar">👤</div>
         <div class="podium-plate">${escapeHtml(p.name)}</div>
-        ${p.role ? `${p.role ? `<span class="podium-role">[${escapeHtml(p.role)}]</span>` : ''}` : ''}
         <div class="podium-cred-hearts" title="ความน่าเชื่อถือ: ${cred}/5">${heartsHtml}</div>
       `;
       targetList.appendChild(seat);
