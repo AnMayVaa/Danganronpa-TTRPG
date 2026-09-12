@@ -286,8 +286,8 @@
         <!-- Discovered Clues Tally & Progress -->
         <div class="discovery-tracker-panel">
           <div class="discovery-tracker-top">
-            <span class="discovery-title">🔎 ความคืบหน้าการรวบรวมหลักฐานของชั้นเรียน (Class Progress):</span>
-            <span class="discovery-count-badge">ค้นพบแล้ว: <strong id="courtDiscoveredCount" class="court-gold-text">0</strong> / 30 ชิ้น</span>
+            <span class="discovery-title">🔎 ความคืบหน้าการรวบรวมหลักฐานของชั้นเรียน (Class Progress)</span>
+            <span id="courtDiscoveredCount" style="display:none;">0</span>
           </div>
           <div class="discovery-progress-bar">
             <div id="courtDiscoveryFill" class="discovery-progress-fill" style="width: 0%;"></div>
@@ -308,40 +308,29 @@
         <div class="investigation-map-grid">
           <div class="investigation-loc-card kitchen">
             <div class="investigation-loc-title">🍳 ห้องครัว & ห้องอาหาร (Kitchen & Dining Hall)</div>
-            <div class="investigation-loc-desc">หม้อต้มสตูว์เนื้อ, ตู้แช่แข็ง Walk-in Freezer, และจุดเตรียมอาหาร</div>
-            <div class="investigation-clues-clue-list" id="kitchenClueList">
-              <div class="clue-stub">📍 [EVD-02]: ท่อนกระดูกหมูสับในก้นหม้อสตูว์เนื้อ</div>
-              <div class="clue-stub">📍 [EVD-13]: ตู้แช่แข็งฟรีซ & คราบน้ำแข็งละลาย</div>
+            <div class="investigation-loc-desc">
+              <span style="color:#38bdf8; font-weight:800;">📍 จุดที่ควรตรวจสอบ:</span> บริเวณเคาน์เตอร์ประกอบอาหาร, หม้อต้มอาหารขนาดใหญ่, ตู้แช่แข็ง Walk-in Freezer, และจุดคัดแยกขยะ
             </div>
           </div>
 
           <div class="investigation-loc-card courtyard">
             <div class="investigation-loc-title">🌿 ลานปูนซักล้างปิดตายด้านหลัง (Rear Courtyard)</div>
-            <div class="investigation-loc-desc">ลานกลางแจ้งกำแพงคอนกรีตสูง 5 ม. ปิดตาย จุดที่ถังซักผ้าร่วงกระแทกพื้น</div>
-            <div class="investigation-clues-clue-list" id="courtyardClueList">
-              <div class="clue-stub">📍 [EVD-19]: ซากถังซักผ้าแตก & สายยางร้อยรูมือจับ</div>
-              <div class="clue-stub">📍 [EVD-24]: ผังอาคาร & กำแพงลานปูนสูง 5 ม. ไร้ทางออก</div>
+            <div class="investigation-loc-desc">
+              <span style="color:#38bdf8; font-weight:800;">📍 จุดที่ควรตรวจสอบ:</span> พื้นลานปูนกลางแจ้ง, แนวกำแพงคอนกรีตล้อมรอบ, และบริเวณพื้นดินใต้แนวหน้าต่างห้องซักรีด
             </div>
           </div>
 
           <div class="investigation-loc-card laundry">
             <div class="investigation-loc-title">🧺 ห้องซักรีด ปีกบริการชั้น 1 (Crime Scene)</div>
-            <div class="investigation-loc-desc">ราวท่อสแตนเลสเพดานสูง 4 ม., หน้าต่างบานเลื่อนสูง 3.5 ม., เครื่องอบผ้า และร่าง B</div>
-            <div class="investigation-clues-clue-list" id="laundryClueList">
-              <div class="clue-stub">📍 [EVD-09]: เชือกตากผ้าไนลอนรอยตัดมีดเรียบกริบ</div>
-              <div class="clue-stub">📍 [EVD-12]: มีดพกพับเดินป่าในกระเป๋าเสื้อ B</div>
-              <div class="clue-stub">📍 [EVD-14]: ราวท่อสแตนเลสเพดานสูง 4 ม. มีรอยเชือกไหม้</div>
-              <div class="clue-stub">📍 [EVD-23]: สายยางหลุดจากก๊อก & คราบน้ำเปียกผนัง</div>
-              <div class="clue-stub">📍 [EVD-05]: เครื่องอบผ้าหมุนรองเท้าบูทคู่หนัก (Delay 21:00)</div>
+            <div class="investigation-loc-desc">
+              <span style="color:#38bdf8; font-weight:800;">📍 จุดที่ควรตรวจสอบ:</span> สภาพโดยรอบจุดพบศพผู้เสียชีวิต, ตู้เครื่องซักผ้าและเครื่องอบผ้า, อ่างล้างและแนวก๊อกน้ำ, รวมถึงโครงราวตากผ้าและบานหน้าต่างระบายอากาศ
             </div>
           </div>
 
           <div class="investigation-loc-card hallway">
-            <div class="investigation-loc-title">🏛️ โถงกลาง & บอร์ดประชาสัมพันธ์ (Corridor & Hall)</div>
-            <div class="investigation-loc-desc">ตู้กดน้ำอัตโนมัติโถงกลาง และมิเตอร์น้ำประปาหลักข้าง Blast Gate</div>
-            <div class="investigation-clues-clue-list" id="hallwayClueList">
-              <div class="clue-stub">📍 [EVD-06]: ตู้กดน้ำอัตโนมัติโถงกลาง (เหรียญติดขัด 17:45)</div>
-              <div class="clue-stub">📍 [EVD-10]: แผงมิเตอร์น้ำประปาหลัก (หมุน 0.4 L/min)</div>
+            <div class="investigation-loc-title">🏛️ โถงกลาง & ทางเดินหลัก (Corridor & Hall)</div>
+            <div class="investigation-loc-desc">
+              <span style="color:#38bdf8; font-weight:800;">📍 จุดที่ควรตรวจสอบ:</span> ตู้กดน้ำดื่มอัตโนมัติประจำโถงทางเดิน, บอร์ดประชาสัมพันธ์ข่าวสารโรงเรียน, และแผงมิเตอร์ควบคุมระบบอาคาร
             </div>
           </div>
         </div>
@@ -1435,6 +1424,16 @@
           </p>
         </div>
 
+        <!-- Action Toolbar -->
+        <div class="map-hero-actions" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="blueprint-action-btn" onclick="printCleanBlueprint()" title="พิมพ์แปลนสถาปัตยกรรม A4 แนวนอน" style="font-size:0.9rem; padding:8px 16px;">
+            🖨️ พิมพ์แปลน A4 แนวนอน
+          </button>
+          <button type="button" class="small-btn" onclick="navigate('/court')" style="padding:8px 16px; font-weight:900; font-size:0.85rem; border:1px solid #64748b; background:#1e293b; color:#cbd5e1; border-radius:6px; cursor:pointer;">
+            🏛️ กลับสู่ศาล ↗
+          </button>
+        </div>
+
         <!-- View Mode Switcher -->
         <div class="map-mode-tabs">
           <button type="button" id="btnMapClean" class="map-tab-btn active" onclick="setMapDisplayMode('clean')">
@@ -1449,9 +1448,6 @@
           <button type="button" id="btnMapSimulate" class="map-tab-btn highlight-pink" onclick="setMapDisplayMode('simulate')">
             ▶️ จำลองกลไก (Simulation)
           </button>
-          <button type="button" id="btnPrintBlueprint" class="map-tab-btn" onclick="printCleanBlueprint()" style="background: rgba(56, 189, 248, 0.12); border-color: #38bdf8; color: #38bdf8; font-weight: 900; margin-left: auto;">
-            🖨️ พิมพ์แปลน A4 แนวนอน
-          </button>
         </div>
       </div>
 
@@ -1462,9 +1458,14 @@
         <!-- MODE 1: CLEAN ARCHITECTURAL BLUEPRINT (เปล่าๆ)  -->
         <!-- ============================================== -->
         <div id="mapCleanContainer" class="map-svg-frame">
-          <div class="map-frame-header">
-            <span class="map-frame-tag">CAMPUS SCHEMATIC // GROUND FLOOR (1F) STANDARD BLUEPRINT</span>
-            <span class="map-frame-hint">📐 สัญลักษณ์สถาปัตยกรรม: กำแพง ค.ส.ล., ประตูสวิง (D-101 - D-107), หน้าต่างบานเลื่อน (W-101), เสาโครงสร้าง</span>
+          <div class="map-frame-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="map-frame-tag">CAMPUS SCHEMATIC // GROUND FLOOR (1F) STANDARD BLUEPRINT</span>
+              <span class="map-frame-hint">📐 สัญลักษณ์สถาปัตยกรรม: กำแพง ค.ส.ล., ประตูสวิง (D-101 - D-107), หน้าต่างบานเลื่อน (W-101), เสาโครงสร้าง</span>
+            </div>
+            <button type="button" class="blueprint-action-btn" onclick="printCleanBlueprint()" title="พิมพ์แปลนมาตรฐานลงบนกระดาษ A4 แนวนอน">
+              🖨️ พิมพ์ A4 แนวนอน
+            </button>
           </div>
 
           <svg class="blueprint-svg" viewBox="0 0 1000 680" xmlns="http://www.w3.org/2000/svg">
@@ -2472,5 +2473,6 @@
 
   <script src="/js/jsQR.min.js"></script>
   <script src="/js/client.js?v=3.3.0"></script>
+  <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>

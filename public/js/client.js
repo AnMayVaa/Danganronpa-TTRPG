@@ -2248,7 +2248,7 @@ function renderPlayerCluesList() {
   } else {
     if (currentUserClueTagFilter === 'LOCKED') {
       const remainingCount = ALL_CLUES_DATA.length - unlocked.length;
-      html = `<div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:0.85rem; color:#38bdf8; font-weight:800; display:flex; justify-content:space-between; align-items:center;"><span>🔒 ยังไม่ค้นพบอีก ${remainingCount} รายการ</span><span style="font-size:0.75rem; color:#94a3b8;">(ค้นพบแล้ว ${unlocked.length}/${ALL_CLUES_DATA.length})</span></div>` + html;
+      html = `<div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:0.85rem; color:#38bdf8; font-weight:800; display:flex; justify-content:space-between; align-items:center;"><span>🔒 พยานหลักฐานที่ยังไม่ถูกค้นพบ</span></div>` + html;
     }
     container.innerHTML = html;
   }
@@ -2521,28 +2521,6 @@ function updateDiscoveredCluesDisplay() {
 
   const fillEl = document.getElementById('courtDiscoveryFill');
   if (fillEl) fillEl.style.width = `${Math.min(100, Math.round((count / ALL_CLUES_DATA.length) * 100))}%`;
-
-  const mapStubs = {
-    'kitchenClueList': ['EVD-02', 'EVD-03'],
-    'courtyardClueList': ['EVD-06', 'EVD-11'],
-    'laundryClueList': ['EVD-04', 'EVD-05', 'EVD-07', 'EVD-08', 'EVD-09'],
-    'hallwayClueList': ['EVD-10', 'EVD-12']
-  };
-
-  Object.entries(mapStubs).forEach(([listId, clueIds]) => {
-    const list = document.getElementById(listId);
-    if (!list) return;
-    const items = list.querySelectorAll('.clue-stub');
-    clueIds.forEach((cid, idx) => {
-      if (items[idx]) {
-        if (discovered.includes(cid)) {
-          items[idx].classList.add('found');
-          const found = ALL_CLUES_DATA.find(c => c.id === cid);
-          items[idx].innerHTML = `✅ [ค้นพบ]: ${found ? found.name : cid}`;
-        }
-      }
-    });
-  });
 }
 
 function handleResetSession() {
@@ -5561,7 +5539,7 @@ function setAdminSimAspect(mode) {
 // ==========================================================
 // 1F ACADEMY BLUEPRINT & TRAP CUTAWAY INTERACTION ENGINE
 // ==========================================================
-let currentMapMode = 'floor'; // 'floor' | 'cutaway' | 'simulate'
+let currentMapMode = 'clean'; // 'clean' | 'crime' | 'cutaway' | 'simulate'
 let currentSimPhase = 1; // 1 | 2 | 3
 let simAnimationTimer = null;
 
@@ -5671,8 +5649,7 @@ const ACADEMY_ROOMS_DATA = {
 };
 
 function initMapView() {
-  setMapDisplayMode(currentMapMode || 'clean');
-  selectMapRoom('laundry');
+  setMapDisplayMode('clean');
 }
 
 function setMapDisplayMode(mode) {
@@ -5727,12 +5704,35 @@ function setMapDisplayMode(mode) {
 
 function printCleanBlueprint() {
   setMapDisplayMode('clean');
+  
+  const src = document.getElementById('mapCleanContainer');
+  if (!src) return;
+
+  let printSection = document.getElementById('blueprintPrintSection');
+  if (!printSection) {
+    printSection = document.createElement('div');
+    printSection.id = 'blueprintPrintSection';
+    document.body.appendChild(printSection);
+  }
+  
+  // Clone clean blueprint container content into printSection
+  printSection.innerHTML = src.innerHTML;
+  
+  // Remove any interactive action buttons from printed output
+  const btns = printSection.querySelectorAll('button, .blueprint-action-btn');
+  btns.forEach(b => b.remove());
+
   document.body.classList.add('printing-blueprint');
-  window.print();
+  
+  setTimeout(() => {
+    window.print();
+  }, 100);
 }
 
 window.addEventListener('afterprint', () => {
   document.body.classList.remove('printing-blueprint');
+  const printSection = document.getElementById('blueprintPrintSection');
+  if (printSection) printSection.innerHTML = '';
 });
 
 function selectMapRoom(roomId) {
