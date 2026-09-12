@@ -65,7 +65,7 @@ function renderMobilePhaseCard(stage) {
     return;
   }
 
-  if (stage === 'idle' || stage === 'lobby') {
+  if (stage === 'dailylife' || stage === 'daily' || stage === 'lobby') {
     area.innerHTML = `
       <div style="background:rgba(56,189,248,0.06); border:2px solid #38bdf8; border-radius:12px; padding:20px 16px; text-align:center;">
         <div style="font-size:2rem; margin-bottom:8px;">☕</div>
@@ -74,7 +74,20 @@ function renderMobilePhaseCard(stage) {
           ขณะนี้โรงเรียนเปิดภาคการศึกษาปกติ นักเรียนสามารถศึกษา <strong>📜 กฎโรงเรียน</strong> และทำความคุ้นเคยกับ <strong>🗺️ ผังโรงเรียน</strong> ผ่าน Monopad
         </p>
         <div style="display:inline-block; background:rgba(56,189,248,0.15); border:1px solid #38bdf8; border-radius:20px; padding:6px 14px; font-size:0.8rem; color:#38bdf8; font-weight:800;">
-          ⏳ รอผู้ดูแลศาลเปิดช่วงสืบสวน...
+          ⏳ กำลังดำเนินชีวิตประจำวัน...
+        </div>
+      </div>
+    `;
+  } else if (stage === 'idle') {
+    area.innerHTML = `
+      <div style="background:rgba(148,163,184,0.08); border:2px solid #64748b; border-radius:12px; padding:20px 16px; text-align:center;">
+        <div style="font-size:2rem; margin-bottom:8px;">🎬</div>
+        <h3 style="color:#f8fafc; font-weight:900; margin-bottom:8px; font-size:1.15rem;">🎬 พักการพิจารณาคดี (Class Trial Recess)</h3>
+        <p style="color:#cbd5e1; font-size:0.88rem; line-height:1.5; margin-bottom:14px;">
+          ขณะนี้ศาลชั้นเรียนอยู่ในช่วงพักการพิจารณาคดีชั่วคราว หรือเตรียมความพร้อมก่อนเริ่มเปิดศาลไต่สวน
+        </p>
+        <div style="display:inline-block; background:rgba(148,163,184,0.2); border:1px solid #94a3b8; border-radius:20px; padding:6px 14px; font-size:0.8rem; color:#e2e8f0; font-weight:800;">
+          ⏸️ ช่วงพักศาล / รอผู้ดูแลเปิดช่วงถัดไป...
         </div>
       </div>
     `;
@@ -2657,7 +2670,7 @@ function handleClueDiscovered(clueId, clueName, playerName) {
 // STAGE RENDERERS (COURTROOM VIEW & MOBILE VIEW)
 // ==========================================================
 function renderStage(stage) {
-  const courtStages = ['courtIdle', 'courtLobby', 'courtTrial', 'courtInvestigation', 'courtStage1', 'courtStage2', 'courtStage3', 'courtStage4', 'courtStage5', 'courtStage6', 'courtClosing', 'courtStage7', 'courtVerdict'];
+  const courtStages = ['courtDailyLife', 'courtIdle', 'courtLobby', 'courtTrial', 'courtInvestigation', 'courtStage1', 'courtStage2', 'courtStage3', 'courtStage4', 'courtStage5', 'courtStage6', 'courtClosing', 'courtStage7', 'courtVerdict'];
   courtStages.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
@@ -2673,7 +2686,11 @@ function renderStage(stage) {
     }
   }
 
-  if (stage === 'idle') {
+  if (stage === 'dailylife' || stage === 'daily') {
+    const dl = document.getElementById('courtDailyLife');
+    if (dl) dl.classList.remove('hidden');
+    updatePlayerDisplays();
+  } else if (stage === 'idle') {
     const idl = document.getElementById('courtIdle');
     if (idl) idl.classList.remove('hidden');
     updatePlayerDisplays();
@@ -4455,11 +4472,18 @@ function updatePlayerDisplays() {
   const trialList = document.getElementById('courtTrialPodiumList');
   const trialCount = document.getElementById('courtTrialPlayerCount');
   const idleCount = document.getElementById('courtIdlePlayerCount');
+  const dailyCount = document.getElementById('courtDailyPlayerCount');
   const players = Object.values(gameState.players);
 
   if (count) count.innerText = players.length;
   if (trialCount) trialCount.innerText = players.length;
   if (idleCount) idleCount.innerText = players.length;
+  if (dailyCount) dailyCount.innerText = players.length;
+
+  const idlCode = document.getElementById('courtIdleRoomCode');
+  if (idlCode) idlCode.innerText = roomCode || '------';
+  const dlCode = document.getElementById('courtDailyRoomCode');
+  if (dlCode) dlCode.innerText = roomCode || '------';
 
   [list, trialList].forEach(targetList => {
     if (!targetList) return;
