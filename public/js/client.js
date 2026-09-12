@@ -415,8 +415,10 @@ let gameState = {
     "พวกแกไม่มีหลักฐานชิ้นสุดท้ายที่จะพิสูจน์การกระทำของฉันหรอก!!"
   ],
 
-  // Mini-Game 7: Closing Argument
-  closingSlots: { 1: false, 2: false },
+  // Mini-Game 7: Closing Argument (5 Pages / 10 Slots)
+  closingCurrentPage: 1,
+  closingSlots: { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false, 9: false, 10: false },
+  closingPlayerHands: {},
 
   // Stage 8: Voting Time
   votingOpen: false,
@@ -1372,6 +1374,28 @@ function handleIncomingMessage(msg, senderConn) {
     if (box) box.style.display = 'block';
   } else if (msg.type === 'closing_submit') {
     handleClosingSubmit(msg.slot, msg.cardId, msg.playerName);
+  } else if (msg.type === 'closing_page_change') {
+    gameState.closingCurrentPage = msg.page;
+    updateClosingDisplay();
+    if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
+      renderMobileTask('closing');
+    }
+  } else if (msg.type === 'closing_bonus_time') {
+    showBonusTimePopup(msg.seconds);
+  } else if (msg.type === 'closing_card_unlocked') {
+    if (msg.hands) gameState.closingPlayerHands = msg.hands;
+    if (typeof myPlayer !== 'undefined' && myPlayer && myPlayer.id === msg.playerId) {
+      playSfx('correct');
+      showToast('🔓 ปลดล็อกการ์ดใหม่ในมือคุณแล้ว!');
+    }
+    if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
+      renderMobileTask('closing');
+    }
+  } else if (msg.type === 'closing_hands_sync') {
+    gameState.closingPlayerHands = msg.hands;
+    if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
+      renderMobileTask('closing');
+    }
   } else if (msg.type === 'submit_vote') {
     handleVoteSubmitted(msg.candidate, msg.voterId);
   } else if (msg.type === 'minigame_result') {
@@ -2518,14 +2542,16 @@ function setStage(stage, config) {
     playSfx('gavel');
   } else if (stage === 'closing') {
     autoUnlockTrialClues();
-    gameState.closingSlots = { 1: false, 2: false };
+    gameState.closingCurrentPage = 1;
+    gameState.closingSlots = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false, 9: false, 10: false };
+    distributeClosingCards();
     updateClosingDisplay();
     gameState.timeRemaining = 90;
     gameState.timerRunning = false;
     stopTimer();
     updateTimerDisplay();
     playSfx('gavel');
-    logCourt(`📖 [CLOSING ARGUMENT]: เริ่มต้นการปะติดปะต่อลำดับเหตุการณ์มังงะคดีความ!`);
+    logCourt(`📖 [CLOSING ARGUMENT]: เริ่มต้นการปะติดปะต่อมังงะคดีความ 5 หน้า 18 ช่อง (เวลา 90s - หยุดเวลาไว้ รอ DM เริ่ม)`);
   } else if (stage === 'stage7') {
     gameState.votingOpen = true;
     myPlayerVoted = false;
@@ -3569,65 +3595,512 @@ function adminStartArmament() {
   adminSetGame('stage6', { targetPlayer: target });
 }
 
-// 7. Closing Argument (Mini-Game 7)
-function handleClosingSubmit(slot, cardId, pName) {
-  if (!gameState.closingSlots) gameState.closingSlots = { 1: false, 2: false };
-  let correct = false;
+// 7. Closing Argument (Mini-Game 7) - 5-Page Airtight Manga Overhaul
+const CLOSING_PAGES_DATA = [
+  {
+    page: 1,
+    title: 'แผนการในครัว & อาวุธท่อนกระดูกหมู (17:00 – 17:30 น.)',
+    panels: [
+      {
+        num: 1,
+        type: 'story',
+        art: '🥩',
+        desc: 'คนร้ายใช้ความชำนาญในการทำอาหาร แอบนำท่อนกระดูกหมูแช่แข็งชิ้นใหญ่ออกจากช่องฟรีซมาเตรียมไว้'
+      },
+      {
+        num: 2,
+        type: 'slot',
+        slotId: 1,
+        pageSlot: 1,
+        acceptedIds: ['CARD-P1-S1', 'EVD-14', 'EVD-12', 'ACTION-CUT'],
+        art: '🍖',
+        title: 'ช่องว่างที่ 1: การลงมือสังหารในครัว',
+        desc: 'คนร้ายใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเหยื่อเรียวตะจนหมดสติในครัวเวลา 17:30 น.'
+      },
+      {
+        num: 3,
+        type: 'slot',
+        slotId: 2,
+        pageSlot: 2,
+        acceptedIds: ['CARD-P1-S2', 'EVD-11', 'EVD-09', 'ACTION-NOOSE'],
+        art: '🍲',
+        title: 'ช่องว่างที่ 2: การทำลายหลักฐานและอาวุธ',
+        desc: 'คนร้ายโยนท่อนกระดูกหมูเปื้อนเลือดลงก้นหม้อสตูว์เนื้อที่กำลังเดือดเพื่อต้มล้างคราบและซ่อนอาวุธ'
+      },
+      {
+        num: 4,
+        type: 'story',
+        art: '🥘',
+        desc: 'ไขมันและกลิ่นเครื่องเทศของสตูว์เนื้อกลบคราบเลือดจนมิด และกลายเป็นอาหารเย็นที่ทุกคนทานร่วมกัน'
+      }
+    ]
+  },
+  {
+    page: 2,
+    title: 'การเคลื่อนย้ายร่าง & ติดตั้งรอกเชือกห้องซักรีด (17:45 – 18:30 น.)',
+    panels: [
+      {
+        num: 1,
+        type: 'story',
+        art: '🚪',
+        desc: 'คนร้ายแบกร่างของเรียวตะที่หมดสติออกจากครัว แอบนำมาซ่อนในห้องซักรีดที่ไม่มีผู้คน'
+      },
+      {
+        num: 2,
+        type: 'slot',
+        slotId: 3,
+        pageSlot: 1,
+        acceptedIds: ['CARD-P2-S1'],
+        art: '🪢',
+        title: 'ช่องว่างที่ 1: การมัดร่างเหยื่อ',
+        desc: 'คนร้ายใช้เชือกตากผ้าไนลอนสีชมพูร้อยผูกมัดลำตัวและคล้องคอของเหยื่อเรียวตะ'
+      },
+      {
+        num: 3,
+        type: 'slot',
+        slotId: 4,
+        pageSlot: 2,
+        acceptedIds: ['CARD-P2-S2'],
+        art: '⚙️',
+        title: 'ช่องว่างที่ 2: การทำรอกชักร่างขึ้นเพดาน',
+        desc: 'พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดาน เพื่อทำหน้าที่เป็นรอกชักร่างขึ้นสู่ที่สูง'
+      },
+      {
+        num: 4,
+        type: 'story',
+        art: '🪟',
+        desc: 'คนร้ายโยนปลายเชือกอีกด้านออกนอกหน้าต่างระบายอากาศสูง 3.5 เมตรที่ไร้ลูกกรง สู่ลานคอร์ทยาร์ดภายนอก'
+      }
+    ]
+  },
+  {
+    page: 3,
+    title: 'กลไกสายยาง & ถังน้ำถ่วงน้ำหนักคอร์ทยาร์ด (18:30 – 20:00 น.)',
+    panels: [
+      {
+        num: 1,
+        type: 'story',
+        art: '🏢',
+        desc: 'ที่ลานคอร์ทยาร์ดนอกอาคาร คนร้ายวางถังน้ำพลาสติก 80 ลิตรไว้ตรงกับแนวหน้าต่างห้องซักรีด'
+      },
+      {
+        num: 2,
+        type: 'slot',
+        slotId: 5,
+        pageSlot: 1,
+        acceptedIds: ['CARD-P3-S1'],
+        art: '🪣',
+        title: 'ช่องว่างที่ 1: การผูกถังถ่วงน้ำหนัก',
+        desc: 'ผูกปลายเชือกไนลอนที่หย่อนลงมาเข้ากับหูหิ้วของถังน้ำ เพื่อทำหน้าที่เป็นน้ำหนักถ่วง (Counterweight)'
+      },
+      {
+        num: 3,
+        type: 'slot',
+        slotId: 6,
+        pageSlot: 2,
+        acceptedIds: ['CARD-P3-S2'],
+        art: '🚰',
+        title: 'ช่องว่างที่ 2: กลไกนาฬิกาน้ำตั้งเวลา',
+        desc: 'ต่อสายยางน้ำประปาเข้าก๊อก เปิดน้ำให้ไหลเติมลงถังอย่างช้าๆ 0.4 ลิตร/นาที (กลไกนาฬิกาน้ำ)'
+      }
+    ]
+  },
+  {
+    page: 4,
+    title: 'กลลวงสร้าง Alibi & เสียงต่อสู้หลอก (20:00 – 21:00 น.)',
+    panels: [
+      {
+        num: 1,
+        type: 'story',
+        art: '🕯️',
+        desc: 'คนร้ายกลับไปร่วมโต๊ะอาหารค่ำและอยู่กับทุกคนตอนไฟดับเวลา 20:30 น. เพื่อสร้าง Alibi ที่สมบูรณ์แบบ'
+      },
+      {
+        num: 2,
+        type: 'slot',
+        slotId: 7,
+        pageSlot: 1,
+        acceptedIds: ['CARD-P4-S1'],
+        art: '⏱️',
+        title: 'ช่องว่างที่ 1: การตั้งเวลาเครื่องอบผ้า',
+        desc: 'คนร้ายแอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้า ให้เริ่มทำงานตอน 21:00 น.'
+      },
+      {
+        num: 3,
+        type: 'slot',
+        slotId: 8,
+        pageSlot: 2,
+        acceptedIds: ['CARD-P4-S2'],
+        art: '👢',
+        title: 'ช่องว่างที่ 2: วัตถุสร้างเสียงกระแทกหลอก',
+        desc: 'ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้า เพื่อให้เกิดเสียงกระแทกเลียนแบบการต่อสู้'
+      },
+      {
+        num: 4,
+        type: 'story',
+        art: '🔊',
+        desc: 'เวลา 21:00 น. เครื่องอบผ้าเริ่มหมุน เกิดเสียงโครมครามกระแทกผนัง หลอกให้ทุกคนเชื่อว่าเพิ่งเกิดการต่อสู้ขึ้น'
+      }
+    ]
+  },
+  {
+    page: 5,
+    title: 'มวลน้ำกระชากร่างแขวนเพดาน & การค้นพบศพ (21:00 – 21:05 น.)',
+    panels: [
+      {
+        num: 1,
+        type: 'slot',
+        slotId: 9,
+        pageSlot: 1,
+        acceptedIds: ['CARD-P5-S1'],
+        art: '💥',
+        title: 'ช่องว่างที่ 1: จังหวะถังน้ำร่วงกระแทกพื้น',
+        desc: 'มวลน้ำในถังหนักทะลุ 70 กก. จนชนะน้ำหนักตัวเหยื่อ ถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย'
+      },
+      {
+        num: 2,
+        type: 'slot',
+        slotId: 10,
+        pageSlot: 2,
+        acceptedIds: ['CARD-P5-S2'],
+        art: '⛓️',
+        title: 'ช่องว่างที่ 2: การแขวนร่างติดเพดาน',
+        desc: 'แรงกระชากดึงเชือกข้ามท่อเพดาน ยกร่างเหยื่อเรียวตะลอยขึ้นไปแขวนตรึงแน่นติดเพดานห้องซักรีดจนเสียชีวิต'
+      },
+      {
+        num: 3,
+        type: 'story',
+        art: '🩸',
+        desc: 'ทุกคนพังประตูห้องซักรีดเข้ามา พบศพเรียวตะแขวนติดเพดาน เลือดสีชมพูหยดลงสู่พื้น กลลวงมายากลจึงถูกเปิดโปง!'
+      }
+    ]
+  }
+];
 
-  if (slot == 1 && (cardId === 'EVD-12' || cardId === 'EVD-14' || cardId === 'ACTION-CUT')) {
-    gameState.closingSlots[1] = true;
-    correct = true;
-    logCourt(`📖 [CLOSING ACT 3]: ${pName} เติมมังงะช่องที่ 1 สำเร็จ! "เหยื่อเรียวตะ (B) ฟื้นสติและใช้มีดปอกผลไม้ตัดเชือกที่มัดมือออกเอง"`);
-  } else if (slot == 2 && (cardId === 'EVD-09' || cardId === 'EVD-11' || cardId === 'ACTION-NOOSE')) {
-    gameState.closingSlots[2] = true;
-    correct = true;
-    logCourt(`📖 [CLOSING ACT 4]: ${pName} เติมมังงะช่องที่ 2 สำเร็จ! "เหยื่อเรียวตะ (B) นำบ่วงเชือกมาคล้องคอตนเองเพื่อจัดฉากกลั่นแกล้ง"`);
+const CLOSING_CARDS_DATA = [
+  { id: 'CARD-P1-S1', page: 1, slot: 1, title: 'ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเหยื่อสลบในครัว (17:30 น.)', icon: '🍖' },
+  { id: 'CARD-P1-S2', page: 1, slot: 2, title: 'โยนท่อนกระดูกหมูเปื้อนเลือดลงไปต้มในหม้อสตูว์เนื้อเพื่อทำลายหลักฐาน', icon: '🍲' },
+  { id: 'CARD-P2-S1', page: 2, slot: 3, title: 'ใช้เชือกตากผ้าไนลอนสีชมพูร้อยผูกมัดลำตัวและรอบคอของเหยื่อเรียวตะ', icon: '🪢' },
+  { id: 'CARD-P2-S2', page: 2, slot: 4, title: 'พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️' },
+  { id: 'CARD-P3-S1', page: 3, slot: 5, title: 'ผูกปลายเชือกไนลอนเข้ากับหูหิ้วถังน้ำพลาสติก 80 ลิตรที่ลานคอร์ทยาร์ด', icon: '🪣' },
+  { id: 'CARD-P3-S2', page: 3, slot: 6, title: 'ต่อสายยางน้ำประปาเปิดน้ำไหลเติมลงถังทีละน้อย 0.4 ลิตร/นาที (นาฬิกาน้ำ)', icon: '🚰' },
+  { id: 'CARD-P4-S1', page: 4, slot: 7, title: 'แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้าให้เริ่มทำงานตอน 21:00 น.', icon: '⏱️' },
+  { id: 'CARD-P4-S2', page: 4, slot: 8, title: 'ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอก', icon: '👢' },
+  { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย', icon: '💥' },
+  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงร่างเหยื่อลอยขึ้นไปแขวนตรึงแน่นติดท่อเพดานห้องซักรีด', icon: '⛓️' },
+  { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'เหยื่อเรียวตะฟื้นสติและชักมีดพับออกมาตัดเชือกเพื่อหลบหนี', icon: '🔪', decoy: true },
+  { id: 'DECOY-LADDER', page: 0, slot: 0, title: 'คนร้ายปีนบันไดออกไปทางหน้าต่างสูงเพื่อผูกเชือกภายนอกอาคาร', icon: '🪜', decoy: true },
+  { id: 'DECOY-BREAKER', page: 0, slot: 0, title: 'คนร้ายแอบไปสับคัตเอาต์ตัดสะพานไฟหลักในห้องควบคุม', icon: '⚡', decoy: true },
+  { id: 'DECOY-WASH', page: 0, slot: 0, title: 'คนร้ายนำเสื้อผ้าเปื้อนเลือดของตนเองใส่ลงไปซักในเครื่องซักผ้า', icon: '🫧', decoy: true },
+  { id: 'DECOY-DOOR', page: 0, slot: 0, title: 'คนร้ายใช้โซ่เหล็กคล้องล็อกประตูด้านนอกของห้องซักรีดไว้', icon: '🔒', decoy: true }
+];
+
+function distributeClosingCards() {
+  const playersList = typeof getActivePlayersList === 'function' ? getActivePlayersList() : [];
+  const hands = {};
+  const allCards = JSON.parse(JSON.stringify(CLOSING_CARDS_DATA));
+
+  // Starter card rule: exactly 1 card from Page 1 starts unlocked, all others start locked!
+  const starterCardId = 'CARD-P1-S1';
+  allCards.forEach(c => {
+    c.locked = (c.id !== starterCardId);
+  });
+
+  // Shuffle cards
+  for (let i = allCards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allCards[i], allCards[j]] = [allCards[j], allCards[i]];
   }
 
-  if (correct) {
+  if (playersList.length === 0) {
+    hands['local'] = allCards;
+  } else {
+    playersList.forEach(p => { hands[p.id] = []; });
+    allCards.forEach((card, idx) => {
+      const p = playersList[idx % playersList.length];
+      hands[p.id].push(card);
+    });
+  }
+
+  gameState.closingPlayerHands = hands;
+  if (typeof isHost !== 'undefined' && isHost) {
+    broadcast({ type: 'closing_hands_sync', hands: hands });
+  }
+}
+
+function unlockOneClosingCard() {
+  if (!gameState.closingPlayerHands) return;
+  const lockedPool = [];
+  Object.keys(gameState.closingPlayerHands).forEach(pId => {
+    gameState.closingPlayerHands[pId].forEach(card => {
+      if (card.locked) {
+        lockedPool.push({ pId, card });
+      }
+    });
+  });
+
+  if (lockedPool.length > 0) {
+    const picked = lockedPool[Math.floor(Math.random() * lockedPool.length)];
+    picked.card.locked = false;
+    logCourt(`🔓 [CARD UNLOCKED]: การ์ด "${picked.card.title}" ถูกปลดล็อกแล้ว!`);
     playSfx('correct');
+    if (typeof isHost !== 'undefined' && isHost) {
+      broadcast({
+        type: 'closing_card_unlocked',
+        playerId: picked.pId,
+        cardId: picked.card.id,
+        hands: gameState.closingPlayerHands
+      });
+    }
+    if (typeof myPlayer !== 'undefined' && myPlayer && myPlayer.id === picked.pId) {
+      showToast(`🔓 ปลดล็อกการ์ดใหม่: ${picked.card.title}!`);
+    }
+  }
+}
+
+function showBonusTimePopup(seconds) {
+  const existing = document.querySelector('.bonus-time-toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = 'bonus-time-toast';
+  toast.innerHTML = `⏱️ +${seconds}s BONUS TIME!`;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 500);
+  }, 1800);
+}
+
+function adminSetClosingPage(page) {
+  if (page < 1 || page > 5) return;
+  gameState.closingCurrentPage = page;
+  updateClosingDisplay();
+  if (typeof isHost !== 'undefined' && isHost) {
+    broadcast({ type: 'closing_page_change', page: page });
+  }
+  if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
+    renderMobileTask('closing');
+  }
+}
+
+function adminPrevClosingPage() {
+  if (!gameState.closingCurrentPage) gameState.closingCurrentPage = 1;
+  if (gameState.closingCurrentPage > 1) {
+    adminSetClosingPage(gameState.closingCurrentPage - 1);
+  }
+}
+
+function adminNextClosingPage() {
+  if (!gameState.closingCurrentPage) gameState.closingCurrentPage = 1;
+  if (gameState.closingCurrentPage < 5) {
+    adminSetClosingPage(gameState.closingCurrentPage + 1);
+  }
+}
+
+function handleClosingSubmit(slot, cardId, pName) {
+  if (!gameState.closingSlots) {
+    gameState.closingSlots = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false, 9: false, 10: false };
+  }
+  const slotNum = Number(slot);
+
+  // Find target slot definition
+  let targetPanel = null;
+  let targetPage = 1;
+  for (const p of CLOSING_PAGES_DATA) {
+    const found = p.panels.find(pan => pan.type === 'slot' && pan.slotId === slotNum);
+    if (found) {
+      targetPanel = found;
+      targetPage = p.page;
+      break;
+    }
+  }
+
+  let isCorrect = false;
+  if (targetPanel && targetPanel.acceptedIds && targetPanel.acceptedIds.includes(cardId)) {
+    isCorrect = true;
+  } else if (slotNum === 1 && (cardId === 'EVD-14' || cardId === 'CARD-P1-S1')) {
+    isCorrect = true;
+  } else if (slotNum === 2 && (cardId === 'EVD-11' || cardId === 'CARD-P1-S2')) {
+    isCorrect = true;
+  }
+
+  if (isCorrect) {
+    gameState.closingSlots[slotNum] = true;
+    playSfx('correct');
+
+    // +20s Auto Bonus Time
+    gameState.timeRemaining += 20;
+    updateTimerDisplay();
+    showBonusTimePopup(20);
+    if (typeof isHost !== 'undefined' && isHost) {
+      broadcast({ type: 'admin_adjust_timer', secs: 20, time: gameState.timeRemaining });
+      broadcast({ type: 'closing_bonus_time', seconds: 20 });
+    }
+
+    // Unlock 1 locked card
+    unlockOneClosingCard();
+
+    logCourt(`📖 [CLOSING PAGE ${targetPage}]: ${pName} เติมมังงะช่องที่ ${slotNum} สำเร็จ! (+20s โบนัส)`);
     updateClosingDisplay();
-    if (gameState.closingSlots[1] && gameState.closingSlots[2]) {
+
+    // Check if all 10 slots are solved
+    let solvedCount = 0;
+    for (let s = 1; s <= 10; s++) {
+      if (gameState.closingSlots[s]) solvedCount++;
+    }
+
+    if (solvedCount >= 10) {
       stopTimer();
       setTimeout(() => {
         playSfx('point_break');
         showMinigameResult(
           true,
           "CLOSING ARGUMENT COMPLETE!",
-          "การปะติดปะต่อลำดับเหตุการณ์มังงะคดีความสมบูรณ์แบบ 100%!",
-          "เรื่องราวทั้งหมดของคดีถูกคลี่คลายอย่างสมบูรณ์แบบ!"
+          "การปะติดปะต่อลำดับเหตุการณ์มังงะคดีความ 5 หน้าสมบูรณ์แบบ 100%!",
+          "เรื่องราวทั้งหมดของคดีถูกคลี่คลายอย่างสมบูรณ์แบบ! DM สามารถกดปุ่ม 'ฉายสรุปคดี (Climax)' บนจอศาลเพื่อรับชมบทสรุปคดีได้ทันที"
         );
       }, 500);
     }
-    if (isHost) broadcast({ type: 'sync_state', state: gameState });
+
+    if (typeof isHost !== 'undefined' && isHost) {
+      broadcast({ type: 'sync_state', state: gameState });
+    }
+    if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
+      renderMobileTask('closing');
+    }
   } else {
     gameState.influence = Math.max(0, gameState.influence - 10);
     playSfx('wrong');
-    logCourt(`❌ [CLOSING MISMATCH]: การ์ดเหตุการณ์ไม่ตรงกับช่องว่าง (-10% Influence)`);
+    logCourt(`❌ [CLOSING MISMATCH]: ${pName} วางการ์ดไม่ตรงกับช่องว่าง (-10% Influence)`);
+    if (typeof isHost !== 'undefined' && isHost) {
+      broadcast({ type: 'sync_state', state: gameState });
+    }
   }
 }
 
 function updateClosingDisplay() {
-  const s1 = document.getElementById('mangaSlot1');
-  const s2 = document.getElementById('mangaSlot2');
-  if (gameState.closingSlots && gameState.closingSlots[1]) {
-    if (s1) {
-      s1.className = 'manga-panel complete solved';
-      const art = document.getElementById('mangaSlot1Art');
-      const desc = document.getElementById('mangaSlot1Desc');
-      if (art) art.innerText = '🔪';
-      if (desc) desc.innerText = 'เหยื่อเรียวตะ (B) ฟื้นสติขึ้นมา และใช้มีดปอกผลไม้ในกระเป๋าตัดเชือกที่มัดมือออกเองจนหลุด!';
+  const curPage = gameState.closingCurrentPage || 1;
+  const pageData = CLOSING_PAGES_DATA.find(p => p.page === curPage) || CLOSING_PAGES_DATA[0];
+
+  const pageNumDisp = document.getElementById('closingPageNumDisplay');
+  if (pageNumDisp) pageNumDisp.innerText = `PAGE ${curPage} / 5`;
+
+  const pageTitleDisp = document.getElementById('closingPageTitleDisplay');
+  if (pageTitleDisp) pageTitleDisp.innerText = pageData.title;
+
+  // Update dots
+  for (let p = 1; p <= 5; p++) {
+    const dot = document.getElementById(`dotP${p}`);
+    if (dot) {
+      const pData = CLOSING_PAGES_DATA.find(x => x.page === p);
+      const pSlots = pData ? pData.panels.filter(x => x.type === 'slot').map(x => x.slotId) : [];
+      const pSolved = pSlots.length > 0 && pSlots.every(sId => gameState.closingSlots && gameState.closingSlots[sId]);
+
+      dot.className = 'page-dot';
+      if (p === curPage) dot.classList.add('active');
+      if (pSolved) dot.classList.add('solved');
     }
   }
-  if (gameState.closingSlots && gameState.closingSlots[2]) {
-    if (s2) {
-      s2.className = 'manga-panel complete solved';
-      const art = document.getElementById('mangaSlot2Art');
-      const desc = document.getElementById('mangaSlot2Desc');
-      if (art) art.innerText = '🪢';
-      if (desc) desc.innerText = 'เหยื่อเรียวตะ (B) ผูกบ่วงเชือกเส้นใหม่มาคล้องคอตนเอง หวังจัดฉากฆาตกรรมกลั่นแกล้งคนอื่น!';
+
+  // Update total progress badge
+  let solvedCount = 0;
+  if (gameState.closingSlots) {
+    for (let s = 1; s <= 10; s++) {
+      if (gameState.closingSlots[s]) solvedCount++;
     }
   }
+  const progTxt = document.getElementById('closingTotalProgressTxt');
+  if (progTxt) progTxt.innerText = `${solvedCount} / 10 ช่อง`;
+
+  const btnClimax = document.getElementById('btnClimaxPlayback');
+  if (btnClimax) {
+    if (solvedCount >= 10) {
+      btnClimax.classList.remove('hidden');
+    } else {
+      btnClimax.classList.add('hidden');
+    }
+  }
+
+  // Render grid panels for active page
+  const grid = document.getElementById('mangaTimelineGrid');
+  if (grid && pageData) {
+    grid.innerHTML = pageData.panels.map(panel => {
+      if (panel.type === 'story') {
+        return `
+          <div class="manga-panel complete">
+            <div class="panel-num">ช่องที่ ${panel.num}</div>
+            <div class="panel-tag">ลำดับเหตุการณ์</div>
+            <div class="panel-art">${panel.art}</div>
+            <div class="panel-desc">${panel.desc}</div>
+          </div>
+        `;
+      } else {
+        const isSolved = gameState.closingSlots && gameState.closingSlots[panel.slotId];
+        if (isSolved) {
+          return `
+            <div class="manga-panel complete solved">
+              <div class="panel-num">ช่องที่ ${panel.num}</div>
+              <div class="panel-tag" style="color:#00ff88;">✅ เติมถูกต้องแล้ว</div>
+              <div class="panel-art">${panel.art}</div>
+              <div class="panel-desc" style="color:#fff; font-weight:700;">${panel.desc}</div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="manga-panel missing">
+              <div class="panel-num">ช่องที่ ${panel.num}</div>
+              <div class="panel-tag" style="color:var(--mono-pink);">❓ ช่องว่างที่ ${panel.pageSlot}</div>
+              <div class="panel-art" style="opacity:0.4;">❓</div>
+              <div class="panel-desc" style="color:#aaa; font-style:italic;">[รอผู้เล่นเติมการ์ดเหตุการณ์ที่ถูกต้อง]</div>
+            </div>
+          `;
+        }
+      }
+    }).join('');
+  }
+}
+
+function startClosingClimaxPlayback() {
+  const modal = document.getElementById('closingClimaxModal');
+  const container = document.getElementById('climaxStoryboardContent');
+  if (!modal || !container) return;
+
+  modal.classList.remove('hidden');
+  playSfx('point_break');
+
+  container.innerHTML = CLOSING_PAGES_DATA.map(p => {
+    const panelsHtml = p.panels.map(pan => {
+      const isSlot = pan.type === 'slot';
+      return `
+        <div class="climax-panel-item" style="background:#151525; border:2px solid ${isSlot ? 'var(--court-gold)' : '#3d3d5c'}; border-radius:8px; padding:12px; display:flex; align-items:center; gap:14px;">
+          <div style="font-size:2.2rem; min-width:50px; text-align:center;">${pan.art}</div>
+          <div style="flex:1;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+              <span style="background:#000; color:var(--court-gold); padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:900;">ช่องที่ ${pan.num}</span>
+              ${isSlot ? '<span style="color:#00ff88; font-size:0.75rem; font-weight:800;">[การ์ดที่ถูกเติมสำเร็จ]</span>' : ''}
+            </div>
+            <div style="color:#fff; font-size:0.9rem; line-height:1.4;">${pan.desc}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="climax-page-card" style="background:#0a0a14; border:1px solid #282845; border-radius:10px; padding:14px; margin-bottom:12px;">
+        <h4 style="color:var(--mono-pink); margin:0 0 10px 0; font-size:1rem; font-weight:900; border-bottom:1px solid #222238; padding-bottom:6px;">
+          📖 หน้าที่ ${p.page}: ${p.title}
+        </h4>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          ${panelsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function closeClosingClimaxModal() {
+  const modal = document.getElementById('closingClimaxModal');
+  if (modal) modal.classList.add('hidden');
 }
 
 // 8. Voting & Verdict
@@ -4075,38 +4548,111 @@ function renderMobileTask(stage) {
       `;
     }
   } else if (stage === 'closing') {
-    const allCards = [
-      { id: 'EVD-14', title: 'เหยื่อเรียวตะ (B) ฟื้นสติและใช้มีดพกตัดเชือกตากผ้าไนลอนที่คอออกเอง' },
-      { id: 'EVD-11', title: 'เหยื่อเรียวตะ (B) นำบ่วงเชือกมาสวมและผูกฮาร์เนสตบตาเพื่อดัดหลังคนร้าย' },
-      { id: 'ACT-ESCAPE', title: 'เหยื่อเรียวตะ (B) วิ่งหนีขึ้นบันไดไปตามคนมาช่วย' },
-      { id: 'ACT-CHECK', title: 'คนร้ายกลับมาที่ห้องซักรีดเพื่อตรวจผลงาน' }
-    ];
+    const curPage = gameState.closingCurrentPage || 1;
+    const pageData = CLOSING_PAGES_DATA.find(p => p.page === curPage) || CLOSING_PAGES_DATA[0];
+    const pageSlots = pageData.panels.filter(p => p.type === 'slot');
 
-    const playersList = getActivePlayersList();
-    let myCards = allCards;
-    if (playersList.length >= 2 && myPlayer) {
-      const myIdx = playersList.findIndex(p => p.id === myPlayer.id);
-      if (myIdx === 0) {
-        myCards = [allCards[0], allCards[2]];
-      } else if (myIdx === 1) {
-        myCards = [allCards[1], allCards[3]];
+    // Retrieve my hand
+    let myCards = [];
+    if (gameState.closingPlayerHands) {
+      if (typeof myPlayer !== 'undefined' && myPlayer && gameState.closingPlayerHands[myPlayer.id]) {
+        myCards = gameState.closingPlayerHands[myPlayer.id];
+      } else if (gameState.closingPlayerHands['local']) {
+        myCards = gameState.closingPlayerHands['local'];
+      } else {
+        const keys = Object.keys(gameState.closingPlayerHands);
+        if (keys.length > 0) myCards = gameState.closingPlayerHands[keys[0]];
       }
     }
+    if (!myCards || myCards.length === 0) {
+      myCards = CLOSING_CARDS_DATA.map(c => ({
+        ...c,
+        locked: c.id !== 'CARD-P1-S1'
+      }));
+    }
 
-    let cardButtons = myCards.map(c => `
-      <div style="background:#19192b; border:2px solid #444; border-radius:8px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-        <span style="font-size:0.85rem; color:#fff; text-align:left;">${c.title}</span>
-        <div style="display:flex; gap:4px;">
-          <button class="small-btn cyan" onclick="sendClosingCard(1, '${c.id}')" style="white-space:nowrap; padding:4px 8px; font-size:0.75rem;">ใส่ช่อง 1</button>
-          <button class="small-btn pink" onclick="sendClosingCard(2, '${c.id}')" style="white-space:nowrap; padding:4px 8px; font-size:0.75rem;">ใส่ช่อง 2</button>
-        </div>
-      </div>
-    `).join('');
+    // Slots HTML on active page
+    const slotsHtml = pageSlots.map(s => {
+      const isSolved = gameState.closingSlots && gameState.closingSlots[s.slotId];
+      if (isSolved) {
+        return `
+          <div style="background:#0d2616; border:2px solid #00ff88; border-radius:8px; padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
+            <div>
+              <span style="color:#00ff88; font-weight:900; font-size:0.85rem;">✅ ช่องที่ ${s.pageSlot} (เติมถูกต้องแล้ว):</span>
+              <div style="color:#fff; font-size:0.8rem; margin-top:2px; line-height:1.3;">${s.desc}</div>
+            </div>
+            <span style="font-size:1.4rem; margin-left:8px;">✓</span>
+          </div>
+        `;
+      } else {
+        return `
+          <button class="p-task-btn" onclick="submitSelectedClosingCard(${s.slotId})" style="background:#1f132b; border:2px dashed var(--mono-pink); border-radius:8px; padding:10px 12px; margin-bottom:8px; width:100%; text-align:left; cursor:pointer;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span style="color:var(--mono-pink); font-weight:900; font-size:0.9rem;">📥 วางลงช่องที่ ${s.pageSlot}:</span>
+                <div style="color:#bbb; font-size:0.8rem; margin-top:2px;">${s.title}</div>
+              </div>
+              <span style="font-size:1.1rem; color:var(--mono-pink); font-weight:900; white-space:nowrap; margin-left:8px;">👈 วางที่นี่</span>
+            </div>
+          </button>
+        `;
+      }
+    }).join('');
+
+    // Cards HTML in player hand
+    const cardsHtml = myCards.map(c => {
+      const isSelected = selectedClosingCardId === c.id;
+      if (c.locked) {
+        return `
+          <div class="p-closing-card locked" style="background:#12121c; border:2px solid #2e2e42; border-radius:8px; padding:10px; margin-bottom:8px; opacity:0.55; cursor:not-allowed; display:flex; align-items:center; gap:10px;">
+            <span style="font-size:1.5rem; filter:grayscale(1);">🔒</span>
+            <div style="flex:1;">
+              <span style="font-size:0.85rem; color:#888;">${c.title}</span>
+              <div style="font-size:0.75rem; color:var(--mono-pink); font-weight:700; margin-top:2px;">🔒 ล็อกอยู่ (รอปลดล็อกเมื่อวางการ์ดถูก)</div>
+            </div>
+          </div>
+        `;
+      } else {
+        const borderStyle = isSelected ? '3px solid var(--mono-pink)' : '2px solid #444466';
+        const bgStyle = isSelected ? 'rgba(255, 43, 109, 0.22)' : '#19192e';
+        const shadowStyle = isSelected ? 'box-shadow: 0 0 12px var(--mono-pink);' : '';
+        return `
+          <div class="p-closing-card ${isSelected ? 'selected' : ''}" onclick="selectClosingCard('${c.id}')" style="background:${bgStyle}; border:${borderStyle}; border-radius:8px; padding:10px; margin-bottom:8px; cursor:pointer; display:flex; align-items:center; gap:10px; ${shadowStyle} transition:all 0.2s ease;">
+            <span style="font-size:1.5rem;">${c.icon || '📄'}</span>
+            <div style="flex:1;">
+              <span style="font-size:0.85rem; color:#fff; font-weight:${isSelected ? '800' : 'normal'};">${c.title}</span>
+              <div style="font-size:0.75rem; color:${isSelected ? 'var(--court-gold)' : 'var(--mono-cyan)'}; margin-top:2px;">
+                ${isSelected ? '👉 เลือกใบนี้แล้ว! กรุณากดปุ่มช่องว่างด้านบนเพื่อวาง' : 'แตะเพื่อเลือกการ์ดใบนี้'}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }).join('');
 
     area.innerHTML = `
-      <h3 style="color:var(--mono-cyan); margin-bottom:10px; font-weight:900;">Closing Argument: เติมการ์ดลงช่องมังงะ</h3>
-      <p style="font-size:0.85rem; color:#aaa; margin-bottom:12px;">เลือกการ์ดเหตุการณ์ที่ถูกต้องแล้วกดวางลงในช่องว่างที่ 1 หรือ 2 บนจอใหญ่:</p>
-      <div>${cardButtons}</div>
+      <div style="margin-bottom:12px; border-bottom:1px solid #333348; padding-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:var(--mono-pink); font-weight:900; font-size:0.95rem;">📖 หน้าที่ ${curPage} / 5</span>
+          <span style="color:#aaa; font-size:0.8rem;">(DM กำลังเปิดหน้านี้)</span>
+        </div>
+        <div style="color:#fff; font-size:0.85rem; font-weight:700; margin-top:3px;">${pageData.title}</div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.85rem; color:var(--court-gold); font-weight:800; margin-bottom:6px;">
+          1. ช่องว่างที่ต้องเติมในหน้านี้:
+        </div>
+        ${slotsHtml}
+      </div>
+
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:0.85rem; color:var(--mono-cyan); font-weight:800;">2. การ์ดเหตุการณ์ในมือคุณ:</span>
+          <span style="font-size:0.75rem; color:#888;">(คุยปรึกษากับเพื่อน)</span>
+        </div>
+        <div id="playerClosingHandBox">${cardsHtml}</div>
+      </div>
     `;
   } else if (stage === 'stage7') {
     const voterId = myPlayer ? myPlayer.id : (currentUserHash || 'p_anon');
@@ -4204,6 +4750,27 @@ function sendLogicDiveChoice(ch) {
   if (feedback) {
     feedback.style.display = 'block';
     feedback.innerHTML = `✅ เลือกข้อ [${ch}] เรียบร้อยแล้ว (รอผลมติพร้อมเพื่อน)`;
+  }
+}
+
+let selectedClosingCardId = null;
+
+function selectClosingCard(cardId) {
+  selectedClosingCardId = cardId;
+  if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
+    renderMobileTask('closing');
+  }
+}
+
+function submitSelectedClosingCard(slotId) {
+  if (!selectedClosingCardId) {
+    showToast('⚠️ กรุณาคลิกเลือกการ์ดในมือก่อน แล้วค่อยกดวางลงช่อง!');
+    return;
+  }
+  sendClosingCard(slotId, selectedClosingCardId);
+  selectedClosingCardId = null;
+  if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
+    renderMobileTask('closing');
   }
 }
 

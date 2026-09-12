@@ -4112,11 +4112,10 @@ select option:disabled {
    ========================================================== */
 .manga-timeline-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
   max-width: 1100px;
-  margin: 20px auto 0 auto;
-  overflow: hidden;
+  margin: 16px auto 0 auto;
 }
 
 @media (max-width: 900px) {
@@ -4129,14 +4128,14 @@ select option:disabled {
   background: #13131c;
   border: 3px solid #33334d;
   border-radius: 8px;
-  padding: 12px 10px;
+  padding: 14px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   box-shadow: 4px 4px 0 #000;
   transition: all 0.3s ease;
-  min-height: 210px;
+  min-height: 220px;
 }
 
 .manga-panel.complete {
@@ -4182,10 +4181,91 @@ select option:disabled {
 }
 
 .panel-desc {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: #bbb;
-  line-height: 1.35;
+  line-height: 1.4;
   margin-top: auto;
+}
+
+/* Page Dots */
+.closing-page-dots {
+  display: flex;
+  gap: 6px;
+}
+.page-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1e1e30;
+  color: #888;
+  font-size: 0.8rem;
+  font-weight: 800;
+  border: 1px solid #3a3a5a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.page-dot:hover {
+  border-color: var(--court-gold);
+  color: #fff;
+}
+.page-dot.active {
+  background: var(--mono-pink);
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 10px var(--mono-pink);
+}
+.page-dot.solved {
+  background: #00aa55;
+  color: #fff;
+  border-color: #00ff88;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+}
+.page-dot.active.solved {
+  background: linear-gradient(135deg, var(--mono-pink), #00aa55);
+  box-shadow: 0 0 12px var(--court-gold);
+}
+
+/* Bonus Time Floating Toast */
+.bonus-time-toast {
+  position: fixed;
+  top: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #00ff88, #00aa55);
+  color: #000;
+  font-weight: 900;
+  font-size: 1.25rem;
+  padding: 10px 24px;
+  border-radius: 30px;
+  box-shadow: 0 0 25px rgba(0, 255, 136, 0.75);
+  z-index: 99999;
+  animation: bounceIn 0.35s ease-out;
+  pointer-events: none;
+}
+.bonus-time-toast.fade-out {
+  opacity: 0;
+  transform: translate(-50%, -25px);
+  transition: all 0.5s ease-out;
+}
+
+/* Player Closing Cards */
+.p-closing-card {
+  user-select: none;
+  touch-action: manipulation;
+}
+.p-closing-card.selected {
+  border-color: var(--mono-pink) !important;
+  box-shadow: 0 0 14px var(--mono-pink) !important;
+  transform: translateY(-2px);
+}
+.p-closing-card.locked {
+  filter: grayscale(0.85);
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #333348 !important;
 }
 
 /* ==========================================================
