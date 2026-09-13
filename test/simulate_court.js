@@ -307,14 +307,17 @@ async function runSimulation() {
   console.log(`PASS (Dual opposing pushes in ${Math.max(sL.latency, sR.latency)} ms)`);
 
   // -------------------------------------------------------------
-  // Test 11: PC 5 Saboteur Action
+  // Test 11: PC 5 Saboteur Actions (8 Stealth Abilities)
   // -------------------------------------------------------------
-  process.stdout.write('😈 Step 11: PC 5 executes Saboteur action (corrupt_data)... ');
-  const sabWait = court.waitFor(m => m.type === 'sabotage' && m.sabType === 'corrupt_data');
-  await player5.send({ type: 'sabotage', sabType: 'corrupt_data', playerName: 'ฮิฟุมิ' });
-  const sabRes = await sabWait;
-  latencies.push(sabRes.latency);
-  console.log(`PASS (${sabRes.latency} ms)`);
+  process.stdout.write('😈 Step 11: PC 5 executes all 8 Saboteur actions with sender immunity... ');
+  const sabTypes = ['corrupt_data', 'glitch', 'drain_time', 'sound_jammer', 'clue_scramble', 'smoke_blind', 'fake_rumor', 'panic_shock'];
+  for (const sType of sabTypes) {
+    const sabWait = court.waitFor(m => m.type === 'sabotage' && m.sabType === sType);
+    await player5.send({ type: 'sabotage', sabType: sType, playerName: 'ฮิฟุมิ', senderHash: 'user_hifumi_hash' });
+    const sabRes = await sabWait;
+    latencies.push(sabRes.latency);
+  }
+  console.log(`PASS (All 8 abilities verified)`);
 
   // -------------------------------------------------------------
   // Test 12: Stage 6 Argument Armament (Rhythm Battleship)

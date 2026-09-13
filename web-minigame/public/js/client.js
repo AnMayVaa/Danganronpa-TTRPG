@@ -1396,7 +1396,7 @@ function handleIncomingMessage(msg, senderConn) {
     if (msg.delta < 0) playSfx('wrong');
     else if (msg.delta > 0) playSfx('correct');
   } else if (msg.type === 'sabotage') {
-    handleSabotage(msg.sabType, msg.playerName);
+    handleSabotage(msg.sabType, msg.playerName, msg.senderHash);
   } else if (msg.type === 'stg1_submit') {
     handleStg1Submit(msg.clueId, msg.playerName);
   } else if (msg.type === 'stg1_evaluate') {
@@ -6901,85 +6901,220 @@ function isCurrentPlayerSaboteur() {
 }
 
 function updateSaboteurPanelVisibility() {
-  const sabPanel = document.getElementById('mobileSaboteurPanel');
-  if (!sabPanel) return;
+  const fab = document.getElementById('mobileSaboteurTrigger');
+  const sheet = document.getElementById('mobileSaboteurPanel');
   const isSab = isCurrentPlayerSaboteur();
-  if (isSab) {
-    sabPanel.classList.remove('hidden');
-    sabPanel.style.display = 'block';
-  } else {
-    sabPanel.classList.add('hidden');
-    sabPanel.style.display = 'none';
+
+  if (fab) {
+    if (isSab) {
+      fab.classList.remove('hidden');
+    } else {
+      fab.classList.add('hidden');
+    }
+  }
+
+  if (!isSab && sheet) {
+    sheet.classList.add('hidden');
   }
 }
 
 function toggleSaboteurDock() {
-  const body = document.getElementById('saboteurOptions');
-  const arrow = document.getElementById('sabArrow');
-  if (!body) return;
-  const isShown = (body.style.display === 'flex') || (body.style.display !== 'none' && window.getComputedStyle(body).display === 'flex');
-  if (isShown) {
-    body.style.display = 'none';
-    if (arrow) arrow.innerText = '▲';
+  const sheet = document.getElementById('mobileSaboteurPanel');
+  if (!sheet) return;
+  if (sheet.classList.contains('hidden')) {
+    sheet.classList.remove('hidden');
+    playSfx('click');
   } else {
-    body.style.display = 'flex';
-    if (arrow) arrow.innerText = '▼';
+    sheet.classList.add('hidden');
   }
 }
+
+let isSaboteurCamouflaged = false;
+function toggleSaboteurCamouflage() {
+  isSaboteurCamouflaged = !isSaboteurCamouflaged;
+  const titleEl = document.getElementById('sabHeaderTitle');
+  const camoBtn = document.getElementById('sabCamoBtn');
+  const dotEl = document.getElementById('sabStatusDot');
+
+  if (isSaboteurCamouflaged) {
+    if (titleEl) titleEl.innerText = 'MONOPAD // SYS_DIAGNOSTICS';
+    if (camoBtn) camoBtn.innerText = '⚡ ถอดพราง';
+    if (dotEl) {
+      dotEl.style.background = '#3498db';
+      dotEl.style.boxShadow = '0 0 6px #3498db';
+    }
+    const disguises = {
+      sabBtnGlitch: ['เครือข่ายสัญญาณ', 'ทดสอบคลื่นความถี่'],
+      sabBtnTimer: ['ซิงค์เวลาเครื่อง', 'ปรับเทียบเวลาท้องถิ่น'],
+      sabBtnCorrupt: ['ล้างแคชข้อมูล', 'ฟลัชหน่วยความจำ'],
+      sabBtnSound: ['ทดสอบลำโพง', 'ตรวจจับสัญญาณเสียง'],
+      sabBtnScramble: ['อัปเดตสารบบ', 'จัดเรียงดัชนีใหม่'],
+      sabBtnSmoke: ['เซ็นเซอร์ระบายควัน', 'ตรวจจับก๊าซในระบบ'],
+      sabBtnRumor: ['บรอดแคสต์สถานะ', 'ตรวจเช็กข่าวประกาศ'],
+      sabBtnShock: ['ทดสอบการสั่น', 'ทดสอบแรงสะเทือน']
+    };
+    Object.keys(disguises).forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        const nameEl = btn.querySelector('.sab-card-name');
+        const descEl = btn.querySelector('.sab-card-desc');
+        if (nameEl) nameEl.innerText = disguises[id][0];
+        if (descEl) descEl.innerText = disguises[id][1];
+      }
+    });
+    showToast('🕶️ เปิดโหมดพรางตา: สลับเป็นเมนูตรวจสอบเครื่องทันที');
+  } else {
+    if (titleEl) titleEl.innerText = 'SYS_OVERRIDE // TACTICAL';
+    if (camoBtn) camoBtn.innerText = '🕶️ พรางตา';
+    if (dotEl) {
+      dotEl.style.background = '#2ecc71';
+      dotEl.style.boxShadow = '0 0 6px #2ecc71';
+    }
+    const originals = {
+      sabBtnGlitch: ['ก่อกวนสัญญาณ', 'จอเพื่อนเบลอ 4s'],
+      sabBtnTimer: ['เร่งเวลาศาล', 'ตัดเวลาทันที -10s'],
+      sabBtnCorrupt: ['แทรกแซงข้อมูล', 'ลดเกจศาล -10%'],
+      sabBtnSound: ['ตัดเสียงคัดค้าน', 'สัญญาณเสียงศาลดับ 6s'],
+      sabBtnScramble: ['ป่วน Monopad', 'สั่นจอหลักฐานเพื่อน 6s'],
+      sabBtnSmoke: ['ม่านควันบังตา', 'ควันดำบังจอมินิเกม 5s'],
+      sabBtnRumor: ['ปล่อยข่าวลวง', 'ขึ้นข่าวลือโมโนคุมะลวง'],
+      sabBtnShock: ['ทลายสมาธิ', 'เขย่าจอ + หัวเราะ Upupupu']
+    };
+    Object.keys(originals).forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        const nameEl = btn.querySelector('.sab-card-name');
+        const descEl = btn.querySelector('.sab-card-desc');
+        if (nameEl) nameEl.innerText = originals[id][0];
+        if (descEl) descEl.innerText = originals[id][1];
+      }
+    });
+  }
+}
+
+const sabotageCooldowns = {
+  glitch: 45,
+  drain_time: 40,
+  corrupt_data: 40,
+  sound_jammer: 50,
+  clue_scramble: 50,
+  smoke_blind: 60,
+  fake_rumor: 60,
+  panic_shock: 35
+};
+
+const sabotageActiveCooldowns = {};
 
 function sendSabotage(type) {
   if (getMyCredibility() <= 0) {
     showToast('❌ คุณหมดสิทธิ์ก่อกวนเนื่องจากค่าความน่าเชื่อถือเหลือ 0 (Panic State)');
     return;
   }
-  playSfx('glitch');
-  let btn = null;
-  let cd = 45;
-
-  if (type === 'glitch') {
-    btn = document.getElementById('sabBtnGlitch');
-    cd = 60;
-  } else if (type === 'drain_time') {
-    btn = document.getElementById('sabBtnTimer');
-    cd = 60;
-  } else if (type === 'corrupt_data') {
-    btn = document.getElementById('sabBtnCorrupt');
-    cd = 45;
-  }
-
-  broadcast({ type: 'sabotage', sabType: type, playerName: myPlayer ? myPlayer.name : 'คนร้าย' });
-
-  if (btn) {
-    btn.disabled = true;
-    const orig = btn.innerText;
-    let rem = cd;
-    btn.innerText = `⏳ Cooldown (${rem}s)`;
-    const iv = setInterval(() => {
-      rem--;
-      if (rem > 0) btn.innerText = `⏳ Cooldown (${rem}s)`;
-      else {
-        clearInterval(iv);
-        btn.disabled = false;
-        btn.innerText = orig;
-      }
-    }, 1000);
-  }
-}
-
-function handleSabotage(type, pName) {
-  // CRITICAL REQUIREMENT 1: Sabotage Isolation - Anomaly/glitch sabotage triggered by killer Magician (A) must NEVER affect the Admin/DM view.
-  if (currentView === 'admin') {
-    if (type === 'drain_time') {
-      gameState.timeRemaining = Math.max(5, gameState.timeRemaining - 10);
-      updateTimerDisplay();
-    } else if (type === 'corrupt_data') {
-      gameState.influence = Math.max(0, gameState.influence - 10);
-      }
+  if (sabotageActiveCooldowns[type]) {
+    showToast(`⏳ ความสามารถนี้กำลังติดคูลดาวน์ (${sabotageActiveCooldowns[type]}s)`);
     return;
   }
 
   playSfx('glitch');
+
+  const myHash = currentUserHash || (myPlayer && myPlayer.userHash) || (myPlayer && myPlayer.id) || (myPlayer && myPlayer.name);
+  const myName = (myPlayer && myPlayer.name) ? myPlayer.name : 'คนร้าย';
+
+  // Broadcast sabotage packet with senderHash for sender immunity
+  broadcast({
+    type: 'sabotage',
+    sabType: type,
+    playerName: myName,
+    senderHash: myHash
+  });
+
+  const cd = sabotageCooldowns[type] || 45;
+  sabotageActiveCooldowns[type] = cd;
+
+  const btnMap = {
+    glitch: 'sabBtnGlitch',
+    drain_time: 'sabBtnTimer',
+    corrupt_data: 'sabBtnCorrupt',
+    sound_jammer: 'sabBtnSound',
+    clue_scramble: 'sabBtnScramble',
+    smoke_blind: 'sabBtnSmoke',
+    fake_rumor: 'sabBtnRumor',
+    panic_shock: 'sabBtnShock'
+  };
+
+  const tagMap = {
+    glitch: 'cd_glitch',
+    drain_time: 'cd_drain_time',
+    corrupt_data: 'cd_corrupt_data',
+    sound_jammer: 'cd_sound_jammer',
+    clue_scramble: 'cd_clue_scramble',
+    smoke_blind: 'cd_smoke_blind',
+    fake_rumor: 'cd_fake_rumor',
+    panic_shock: 'cd_panic_shock'
+  };
+
+  const btn = document.getElementById(btnMap[type]);
+  const tag = document.getElementById(tagMap[type]);
+  if (btn) btn.disabled = true;
+
+  const timerId = setInterval(() => {
+    if (!sabotageActiveCooldowns[type]) {
+      clearInterval(timerId);
+      return;
+    }
+    sabotageActiveCooldowns[type]--;
+    const rem = sabotageActiveCooldowns[type];
+    if (tag) tag.innerText = `${rem}s`;
+    if (rem <= 0) {
+      clearInterval(timerId);
+      delete sabotageActiveCooldowns[type];
+      if (btn) btn.disabled = false;
+      if (tag) tag.innerText = `${cd}s`;
+    }
+  }, 1000);
+
+  showToast(`⚡ ส่งคำสั่งแทรกแซง [${type}] แล้ว (คุณได้รับการยกเว้นผลกระทบ)`);
+}
+
+function handleSabotage(type, pName, senderHash) {
+  const myHash = currentUserHash || (myPlayer && myPlayer.userHash) || (myPlayer && myPlayer.id) || (myPlayer && myPlayer.name);
+  const isMe = Boolean(myHash && senderHash && (myHash === senderHash || (myPlayer && myPlayer.name === pName)));
+
+  // CRITICAL: Sabotage Isolation for DM/Admin View
+  if (currentView === 'admin') {
+    if (type === 'drain_time') {
+      gameState.timeRemaining = Math.max(5, (gameState.timeRemaining || 0) - 10);
+      updateTimerDisplay();
+    } else if (type === 'corrupt_data') {
+      gameState.influence = Math.max(0, (gameState.influence || 100) - 10);
+      updateInfluenceDisplay();
+    }
+    logCourt(`[DM LOG] ⚡ ตรวจพบการแทรกแซงจากคนร้าย: ${type} (${pName || 'Saboteur'})`);
+    return;
+  }
+
+  // System status adjustments (apply to Court screen & state)
+  if (type === 'drain_time') {
+    gameState.timeRemaining = Math.max(5, (gameState.timeRemaining || 0) - 10);
+    updateTimerDisplay();
+    logCourt(`⏱️ [TIME GLITCH]: เวลาศาลชั้นเรียนถูกเร่งรัดกะทันหัน! (-10s)`);
+    playSfx('wrong');
+    return;
+  } else if (type === 'corrupt_data') {
+    gameState.influence = Math.max(0, (gameState.influence || 100) - 10);
+    updateInfluenceDisplay();
+    logCourt(`⚠️ [DATA CORRUPT]: เกจความน่าเชื่อถือศสารถูกแทรกแซงลดลง! (-10%)`);
+    playSfx('wrong');
+    return;
+  }
+
+  // SENDER IMMUNITY: The saboteur who sent the attack is immune to own visual/audio disruptions!
+  if (isMe) {
+    return;
+  }
+
   if (type === 'glitch') {
+    playSfx('glitch');
     const overlay = document.getElementById('screenGlitch');
     if (overlay) {
       overlay.classList.remove('hidden');
@@ -6990,12 +7125,65 @@ function handleSabotage(type, pName) {
       }, 4000);
     }
     logCourt(`⚡ [ANOMALY DETECTED]: คลื่นแทรกแซงหน้าจอรบกวน (4 วินาที)`);
-  } else if (type === 'drain_time') {
-    gameState.timeRemaining = Math.max(5, gameState.timeRemaining - 10);
-    updateTimerDisplay();
-    logCourt(`⏱️ [TIME GLITCH]: เวลาศาลชั้นเรียนถูกเร่งรัดกะทันหัน! (-10s)`);
-  } else if (type === 'corrupt_data') {
-    logCourt(`⚠️ [DATA CORRUPT]: ข้อมูลเท็จถูกแทรกแซงเข้าสู่ระบบศาลชั้นเรียน!`);
+  } else if (type === 'sound_jammer') {
+    playSfx('glitch');
+    const banner = document.getElementById('audioJammerBanner');
+    if (banner) {
+      banner.classList.remove('hidden');
+      setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 6000);
+    }
+    logCourt(`🔇 [AUDIO JAMMER]: สัญญาณเสียงคัดค้านและลำโพงศสารถูกตัดชั่วคราว (6 วินาที)`);
+  } else if (type === 'clue_scramble') {
+    playSfx('break');
+    const clueSec = document.getElementById('playerSectionClues') || document.getElementById('mobileCluesList');
+    if (clueSec) {
+      clueSec.classList.add('clue-scramble-jam');
+      setTimeout(() => {
+        clueSec.classList.remove('clue-scramble-jam');
+      }, 6000);
+    }
+    logCourt(`🌀 [EMP PULSE]: ระบบบันทึกหลักฐาน Monopad ถูกคลื่นแม่เหล็กรบกวน (6 วินาที)`);
+  } else if (type === 'smoke_blind') {
+    playSfx('wrong');
+    const smoke = document.getElementById('screenSmoke');
+    if (smoke) {
+      smoke.classList.remove('hidden');
+      smoke.style.display = 'flex';
+      setTimeout(() => {
+        smoke.classList.add('hidden');
+        smoke.style.display = 'none';
+      }, 5000);
+    }
+    logCourt(`💨 [SMOKE BOMB]: ม่านควันหนาทึบบดบังทัศนวิสัยศาลชั้นเรียน! (5 วินาที)`);
+  } else if (type === 'fake_rumor') {
+    playSfx('laugh');
+    const rumor = document.getElementById('fakeRumorBanner');
+    const rumorTxt = document.getElementById('fakeRumorText');
+    const rumors = [
+      'มีรายงานลับว่าคำให้การหรือหลักฐานชิ้นล่าสุดถูกสับเปลี่ยนโดยบุคคลปริศนา!?',
+      'ระบบรักษาความปลอดภัยแจ้งเตือน: อาจมีผู้บริสุทธิ์ถูกป้ายสีในรอบโต้เถียงนี้!',
+      'คำใบ้ลับจาก Monokuma: สิ่งที่เห็นในกระเป๋าเสื้อเหยื่อ อาจไม่ใช่ของเหยื่อตั้งแต่แรก...?',
+      'บันทึก Monopad มีความผิดปกติ! กระสุนความจริงบางนัดอาจสูญเสียพลัง!'
+    ];
+    if (rumorTxt) {
+      rumorTxt.innerText = rumors[Math.floor(Math.random() * rumors.length)];
+    }
+    if (rumor) {
+      rumor.classList.remove('hidden');
+      setTimeout(() => {
+        rumor.classList.add('hidden');
+      }, 6000);
+    }
+    logCourt(`📢 [BREAKING RUMOR]: ข่าวลือปั่นป่วนถูกแพร่กระจายในศาล!`);
+  } else if (type === 'panic_shock') {
+    playSfx('laugh');
+    document.body.classList.add('sabotage-screen-shake');
+    setTimeout(() => {
+      document.body.classList.remove('sabotage-screen-shake');
+    }, 1200);
+    logCourt(`💥 [PANIC SHOCK]: จิตใจของผู้เข้าร่วมศาลสั่นคลอนกะทันหัน!`);
   }
 }
 

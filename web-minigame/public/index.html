@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=4.2.0">
+  <link rel="stylesheet" href="/css/style.css?v=4.3.0">
   <!-- Early view detection script: immediately hides other page navigation buttons on Court and PC views -->
   <script>
     (function() {
@@ -1510,25 +1510,108 @@
       </div>
 
       <!-- ========================================== -->
-      <!-- SECRET SABOTEUR DRAWER (EXCLUSIVE TO A)    -->
+      <!-- STEALTH SABOTEUR INTERFACE (EXCLUSIVE TO PC5) -->
       <!-- ========================================== -->
-      <aside id="mobileSaboteurPanel" class="saboteur-dock hidden">
-        <div class="saboteur-handle" onclick="toggleSaboteurDock()">
-          <span class="sab-title">☠️ เมนูลับคนร้าย (SABOTAGE PANEL)</span>
-          <span id="sabArrow">▲</span>
-        </div>
-        <div id="saboteurOptions" class="sab-options-grid" style="display:none;">
-          <p class="sab-hint">🤫 แอบกดก่อกวนตอนเพื่อนเผลอเพื่อปั่นป่วนศาล!</p>
-          <div class="sab-btn-group">
-            <button id="sabBtnGlitch" class="sab-trigger-btn" onclick="sendSabotage('glitch')">
-              ⚡ ก่อกวนสัญญาณ (จอเพื่อนเบลอ 4s)
-            </button>
-            <button id="sabBtnTimer" class="sab-trigger-btn" onclick="sendSabotage('drain_time')">
-              ⏱️ แอบลดเวลา (-10 วินาที)
-            </button>
-            <button id="sabBtnCorrupt" class="sab-trigger-btn" onclick="sendSabotage('corrupt_data')">
-              ⚠️ แทรกแซงข้อมูล (ปั่นป่วนข้อความในศาล)
-            </button>
+      <!-- Subtle 44px Floating Action Button (Stealth Camouflage) -->
+      <div id="mobileSaboteurTrigger" class="saboteur-stealth-fab hidden" onclick="toggleSaboteurDock()" title="Monopad System Utility">
+        <span class="stealth-fab-icon">⚡</span>
+        <span class="stealth-fab-label">SYS</span>
+      </div>
+
+      <!-- Compact Tactical Sabotage Sheet -->
+      <aside id="mobileSaboteurPanel" class="saboteur-stealth-sheet hidden" onclick="if(event.target===this) toggleSaboteurDock()">
+        <div class="sab-stealth-dialog">
+          <div class="sab-stealth-header">
+            <div class="sab-stealth-title-group" onclick="toggleSaboteurCamouflage()">
+              <span id="sabStatusDot" class="stealth-dot"></span>
+              <span id="sabHeaderTitle" class="sab-stealth-title">SYS_OVERRIDE // TACTICAL</span>
+              <span id="sabCamoBtn" class="sab-camo-btn" title="คลิกเพื่อพรางตาทันที">🕶️ พรางตา</span>
+            </div>
+            <button class="sab-stealth-close" onclick="toggleSaboteurDock()" title="ปิดทันที">✕</button>
+          </div>
+
+          <div id="saboteurOptions" class="sab-stealth-content">
+            <div class="sab-stealth-grid">
+              <!-- Ability 1: Signal Glitch -->
+              <button id="sabBtnGlitch" class="sab-card-btn" onclick="sendSabotage('glitch')">
+                <div class="sab-card-top">
+                  <span class="sab-icon">⚡</span>
+                  <span class="sab-cd-tag" id="cd_glitch">45s</span>
+                </div>
+                <div class="sab-card-name">ก่อกวนสัญญาณ</div>
+                <div class="sab-card-desc">จอเพื่อนเบลอ 4s</div>
+              </button>
+
+              <!-- Ability 2: Time Drain -->
+              <button id="sabBtnTimer" class="sab-card-btn" onclick="sendSabotage('drain_time')">
+                <div class="sab-card-top">
+                  <span class="sab-icon">⏱️</span>
+                  <span class="sab-cd-tag" id="cd_drain_time">40s</span>
+                </div>
+                <div class="sab-card-name">เร่งเวลาศาล</div>
+                <div class="sab-card-desc">ตัดเวลาทันที -10s</div>
+              </button>
+
+              <!-- Ability 3: Data Corrupt -->
+              <button id="sabBtnCorrupt" class="sab-card-btn" onclick="sendSabotage('corrupt_data')">
+                <div class="sab-card-top">
+                  <span class="sab-icon">⚠️</span>
+                  <span class="sab-cd-tag" id="cd_corrupt_data">40s</span>
+                </div>
+                <div class="sab-card-name">แทรกแซงข้อมูล</div>
+                <div class="sab-card-desc">ลดเกจศาล -10%</div>
+              </button>
+
+              <!-- Ability 4: Sound Jammer -->
+              <button id="sabBtnSound" class="sab-card-btn" onclick="sendSabotage('sound_jammer')">
+                <div class="sab-card-top">
+                  <span class="sab-icon">🔇</span>
+                  <span class="sab-cd-tag" id="cd_sound_jammer">50s</span>
+                </div>
+                <div class="sab-card-name">ตัดเสียงคัดค้าน</div>
+                <div class="sab-card-desc">สัญญาณเสียงศาลดับ 6s</div>
+              </button>
+
+              <!-- Ability 5: Clue Scramble -->
+              <button id="sabBtnScramble" class="sab-card-btn" onclick="sendSabotage('clue_scramble')">
+                <div class="sab-card-top">
+                  <span class="sab-icon">🌀</span>
+                  <span class="sab-cd-tag" id="cd_clue_scramble">50s</span>
+                </div>
+                <div class="sab-card-name">ป่วน Monopad</div>
+                <div class="sab-card-desc">สั่นจอหลักฐานเพื่อน 6s</div>
+              </button>
+
+              <!-- Ability 6: Smoke Blind -->
+              <button id="sabBtnSmoke" class="sab-card-btn" onclick="sendSabotage('smoke_blind')">
+                <div class="sab-card-top">
+                  <span class="sab-icon">💨</span>
+                  <span class="sab-cd-tag" id="cd_smoke_blind">60s</span>
+                </div>
+                <div class="sab-card-name">ม่านควันบังตา</div>
+                <div class="sab-card-desc">ควันดำบังจอมินิเกม 5s</div>
+              </button>
+
+              <!-- Ability 7: Fake Rumor -->
+              <button id="sabBtnRumor" class="sab-card-btn" onclick="sendSabotage('fake_rumor')">
+                <div class="sab-card-top">
+                  <span class="sab-icon">📢</span>
+                  <span class="sab-cd-tag" id="cd_fake_rumor">60s</span>
+                </div>
+                <div class="sab-card-name">ปล่อยข่าวลวง</div>
+                <div class="sab-card-desc">ขึ้นข่าวลือโมโนคุมะลวง</div>
+              </button>
+
+              <!-- Ability 8: Panic Shock -->
+              <button id="sabBtnShock" class="sab-card-btn" onclick="sendSabotage('panic_shock')">
+                <div class="sab-card-top">
+                  <span class="sab-icon">💥</span>
+                  <span class="sab-cd-tag" id="cd_panic_shock">35s</span>
+                </div>
+                <div class="sab-card-name">ทลายสมาธิ</div>
+                <div class="sab-card-desc">เขย่าจอ + หัวเราะ Upupupu</div>
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -2585,6 +2668,27 @@
     </div>
   </div>
 
+  <!-- Smoke Blind FX Overlay -->
+  <div id="screenSmoke" class="screen-smoke-layer hidden">
+    <div class="smoke-warning-box">
+      <div class="smoke-icon">💨💨💨</div>
+      <div class="smoke-title">SMOKE GRENADE DETONATED</div>
+      <div class="smoke-sub">ควันดำหนาทึบกำลังบดบังทัศนวิสัยมินิเกม!</div>
+    </div>
+  </div>
+
+  <!-- Audio Jammer Alert Banner -->
+  <div id="audioJammerBanner" class="audio-jammer-banner hidden">
+    <span class="jammer-icon">🔇</span>
+    <span class="jammer-text">AUDIO JAMMER ACTIVE: สัญญาณเสียงคัดค้านและลำโพงศาลถูกตัดชั่วคราว!</span>
+  </div>
+
+  <!-- Monokuma Fake Rumor Banner -->
+  <div id="fakeRumorBanner" class="fake-rumor-banner hidden">
+    <div class="rumor-badge">📢 MONOKUMA BREAKING NEWS</div>
+    <div id="fakeRumorText" class="rumor-text">มีรายงานลับว่าคำให้การหรือหลักฐานชิ้นล่าสุดถูกสับเปลี่ยนโดยบุคคลปริศนา!?</div>
+  </div>
+
   <!-- ============================================== -->
   <!-- MODAL 1: CLUE SCANNER & MANUAL CODE (MONOPAD)  -->
   <!-- ============================================== -->
@@ -3094,7 +3198,7 @@
   </button>
 
   <script src="/js/jsQR.min.js"></script>
-  <script src="/js/client.js?v=4.2.0"></script>
+  <script src="/js/client.js?v=4.3.0"></script>
   <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>
