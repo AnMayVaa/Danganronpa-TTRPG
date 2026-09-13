@@ -11,44 +11,56 @@ function updateMonopadDeviceBar() {
 
 function updateMonopadPhaseTabs(stage) {
   const currentStage = stage || (gameState && gameState.stage) || 'idle';
-  const isIdle = (currentStage === 'idle' || currentStage === 'lobby');
+  const isDailyLife = (currentStage === 'dailylife' || currentStage === 'daily' || currentStage === 'lobby');
   const isInvestigation = (currentStage === 'investigation');
+
+  // Toggle phase classes on body and #viewPlayer for CSS responsive rules
+  document.body.classList.toggle('phase-dailylife', isDailyLife);
+  const vPlayer = document.getElementById('viewPlayer');
+  if (vPlayer) vPlayer.classList.toggle('phase-dailylife', isDailyLife);
+  document.body.classList.toggle('phase-investigation', isInvestigation);
+  if (vPlayer) vPlayer.classList.toggle('phase-investigation', isInvestigation);
 
   const tabGame = document.getElementById('pTabGame');
   const tabClues = document.getElementById('pTabClues');
   const tabMap = document.getElementById('pTabMap');
   const tabGuide = document.getElementById('pTabGuide');
   const tabRules = document.getElementById('pTabRules');
+  const pSectionClues = document.getElementById('playerSectionClues');
+  const pSectionGuide = document.getElementById('playerSectionGuide');
 
   // Rules, Map, and Activity (ช่วงกิจกรรม) are ALWAYS visible across all phases!
   if (tabRules) tabRules.style.display = 'flex';
   if (tabMap) tabMap.style.display = 'flex';
   if (tabGame) tabGame.style.display = 'flex';
 
-  if (isIdle) {
-    // Phase 1 (Daily Life / Lobby): Activity, Rules, Map
+  if (isDailyLife) {
+    // Phase 1 (Daily Life): Activity, Rules, Map ONLY (No murder yet -> Clues & Debate Guide strictly hidden)
     if (tabClues) tabClues.style.display = 'none';
     if (tabGuide) tabGuide.style.display = 'none';
+    if (pSectionClues) pSectionClues.classList.add('hidden');
+    if (pSectionGuide) pSectionGuide.classList.add('hidden');
 
     const activeTabEl = document.querySelector('.player-nav-tabs .p-nav-btn.active');
     if (activeTabEl && (activeTabEl.id === 'pTabClues' || activeTabEl.id === 'pTabGuide')) {
       switchPlayerTab('game');
     }
   } else if (isInvestigation) {
-    // Phase 2 (Investigation): Activity, Clues, Rules, Map
+    // Phase 2 (Investigation): Activity, Clues, Rules, Map (Clues visible, Debate Guide hidden)
     if (tabClues) tabClues.style.display = 'flex';
     if (tabGuide) tabGuide.style.display = 'none';
+    if (pSectionGuide) pSectionGuide.classList.add('hidden');
 
     const activeTabEl = document.querySelector('.player-nav-tabs .p-nav-btn.active');
     if (activeTabEl && activeTabEl.id === 'pTabGuide') {
       switchPlayerTab('clues');
     }
   } else {
-    // Phase 3 (Class Trial / Minigames): All tabs visible
+    // Phase 3 (Class Trial / Recess 'idle' / Minigames): All tabs visible like Class Trial!
     if (tabClues) tabClues.style.display = 'flex';
     if (tabGuide) tabGuide.style.display = 'flex';
 
-    if (currentStage.startsWith('stage')) {
+    if (currentStage.startsWith('stage') || currentStage === 'closing') {
       switchPlayerTab('game');
     }
   }
@@ -60,7 +72,7 @@ function updateMonopadPhaseTabs(stage) {
 function renderMobilePhaseCard(stage) {
   const area = document.getElementById('mobileTaskArea');
   if (!area) return;
-  if (stage && stage.startsWith('stage')) {
+  if (stage && (stage.startsWith('stage') || stage === 'closing')) {
     // Stage-specific mini-game renders itself via renderMobileTask
     return;
   }
@@ -84,10 +96,18 @@ function renderMobilePhaseCard(stage) {
         <div style="font-size:2rem; margin-bottom:8px;">🎬</div>
         <h3 style="color:#f8fafc; font-weight:900; margin-bottom:8px; font-size:1.15rem;">🎬 พักการพิจารณาคดี (Class Trial Recess)</h3>
         <p style="color:#cbd5e1; font-size:0.88rem; line-height:1.5; margin-bottom:14px;">
-          ขณะนี้ศาลชั้นเรียนอยู่ในช่วงพักการพิจารณาคดีชั่วคราว หรือเตรียมความพร้อมก่อนเริ่มเปิดศาลไต่สวน
+          ขณะนี้ศาลชั้นเรียนอยู่ในช่วงพักการพิจารณาคดีชั่วคราว คุณสามารถเปิดดู <strong>🔍 กระสุนความจริง</strong> และ <strong>📋 กฎการดีเบต</strong> เพื่อเตรียมพร้อมการไต่สวนรอบถัดไป
         </p>
-        <div style="display:inline-block; background:rgba(148,163,184,0.2); border:1px solid #94a3b8; border-radius:20px; padding:6px 14px; font-size:0.8rem; color:#e2e8f0; font-weight:800;">
-          ⏸️ ช่วงพักศาล / รอผู้ดูแลเปิดช่วงถัดไป...
+        <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+          <button class="small-btn cyan" onclick="switchPlayerTab('clues')" style="padding:6px 14px; font-weight:800; cursor:pointer;">
+            🔍 ดู Monopad หลักฐาน ↗
+          </button>
+          <button class="small-btn pink" onclick="switchPlayerTab('guide')" style="padding:6px 14px; font-weight:800; cursor:pointer;">
+            📋 ดูกฎการดีเบตศาล ↗
+          </button>
+        </div>
+        <div style="display:inline-block; background:rgba(148,163,184,0.2); border:1px solid #94a3b8; border-radius:20px; padding:4px 12px; font-size:0.75rem; color:#e2e8f0; font-weight:800;">
+          ⏸️ ช่วงพักศาล / รอ DM เปิดรอบไต่สวน...
         </div>
       </div>
     `;
@@ -1135,7 +1155,8 @@ function handleIncomingMessage(msg, senderConn) {
       role: reqRole,
       isKiller: isKiller,
       roomCode: roomCode,
-      userHash: msg.userHash || senderId
+      userHash: msg.userHash || senderId,
+      clues: Array.isArray(msg.clues) ? msg.clues : []
     };
     const canonicalKey = msg.userHash || senderId;
     gameState.players[canonicalKey] = playerObj;
@@ -1291,7 +1312,44 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'kick_player') {
     handleKickPlayer(msg.playerId);
   } else if (msg.type === 'clue_discovered') {
-    handleClueDiscovered(msg.clueId, msg.clueName, msg.playerName);
+    handleClueDiscovered(msg.clueId, msg.clueName, msg.playerName, msg.userHash);
+  } else if (msg.type === 'admin_grant_clue') {
+    const isTarget = (currentUserHash && msg.targetKey === currentUserHash) ||
+                     (myPlayer && (myPlayer.id === msg.targetKey || myPlayer.name === msg.targetKey || (myPlayer.userHash && myPlayer.userHash === msg.targetKey)));
+    if (isTarget) {
+      unlockClueDirect(msg.clueId);
+      playSfx('clue_get');
+      showToast(`🎁 [DM มอบหลักฐาน]: คุณได้รับ [${msg.clueName || msg.clueId}] เข้าสู่ Monopad แล้ว!`);
+      broadcast({
+        type: 'sync_player_clues',
+        userHash: currentUserHash,
+        playerName: (myPlayer && myPlayer.name) ? myPlayer.name : '',
+        clues: getUnlockedClues()
+      });
+    }
+  } else if (msg.type === 'court_clue_revealed') {
+    unlockClueDirect(msg.clueId);
+    playSfx('clue_get');
+    showToast(`📢 [ศาลชั้นเรียน]: หลักฐาน [${msg.clueName || msg.clueId}] ถูกเปิดเผยต่อทุกคน! บันทึกลงใน Monopad แล้ว`);
+    if (myPlayer && myPlayer.name) {
+      broadcast({
+        type: 'sync_player_clues',
+        userHash: currentUserHash,
+        playerName: myPlayer.name,
+        clues: getUnlockedClues()
+      });
+    }
+  } else if (msg.type === 'sync_player_clues') {
+    if (msg.clues && Array.isArray(msg.clues)) {
+      Object.values(gameState.players).forEach(p => {
+        if ((msg.userHash && p.userHash === msg.userHash) || (msg.playerName && p.name === msg.playerName)) {
+          p.clues = msg.clues;
+        }
+      });
+      if (typeof renderAdminEvidenceTracker === 'function') {
+        renderAdminEvidenceTracker();
+      }
+    }
   } else if (msg.type === 'set_stage') {
     setStage(msg.stage, msg.config);
   } else if (msg.type === 'admin_adjust_timer') {
@@ -1668,13 +1726,16 @@ function updateHubDisplay() {
   hubRoomsPollingInterval = setInterval(fetchActiveRooms, 5000);
 }
 
-function clearPlayerLocalData() {
+function clearPlayerLocalData(keepClues = true) {
   myPlayer = null;
   currentUserHash = '';
   const localKeys = [];
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
     if (k && k.startsWith('dangan_')) {
+      if (keepClues && (k.startsWith('dangan_unlocked_') || k.startsWith('dangan_tags_') || k.startsWith('dangan_notes_'))) {
+        continue; // Keep discovered evidence and notes!
+      }
       localKeys.push(k);
     }
   }
@@ -1901,6 +1962,15 @@ function initPlayerSession(hash) {
 let currentClueFilter = 'ALL';
 
 function switchPlayerTab(tab) {
+  const curStage = (gameState && gameState.stage) || 'idle';
+  const isDailyLife = (curStage === 'dailylife' || curStage === 'daily' || curStage === 'lobby');
+  const isInvestigation = (curStage === 'investigation');
+  if (isDailyLife && (tab === 'clues' || tab === 'guide')) {
+    tab = 'game';
+  } else if (isInvestigation && tab === 'guide') {
+    tab = 'clues';
+  }
+
   const tabs = ['pTabGame', 'pTabChar', 'pTabClues', 'pTabMap', 'pTabGuide', 'pTabRules'];
   const panes = ['playerSectionGame', 'playerSectionChar', 'playerSectionClues', 'playerSectionMap', 'playerSectionGuide', 'playerSectionRules'];
 
@@ -2129,10 +2199,10 @@ const ALL_CLUES_DATA = [
   { id: "EVD-08", image: "assets/room_dining_hall.jpg", pin: "659143", aliases: ["SNACK-08", "8", "E08"], name: "ซองขนมปังกรอบใต้เก้าอี้", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "ห้องอาหาร (ใต้เก้าอี้ทานข้าว)", desc: "ซองฟอยล์บรรจุขนมปังกรอบรสสาหร่ายถูกฉีกเปิดทิ้งไว้ใต้เก้าอี้ห้องอาหาร ภายในซองมีเศษขนมปังกรอบเหลืออยู่เล็กน้อย" },
   { id: "EVD-09", image: "assets/item_pink_rope.jpg", pin: "852179", aliases: ["ROPE-09", "9", "E09"], name: "เชือกไนลอนสีชมพูบนพื้น", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (พื้นข้างศพเรียวตะ (B))", desc: "เชือกไนลอนถักสีชมพู 8 มม. ขดอยู่บนพื้น ปลายด้านหนึ่งผูกเป็นบ่วง ส่วนปลายอีกด้านมีรอยตัดผิวเรียบ" },
   { id: "EVD-10", image: "assets/item_water_meter.jpg", pin: "815307", aliases: ["METER-10", "10", "E10"], name: "มาตรวัดน้ำประปาหลัก", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "มาตรวัดน้ำประปาแสดงตัวเลขใช้น้ำสะสม 65.2 ลิตร และเข็มวัดยังหมุนด้วยอัตราประมาณ 0.4 ลิตร/นาที (24 ลิตร/ชม.)" },
-  { id: "EVD-11", image: "assets/crime_scene_laundry.jpg", pin: "741953", aliases: ["BLEACH-11", "11", "E11"], name: "แกลลอนน้ำยาฟอกขาวในถังขยะ", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "ห้องซักรีด (ถังขยะข้างเครื่องซักผ้า)", desc: "แกลลอนพลาสติกบรรจุน้ำยาฟอกขาวถูกทิ้งอยู่ในถังขยะห้องซักรีด ภายในแกลลอนว่างเปล่าและส่งกลิ่นคลอรีนรุนแรง" },
+  { id: "EVD-11", image: "assets/item_bleach_gallon.jpg", pin: "741953", aliases: ["BLEACH-11", "11", "E11"], name: "แกลลอนน้ำยาฟอกขาวในถังขยะ", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "ห้องซักรีด (ถังขยะข้างเครื่องซักผ้า)", desc: "แกลลอนพลาสติกบรรจุน้ำยาฟอกขาวถูกทิ้งอยู่ในถังขยะห้องซักรีด ภายในแกลลอนว่างเปล่าและส่งกลิ่นคลอรีนรุนแรง" },
   { id: "EVD-12", image: "assets/item_pocket_knife.jpg", pin: "394820", aliases: ["KNIFE-12", "12", "E12"], name: "มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ (B)", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ร่างของเรียวตะ (B) (กระเป๋าเสื้อ)", desc: "มีดพับอเนกประสงค์ใบมีด 7 ซม. กางค้างไว้ในกระเป๋าเสื้อเหยื่อเรียวตะ (B) โคนใบมีดมีเศษเส้นใยสังเคราะห์สีชมพูติดอยู่" },
   { id: "EVD-13", image: "assets/room_kitchen.jpg", pin: "630841", aliases: ["FREEZE-13", "13", "E13"], name: "ช่องแช่แข็งในห้องครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (ช่องฟรีซ)", desc: "ช่องแช่แข็งตู้เย็นในครัวมีเกล็ดน้ำแข็งละลายเป็นแอ่งน้ำ และพบถุงพลาสติกบรรจุเนื้อสัตว์แช่แข็งถูกฉีกเปิดทิ้งไว้" },
-  { id: "EVD-14", image: "assets/crime_scene_victim_discovery.jpg", pin: "928413", aliases: ["RAIL-14", "14", "E14"], name: "ราวท่อสแตนเลสเพดานห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เพดานสูง 4 ม.)", desc: "ท่อสแตนเลสขนานเพดานห้องซักรีดสูง 4 ม. เหนือแนวหน้าต่าง ผิวด้านบนของท่อมีรอยขูดถลอกเป็นแถบแนวยาว" },
+  { id: "EVD-14", image: "assets/item_ceiling_pipe.jpg", pin: "928413", aliases: ["RAIL-14", "14", "E14"], name: "ราวท่อสแตนเลสเพดานห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เพดานสูง 4 ม.)", desc: "ท่อสแตนเลสขนานเพดานห้องซักรีดสูง 4 ม. เหนือแนวหน้าต่าง ผิวด้านบนของท่อมีรอยขูดถลอกเป็นแถบแนวยาว" },
   { id: "EVD-15", image: "assets/room_gymnasium.jpg", pin: "295418", aliases: ["CHAIN-15", "15", "E15"], name: "โซ่คล้องประตูหนีไฟโรงยิม", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โรงยิม (ประตูด้านหลัง)", desc: "โซ่เหล็กคล้องล็อกประตูหนีไฟด้านหลังโรงยิม ข้อโซ่ข้อหนึ่งมีรอยบากลึกจากใบเลื่อย และมีเศษผงเหล็กตกอยู่บนพื้นใต้บานประตู" },
   { id: "EVD-16", pin: "369842", aliases: ["PC5-16", "16", "E16"], name: "คำให้การของ PC 5", importance: "MUST", secretType: "TESTIMONY", typeLabel: "คำให้การ (Core)", loc: "ได้จากการถาม PC 5 (1 AP)", desc: "คำให้การ: \"ฉันมีเวรทำอาหารมื้อค่ำตามตารางใน Monopad อยู่ในครัวต้มสตูว์เนื้อตลอดเวลาช่วง 17:45 - 18:30 น. ไม่ได้ออกไปข้างนอก\"" },
   { id: "EVD-17", pin: "785130", aliases: ["DROP-17", "17", "E17"], name: "รอยหยดน้ำบนพื้นโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "รอยหยดน้ำขนาดเล็กกระจายตัวเป็นแนวยาวบนพื้นกระเบื้องโถงทางเดิน ระหว่างบริเวณหน้าห้องซักรีดไปจนถึงหน้าประตูห้องครัว" },
@@ -2155,12 +2225,49 @@ const ALL_CLUES_DATA = [
 let currentUserClueTagFilter = 'ALL';
 
 function getUnlockedClues() {
-  const raw = localStorage.getItem('dangan_unlocked_' + (currentUserHash || 'guest'));
-  let unlocked = [];
-  if (raw) {
-    try { unlocked = JSON.parse(raw); } catch(e) {}
+  const keysToTry = [
+    'dangan_unlocked_' + (currentUserHash || 'guest'),
+    (myPlayer && myPlayer.name) ? ('dangan_unlocked_name_' + myPlayer.name.trim().toLowerCase()) : null,
+    'dangan_unlocked_guest',
+    'dangan_unlocked_default'
+  ].filter(Boolean);
+
+  let merged = new Set();
+  keysToTry.forEach(k => {
+    const raw = localStorage.getItem(k);
+    if (raw) {
+      try {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) arr.forEach(id => merged.add(id));
+      } catch(e) {}
+    }
+  });
+  return Array.from(merged);
+}
+
+function saveUnlockedClues(unlockedArray) {
+  const jsonStr = JSON.stringify(unlockedArray);
+  if (currentUserHash) {
+    localStorage.setItem('dangan_unlocked_' + currentUserHash, jsonStr);
   }
-  return unlocked;
+  localStorage.setItem('dangan_unlocked_guest', jsonStr);
+  if (myPlayer && myPlayer.name) {
+    localStorage.setItem('dangan_unlocked_name_' + myPlayer.name.trim().toLowerCase(), jsonStr);
+  }
+}
+
+function unlockClueDirect(clueId) {
+  if (!clueId) return false;
+  const clue = ALL_CLUES_DATA.find(c => c.id === clueId);
+  if (!clue) return false;
+
+  let unlocked = getUnlockedClues();
+  if (!unlocked.includes(clue.id)) {
+    unlocked.push(clue.id);
+    saveUnlockedClues(unlocked);
+  }
+  renderPlayerCluesList();
+  return true;
 }
 
 function getClueTags() {
@@ -2236,14 +2343,15 @@ function unlockClue(rawCode) {
   let unlocked = getUnlockedClues();
   if (!unlocked.includes(clue.id)) {
     unlocked.push(clue.id);
-    localStorage.setItem('dangan_unlocked_' + (currentUserHash || 'guest'), JSON.stringify(unlocked));
+    saveUnlockedClues(unlocked);
     playSfx('clue_get');
     showToast(`✨ ค้นพบหลักฐานใหม่: [${clue.name}] บันทึกลงใน Monopad แล้ว!`);
     broadcast({
       type: 'clue_discovered',
       clueId: clue.id,
       clueName: clue.name,
-      playerName: (myPlayer && myPlayer.name) ? myPlayer.name : 'นักเรียน'
+      playerName: (myPlayer && myPlayer.name) ? myPlayer.name : 'นักเรียน',
+      userHash: currentUserHash
     });
   } else {
     showToast(`ℹ️ คุณมีหลักฐาน [${clue.name}] ใน Monopad อยู่แล้ว`);
@@ -2405,7 +2513,11 @@ function setStage(stage, config) {
   closeCourtResultModal(true);
   closeExecutionModal(true);
 
-  if (stage === 'idle') {
+  if (stage === 'dailylife' || stage === 'daily') {
+    stopTimer();
+    playSfx('chime');
+    logCourt(`☕ [DAILY LIFE]: กลับสู่ช่วงชีวิตประจำวันปกติ (Daily Life)`);
+  } else if (stage === 'idle') {
     stopTimer();
     playSfx('chime');
     logCourt(`🎬 [IDLE]: แสดงหน้าจอพักศาลชั้นเรียน รอประธาน Monokuma เริ่มการไต่สวน`);
@@ -2698,7 +2810,7 @@ function handleKickPlayer(kickedId) {
   }
 }
 
-function handleClueDiscovered(clueId, clueName, playerName) {
+function handleClueDiscovered(clueId, clueName, playerName, userHash) {
   if (!gameState.discoveredClues) gameState.discoveredClues = [];
   if (!gameState.discoveredClues.includes(clueId)) {
     gameState.discoveredClues.push(clueId);
@@ -2708,6 +2820,18 @@ function handleClueDiscovered(clueId, clueName, playerName) {
     if (currentView === 'court') {
       playSfx('clue_get');
     }
+  }
+
+  // Record on player object in gameState.players
+  Object.values(gameState.players).forEach(p => {
+    if ((userHash && p.userHash === userHash) || (playerName && p.name === playerName)) {
+      if (!p.clues) p.clues = [];
+      if (!p.clues.includes(clueId)) p.clues.push(clueId);
+    }
+  });
+
+  if (typeof renderAdminEvidenceTracker === 'function') {
+    renderAdminEvidenceTracker();
   }
 }
 
@@ -3017,6 +3141,13 @@ function evaluateStg1Batch() {
       `หักล้างข้ออ้างของคนร้ายสำเร็จ! หลักฐานที่ถูกต้องคือ [${target}: ${targetName}]`,
       `มีนักเรียน ${correctCount} คนส่งหลักฐานถูกต้องตรงเป้าหมาย!`
     );
+    unlockClueDirect(target);
+    broadcast({
+      type: 'court_clue_revealed',
+      clueId: target,
+      clueName: targetName,
+      playerName: 'ศาลชั้นเรียน'
+    });
   } else {
     gameState.influence = Math.max(0, gameState.influence - 15);
     showMinigameResult(
@@ -3187,8 +3318,15 @@ function triggerRebuttalVerdict(isWin, skipBroadcast = false) {
         true,
         "BLADE OF TRUTH!",
         "คุณได้ฟันทำลายดาบปฏิเสธของคนร้ายสำเร็จ! 'Sore wa Chigau yo!'",
-        "ข้ออ้างของคนร้ายถูกหักล้างอย่างสิ้นเชิง!"
+        "ข้ออ้างของคนร้ายถูกหักล้างอย่างสิ้นเชิง! ค้นพบพยานหลักฐานใหม่เข้าสู่ Monopad"
       );
+      unlockClueDirect('EVD-12');
+      broadcast({
+        type: 'court_clue_revealed',
+        clueId: 'EVD-12',
+        clueName: 'มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ (B)',
+        playerName: 'Rebuttal Showdown'
+      });
     }, 400);
     if (!skipBroadcast && isHost) broadcast({ type: 'rebuttal_verdict', isWin: true });
   } else {
@@ -4277,7 +4415,8 @@ function playerJoin() {
     type: 'request_claim_character',
     role: role,
     playerName: name,
-    userHash: currentUserHash
+    userHash: currentUserHash,
+    clues: getUnlockedClues()
   };
 
   const sendClaim = () => {
@@ -4316,7 +4455,16 @@ function renderMobileTask(stage) {
     switchPlayerTab('game');
   }
 
-  if (stage === 'lobby') {
+  if (stage === 'dailylife' || stage === 'daily') {
+    renderMobilePhaseCard(stage);
+    return;
+  } else if (stage === 'idle') {
+    renderMobilePhaseCard(stage);
+    return;
+  } else if (stage === 'investigation') {
+    renderMobilePhaseCard(stage);
+    return;
+  } else if (stage === 'lobby') {
     area.innerHTML = '<div class="idle-message"><div class="idle-spinner"></div><p>กำลังรอเริ่มศาลชั้นเรียน... (Lobby)</p></div>';
   } else if (stage === 'trial') {
     area.innerHTML = `
@@ -5088,6 +5236,184 @@ function updateAdminDisplay() {
       </div>
     `;
     table.appendChild(row);
+  });
+  renderAdminEvidenceTracker();
+}
+
+let adminExpandedPlayerClues = {};
+
+function adminRefreshEvidenceTracker() {
+  renderAdminEvidenceTracker();
+  playSfx('click');
+}
+
+function adminTogglePlayerCluesExpand(playerId) {
+  adminExpandedPlayerClues[playerId] = !adminExpandedPlayerClues[playerId];
+  renderAdminEvidenceTracker();
+}
+
+function renderAdminEvidenceTracker() {
+  const container = document.getElementById('adminPlayerEvidenceList');
+  const broadcastSel = document.getElementById('adminBroadcastClueSelect');
+  if (!container) return;
+
+  // Populate broadcast select if empty
+  if (broadcastSel && broadcastSel.options.length <= 1) {
+    const curVal = broadcastSel.value;
+    broadcastSel.innerHTML = '<option value="">-- เลือกหลักฐานเพื่อแจกทุกคน --</option>';
+    ALL_CLUES_DATA.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.innerText = `[${c.id}] ${c.name} (${c.typeLabel || c.importance})`;
+      if (c.id === curVal) opt.selected = true;
+      broadcastSel.appendChild(opt);
+    });
+  }
+
+  const players = Object.values(gameState.players);
+  if (players.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:16px; color:#64748b; font-size:0.85rem;">ยังไม่มีผู้เล่นเชื่อมต่อในระบบ (0 คน)</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+
+  players.forEach(p => {
+    const pKey = p.userHash || p.id || p.name;
+    const pClues = Array.isArray(p.clues) ? p.clues : [];
+    const totalClues = ALL_CLUES_DATA.length; // 31
+    const pCount = pClues.length;
+    const percent = Math.round((pCount / totalClues) * 100);
+    const isExpanded = Boolean(adminExpandedPlayerClues[pKey]);
+
+    const card = document.createElement('div');
+    card.className = 'admin-player-evidence-item';
+    card.style.background = 'rgba(15, 23, 42, 0.7)';
+    card.style.border = '1px solid #1e293b';
+    card.style.borderRadius = '8px';
+    card.style.padding = '10px 12px';
+
+    // Count core clues
+    const coreClues = ALL_CLUES_DATA.filter(c => c.importance === 'MUST' || c.secretType === 'CORE');
+    const pCoreCount = coreClues.filter(c => pClues.includes(c.id)).length;
+
+    let cluesGridHtml = '';
+    if (isExpanded) {
+      cluesGridHtml = `
+        <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #334155;">
+          <div style="font-size:0.78rem; color:#94a3b8; font-weight:bold; margin-bottom:8px;">
+            รายการหลักฐานทั้งหมด (คลิกเพื่อมอบหลักฐานที่ขาด):
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:6px; max-height:260px; overflow-y:auto; padding-right:4px;">
+            ${ALL_CLUES_DATA.map(c => {
+              const has = pClues.includes(c.id);
+              const isCore = (c.importance === 'MUST' || c.secretType === 'CORE');
+              if (has) {
+                return `
+                  <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; border-radius:4px; padding:4px 6px; font-size:0.75rem; color:#a7f3d0; display:flex; align-items:center; justify-content:space-between;">
+                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(c.name)}">✓ [${c.id}] ${escapeHtml(c.name)}</span>
+                    <span style="font-size:0.65rem; background:#065f46; color:#fff; padding:1px 4px; border-radius:3px; margin-left:4px;">มีแล้ว</span>
+                  </div>
+                `;
+              } else {
+                return `
+                  <button type="button" class="small-btn" onclick="adminGrantClue('${pKey}', '${c.id}')" style="background:${isCore ? 'rgba(239,68,68,0.15)' : 'rgba(30,41,59,0.8)'}; border:1px solid ${isCore ? '#ef4444' : '#475569'}; border-radius:4px; padding:4px 6px; font-size:0.75rem; color:${isCore ? '#fca5a5' : '#cbd5e1'}; display:flex; align-items:center; justify-content:space-between; cursor:pointer; text-align:left;" title="คลิกเพื่อมอบหลักฐานนี้ให้ ${escapeHtml(p.name)}">
+                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">+ [${c.id}] ${escapeHtml(c.name)}</span>
+                    <span style="font-size:0.65rem; background:${isCore ? '#991b1b' : '#334155'}; color:#fff; padding:1px 4px; border-radius:3px; margin-left:4px;">${isCore ? 'CORE' : 'มอบ'}</span>
+                  </button>
+                `;
+              }
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <strong style="color:#f8fafc; font-size:0.95rem;">${escapeHtml(p.name)}</strong>
+          <span style="font-size:0.8rem; color:#38bdf8; margin-left:6px;">[${escapeHtml(p.role || 'นักเรียน')}]</span>
+          ${p.isKiller ? '<span style="font-size:0.7rem; background:#dc2626; color:#fff; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">SABOTEUR</span>' : ''}
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:0.85rem; font-weight:bold; color:${percent >= 70 ? '#10b981' : percent >= 40 ? '#38bdf8' : '#eab308'};">
+            ${pCount} / ${totalClues} ชิ้น (${percent}%)
+          </span>
+          <button class="small-btn ${isExpanded ? 'grey' : 'cyan'}" onclick="adminTogglePlayerCluesExpand('${pKey}')" style="padding:4px 10px; font-size:0.75rem; font-weight:800;">
+            ${isExpanded ? '▲ ซ่อน' : '▼ ดู/มอบหลักฐาน'}
+          </button>
+        </div>
+      </div>
+      
+      <!-- Progress bar -->
+      <div style="margin-top:6px; height:6px; background:#1e293b; border-radius:3px; overflow:hidden; display:flex;">
+        <div style="width:${percent}%; background:linear-gradient(90deg, #0284c7, #38bdf8); height:100%; transition:width 0.3s ease;"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:#94a3b8; margin-top:4px;">
+        <span>Core หลักฐานสำคัญ: <strong style="color:${pCoreCount >= 8 ? '#10b981' : '#f59e0b'};">${pCoreCount} / ${coreClues.length}</strong></span>
+        <span>สถานะ: ${pCount === 0 ? '⚠️ ยังไม่พบหลักฐาน' : pCount < 5 ? '🟡 เริ่มต้นสืบสวน' : '🟢 เก็บหลักฐานต่อเนื่อง'}</span>
+      </div>
+
+      ${cluesGridHtml}
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+function adminGrantClue(targetKey, clueId) {
+  const clue = ALL_CLUES_DATA.find(c => c.id === clueId);
+  const clueName = clue ? clue.name : clueId;
+
+  // Update in host memory
+  Object.values(gameState.players).forEach(p => {
+    if ((p.userHash && p.userHash === targetKey) || (p.id && p.id === targetKey) || p.name === targetKey) {
+      if (!p.clues) p.clues = [];
+      if (!p.clues.includes(clueId)) p.clues.push(clueId);
+    }
+  });
+
+  renderAdminEvidenceTracker();
+  playSfx('correct');
+  showToast(`🎁 มอบหลักฐาน [${clueId}: ${clueName}] ให้ผู้เล่นแล้ว`);
+
+  broadcast({
+    type: 'admin_grant_clue',
+    targetKey: targetKey,
+    clueId: clueId,
+    clueName: clueName
+  });
+}
+
+function adminBroadcastClueFromSelect() {
+  const sel = document.getElementById('adminBroadcastClueSelect');
+  if (!sel || !sel.value) {
+    alert('กรุณาเลือกหลักฐานที่ต้องการแจกให้ทุกคนก่อนครับ');
+    return;
+  }
+  adminBroadcastClue(sel.value);
+}
+
+function adminBroadcastClue(clueId) {
+  const clue = ALL_CLUES_DATA.find(c => c.id === clueId);
+  if (!clue) return;
+
+  // Add to all players in host memory
+  Object.values(gameState.players).forEach(p => {
+    if (!p.clues) p.clues = [];
+    if (!p.clues.includes(clueId)) p.clues.push(clueId);
+  });
+
+  renderAdminEvidenceTracker();
+  playSfx('correct');
+  showToast(`📢 มอบหลักฐาน [${clue.id}: ${clue.name}] ให้ทุกคนในห้องแล้ว!`);
+
+  broadcast({
+    type: 'court_clue_revealed',
+    clueId: clue.id,
+    clueName: clue.name,
+    playerName: 'ผู้ดูแลศาล (DM)'
   });
 }
 
@@ -5988,7 +6314,7 @@ function initSimulationLab() {
   try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const k = localStorage.key(i);
-      if (k && (k.includes('sim_') || k.toUpperCase().includes('SIM888') || k.startsWith('dangan_player_SIM') || k === 'dangan_player_SIM888')) {
+      if (k && !k.startsWith('dangan_unlocked_') && !k.startsWith('dangan_tags_') && !k.startsWith('dangan_notes_') && (k.includes('sim_') || k.toUpperCase().includes('SIM888') || k.startsWith('dangan_player_SIM') || k === 'dangan_player_SIM888')) {
         localStorage.removeItem(k);
       }
     }
@@ -6491,7 +6817,7 @@ const ACADEMY_ROOMS_DATA = {
       '<strong>EVD-11 (เครื่องอบผ้า):</strong> หมุนรองเท้าบูทคู่หนัก ตั้งเวลา Delay 21:00 น. เพื่อสร้างเสียงต่อสู้หลอก',
       '<strong>EVD-23 (สายยางน้ำดีดกลับ):</strong> สายยางต่อจากก๊อกในห้องซักรีด ดีดกลับเข้ามาในห้องหลังถังตก น้ำไหลท่วมเจิ่งนองทั่วพื้น'
     ],
-    timeline: '• <strong>17:30 น.:</strong> A ลอบเข้ามาฟาด B จนสลบ<br>• <strong>18:10 น.:</strong> A เซ็ตกลไกรอกมรณะพลังน้ำ แขวนถัง 100 ลิตรนอกหน้าต่าง<br>• <strong>20:45 น.:</strong> B ฟื้นขึ้นมาตัดเชือกและผูกฮาร์เนสแต่พลาด'
+    timeline: '• <strong>17:30 น.:</strong> A ลอบเข้ามาฟาด B จนสลบ<br>• <strong>18:10 น.:</strong> A เซ็ตกลไกเชือกและถังน้ำถ่วงน้ำหนัก แขวนถัง 100 ลิตรนอกหน้าต่าง<br>• <strong>20:45 น.:</strong> B ฟื้นขึ้นมาตัดเชือกและผูกฮาร์เนสแต่พลาด'
   },
   'courtyard': {
     badge: '🌿 ลานซักล้างกลางแจ้ง',
@@ -6648,6 +6974,106 @@ function setMapDisplayMode(mode) {
   }
 }
 
+// ==========================================================
+// 1F STANDARD BLUEPRINT NORMAL ROOM INSPECTION ENGINE
+// ==========================================================
+const NORMAL_ROOMS_DATA = {
+  kitchen: {
+    name: "RM-102: ห้องครัว (Kitchen)",
+    tag: "🍳 ปีกบริการอาหารและโภชนาการ",
+    image: "assets/room_kitchen.jpg",
+    spec: "ขนาด: 6.0m x 6.5m // เพดานสูง 3.2m // ประตู D-102 (บานเดี่ยวสวิง)",
+    desc: "ห้องครัวประกอบอาหารขนาดใหญ่ของโรงเรียนคิโบกามิเนะ จัดเตรียมอุปกรณ์ทำครัวระดับมืออาชีพ เคาน์เตอร์สเตนเลส ตู้แช่แข็งอาหารสด (Walk-in Freezer) และเตาแก๊สอุตสาหกรรม เป็นสถานที่จัดเตรียมอาหารเย็นและสตูว์สำหรับนักเรียนทุกคน"
+  },
+  dining: {
+    name: "RM-103: โรงอาหาร & ห้องโถงรับประทานอาหาร (Dining Hall)",
+    tag: "🍽️ พื้นที่สันทนาการและรับประทานอาหารส่วนกลาง",
+    image: "assets/room_dining_hall.jpg",
+    spec: "ขนาด: 8.0m x 6.5m // เพดานสูง 3.5m // ประตู D-103 (บานเดี่ยวสวิง)",
+    desc: "ห้องโถงรับประทานอาหารกว้างขวาง จัดวางโต๊ะอาหารไม้ยาวสำหรับนักเรียนทุกคน มีแสงไฟวอร์มไลท์ส่องสว่าง มีนาฬิกาแขวนผนังบอกเวลา และเป็นศูนย์รวมกิจกรรมพบปะพูดคุยประจำวัน"
+  },
+  laundry: {
+    name: "RM-101: ห้องซักรีด (Service Laundry Room)",
+    tag: "🧺 ปีกบริการและซักล้างประจำอาคาร",
+    image: "assets/room_laundry.jpg",
+    spec: "ขนาด: 8.0m x 6.5m // เพดานสูง 4.0m // หน้าต่าง W-101 (สูง 3.5m จากพื้นลานปูน) // ประตู D-101",
+    desc: "ห้องซักรีดมาตรฐานประจำปีกบริการชั้น 1 เรียงรายด้วยเครื่องซักผ้าอัตโนมัติ เครื่องอบผ้าอุตสาหกรรม DRY-1 และอ่างก๊อกน้ำซักล้าง ด้านบนมีราวท่อส่งสแตนเลสพาดผ่านเพดานสูง 4 เมตร และมีหน้าต่างระบายอากาศบานเลื่อนสู่ลานหลัง"
+  },
+  courtyard: {
+    name: "EXT-101: ลานปูนซักล้างปิดตายด้านหลัง (Rear Service Courtyard)",
+    tag: "🌿 พื้นที่บริการกลางแจ้งปิดตาย",
+    image: "assets/room_courtyard.jpg",
+    spec: "ขนาด: 18.0m x 6.5m // กำแพง ค.ส.ล. สูง 5.0m รอบด้าน // ปิดตายไร้ทางออก",
+    desc: "ลานคอนกรีตกลางแจ้งสำหรับงานบริการ ตากล้าง และระบายน้ำ โอบล้อมด้วยกำแพงคอนกรีตเสริมเหล็กสูง 5 เมตรที่ปิดตาย ไร้บันไดหนีไฟหรือประตูทะลุออกไปนอกโรงเรียน เหนือศีรษะที่ระดับ 3.5 เมตรตรงแนวห้องซักรีดมีหน้าต่างระบายอากาศเปิดอยู่"
+  },
+  gym: {
+    name: "RM-104: โรงยิมเนเซียม (Gymnasium)",
+    tag: "🏀 ศูนย์กีฬาและการชุมนุมใหญ่",
+    image: "assets/room_gymnasium.jpg",
+    spec: "ขนาด: 10.0m x 10.0m // เพดานสูง 7.0m // ประตู D-104 (บานคู่ Double Door)",
+    desc: "อาคารโรงยิมอเนกประสงค์ขนาดใหญ่ ปูพื้นไม้ปาร์เกต์ขัดมัน มีเวทีประกอบพิธีการ แป้นบาสเกตบอล และห้องเก็บอุปกรณ์กีฬา เป็นสถานที่ปฐมนิเทศและชุมนุมนักเรียนโดย Monokuma"
+  },
+  corridor: {
+    name: "CORR-100: โถงทางเดินหลักชั้น 1 (Main Central Corridor)",
+    tag: "🏛️ ทางสัญจรแกนกลางอาคาร",
+    image: "assets/room_central_corridor.jpg",
+    spec: "ขนาด: กว้าง 3.0m x ยาว 45m // เพดานสูง 3.5m // พื้นกระเบื้องแกรนิตโต้",
+    desc: "ทางเดินโอ่โถงเชื่อมต่อระหว่างปีกหอพัก ห้องครัว โรงอาหาร โรงยิม และประตูกล มีบอร์ดข่าวสารประจำวัน ตู้กดเครื่องดื่มอัตโนมัติ และกล้องวงจรปิด Monokuma สอดส่องตลอด 24 ชั่วโมง"
+  },
+  glass_corridor: {
+    name: "CORR-101: ทางเดินกระจกเชื่อมปีกหลัง (North Glass Passage)",
+    tag: "🪟 ทางเดินชมวิวรูปตัว L",
+    image: "assets/room_glass_corridor.jpg",
+    spec: "ขนาด: 12.0m x 4.5m // ผนังกระจกนิรภัยหนา 15mm หันสู่ลานซักล้าง",
+    desc: "ทางเดินกระจกใสที่ทอดตัวขนานกับลานซักล้างปีกหลัง แม้จะมองเห็นทัศนียภาพของลานคอนกรีตภายนอกได้อย่างชัดเจน แต่ผนังกระจกนิรภัยถูกปิดตายแน่นหนา ไม่สามารถเปิดหรือทุบทำลายได้"
+  },
+  dormitory: {
+    name: "CORR-102: ทางเดินปีกหอพักนักเรียน (Dormitory Wing)",
+    tag: "🛏️ พื้นที่พักอาศัยส่วนบุคคล",
+    image: "assets/room_dormitory_hallway.jpg",
+    spec: "ขนาด: กว้าง 2.5m // ประตูห้องพักพร้อมระบบล็อกคีย์การ์ดดิจิทัลและป้ายชื่อทองเหลือง",
+    desc: "โถงทางเดินเงียบสงบปูพรมหนานุ่ม แบ่งซอยเป็นห้องนอนส่วนตัวของนักเรียนแต่ละคน ประตูติดตั้งระบบล็อกนิรภัยชั้นสูงตามกฎโรงเรียน ห้ามบุกรุกห้องของผู้อื่นโดยไม่ได้รับอนุญาต"
+  },
+  blast_gate: {
+    name: "BLAST GATE: ประตูกลนิรภัย & บันไดขึ้นชั้น 2",
+    tag: "🚪 ระบบรักษาความปลอดภัยเขตหวงห้าม",
+    image: "assets/room_blast_gate.jpg",
+    spec: "ประตูกลเหล็กกล้าไฮดรอลิกหนา 30cm // ล็อกด้วยรหัสผ่านความปลอดภัยสูง",
+    desc: "ประตูกลเหล็กกล้าปิดกั้นบันไดทางขึ้นสู่ชั้น 2 ของโรงเรียนอย่างแน่นหนา มีแผงวงจรและสัญญาณไฟสีแดงเตือน จะเปิดออกเฉพาะเมื่อได้รับคำสั่งปลดล็อกพิเศษจาก Monokuma เท่านั้น"
+  }
+};
+
+function openNormalRoomModal(roomId) {
+  const data = NORMAL_ROOMS_DATA[roomId];
+  if (!data) return;
+
+  const modal = document.getElementById('normalRoomInspectionModal');
+  if (!modal) return;
+
+  const tagEl = document.getElementById('normRoomTag');
+  const titleEl = document.getElementById('normRoomTitle');
+  const imgEl = document.getElementById('normRoomImage');
+  const specEl = document.getElementById('normRoomSpec');
+  const descEl = document.getElementById('normRoomDesc');
+
+  if (tagEl) tagEl.innerText = data.tag;
+  if (titleEl) titleEl.innerText = data.name;
+  if (imgEl) {
+    imgEl.src = data.image;
+    imgEl.alt = data.name;
+  }
+  if (specEl) specEl.innerText = data.spec;
+  if (descEl) descEl.innerText = data.desc;
+
+  modal.classList.remove('hidden');
+  playSfx('click');
+}
+
+function closeNormalRoomModal() {
+  const modal = document.getElementById('normalRoomInspectionModal');
+  if (modal) modal.classList.add('hidden');
+}
+
 function printCleanBlueprint() {
   setMapDisplayMode('clean');
   
@@ -6736,7 +7162,7 @@ function setSimPhase(phase) {
   const pulleyWheel = document.getElementById('simPulleyWheel');
 
   if (phase === 1) {
-    if (badge) badge.innerText = 'เฟส 1: การเซ็ตกลไกรอกมรณะพลังน้ำ (18:10 น.)';
+    if (badge) badge.innerText = 'เฟส 1: การเซ็ตกลไกเชือกและถังน้ำถ่วงน้ำหนัก (18:10 น.)';
     if (title) title.innerText = 'คนร้ายลอบวางกับดักน้ำถ่วงเวลาในห้องซักรีด';
     if (desc) desc.innerText = 'A (ผู้เล่น INT สูง) คล้องเชือกตากผ้าไนลอนที่คอ B พาดผ่านราวท่อสแตนเลสเพดาน หย่อนถังเปล่า (2 กก.) ออกนอกหน้าต่างสูง 3.5 ม. และสอดสายยางผ่านรูมือจับของถังซักผ้าและมัดประคองด้วยเชือกไนลอน (ทางน้ำเปิดโล่ง 100%) หรี่น้ำ 0.5 ลิตร/นาที โดยร่าง B (68 กก.) ถ่วงเชือกไว้ ทำให้ถังลอยนิ่งอยู่ที่เดิมไม่ขยับลงเลยจนกว่าน้ำจะเต็มตอน 21:00 น.!';
     
