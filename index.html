@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=4.3.0">
+  <link rel="stylesheet" href="/css/style.css?v=4.4.0">
   <!-- Early view detection script: immediately hides other page navigation buttons on Court and PC views -->
   <script>
     (function() {
@@ -379,6 +379,72 @@
         </div>
       </div>
 
+      <!-- STAGE 0: NON-STOP DEBATE (การถกเถียงต่อเนื่อง) -->
+      <div id="courtStage0" class="court-box hidden">
+        <div class="slanted-banner pink">MINI-GAME 0: NON-STOP DEBATE</div>
+        <div class="stg0-court-header">
+          <div class="stg0-court-title">🎮 NON-STOP DEBATE // การถกเถียงต่อเนื่อง</div>
+          <div class="stg0-court-topic-bar">
+            <span class="stg0-topic-label">🗣️ ประเด็นถกเถียง:</span>
+            <span id="stg0CourtTopic" class="stg0-topic-txt">ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.</span>
+          </div>
+          <div class="stg0-court-hint">ข้อความการถกเถียงกำลังลอยผ่านหน้าจอ... หากพบจุดขัดแย้ง ให้กดปุ่มคัดค้านบน Monopad!</div>
+        </div>
+
+        <!-- Dynamic Dialogue Stage -->
+        <div class="stg0-chamber" id="stg0Chamber">
+          <div id="stg0ActiveDialogue" class="stg0-dialogue-card">
+            <div class="stg0-speaker-header">
+              <span class="stg0-speaker-avatar" id="stg0SpeakerAvatar">👤</span>
+              <span class="stg0-speaker-name" id="stg0SpeakerName">ผู้พูด</span>
+            </div>
+            <div class="stg0-statement-text" id="stg0StatementText">
+              "กำลังโหลดประโยคการถกเถียง..."
+            </div>
+          </div>
+          <!-- Ambient Non-Spoiling Kinetic Cloud -->
+          <div id="stg0AmbientCloud" class="stg0-ambient-cloud">
+            <span class="ambient-pill slow">"ทุกคนมี Alibi ยืนยันจริงเหรอ!?"</span>
+            <span class="ambient-pill medium">"เสียงกระแทกนั่นมันคืออะไรกันแน่!?"</span>
+            <span class="ambient-pill fast">"หรือว่ามีคนโกหกอยู่ท่ามกลางพวกเรา!?"</span>
+            <span class="ambient-pill slow alt">"เวลาเกิดเหตุคือตอนไหนกันแน่!?"</span>
+          </div>
+        </div>
+
+        <!-- Giant Anime Slash Cut-In Objection Overlay -->
+        <div id="stg0ObjectionOverlay" class="stg0-objection-overlay hidden">
+          <div class="stg0-slash-backdrop"></div>
+          <div class="stg0-cutin-box">
+            <div class="stg0-quote-banner" id="stg0ObjectionQuote">
+              ⚡ นั่นผิดแล้ว! (SORE WA CHIGAU YO!)
+            </div>
+            <div class="stg0-cutin-profile">
+              <div class="stg0-giant-avatar" id="stg0GiantAvatar">👤</div>
+              <div class="stg0-cutin-details">
+                <div class="stg0-objector-name" id="stg0ObjectorName">ผู้เล่น</div>
+                <div class="stg0-objector-title" id="stg0ObjectorTitle">ประกาศคัดค้านความจริง!</div>
+              </div>
+            </div>
+            <div class="stg0-bullet-showcase" id="stg0BulletShowcase">
+              <div class="stg0-bullet-tag">TRUTH BULLET (กระสุนความจริงที่ยิง):</div>
+              <div class="stg0-bullet-display" id="stg0BulletDisplay">
+                <span class="bullet-code" id="stg0BulletCode">EVD-??</span>:
+                <span class="bullet-name" id="stg0BulletName">กำลังเลือกกระสุนใน Monopad...</span>
+              </div>
+            </div>
+            <div class="stg0-verbal-hint">
+              📢 กำลังให้เหตุผลหักล้างต่อที่ประชุมศาล... (รอ DM ตัดสินผล)
+            </div>
+          </div>
+        </div>
+
+        <!-- Glass Shatter BREAK! FX Layer -->
+        <div id="stg0BreakLayer" class="stg0-break-layer hidden">
+          <div class="break-shatter-title">💥 BREAK!!</div>
+          <div class="break-shatter-sub">ข้อโต้แย้งถูกหักล้างอย่างสมบูรณ์แบบ!</div>
+        </div>
+      </div>
+
       <!-- STAGE 1: EVIDENCE LINKER (NON-STOP DEBATE) -->
       <div id="courtStage1" class="court-box hidden">
         <div class="slanted-banner yellow">MINI-GAME 1: EVIDENCE LINKER</div>
@@ -716,6 +782,44 @@
               <strong>⚖️ Class Trial (ศาลชั้นเรียน - ช่วงอภิปราย & ไต่สวนทั่วไป)</strong>
               <span>เปิดศาลให้นักเรียนทุกคนอภิปรายถกเถียงอย่างอิสระบนโพเดียม (ยังไม่เริ่มมินิเกม)</span>
             </button>
+            <!-- STAGE 0: NON-STOP DEBATE DM CONTROLLER -->
+            <div class="dm-combo-block stg0-admin-block" style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:6px; border:2px solid #e02475; border-radius:8px; padding:8px; background:rgba(224,36,117,0.08);">
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button class="dm-act-btn pink" onclick="adminSetGame('stage0')" style="flex:1; margin:0;">
+                  <strong>🗣️ 0. Non-Stop Debate (การถกเถียงต่อเนื่อง)</strong>
+                  <span>เริ่มลูปบทพูดลอยในศาล & เปิดระบบแย่งจังหวะคัดค้าน</span>
+                </button>
+                <button type="button" class="small-btn pink" onclick="openAdminMinigameModal(); selectConfigTab('stage0');" style="padding:10px 14px; font-weight:900; font-size:1rem;" title="ตั้งค่าบทดีเบต">
+                  ⚙️
+                </button>
+              </div>
+
+              <!-- Live Objection Verdict Box in Admin Panel -->
+              <div id="adminStg0VerdictBox" class="admin-stg0-verdict-box" style="background:#0f0f18; border:1px solid #333348; border-radius:6px; padding:8px; font-size:0.84rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <span style="font-weight:900; color:#ff4081;">⚡ สถานะการคัดค้านสด (Live Objection):</span>
+                  <span id="adminStg0StatusBadge" style="font-size:0.72rem; padding:2px 6px; border-radius:4px; background:#222; color:#aaa;">กำลังหมุนเวียนบทพูด...</span>
+                </div>
+                <div id="adminStg0ObjectorInfo" style="color:#e2e8f0; font-weight:700; margin:4px 0;">
+                  ยังไม่มีผู้เล่นกดคัดค้าน (รอผู้เล่นกดแย่งจังหวะบน Monopad)
+                </div>
+                <div id="adminStg0BulletInfo" style="color:#94a3b8; font-size:0.8rem; margin-bottom:6px;">
+                  กระสุนความจริง: -
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <button id="btnAdminStg0Pass" class="small-btn green" onclick="adminStg0Verdict(true)" style="flex:1; padding:7px; font-weight:900; font-size:0.85rem;" disabled>
+                    ✅ BREAK! (อนุมัติ)
+                  </button>
+                  <button id="btnAdminStg0Fail" class="small-btn red" onclick="adminStg0Verdict(false)" style="flex:1; padding:7px; font-weight:900; font-size:0.85rem;" disabled>
+                    ❌ REJECT (ปฏิเสธ)
+                  </button>
+                  <button class="small-btn grey" onclick="adminStg0Resume()" style="padding:7px 12px; font-weight:900; font-size:0.85rem;" title="ปลดล็อกและปล่อยให้ข้อความหมุนต่อ">
+                    🔄 หมุนต่อ
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
               <button class="dm-act-btn pink" onclick="adminSetGame('stage1')" style="width:100%;">
                 <strong>1. Evidence Linker</strong>
@@ -2742,7 +2846,8 @@
       <div style="display:flex; flex-direction:column; gap:14px;">
         <!-- Game Selector Tabs -->
         <div class="config-stage-selector">
-          <button id="cfgTabStage1" class="stage-tab-btn active" onclick="selectConfigTab('stage1')">1. Evidence Linker</button>
+          <button id="cfgTabStage0" class="stage-tab-btn active" onclick="selectConfigTab('stage0')">0. Non-Stop Debate</button>
+          <button id="cfgTabStage1" class="stage-tab-btn" onclick="selectConfigTab('stage1')">1. Evidence Linker</button>
           <button id="cfgTabStage2" class="stage-tab-btn" onclick="selectConfigTab('stage2')">2. Hangman</button>
           <button id="cfgTabStage3" class="stage-tab-btn" onclick="selectConfigTab('stage3')">3. Rebuttal</button>
           <button id="cfgTabStage4" class="stage-tab-btn" onclick="selectConfigTab('stage4')">4. Logic Dive</button>
@@ -2752,8 +2857,32 @@
           <button id="cfgTabQuick_question" class="stage-tab-btn" onclick="selectConfigTab('quick_question')">⚡ Quick Q</button>
         </div>
 
+        <!-- Stage 0 Config (Non-Stop Debate) -->
+        <div id="cfgPaneStage0" class="cfg-pane">
+          <div class="preset-group">
+            <span class="preset-title">⚡ 1-Click Presets:</span>
+            <div class="preset-btn-row">
+              <button class="preset-chip" onclick="applyPresetStage0('timeline')">⏱️ ข้อโต้แย้ง 1: ไทม์ไลน์เสียงกระแทก (21:00 น.)</button>
+              <button class="preset-chip" onclick="applyPresetStage0('weapon')">🍖 ข้อโต้แย้ง 2: การหมดสติ & อาวุธทุบหัวในครัว</button>
+              <button class="preset-chip" onclick="applyPresetStage0('pulley')">🪢 ข้อโต้แย้ง 3: รอยเชือก & กลไกยกร่างอัตโนมัติ</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label style="font-size:0.85rem; color:#ccc;">หัวข้อการโต้เถียงบนจอใหญ่ (Court Topic):</label>
+            <input type="text" id="cfgStg0Topic" class="manual-code-input" style="width:100%; margin-top:4px;" value="ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.">
+          </div>
+          <div style="margin-top:10px;">
+            <label style="font-size:0.85rem; color:#ccc;">รายการข้อความการถกเถียง (1 บรรทัด = 1 ประโยค | รูปแบบ: [ชื่อผู้พูด] ข้อความ):</label>
+            <textarea id="cfgStg0Statements" class="manual-code-input" style="width:100%; height:120px; margin-top:4px; font-family:monospace; font-size:0.82rem; line-height:1.5;">[ยูโตะ] ตอน 21:00 น. ทุกคนก็ได้ยินเสียงการต่อสู้ในห้องซักผ้าพร้อมกันไม่ใช่เหรอ!?
+[ซากุระ] ใช่แล้ว! เสียงทุบกระแทกดังตึงตังขนาดนั้น ต้องเป็นการดิ้นรนก่อนตายของเรียวตะแน่นอน!
+[ฮิคาริ] แต่ว่าสภาพห้องซักรีดมันไม่เห็นมีรอยการดิ้นรนหรือเลือดเปรอะเลยนะ...
+[ไคโตะ] จะไม่มีได้ยังไง ก็เรียวตะพกมีดพกไปด้วย เขาก็ต้องชักออกมาป้องกันตัวสิ!
+[เรนะ] ถ้าอย่างนั้น เสียงเหล็กกระแทกที่ดังสนั่น 2 ครั้งติดกันตอนนั้น มันมาจากไหนล่ะ!?</textarea>
+          </div>
+        </div>
+
         <!-- Stage 1 Config -->
-        <div id="cfgPaneStage1" class="cfg-pane">
+        <div id="cfgPaneStage1" class="cfg-pane hidden">
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets:</span>
             <div class="preset-btn-row">
@@ -3198,7 +3327,7 @@
   </button>
 
   <script src="/js/jsQR.min.js"></script>
-  <script src="/js/client.js?v=4.3.0"></script>
+  <script src="/js/client.js?v=4.4.0"></script>
   <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>

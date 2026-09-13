@@ -391,6 +391,20 @@ let gameState = {
   discoveredClues: [],
   discoveredCluesCount: 0,
 
+  // Stage 0: Non-Stop Debate (การถกเถียงต่อเนื่อง)
+  stg0: {
+    topic: 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.',
+    statements: [],
+    currentIndex: 0,
+    isPaused: false,
+    buzzedBy: null,
+    buzzedAvatar: '👤',
+    buzzedRole: 'นักเรียน',
+    objectionQuote: '⚡ นั่นผิดแล้ว! (SORE WA CHIGAU YO!)',
+    selectedClueId: null,
+    approved: null
+  },
+
   // Stage 1: Evidence Linker
   stg1Submissions: 0,
   stg1Required: 3,
@@ -448,6 +462,29 @@ let gameState = {
 };
 
 let timerInterval = null;
+
+// Stage 0: Non-Stop Debate Chuunibyou Catchphrases (Thai / English)
+const OBJECTION_CATCHPHRASES = [
+  "⚡ นั่นผิดแล้ว! (SORE WA CHIGAU YO!)",
+  "⚡ ขอคัดค้าน! (OBJECTION!)",
+  "⚡ เดี๋ยวก่อน! (HOLD IT!)",
+  "⚡ รับนี่ไปซะ! (TAKE THAT!)",
+  "⚡ ความจริงมีเพียงหนึ่งเดียวเท่านั้น! (THERE IS ONLY ONE TRUTH!)",
+  "⚡ ภาพลวงตาของนายจบลงแค่นี้แหละ! (YOUR ILLUSION ENDS HERE!)",
+  "⚡ กระสุนความจริงนี้จะทะลวงคำโกหกของนาย! (PIERCE THROUGH THE LIES!)",
+  "⚡ หยุดอยู่ตรงนั้นแหละ! ตรรกะของนายมันพังทลายแล้ว! (LOGIC BREAK!)",
+  "⚡ ทฤษฎีนั่น... ฉันขอปฏิเสธ! (I DENY THAT REALITY!)",
+  "⚡ ความมืดมิดไม่อาจบดบังความจริงได้! (DARKNESS CANNOT HIDE THE TRUTH!)"
+];
+
+const DEFAULT_STG0_STATEMENTS = [
+  { speaker: "ยูโตะ", avatar: "👨‍🍳", text: "ตอน 21:00 น. ทุกคนก็ได้ยินเสียงการต่อสู้ในห้องซักผ้าพร้อมกันไม่ใช่เหรอ!?" },
+  { speaker: "ซากุระ", avatar: "👧", text: "ใช่แล้ว! เสียงทุบกระแทกดังตึงตังขนาดนั้น ต้องเป็นการดิ้นรนก่อนตายของเรียวตะแน่นอน!" },
+  { speaker: "ฮิคาริ", avatar: "👩‍💼", text: "แต่ว่าสภาพห้องซักรีดมันไม่เห็นมีรอยการดิ้นรนหรือเลือดเปรอะเลยนะ..." },
+  { speaker: "ไคโตะ", avatar: "🧑‍💻", text: "จะไม่มีได้ยังไง ก็เรียวตะพกมีดพกไปด้วย เขาก็ต้องชักออกมาป้องกันตัวสิ!" },
+  { speaker: "เรนะ", avatar: "👱‍♀️", text: "ถ้าอย่างนั้น เสียงเหล็กกระแทกที่ดังสนั่น 2 ครั้งติดกันตอนนั้น มันมาจากไหนล่ะ!?" },
+  { speaker: "ชิน", avatar: "🕵️", text: "มีคนแอบลอบเข้าไปในห้องซักผ้าเพื่ออำพรางหลักฐานหลังจากไฟดับหรือเปล่า!?" }
+];
 
 // ==========================================================
 // AUTHENTIC DANGANRONPA AUDIO & SFX ENGINE
@@ -1110,7 +1147,8 @@ function broadcast(msg) {
     'set_stage', 'admin_adjust_timer', 'admin_timer_stop', 'admin_timer_start',
     'adjust_influence', 'verdict', 'minigame_result', 'close_minigame_result',
     'execution_cutscene', 'close_execution_cutscene', 'stg1_evaluate',
-    'reveal_votes', 'sync_state', 'rebuttal_verdict', 'stg2_char'
+    'reveal_votes', 'sync_state', 'rebuttal_verdict', 'stg2_char',
+    'stg0_buzz', 'stg0_shoot', 'stg0_verdict', 'stg0_resume'
   ];
   if (!alreadyHandledLocally.includes(msg.type)) {
     handleIncomingMessage(msg, null);
@@ -1397,6 +1435,14 @@ function handleIncomingMessage(msg, senderConn) {
     else if (msg.delta > 0) playSfx('correct');
   } else if (msg.type === 'sabotage') {
     handleSabotage(msg.sabType, msg.playerName, msg.senderHash);
+  } else if (msg.type === 'stg0_buzz') {
+    handleStg0Buzz(msg);
+  } else if (msg.type === 'stg0_shoot') {
+    handleStg0Shoot(msg);
+  } else if (msg.type === 'stg0_verdict') {
+    handleStg0Verdict(msg);
+  } else if (msg.type === 'stg0_resume') {
+    handleStg0Resume();
   } else if (msg.type === 'stg1_submit') {
     handleStg1Submit(msg.clueId, msg.playerName);
   } else if (msg.type === 'stg1_evaluate') {
@@ -2841,6 +2887,35 @@ function setStage(stage, config) {
     autoUnlockTrialClues();
     playSfx('gavel');
     logCourt(`⚖️ [CLASS TRIAL]: เริ่มต้นศาลชั้นเรียน! เข้าสู่ช่วงอภิปรายและไต่สวนคดี`);
+  } else if (stage === 'stage0') {
+    autoUnlockTrialClues();
+    if (!gameState.stg0) gameState.stg0 = {};
+    if (config) {
+      if (config.topic) gameState.stg0.topic = config.topic;
+      if (config.statements && Array.isArray(config.statements) && config.statements.length > 0) {
+        gameState.stg0.statements = config.statements;
+      }
+    }
+    if (!gameState.stg0.statements || gameState.stg0.statements.length === 0) {
+      gameState.stg0.statements = [...DEFAULT_STG0_STATEMENTS];
+    }
+    if (!gameState.stg0.topic) {
+      gameState.stg0.topic = 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.';
+    }
+    gameState.stg0.currentIndex = 0;
+    gameState.stg0.isPaused = false;
+    gameState.stg0.buzzedBy = null;
+    gameState.stg0.selectedClueId = null;
+    gameState.stg0.approved = null;
+    gameState.timeRemaining = 90;
+    gameState.timerRunning = false;
+    stopTimer();
+    updateTimerDisplay();
+    playSfx('gavel');
+    logCourt(`🗣️ [NON-STOP DEBATE]: เริ่มต้นการถกเถียงต่อเนื่อง (Stage 0) ในประเด็น "${gameState.stg0.topic}"`);
+    updateStg0CourtDisplay();
+    updateAdminStg0Display();
+    startStg0Loop();
   } else if (stage === 'stage1') {
     autoUnlockTrialClues();
     const activePlayerCount = Object.keys(gameState.players).length;
@@ -3223,11 +3298,15 @@ function handleClueDiscovered(clueId, clueName, playerName, userHash) {
 // STAGE RENDERERS (COURTROOM VIEW & MOBILE VIEW)
 // ==========================================================
 function renderStage(stage) {
-  const courtStages = ['courtDailyLife', 'courtIdle', 'courtLobby', 'courtTrial', 'courtInvestigation', 'courtStage1', 'courtStage2', 'courtStage3', 'courtStage4', 'courtStage5', 'courtStage6', 'courtClosing', 'courtStage7', 'courtVerdict', 'courtQuickQuestion'];
+  const courtStages = ['courtDailyLife', 'courtIdle', 'courtLobby', 'courtTrial', 'courtInvestigation', 'courtStage0', 'courtStage1', 'courtStage2', 'courtStage3', 'courtStage4', 'courtStage5', 'courtStage6', 'courtClosing', 'courtStage7', 'courtVerdict', 'courtQuickQuestion'];
   courtStages.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
+
+  if (stage !== 'stage0') {
+    stopStg0Loop();
+  }
 
   // Clock visibility: Only show during timed mini-games (stage1 to stage7, closing, quick_question)
   const clockEl = document.querySelector('.monokuma-clock');
@@ -3255,6 +3334,11 @@ function renderStage(stage) {
     const inv = document.getElementById('courtInvestigation');
     if (inv) inv.classList.remove('hidden');
     updateDiscoveredCluesDisplay();
+  } else if (stage === 'stage0') {
+    const s0 = document.getElementById('courtStage0');
+    if (s0) s0.classList.remove('hidden');
+    updateStg0CourtDisplay();
+    startStg0Loop();
   } else if (stage === 'stage1') {
     const s1 = document.getElementById('courtStage1');
     if (s1) s1.classList.remove('hidden');
@@ -3437,6 +3521,432 @@ function closeExecutionModal(skipBroadcast = false) {
 // ==========================================================
 // MINI-GAME SPECIFIC LOGIC
 // ==========================================================
+
+// 0. Non-Stop Debate (การถกเถียงต่อเนื่อง)
+let stg0LoopInterval = null;
+
+function updateStg0CourtDisplay() {
+  if (!gameState.stg0) return;
+  const topicEl = document.getElementById('stg0CourtTopic');
+  if (topicEl && gameState.stg0.topic) {
+    topicEl.innerText = gameState.stg0.topic;
+  }
+
+  const stmts = gameState.stg0.statements || [];
+  if (stmts.length > 0) {
+    const idx = (gameState.stg0.currentIndex || 0) % stmts.length;
+    const s = stmts[idx];
+    const avEl = document.getElementById('stg0SpeakerAvatar');
+    const nameEl = document.getElementById('stg0SpeakerName');
+    const txtEl = document.getElementById('stg0StatementText');
+    if (avEl) avEl.innerText = s.avatar || '👤';
+    if (nameEl) nameEl.innerText = s.speaker || 'ผู้ร่วมอภิปราย';
+    if (txtEl) txtEl.innerText = `"${s.text}"`;
+  }
+
+  // Live Objection Cut-In Overlay on Court Screen
+  const overlay = document.getElementById('stg0ObjectionOverlay');
+  if (overlay) {
+    if (gameState.stg0.buzzedBy) {
+      overlay.classList.remove('hidden');
+      const quoteEl = document.getElementById('stg0ObjectionQuote');
+      const giantAv = document.getElementById('stg0GiantAvatar');
+      const objName = document.getElementById('stg0ObjectorName');
+      const objTitle = document.getElementById('stg0ObjectorTitle');
+      const bCode = document.getElementById('stg0BulletCode');
+      const bName = document.getElementById('stg0BulletName');
+
+      if (quoteEl) quoteEl.innerText = gameState.stg0.objectionQuote || '⚡ นั่นผิดแล้ว! (SORE WA CHIGAU YO!)';
+      if (giantAv) giantAv.innerText = gameState.stg0.buzzedAvatar || '👤';
+      if (objName) objName.innerText = gameState.stg0.buzzedBy;
+      if (objTitle) objTitle.innerText = gameState.stg0.buzzedRole || 'ประกาศคัดค้านความจริง!';
+
+      if (gameState.stg0.selectedClueId) {
+        const clue = ALL_CLUES_DATA.find(c => c.id === gameState.stg0.selectedClueId);
+        if (bCode) bCode.innerText = gameState.stg0.selectedClueId;
+        if (bName) bName.innerText = clue ? clue.name : gameState.stg0.selectedClueId;
+      } else {
+        if (bCode) bCode.innerText = 'EVD-??';
+        if (bName) bName.innerText = 'กำลังเลือกกระสุนใน Monopad...';
+      }
+    } else {
+      overlay.classList.add('hidden');
+    }
+  }
+}
+
+function startStg0Loop() {
+  stopStg0Loop();
+  stg0LoopInterval = setInterval(() => {
+    if (gameState.stage !== 'stage0') {
+      stopStg0Loop();
+      return;
+    }
+    if (gameState.stg0 && !gameState.stg0.isPaused && !gameState.stg0.buzzedBy) {
+      const stmts = gameState.stg0.statements || [];
+      if (stmts.length > 0) {
+        gameState.stg0.currentIndex = (gameState.stg0.currentIndex + 1) % stmts.length;
+        updateStg0CourtDisplay();
+      }
+    }
+  }, 4000);
+}
+
+function stopStg0Loop() {
+  if (stg0LoopInterval) {
+    clearInterval(stg0LoopInterval);
+    stg0LoopInterval = null;
+  }
+}
+
+function stg0PressBuzzer() {
+  if (gameState.stage !== 'stage0') return;
+  if (gameState.stg0 && gameState.stg0.buzzedBy) {
+    showToast("⚠️ มีผู้เล่นอื่นกดคัดค้านไปก่อนแล้ว!");
+    return;
+  }
+  if (getMyCredibility() <= 0) {
+    showToast("❌ แต้มความน่าเชื่อถือหมด (Panic State) ไม่สามารถกดคัดค้านได้");
+    playSfx('wrong');
+    return;
+  }
+
+  const myName = myPlayer ? myPlayer.name : 'ผู้เล่น';
+  const myAvatar = myPlayer?.avatar || '👤';
+  const myRole = myPlayer?.role || 'นักเรียน';
+  const quote = OBJECTION_CATCHPHRASES[Math.floor(Math.random() * OBJECTION_CATCHPHRASES.length)];
+
+  if (!gameState.stg0) gameState.stg0 = {};
+  gameState.stg0.buzzedBy = myName;
+  gameState.stg0.buzzedAvatar = myAvatar;
+  gameState.stg0.buzzedRole = myRole;
+  gameState.stg0.objectionQuote = quote;
+  gameState.stg0.isPaused = true;
+  gameState.stg0.selectedClueId = null;
+
+  playSfx('rebuttal');
+  showToast(`⚡ คุณกดคัดค้านสำเร็จ! ${quote}`);
+  logCourt(`⚡ [OBJECTION]: [${myName}] กดแย่งจังหวะคัดค้าน! "${quote}"`);
+
+  broadcast({
+    type: 'stg0_buzz',
+    player: myName,
+    avatar: myAvatar,
+    role: myRole,
+    quote: quote
+  });
+
+  updateStg0CourtDisplay();
+  updateAdminStg0Display();
+  renderMobileTask('stage0');
+}
+
+function stg0ShootClue() {
+  if (gameState.stage !== 'stage0') return;
+  const sel = document.getElementById('stg0MobileClueSelect');
+  const clueId = sel ? sel.value : null;
+  const myName = myPlayer ? myPlayer.name : 'ผู้เล่น';
+
+  if (!gameState.stg0) gameState.stg0 = {};
+  gameState.stg0.selectedClueId = clueId;
+  playSfx('shoot');
+
+  const clue = ALL_CLUES_DATA.find(c => c.id === clueId);
+  const clueName = clue ? clue.name : (clueId || 'ข้อสันนิษฐานปากเปล่า');
+
+  showToast(`🎯 ยิงกระสุนความจริง: [${clueId || '-'}] ${clueName}`);
+  logCourt(`🎯 [TRUTH BULLET]: [${myName}] ยิงกระสุนความจริง [${clueId || '-'}] ${clueName} ขึ้นจอศาล!`);
+
+  broadcast({
+    type: 'stg0_shoot',
+    player: myName,
+    clueId: clueId,
+    clueName: clueName
+  });
+
+  updateStg0CourtDisplay();
+  updateAdminStg0Display();
+  renderMobileTask('stage0');
+}
+
+function handleStg0Buzz(msg) {
+  if (!gameState.stg0) gameState.stg0 = {};
+  gameState.stg0.buzzedBy = msg.player;
+  gameState.stg0.buzzedAvatar = msg.avatar || '👤';
+  gameState.stg0.buzzedRole = msg.role || 'นักเรียน';
+  gameState.stg0.objectionQuote = msg.quote || '⚡ นั่นผิดแล้ว!';
+  gameState.stg0.isPaused = true;
+  gameState.stg0.selectedClueId = null;
+
+  playSfx('rebuttal');
+  logCourt(`⚡ [OBJECTION]: [${msg.player}] กดแย่งจังหวะคัดค้าน! "${msg.quote}"`);
+  updateStg0CourtDisplay();
+  updateAdminStg0Display();
+  if (currentView === 'player' || gameState.stage === 'stage0') {
+    renderMobileTask('stage0');
+  }
+}
+
+function handleStg0Shoot(msg) {
+  if (!gameState.stg0) gameState.stg0 = {};
+  gameState.stg0.selectedClueId = msg.clueId;
+  playSfx('shoot');
+  logCourt(`🎯 [TRUTH BULLET]: [${msg.player}] ยิงกระสุนความจริง [${msg.clueId || '-'}] ${msg.clueName || ''} ขึ้นจอศาล!`);
+  updateStg0CourtDisplay();
+  updateAdminStg0Display();
+  if (currentView === 'player' || gameState.stage === 'stage0') {
+    renderMobileTask('stage0');
+  }
+}
+
+function handleStg0Verdict(msg) {
+  if (!gameState.stg0) gameState.stg0 = {};
+  gameState.stg0.approved = msg.approved;
+
+  if (msg.approved) {
+    playSfx('break');
+    const breakLayer = document.getElementById('stg0BreakLayer');
+    if (breakLayer) {
+      breakLayer.classList.remove('hidden');
+      setTimeout(() => {
+        if (breakLayer) breakLayer.classList.add('hidden');
+      }, 3500);
+    }
+    if (myPlayer && (myPlayer.name === msg.objector || myPlayer.id === msg.objector)) {
+      showToast("💥 BREAK!! ข้อคัดค้านของคุณได้รับการอนุมัติอย่างสมบูรณ์แบบ! (+1 Credibility)");
+    }
+    logCourt(`💥 [BREAK!]: ข้อโต้แย้งถูกหักล้างอย่างสมบูรณ์แบบโดย [${msg.objector}]!`);
+  } else {
+    playSfx('wrong');
+    playSfx('laugh');
+    if (myPlayer && (myPlayer.name === msg.objector || myPlayer.id === msg.objector)) {
+      showToast("❌ REJECT! ข้อคัดค้านของคุณถูกปฏิเสธโดย DM (-1 Credibility)");
+    }
+    logCourt(`❌ [REJECT]: ข้อคัดค้านของ [${msg.objector}] ถูกปฏิเสธโดย DM`);
+  }
+
+  setTimeout(() => {
+    if (gameState.stage === 'stage0') {
+      gameState.stg0.buzzedBy = null;
+      gameState.stg0.selectedClueId = null;
+      gameState.stg0.isPaused = false;
+      const overlay = document.getElementById('stg0ObjectionOverlay');
+      if (overlay) overlay.classList.add('hidden');
+      updateStg0CourtDisplay();
+      updateAdminStg0Display();
+      if (currentView === 'player' || gameState.stage === 'stage0') {
+        renderMobileTask('stage0');
+      }
+    }
+  }, msg.approved ? 3500 : 2000);
+}
+
+function handleStg0Resume() {
+  if (!gameState.stg0) gameState.stg0 = {};
+  gameState.stg0.buzzedBy = null;
+  gameState.stg0.selectedClueId = null;
+  gameState.stg0.isPaused = false;
+  const overlay = document.getElementById('stg0ObjectionOverlay');
+  if (overlay) overlay.classList.add('hidden');
+  const breakLayer = document.getElementById('stg0BreakLayer');
+  if (breakLayer) breakLayer.classList.add('hidden');
+  updateStg0CourtDisplay();
+  updateAdminStg0Display();
+  if (currentView === 'player' || gameState.stage === 'stage0') {
+    renderMobileTask('stage0');
+  }
+}
+
+function updateAdminStg0Display() {
+  const badge = document.getElementById('adminStg0StatusBadge');
+  const objInfo = document.getElementById('adminStg0ObjectorInfo');
+  const bulletInfo = document.getElementById('adminStg0BulletInfo');
+  const btnPass = document.getElementById('btnAdminStg0Pass');
+  const btnFail = document.getElementById('btnAdminStg0Fail');
+
+  if (!badge || !objInfo || !bulletInfo) return;
+
+  if (gameState.stg0 && gameState.stg0.buzzedBy) {
+    badge.innerText = '⚡ แย่งจังหวะคัดค้านแล้ว!';
+    badge.style.background = '#e02475';
+    badge.style.color = '#fff';
+    objInfo.innerHTML = `ผู้คัดค้าน: <strong style="color:#00f0ff;">${gameState.stg0.buzzedBy}</strong> (${gameState.stg0.buzzedRole || 'นักเรียน'})<br><span style="color:#ff4081; font-style:italic;">"${gameState.stg0.objectionQuote || ''}"</span>`;
+
+    if (gameState.stg0.selectedClueId) {
+      const clue = ALL_CLUES_DATA.find(c => c.id === gameState.stg0.selectedClueId);
+      bulletInfo.innerHTML = `กระสุนความจริง: <strong style="color:#ffe600;">[${gameState.stg0.selectedClueId}] ${clue ? clue.name : ''}</strong>`;
+    } else {
+      bulletInfo.innerText = 'กระสุนความจริง: (ผู้เล่นกำลังเลือกกระสุนใน Monopad...)';
+    }
+    if (btnPass) btnPass.disabled = false;
+    if (btnFail) btnFail.disabled = false;
+  } else {
+    badge.innerText = 'กำลังหมุนเวียนบทพูด...';
+    badge.style.background = '#222';
+    badge.style.color = '#aaa';
+    objInfo.innerText = 'ยังไม่มีผู้เล่นกดคัดค้าน (รอผู้เล่นกดแย่งจังหวะบน Monopad)';
+    bulletInfo.innerText = 'กระสุนความจริง: -';
+    if (btnPass) btnPass.disabled = true;
+    if (btnFail) btnFail.disabled = true;
+  }
+}
+
+function adminStg0Verdict(approved) {
+  if (gameState.stage !== 'stage0') return;
+  const objector = gameState.stg0?.buzzedBy || 'ผู้เล่น';
+  const clueId = gameState.stg0?.selectedClueId || '-';
+
+  if (approved) {
+    playSfx('break');
+    const breakLayer = document.getElementById('stg0BreakLayer');
+    if (breakLayer) {
+      breakLayer.classList.remove('hidden');
+      setTimeout(() => {
+        if (breakLayer) breakLayer.classList.add('hidden');
+      }, 3500);
+    }
+    adminAdjustPlayerCred(objector, 1);
+    logCourt(`💥 [BREAK!]: ข้อโต้แย้งถูกหักล้างอย่างสมบูรณ์แบบโดย [${objector}]! (+1 Credibility)`);
+    showToast(`✅ DM อนุมัติ BREAK! ให้กับ [${objector}] เรียบร้อย`);
+  } else {
+    playSfx('wrong');
+    playSfx('laugh');
+    adminAdjustPlayerCred(objector, -1);
+    logCourt(`❌ [REJECT]: ข้อคัดค้านของ [${objector}] ถูกปฏิเสธโดย DM (-1 Credibility)`);
+    showToast(`❌ DM ปฏิเสธข้อคัดค้านของ [${objector}]`);
+  }
+
+  broadcast({
+    type: 'stg0_verdict',
+    approved: approved,
+    objector: objector,
+    clueId: clueId
+  });
+
+  setTimeout(() => {
+    if (gameState.stage === 'stage0') {
+      gameState.stg0.buzzedBy = null;
+      gameState.stg0.selectedClueId = null;
+      gameState.stg0.isPaused = false;
+      const overlay = document.getElementById('stg0ObjectionOverlay');
+      if (overlay) overlay.classList.add('hidden');
+      updateStg0CourtDisplay();
+      updateAdminStg0Display();
+      renderMobileTask('stage0');
+    }
+  }, approved ? 3500 : 2000);
+}
+
+function adminStg0Resume() {
+  if (gameState.stage !== 'stage0') return;
+  if (!gameState.stg0) gameState.stg0 = {};
+  gameState.stg0.buzzedBy = null;
+  gameState.stg0.selectedClueId = null;
+  gameState.stg0.isPaused = false;
+  const overlay = document.getElementById('stg0ObjectionOverlay');
+  if (overlay) overlay.classList.add('hidden');
+  const breakLayer = document.getElementById('stg0BreakLayer');
+  if (breakLayer) breakLayer.classList.add('hidden');
+
+  broadcast({ type: 'stg0_resume' });
+
+  updateStg0CourtDisplay();
+  updateAdminStg0Display();
+  renderMobileTask('stage0');
+  showToast("🔄 ปลดล็อกและหมุนเวียนบทพูดต่อเรียบร้อย");
+}
+
+function renderMobileStage0Task() {
+  const area = document.getElementById('mobileTaskArea');
+  if (!area) return;
+  if (!gameState.stg0) gameState.stg0 = {};
+
+  const myName = myPlayer ? myPlayer.name : '';
+  const isBuzzedByMe = Boolean(myName && gameState.stg0.buzzedBy === myName);
+  const isBuzzedByOther = Boolean(gameState.stg0.buzzedBy && !isBuzzedByMe);
+
+  let html = `
+    <div class="stg0-mobile-container">
+      <div class="slanted-banner pink" style="font-size:0.95rem; margin-bottom:4px;">
+        🎮 NON-STOP DEBATE // การถกเถียงต่อเนื่อง
+      </div>
+      <div class="stg0-mobile-topic-card">
+        <div style="font-size:0.75rem; color:#ff4081; font-weight:900;">🗣️ หัวข้อการโต้แย้งในศาล:</div>
+        <div style="font-size:0.95rem; color:#fff; font-weight:800; margin-top:2px;">
+          ${gameState.stg0.topic || 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.'}
+        </div>
+      </div>
+  `;
+
+  if (!gameState.stg0.buzzedBy) {
+    html += `
+      <div class="stg0-buzzer-wrap">
+        <button class="stg0-giant-buzzer" onclick="stg0PressBuzzer()">
+          <span style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.8rem;">⚡</span>
+            <span>คัดค้าน! (OBJECTION!)</span>
+          </span>
+          <span class="stg0-buzzer-sub">แตะเพื่อแย่งจังหวะคัดค้านข้อความที่กำลังลอยบนจอใหญ่</span>
+        </button>
+      </div>
+      <div style="text-align:center; font-size:0.8rem; color:#94a3b8; line-height:1.4;">
+        💡 ฟังคำให้การและมองข้อความบนจอ หากพบจุดขัดแย้งกับหลักฐาน ให้แตะปุ่มด้านบนทันที!
+      </div>
+    `;
+  } else if (isBuzzedByMe) {
+    // RESTRICTION: ONLY clues the player personally discovered!
+    const unlockedIds = getUnlockedClues();
+    const myClues = ALL_CLUES_DATA.filter(c => unlockedIds.includes(c.id));
+
+    let optionsHtml = '';
+    if (myClues.length === 0) {
+      optionsHtml = '<option value="">(คุณยังไม่มีเบาะแสใน Monopad - ใช้การโต้แย้งปากเปล่า)</option>';
+    } else {
+      optionsHtml = myClues.map(c => `<option value="${c.id}" ${gameState.stg0.selectedClueId === c.id ? 'selected' : ''}>[${c.id}] ${c.name} (${c.loc})</option>`).join('');
+    }
+
+    html += `
+      <div class="stg0-objector-action-card">
+        <div style="color:#00f0ff; font-weight:900; font-size:1.05rem; margin-bottom:4px;">
+          ⚡ คุณได้รับสิทธิ์คัดค้าน! (Objection Locked!)
+        </div>
+        <div style="color:#ff4081; font-weight:800; font-size:0.88rem; margin-bottom:8px; font-style:italic;">
+          "${gameState.stg0.objectionQuote || 'นั่นผิดแล้ว!'}"
+        </div>
+        <div style="font-size:0.82rem; color:#cbd5e1; line-height:1.4; margin-bottom:10px;">
+          📢 พูดอธิบายเหตุผลหักล้างต่อที่ประชุมศาลที่โต๊ะ และเลือก<strong>กระสุนความจริงที่คุณมี</strong>ยิงขึ้นจอ:
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:0.78rem; color:#ffe600; font-weight:bold;">กระสุนความจริงที่คุณครอบครอง (${myClues.length} ชิ้น):</label>
+          <select id="stg0MobileClueSelect" class="stg0-clue-select">
+            ${optionsHtml}
+          </select>
+        </div>
+        <button class="p-task-btn" onclick="stg0ShootClue()" style="background:linear-gradient(135deg,#ffe600,#ff0055); color:#000; font-weight:900; font-size:0.95rem; border:none; padding:12px;">
+          🎯 ยิงกระสุนความจริง (FIRE TRUTH BULLET!)
+        </button>
+      </div>
+    `;
+  } else {
+    html += `
+      <div class="stg0-locked-wrap">
+        <div style="font-size:2.2rem; margin-bottom:6px;">🔒</div>
+        <div style="color:#ff4081; font-weight:900; font-size:1.05rem; margin-bottom:4px;">
+          [${gameState.stg0.buzzedBy}] ได้รับสิทธิ์คัดค้าน!
+        </div>
+        <div style="font-size:0.85rem; color:#cbd5e1; margin-bottom:10px; font-style:italic;">
+          "${gameState.stg0.objectionQuote || 'ขอคัดค้าน!'}"
+        </div>
+        <div style="font-size:0.8rem; color:#94a3b8; line-height:1.4;">
+          โปรดฟังเหตุผลการหักล้างของเพื่อนที่โต๊ะ และรอผลการตัดสินจาก DM
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  area.innerHTML = html;
+}
 
 // 1. Evidence Linker (Batch Evaluation without Premature Reveal)
 function handleStg1Submit(clueId, pName) {
@@ -5660,7 +6170,7 @@ function renderMobileTask(stage) {
   }
 
   // Check credibility = 0 Disqualification (Panic State Spectator Mode)
-  const isMiniGameStage = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7', 'closing', 'quick_question'].includes(stage);
+  const isMiniGameStage = ['stage0', 'stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7', 'closing', 'quick_question'].includes(stage);
   if (isMiniGameStage && getMyCredibility() <= 0) {
     area.innerHTML = `
       <div class="disqualified-card" style="background:rgba(30,10,15,0.95); border:2px solid #ef4444; border-radius:10px; padding:20px; text-align:center;">
@@ -5708,17 +6218,9 @@ function renderMobileTask(stage) {
         </div>
       </div>
     `;
-  } else if (stage === 'investigation') {
-    area.innerHTML = `
-      <div style="background:rgba(0,40,60,0.95); border:2px solid var(--mono-cyan); border-radius:10px; padding:16px; text-align:center;">
-        <div style="font-size:2.2rem; margin-bottom:8px;">🔍</div>
-        <h3 style="color:var(--mono-cyan); margin-bottom:6px; font-weight:900;">ช่วงเวลาสืบสวนหาหลักฐาน</h3>
-        <p style="color:#ddd; font-size:0.9rem; margin-bottom:14px;">ออกสำรวจสถานที่เกิดเหตุ สแกน QR Code จากการ์ดหลักฐาน หรือกรอกรหัส EVD-XX เพื่อเก็บเข้า Monopad ของคุณ!</p>
-        <button class="p-task-btn" onclick="switchPlayerTab('clues')" style="background:rgba(0,240,255,0.2); border-color:#00f0ff; color:#fff; font-weight:900;">
-          📷 สแกน QR Code / ตรวจสอบหลักฐาน (Monopad)
-        </button>
-      </div>
-    `;
+  } else if (stage === 'stage0') {
+    renderMobileStage0Task();
+    return;
   } else if (stage === 'stage1') {
     const target = gameState.stg1TargetClue || 'EVD-01';
     const unlockedClueIds = getUnlockedClues();
@@ -8097,7 +8599,7 @@ function openAdminMinigameModal(defaultTab) {
   if (!modal) return;
   populateStg1CluesDropdown();
   modal.classList.remove('hidden');
-  selectConfigTab(defaultTab || 'stage1');
+  selectConfigTab(defaultTab || 'stage0');
 }
 
 function closeAdminMinigameModal() {
@@ -8107,7 +8609,7 @@ function closeAdminMinigameModal() {
 
 function selectConfigTab(stageKey) {
   currentSelectedConfigStage = stageKey;
-  const stages = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7', 'quick_question'];
+  const stages = ['stage0', 'stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7', 'quick_question'];
   stages.forEach(stg => {
     const tabSuffix = stg === 'quick_question' ? 'Quick_question' : (stg.charAt(0).toUpperCase() + stg.slice(1));
     const tabBtn = document.getElementById('cfgTab' + tabSuffix);
@@ -8121,6 +8623,34 @@ function selectConfigTab(stageKey) {
       else pane.classList.add('hidden');
     }
   });
+}
+
+function applyPresetStage0(presetKey) {
+  const topInput = document.getElementById('cfgStg0Topic');
+  const stmtInput = document.getElementById('cfgStg0Statements');
+  if (!topInput || !stmtInput) return;
+
+  if (presetKey === 'timeline') {
+    topInput.value = "ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.";
+    stmtInput.value = `[ยูโตะ] ตอน 21:00 น. ทุกคนก็ได้ยินเสียงการต่อสู้ในห้องซักผ้าพร้อมกันไม่ใช่เหรอ!?
+[ซากุระ] ใช่แล้ว! เสียงทุบกระแทกดังตึงตังขนาดนั้น ต้องเป็นการดิ้นรนก่อนตายของเรียวตะแน่นอน!
+[ฮิคาริ] แต่ว่าสภาพห้องซักรีดมันไม่เห็นมีรอยการดิ้นรนหรือเลือดเปรอะเลยนะ...
+[ไคโตะ] จะไม่มีได้ยังไง ก็เรียวตะพกมีดพกไปด้วย เขาก็ต้องชักออกมาป้องกันตัวสิ!
+[เรนะ] ถ้าอย่างนั้น เสียงเหล็กกระแทกที่ดังสนั่น 2 ครั้งติดกันตอนนั้น มันมาจากไหนล่ะ!?`;
+  } else if (presetKey === 'weapon') {
+    topInput.value = "การหมดสติของเหยื่อเรียวตะ & อาวุธในห้องครัว";
+    stmtInput.value = `[ไคโตะ] เรียวตะต้องถูกคนร้ายใช้มีดปลายแหลมในครัวแทงก่อนแน่นอน!
+[เรนะ] แต่ผลชันสูตรบอกว่ากะโหลกศีรษะด้านหลังมีรอยแตกร้าวจากของแข็งไม่มีคมนะ!
+[ยูโตะ] ในครัวมีกระทะและหม้อต้มสตูว์วางอยู่ อาจจะเป็นท่อนกระดูกขนาดใหญ่ก็ได้!
+[ซากุระ] อาวุธชิ้นนั้นต้องถูกคนร้ายโยนทิ้งไปนอกหน้าต่างหลังก่อเหตุแน่ๆ!`;
+  } else if (presetKey === 'pulley') {
+    topInput.value = "รอยเชือกไนลอน & กลไกยกร่างขึ้นเพดาน";
+    stmtInput.value = `[ซากุระ] คนร้ายต้องเป็นคนที่มีพละกำลังมหาศาลแน่ ถึงยกร่างผู้ชายขึ้นไปแขวนบนเพดานสูงได้!
+[ฮิคาริ] แต่คนร้ายจะปีนขึ้นไปมัดเชือกบนท่อเพดานสูง 3.5 เมตรในความมืดได้ยังไง?
+[ไคโตะ] แปลว่าคนร้ายต้องเตรียมบันไดลิงหรือใช้โต๊ะซ้อนกันหลายตัวในห้องซักผ้าสิ!
+[เรนะ] แต่รอบๆ จุดพบศพไม่มีเฟอร์นิเจอร์ตัวไหนถูกขยับเลยสักชิ้นเดียว!
+[ยูโตะ] หรือว่าร่างของเรียวตะไม่ได้ถูกคนดึงขึ้นไป แต่เป็นกลไกถ่วงน้ำหนักอัตโนมัติ!?`;
+  }
 }
 
 function applyPresetStage1(presetKey) {
@@ -8211,10 +8741,25 @@ function applyPresetStage7(mode) {
 }
 
 function adminLaunchSelectedConfigGame() {
-  const stg = currentSelectedConfigStage || 'stage1';
+  const stg = currentSelectedConfigStage || 'stage0';
   let config = {};
 
-  if (stg === 'stage1') {
+  if (stg === 'stage0') {
+    const topic = document.getElementById('cfgStg0Topic') ? document.getElementById('cfgStg0Topic').value : 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.';
+    const rawStmts = document.getElementById('cfgStg0Statements') ? document.getElementById('cfgStg0Statements').value : '';
+    const statements = rawStmts.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+      const match = line.match(/^\[(.*?)\]\s*(.*)$/);
+      if (match) {
+        return { speaker: match[1], text: match[2] };
+      }
+      return { speaker: 'ผู้ร่วมอภิปราย', text: line };
+    });
+    config = { topic: topic, statements: statements.length > 0 ? statements : DEFAULT_STG0_STATEMENTS };
+    adminSetGame('stage0', config);
+    closeAdminMinigameModal();
+    logCourt(`🎮 [MINIGAME LAUNCH]: DM เริ่มต้น NON-STOP DEBATE ในประเด็น "${topic}"`);
+    return;
+  } else if (stg === 'stage1') {
     const prompt = document.getElementById('cfgStg1Prompt') ? document.getElementById('cfgStg1Prompt').value : '';
     const target = document.getElementById('cfgStg1TargetClue') ? document.getElementById('cfgStg1TargetClue').value : 'EVD-02';
     config = { prompt: prompt, correctClueId: target };

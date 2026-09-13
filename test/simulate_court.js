@@ -212,6 +212,34 @@ async function runSimulation() {
   console.log(`PASS (Investigation stage & clues synced in ${Math.max(c1.latency, c5.latency)} ms)`);
 
   // -------------------------------------------------------------
+  // Test 3.5: Stage 0 (Non-Stop Debate: Objection & Verdict)
+  // -------------------------------------------------------------
+  process.stdout.write('🗣️ Step 3.5: Stage 0 Non-Stop Debate (Buzz, Shoot Bullet & Verdict)... ');
+  const stg0CourtWait = court.waitFor(m => m.type === 'set_stage' && m.stage === 'stage0');
+  await admin.send({ type: 'set_stage', stage: 'stage0', config: { topic: 'ช่วงเวลาเกิดเหตุ 21:00 น.' } });
+  const stg0Res = await stg0CourtWait;
+  latencies.push(stg0Res.latency);
+
+  // PC1 presses objection buzzer
+  const buzzWait = court.waitFor(m => m.type === 'stg0_buzz' && m.player === 'นาเอกิ');
+  await player1.send({ type: 'stg0_buzz', player: 'นาเอกิ', avatar: '👤', role: 'สุดยอดนักเรียนดวงดี', quote: '⚡ นั่นผิดแล้ว!' });
+  const buzzRes = await buzzWait;
+  latencies.push(buzzRes.latency);
+
+  // PC1 fires Truth Bullet EVD-05
+  const shootWait = court.waitFor(m => m.type === 'stg0_shoot' && m.clueId === 'EVD-05');
+  await player1.send({ type: 'stg0_shoot', player: 'นาเอกิ', clueId: 'EVD-05', clueName: 'เครื่องอบผ้า DRY-1' });
+  const shootRes = await shootWait;
+  latencies.push(shootRes.latency);
+
+  // Admin judges BREAK! verdict
+  const stg0VerdictWait = court.waitFor(m => m.type === 'stg0_verdict' && m.approved === true);
+  await admin.send({ type: 'stg0_verdict', approved: true, objector: 'นาเอกิ', clueId: 'EVD-05' });
+  const stg0VerdictRes = await stg0VerdictWait;
+  latencies.push(stg0VerdictRes.latency);
+  console.log(`PASS (Stage 0 Buzz, Shoot & BREAK! in ${Math.max(buzzRes.latency, shootRes.latency, stg0VerdictRes.latency)} ms)`);
+
+  // -------------------------------------------------------------
   // Test 4: Admin sets Stage 1 (Evidence Linker)
   // -------------------------------------------------------------
   process.stdout.write('🔍 Step 4: Admin triggers Stage 1 (Evidence Linker)... ');
