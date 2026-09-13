@@ -1983,6 +1983,13 @@ function switchPlayerTab(tab) {
     if (el) el.classList.add('hidden');
   });
 
+  const vPlayer = document.getElementById('viewPlayer');
+  if (vPlayer) {
+    const isWide = (tab === 'map' || tab === 'char' || tab === 'rules');
+    vPlayer.classList.toggle('tab-active-wide', isWide);
+    vPlayer.classList.toggle('tab-active-map', tab === 'map');
+  }
+
   if (tab === 'game') {
     const t = document.getElementById('pTabGame');
     const p = document.getElementById('playerSectionGame');

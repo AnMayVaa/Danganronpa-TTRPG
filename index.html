@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=3.7.0">
+  <link rel="stylesheet" href="/css/style.css?v=3.8.0">
   <!-- Early view detection script: immediately hides other page navigation buttons on Court and PC views -->
   <script>
     (function() {
@@ -960,15 +960,26 @@
 
       <!-- TAB: Standard Blueprint Only (No Spoilers, No Drawer) -->
       <div id="playerSectionMap" class="player-tab-pane hidden">
-        <div class="p-reference-content" style="padding: 6px;">
-          <div class="dr1-handbook-card" style="padding: 10px; background: #060913; border: 2px solid #38bdf8;">
-            <div class="slanted-banner cyan">CAMPUS SCHEMATIC // 1F STANDARD BLUEPRINT</div>
-            <div style="font-size:0.85rem; color:#94a3b8; margin: 4px 0 6px 0; font-weight:700;">
-              📐 ผังอาคารเรียนมาตรฐานชั้น 1
+        <div class="p-reference-content" style="padding: 0;">
+          <div class="dr1-handbook-card blueprint-card-pc">
+            <div class="blueprint-pc-header">
+              <div class="blueprint-header-title-wrap">
+                <div class="slanted-banner cyan">CAMPUS SCHEMATIC // 1F STANDARD BLUEPRINT</div>
+                <div class="blueprint-subtitle">
+                  📐 ผังอาคารเรียนมาตรฐานชั้น 1 (สถาปัตยกรรม & แผนผังตรวจสอบห้องทั่วไป)
+                </div>
+              </div>
+              <div class="blueprint-header-actions">
+                <a href="/map" target="_blank" class="blueprint-open-full-btn" title="เปิดหน้าผังอาคารเต็มจอในแท็บใหม่">
+                  🔍 เปิดเต็มจอ / โหมดจำลอง ↗
+                </a>
+              </div>
             </div>
-            <div style="font-size:0.82rem; color:#38bdf8; margin: 2px 0 6px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-              <span>🔍 <strong>คลิกห้องบนผัง</strong> หรือกดปุ่มด้านล่างเพื่อตรวจสอบภาพและข้อมูลสถานที่จริง (สภาพปกติ):</span>
+
+            <div class="blueprint-instruction-box">
+              💡 <strong>คำแนะนำ:</strong> สามารถ <strong>คลิกที่ห้องบนผังจำลอง</strong> หรือ <strong>กดปุ่มรายชื่อห้องด้านล่าง</strong> เพื่อเปิดดูภาพถ่ายและข้อมูลสภาพห้องปกติ (Normal Inspection) ได้ทันที
             </div>
+
             <div class="blueprint-room-nav">
               <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('laundry')">🧺 RM-101 ห้องซักรีด</button>
               <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('kitchen')">🍳 RM-102 ห้องครัว</button>
@@ -980,7 +991,8 @@
               <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('dormitory')">🛏️ ปีกหอพักนักเรียน</button>
               <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('blast_gate')">🚪 ประตูกลนิรภัย</button>
             </div>
-            <div class="player-blueprint-scroll" style="width: 100%; overflow-x: auto; border: 1px solid rgba(56,189,248,0.3); border-radius: 6px; background: #060913;">
+
+            <div class="player-blueprint-scroll">
               <svg class="blueprint-svg" viewBox="0 0 1000 680" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="archGrid" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -1578,6 +1590,18 @@
             <button type="button" class="blueprint-action-btn" onclick="printCleanBlueprint()" title="พิมพ์แปลนมาตรฐานลงบนกระดาษ A4 แนวนอน">
               🖨️ พิมพ์ A4 แนวนอน
             </button>
+          </div>
+
+          <div class="blueprint-room-nav" style="padding: 10px 14px 4px 14px;">
+            <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('laundry')">🧺 RM-101 ห้องซักรีด</button>
+            <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('kitchen')">🍳 RM-102 ห้องครัว</button>
+            <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('dining')">🍽️ RM-103 โรงอาหาร</button>
+            <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('courtyard')">🌿 EXT-101 ลานซักล้าง</button>
+            <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('gym')">🏀 RM-104 โรงยิม</button>
+            <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('corridor')">🏛️ CORR-100 โถงกลาง</button>
+            <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('glass_corridor')">🪟 CORR-101 ทางเดินกระจก</button>
+            <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('dormitory')">🛏️ ปีกหอพักนักเรียน</button>
+            <button type="button" class="blueprint-room-chip" onclick="openNormalRoomModal('blast_gate')">🚪 ประตูกลนิรภัย</button>
           </div>
 
           <svg class="blueprint-svg" viewBox="0 0 1000 680" xmlns="http://www.w3.org/2000/svg">
@@ -2720,7 +2744,7 @@
   </button>
 
   <script src="/js/jsQR.min.js"></script>
-  <script src="/js/client.js?v=3.7.0"></script>
+  <script src="/js/client.js?v=3.8.0"></script>
   <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>

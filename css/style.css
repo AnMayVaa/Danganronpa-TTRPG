@@ -6342,20 +6342,40 @@ body.view-simulation .execution-cutscene-overlay {
     display: none !important;
   }
 
-  /* Single column layout for Daily Life on desktop */
+  /* Single column wide layout for Map, Reference Tabs & Daily Life on desktop */
   #viewPlayer.phase-dailylife #mobileGameScreen,
-  body.phase-dailylife #viewPlayer #mobileGameScreen {
+  body.phase-dailylife #viewPlayer #mobileGameScreen,
+  #viewPlayer.tab-active-wide #mobileGameScreen,
+  #viewPlayer.tab-active-map #mobileGameScreen,
+  #viewPlayer:has(#playerSectionMap:not(.hidden)) #mobileGameScreen,
+  #viewPlayer:has(#playerSectionChar:not(.hidden)) #mobileGameScreen,
+  #viewPlayer:has(#playerSectionRules:not(.hidden)) #mobileGameScreen {
     grid-template-columns: 1fr !important;
   }
 
   #viewPlayer.phase-dailylife .player-nav-tabs,
-  body.phase-dailylife #viewPlayer .player-nav-tabs {
+  body.phase-dailylife #viewPlayer .player-nav-tabs,
+  #viewPlayer.tab-active-wide .player-nav-tabs,
+  #viewPlayer.tab-active-map .player-nav-tabs,
+  #viewPlayer:has(#playerSectionMap:not(.hidden)) .player-nav-tabs,
+  #viewPlayer:has(#playerSectionChar:not(.hidden)) .player-nav-tabs,
+  #viewPlayer:has(#playerSectionRules:not(.hidden)) .player-nav-tabs {
     grid-column: 1 / -1 !important;
   }
 
   #viewPlayer.phase-dailylife .player-tab-pane,
-  body.phase-dailylife #viewPlayer .player-tab-pane {
+  body.phase-dailylife #viewPlayer .player-tab-pane,
+  #viewPlayer.tab-active-wide .player-tab-pane:not(#playerSectionClues),
+  #viewPlayer.tab-active-map #playerSectionMap,
+  #viewPlayer:has(#playerSectionMap:not(.hidden)) #playerSectionMap {
     grid-column: 1 / -1 !important;
+    max-height: none !important;
+  }
+
+  #viewPlayer.tab-active-wide #playerSectionClues,
+  #viewPlayer.tab-active-map #playerSectionClues,
+  #viewPlayer:has(#playerSectionMap:not(.hidden)) #playerSectionClues {
+    display: none !important;
   }
 }
 
@@ -6410,32 +6430,169 @@ body.phase-investigation #playerSectionGuide,
 /* ============================================================ */
 /* NORMAL ROOM INSPECTION & BLUEPRINT INTERACTIVE CHIPS         */
 /* ============================================================ */
-.blueprint-room-nav {
+.blueprint-card-pc {
+  background: #060913 !important;
+  border: 2px solid #38bdf8 !important;
+  border-radius: 12px !important;
+  padding: 20px 24px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 0 24px rgba(56, 189, 248, 0.05);
+  box-sizing: border-box;
+}
+
+.blueprint-pc-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.blueprint-header-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.blueprint-subtitle {
+  font-size: 0.92rem;
+  color: #94a3b8;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
+}
+
+.blueprint-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blueprint-open-full-btn {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1.5px solid #38bdf8;
+  color: #38bdf8;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.blueprint-open-full-btn:hover {
+  background: #38bdf8;
+  color: #000;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
+  transform: translateY(-1px);
+}
+
+.blueprint-instruction-box {
+  background: rgba(56, 189, 248, 0.07);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-left: 4px solid #38bdf8;
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  color: #bae6fd;
+  line-height: 1.5;
+}
+
+.blueprint-room-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 10px;
+  margin: 10px 0 18px 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .blueprint-room-chip {
-  background: #0f172a;
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  color: #e2e8f0;
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 4px;
+  background: linear-gradient(135deg, #0b1528 0%, #112240 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  color: #f1f5f9;
+  font-size: 0.88rem;
+  font-weight: 800;
+  padding: 10px 14px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.01em;
 }
 
 .blueprint-room-chip:hover {
-  background: #0284c7;
-  color: #fff;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
   border-color: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6), 0 4px 12px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.blueprint-room-chip:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.player-blueprint-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  border-radius: 10px;
+  background: #060913;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.player-blueprint-scroll .blueprint-svg {
+  width: 100%;
+  height: auto;
+  min-width: 680px;
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .player-blueprint-scroll .blueprint-svg {
+    min-width: 860px;
+    max-height: 75vh;
+  }
+}
+
+@media (max-width: 640px) {
+  .blueprint-card-pc {
+    padding: 12px !important;
+  }
+  .blueprint-room-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    margin: 8px 0 12px 0;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .blueprint-room-chip {
+    flex-shrink: 0;
+    font-size: 0.82rem;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
 }
 
 .svg-room-clickable {
