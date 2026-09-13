@@ -3148,13 +3148,6 @@ function evaluateStg1Batch() {
       `หักล้างข้ออ้างของคนร้ายสำเร็จ! หลักฐานที่ถูกต้องคือ [${target}: ${targetName}]`,
       `มีนักเรียน ${correctCount} คนส่งหลักฐานถูกต้องตรงเป้าหมาย!`
     );
-    unlockClueDirect(target);
-    broadcast({
-      type: 'court_clue_revealed',
-      clueId: target,
-      clueName: targetName,
-      playerName: 'ศาลชั้นเรียน'
-    });
   } else {
     gameState.influence = Math.max(0, gameState.influence - 15);
     showMinigameResult(
@@ -3325,15 +3318,8 @@ function triggerRebuttalVerdict(isWin, skipBroadcast = false) {
         true,
         "BLADE OF TRUTH!",
         "คุณได้ฟันทำลายดาบปฏิเสธของคนร้ายสำเร็จ! 'Sore wa Chigau yo!'",
-        "ข้ออ้างของคนร้ายถูกหักล้างอย่างสิ้นเชิง! ค้นพบพยานหลักฐานใหม่เข้าสู่ Monopad"
+        "ข้ออ้างของคนร้ายถูกหักล้างอย่างสิ้นเชิง! ความจริงเริ่มกระจ่างชัดขึ้นแล้ว"
       );
-      unlockClueDirect('EVD-12');
-      broadcast({
-        type: 'court_clue_revealed',
-        clueId: 'EVD-12',
-        clueName: 'มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ (B)',
-        playerName: 'Rebuttal Showdown'
-      });
     }, 400);
     if (!skipBroadcast && isHost) broadcast({ type: 'rebuttal_verdict', isWin: true });
   } else {
@@ -4759,11 +4745,11 @@ function renderMobileTask(stage) {
       const isSelected = selectedClosingCardId === c.id;
       if (c.locked) {
         return `
-          <div class="p-closing-card locked" style="background:#12121c; border:2px solid #2e2e42; border-radius:8px; padding:10px; margin-bottom:8px; opacity:0.55; cursor:not-allowed; display:flex; align-items:center; gap:10px;">
+          <div class="p-closing-card locked" style="background:#0f111a; border:2px dashed #2e2e42; border-radius:8px; padding:10px; margin-bottom:8px; opacity:0.6; cursor:not-allowed; display:flex; align-items:center; gap:10px;">
             <span style="font-size:1.5rem; filter:grayscale(1);">🔒</span>
             <div style="flex:1;">
-              <span style="font-size:0.85rem; color:#888;">${c.title}</span>
-              <div style="font-size:0.75rem; color:var(--mono-pink); font-weight:700; margin-top:2px;">🔒 ล็อกอยู่ (รอปลดล็อกเมื่อวางการ์ดถูก)</div>
+              <span style="font-size:0.85rem; color:#94a3b8; font-weight:700;">🔒 การ์ดปริศนา [ยังไม่ถูกปลดล็อก]</span>
+              <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">(แลกเปลี่ยนและปรึกษากับเพื่อนในศาลที่มีการ์ดใบที่ปลดล็อก)</div>
             </div>
           </div>
         `;
@@ -7003,15 +6989,15 @@ const NORMAL_ROOMS_DATA = {
     name: "RM-101: ห้องซักรีด (Service Laundry Room)",
     tag: "🧺 ปีกบริการและซักล้างประจำอาคาร",
     image: "assets/room_laundry.jpg",
-    spec: "ขนาด: 8.0m x 6.5m // เพดานสูง 4.0m // หน้าต่าง W-101 (สูง 3.5m จากพื้นลานปูน) // ประตู D-101",
-    desc: "ห้องซักรีดมาตรฐานประจำปีกบริการชั้น 1 เรียงรายด้วยเครื่องซักผ้าอัตโนมัติ เครื่องอบผ้าอุตสาหกรรม DRY-1 และอ่างก๊อกน้ำซักล้าง ด้านบนมีราวท่อส่งสแตนเลสพาดผ่านเพดานสูง 4 เมตร และมีหน้าต่างระบายอากาศบานเลื่อนสู่ลานหลัง"
+    spec: "ขนาด: 8.0m x 6.5m // ปีกบริการชั้น 1 // ประตู D-101",
+    desc: "ห้องซักรีดมาตรฐานประจำปีกบริการชั้น 1 เรียงรายด้วยเครื่องซักผ้าอัตโนมัติ เครื่องอบผ้า และอ่างก๊อกน้ำซักล้างสำหรับทำความสะอาดชุดนักเรียน เป็นพื้นที่อำนวยความสะดวกทั่วไปของทุกคน"
   },
   courtyard: {
     name: "EXT-101: ลานปูนซักล้างปิดตายด้านหลัง (Rear Service Courtyard)",
     tag: "🌿 พื้นที่บริการกลางแจ้งปิดตาย",
     image: "assets/room_courtyard.jpg",
     spec: "ขนาด: 18.0m x 6.5m // กำแพง ค.ส.ล. สูง 5.0m รอบด้าน // ปิดตายไร้ทางออก",
-    desc: "ลานคอนกรีตกลางแจ้งสำหรับงานบริการ ตากล้าง และระบายน้ำ โอบล้อมด้วยกำแพงคอนกรีตเสริมเหล็กสูง 5 เมตรที่ปิดตาย ไร้บันไดหนีไฟหรือประตูทะลุออกไปนอกโรงเรียน เหนือศีรษะที่ระดับ 3.5 เมตรตรงแนวห้องซักรีดมีหน้าต่างระบายอากาศเปิดอยู่"
+    desc: "ลานคอนกรีตกลางแจ้งสำหรับงานบริการ ตากล้าง และระบายน้ำ โอบล้อมด้วยกำแพงคอนกรีตเสริมเหล็กสูง 5 เมตรที่ปิดตาย ไร้บันไดหนีไฟหรือประตูทะลุออกไปนอกโรงเรียน"
   },
   gym: {
     name: "RM-104: โรงยิมเนเซียม (Gymnasium)",
