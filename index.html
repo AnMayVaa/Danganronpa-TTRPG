@@ -420,14 +420,14 @@
         <div class="rebuttal-arena">
           <div class="fighter-card left">
             <div class="fighter-tag">BLADE OF TRUTH</div>
-            <h3 id="rebuttalAccuser">ฝ่ายกล่าวหา</h3>
+            <h3 id="rebuttalAccuser">ฝ่ายโจมตี</h3>
             <div class="rebuttal-clue-badge left" id="rebuttalLeftClue" style="font-size:0.82rem; color:#00ff88; margin-top:4px; font-weight:700;">🗡️ หลักฐาน: (รอเลือก...)</div>
             <div class="score-pips" id="accuserPips">● ● ○</div>
           </div>
           <div class="vs-emblem">VS</div>
           <div class="fighter-card right">
             <div class="fighter-tag">BLADE OF DENIAL</div>
-            <h3 id="rebuttalSuspect">ฝ่ายโต้แย้ง</h3>
+            <h3 id="rebuttalSuspect">ฝ่ายรับมือ</h3>
             <div class="rebuttal-clue-badge right" id="rebuttalRightClue" style="font-size:0.82rem; color:#ffe600; margin-top:4px; font-weight:700;">🛡️ หลักฐาน: (รอเลือก...)</div>
             <div class="score-pips" id="suspectPips">● ○ ○</div>
           </div>
@@ -469,7 +469,7 @@
         <h2 class="riddle-title" id="scrumTopicTitle">"ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?"</h2>
         <div class="scrum-container">
           <div class="scrum-side left">
-            <h3 id="scrumLeftTitle">🔴 ฝั่ง A (นักมายากล)</h3>
+            <h3 id="scrumLeftTitle">🔵 ฝั่งน้ำเงิน (คนร้ายวางกับดัก)</h3>
             <p id="scrumLeftDesc">คนวางกับดักต้องรับผิดชอบ!</p>
           </div>
           <div class="scrum-gauge-box">
@@ -477,7 +477,7 @@
             <div id="courtScrumFill" class="scrum-fill-bar" style="width: 50%;"></div>
           </div>
           <div class="scrum-side right">
-            <h3 id="scrumRightTitle">🟢 ฝั่ง B (ตัวเหยื่อเอง)</h3>
+            <h3 id="scrumRightTitle">🟣 ฝั่งชมพูม่วง (อุบัติเหตุ/เหยื่อทำตัวเอง)</h3>
             <p id="scrumRightDesc">B ตัดเชือกแล้วผูกคอตายเอง!</p>
           </div>
         </div>
@@ -657,13 +657,13 @@
               </button>
               <div class="dm-select-group">
                 <div class="dm-select-row">
-                  <span class="dm-select-label">ฝ่ายกล่าวหา (PC 1):</span>
+                  <span class="dm-select-label">ฝ่ายโจมตี:</span>
                   <select id="adminRebuttalChallengerSelect" onchange="adminSelectRebuttalChallengers()" class="dm-styled-select">
                     <option value="">(ทุกคนในห้อง / อิสระ)</option>
                   </select>
                 </div>
                 <div class="dm-select-row">
-                  <span class="dm-select-label">ฝ่ายโต้แย้ง (PC 2):</span>
+                  <span class="dm-select-label">ฝ่ายรับมือ:</span>
                   <select id="adminRebuttalOpponentSelect" onchange="adminSelectRebuttalChallengers()" class="dm-styled-select">
                     <option value="">-- เลือกฝ่ายตรงข้าม --</option>
                   </select>
@@ -671,10 +671,10 @@
               </div>
               <div class="dm-dual-btn-row">
                 <button class="small-btn green" id="btnRebuttalWinChal" onclick="adminRebuttalVerdict(true)">
-                  🏆 ผู้ท้าชิง (PC1) ชนะ
+                  🗡️ ฝ่ายโจมตีชนะ
                 </button>
                 <button class="small-btn red" id="btnRebuttalWinOpp" onclick="adminRebuttalVerdict(false)">
-                  ⚔️ ฝ่ายตรงข้าม (PC2) ชนะ
+                  🛡️ ฝ่ายรับมือชนะ
                 </button>
               </div>
             </div>
@@ -872,8 +872,16 @@
         <label>ชื่อตัวละคร / ชื่อของคุณ:</label>
         <input type="text" id="mobileNameInput" placeholder="กรอกชื่อของคุณ..." maxlength="12">
       </div>
-      
-      
+      <div class="mobile-input-group">
+        <label>สล็อตตัวละครของคุณ (PC 1 - PC 5):</label>
+        <select id="mobilePcSlotSelect" class="dm-styled-select" style="width:100%; padding:10px; font-size:0.95rem; background:#1e1e38; color:#fff; border:1px solid #444; border-radius:6px;">
+          <option value="1">PC 1</option>
+          <option value="2">PC 2</option>
+          <option value="3">PC 3</option>
+          <option value="4">PC 4</option>
+          <option value="5">PC 5</option>
+        </select>
+      </div>
       <button class="dangan-action-btn pink" onclick="playerJoin()">เข้าสู่ศาลชั้นเรียน</button>
     </div>
 
@@ -1361,7 +1369,7 @@
               ⏱️ แอบลดเวลา (-10 วินาที)
             </button>
             <button id="sabBtnCorrupt" class="sab-trigger-btn" onclick="sendSabotage('corrupt_data')">
-              ⚠️ แทรกแซงข้อมูล (-10% เลือดศาล)
+              ⚠️ แทรกแซงข้อมูล (ปั่นป่วนข้อความในศาล)
             </button>
           </div>
         </div>
@@ -1398,12 +1406,21 @@
       <!-- Quick Control Action Ribbon -->
       <div class="sim-controls-card">
         <div class="sim-controls-title">⚡ แผงจำลองการกระทำด่วน (1-Click Test Actions):</div>
+        <div class="sim-phase-btn-row" style="display:flex; flex-wrap:wrap; gap:6px; margin: 8px 0 12px 0; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <span style="font-size:0.82rem; color:#aaa; align-self:center; font-weight:bold; margin-right:4px;">สลับ Phase คดี:</span>
+          <button class="small-btn cyan" onclick="simSetPhase('dailylife')" style="padding:5px 10px;">☕ Daily Life</button>
+          <button class="small-btn yellow" onclick="simSetPhase('investigation')" style="padding:5px 10px;">🔍 Investigation</button>
+          <button class="small-btn pink" onclick="simSetPhase('lobby')" style="padding:5px 10px;">🚪 Lobby</button>
+          <button class="small-btn green" onclick="simSetPhase('trial')" style="padding:5px 10px;">⚖️ Class Trial</button>
+          <button class="small-btn red" onclick="simSetPhase('idle')" style="padding:5px 10px;">🎬 Recess (พักศาล)</button>
+          <button class="small-btn yellow" onclick="simCollectClues()" style="padding:5px 12px; margin-left:auto; background:rgba(255,230,0,0.2); border:1px solid #ffe600; color:#fff; font-weight:900;">📷 จำลองเก็บหลักฐานเข้า Monopad</button>
+        </div>
         <div class="sim-btn-ribbon">
           <button class="sim-btn auto-sim" onclick="runSimFullSequence()">
             ▶️ รันการจำลองอัตโนมัติครบ 8 สเตจ (Full Auto Test)
           </button>
           <button class="sim-btn" onclick="simJoinPlayers()">
-            👤 1. จำลองผู้เล่น 4 คนเข้าสู่ศาล
+            👤 1. จำลองผู้เล่น 5 คนเข้าสู่ศาล (PC 1-5 รวม Blackened)
           </button>
           <button class="sim-btn" onclick="simStage1Evidence()">
             🔍 2. สเตจ 1: ส่งหลักฐาน (Evidence Linker)
@@ -1519,6 +1536,18 @@
             </div>
             <div class="sim-iframe-wrap mobile-wrap">
               <iframe id="simFramePlayer4" class="sim-iframe" src="about:blank" title="Player 4 - Aoi"></iframe>
+            </div>
+          </div>
+
+          <!-- Panel 7: Mobile Player 5 (ฮิฟุมิ / PC 5 Blackened - 9:16) -->
+          <div class="sim-device-panel mobile-panel">
+            <div class="sim-panel-header">
+              <span class="sim-icon">📱</span>
+              <span class="sim-panel-title">7. ผู้เล่น 5 (ฮิฟุมิ / PC 5 Blackened - 9:16)</span>
+              <span class="sim-panel-status live">LIVE</span>
+            </div>
+            <div class="sim-iframe-wrap mobile-wrap">
+              <iframe id="simFramePlayer5" class="sim-iframe" src="about:blank" title="Player 5 - Hifumi"></iframe>
             </div>
           </div>
         </div>
@@ -2556,10 +2585,10 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets:</span>
             <div class="preset-btn-row">
-              <button class="preset-chip" onclick="applyPresetStage5('คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?', '🔴 ฆาตกรรมจัดฉากโดย A', '🟢 ฆ่าตัวตายโดย B')">ฆาตกรรม vs ฆ่าตัวตาย</button>
-              <button class="preset-chip" onclick="applyPresetStage5('การยกร่างเหยื่อขึ้นเพดาน เกิดจากแรงคนดึงสดๆ หรือกลไกถ่วงน้ำหนัก!?', '🔴 คนร้ายดึงเชือกด้วยตนเอง', '🟢 ถังน้ำหนักดึงอัตโนมัติ')">แรงคน vs ถังน้ำหนักอัตโนมัติ</button>
-              <button class="preset-chip" onclick="applyPresetStage5('เวลาที่เรียวตะ (B) ถูกแขวนคอเสียชีวิต เกิดขึ้นก่อนหรือตอนที่ไฟดับ!?', '🔴 ตายก่อนไฟดับ (20:15)', '🟢 ตายตอนไฟดับ (20:30)')">ตายก่อน vs หลังไฟดับ</button>
-              <button class="preset-chip" onclick="applyPresetStage5('ใครคือ Blackened ผู้บงการกลไกมรณะในครั้งนี้!?', '🔴 โหวต A (นักมายากล)', '🟢 โหวตบุคคลอื่นในคดี')">ตัดสิน Blackened</button>
+              <button class="preset-chip" onclick="applyPresetStage5('คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?', '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก', '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง')">ฆาตกรรม vs ฆ่าตัวตาย</button>
+              <button class="preset-chip" onclick="applyPresetStage5('การยกร่างเหยื่อขึ้นเพดาน เกิดจากแรงคนดึงสดๆ หรือกลไกถ่วงน้ำหนัก!?', '🔵 ข้อสันนิษฐานคนร้ายดึงเชือก', '🟣 ข้อสันนิษฐานถังน้ำหนักกลไกอัตโนมัติ')">แรงคน vs ถังน้ำหนักอัตโนมัติ</button>
+              <button class="preset-chip" onclick="applyPresetStage5('เวลาที่เรียวตะ (B) ถูกแขวนคอเสียชีวิต เกิดขึ้นก่อนหรือตอนที่ไฟดับ!?', '🔵 ข้อสันนิษฐานตายก่อนไฟดับ (20:15)', '🟣 ข้อสันนิษฐานตายตอนไฟดับ (20:30)')">ตายก่อน vs หลังไฟดับ</button>
+              <button class="preset-chip" onclick="applyPresetStage5('ใครคือ Blackened ผู้บงการกลไกมรณะในครั้งนี้!?', '🔵 ฝั่งน้ำเงิน: มีผู้วางแผนจัดฉาก', '🟣 ฝั่งชมพูม่วง: เหตุการณ์พลิกผันเกินควบคุม')">ตัดสิน Blackened</button>
             </div>
           </div>
           <div style="margin-top:10px;">
@@ -2568,12 +2597,12 @@
           </div>
           <div style="display:flex; gap:8px; margin-top:8px;">
             <div style="flex:1;">
-              <label style="font-size:0.85rem; color:#ccc;">ฝ่ายซ้าย:</label>
-              <input type="text" id="cfgStg5Left" class="manual-code-input" style="width:100%; margin-top:4px;" value="🔴 ฆาตกรรมจัดฉากโดย A">
+              <label style="font-size:0.85rem; color:#ccc;">ฝั่งน้ำเงิน (ซ้าย):</label>
+              <input type="text" id="cfgStg5Left" class="manual-code-input" style="width:100%; margin-top:4px;" value="🔵 ข้อสันนิษฐานคนร้ายวางกับดัก">
             </div>
             <div style="flex:1;">
-              <label style="font-size:0.85rem; color:#ccc;">ฝ่ายขวา:</label>
-              <input type="text" id="cfgStg5Right" class="manual-code-input" style="width:100%; margin-top:4px;" value="🟢 ฆ่าตัวตายโดย B">
+              <label style="font-size:0.85rem; color:#ccc;">ฝั่งชมพูม่วง (ขวา):</label>
+              <input type="text" id="cfgStg5Right" class="manual-code-input" style="width:100%; margin-top:4px;" value="🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง">
             </div>
           </div>
         </div>
@@ -2752,7 +2781,7 @@
   </button>
 
   <script src="/js/jsQR.min.js"></script>
-  <script src="/js/client.js?v=3.8.2"></script>
+  <script src="/js/client.js?v=3.8.3"></script>
   <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>

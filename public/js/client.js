@@ -418,8 +418,8 @@ let gameState = {
 
   // Stage 5: Debate Scrum
   stg5Topic: "ใครคือ Blackened ผู้ทำให้เกิดความตายที่แท้จริง!?",
-  stg5LeftTeam: "🔴 ฝั่ง A (นักมายากล)",
-  stg5RightTeam: "🟢 ฝั่ง B (ตัวเหยื่อเอง)",
+  stg5LeftTeam: "🔵 ข้อสันนิษฐานคนร้ายวางกับดัก",
+  stg5RightTeam: "🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง",
   stg5Meter: 50, // 0 to 100
 
   // Stage 6: Argument Armament (4 Waves)
@@ -1148,11 +1148,13 @@ function handleIncomingMessage(msg, senderConn) {
       }
     });
 
-    const isKiller = (reqRole === 'นักมายากล');
+    const pcSlot = msg.pcSlot ? parseInt(msg.pcSlot, 10) : ((Object.keys(gameState.players).length % 5) + 1);
+    const isKiller = (pcSlot === 5 || reqRole === 'นักมายากล');
     const playerObj = {
       id: senderId,
       name: reqName,
       role: reqRole,
+      pcSlot: pcSlot,
       isKiller: isKiller,
       roomCode: roomCode,
       userHash: msg.userHash || senderId,
@@ -1216,13 +1218,12 @@ function handleIncomingMessage(msg, senderConn) {
     const pHash = document.getElementById('pMyHash');
     if (pHash) pHash.innerText = '#' + (currentUserHash || 'USER');
 
-    if (myPlayer.isKiller) {
-      document.getElementById('pMyStatus').innerText = '☠️ ผู้วางแผน (Blackened)';
-      document.getElementById('pMyStatus').className = 'p-status killer';
+    document.getElementById('pMyStatus').innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
+    document.getElementById('pMyStatus').className = 'p-status normal';
+
+    if (myPlayer.isKiller || myPlayer.pcSlot === 5) {
       document.getElementById('mobileSaboteurPanel').classList.remove('hidden');
     } else {
-      document.getElementById('pMyStatus').innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
-      document.getElementById('pMyStatus').className = 'p-status normal';
       document.getElementById('mobileSaboteurPanel').classList.add('hidden');
     }
 
@@ -1384,7 +1385,7 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'rebuttal_slash') {
     handleRebuttalSlash(msg.bullet, msg.playerName);
   } else if (msg.type === 'rebuttal_verdict') {
-    triggerRebuttalVerdict(msg.isWin, true);
+    triggerRebuttalVerdict(msg.isWin, true, msg);
   } else if (msg.type === 'logic_dive_vote') {
     handleLogicDiveVote(msg.question, msg.choice, msg.voterId, msg.playerName);
   } else if (msg.type === 'logic_dive_crash') {
@@ -1392,7 +1393,7 @@ function handleIncomingMessage(msg, senderConn) {
     if (crashNotice) {
       crashNotice.classList.remove('hidden');
       crashNotice.style.display = 'block';
-      crashNotice.innerText = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${msg.winningChoice}] ซึ่งเป็นทางตัน (-15% Influence)`;
+      crashNotice.innerText = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${msg.winningChoice}] ซึ่งเป็นทางตัน`;
     }
     const mobileFb = document.getElementById('diveChoiceFeedback');
     if (mobileFb) {
@@ -1922,18 +1923,16 @@ function initPlayerSession(hash) {
 
       const statusEl = document.getElementById('pMyStatus');
       const sabPanel = document.getElementById('mobileSaboteurPanel');
-      if (p.isKiller) {
-        if (statusEl) {
-          statusEl.innerText = '☠️ ผู้วางแผน (Blackened)';
-          statusEl.className = 'p-status killer';
+      if (statusEl) {
+        statusEl.innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
+        statusEl.className = 'p-status normal';
+      }
+      if (sabPanel) {
+        if (p.isKiller || p.pcSlot === 5) {
+          sabPanel.classList.remove('hidden');
+        } else {
+          sabPanel.classList.add('hidden');
         }
-        if (sabPanel) sabPanel.classList.remove('hidden');
-      } else {
-        if (statusEl) {
-          statusEl.innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
-          statusEl.className = 'p-status normal';
-        }
-        if (sabPanel) sabPanel.classList.add('hidden');
       }
       return;
     } catch(e) {
@@ -2224,6 +2223,102 @@ const ALL_CLUES_DATA = [
   { id: "EVD-30", pin: "527391", aliases: ["PC4-30", "30", "E30"], name: "คำให้การของ PC 4", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 4 (1 AP)", desc: "คำให้การ: \"ช่วง 17:30 ถึง 18:15 น. ฉันเดินอยู่ที่ทางเดินกระจก มองเห็นเงาวัตถุทรงกระบอกห้อยอยู่นอกหน้าต่างห้องซักรีด\"" },
   { id: "EVD-31", pin: "439268", aliases: ["DINNER-31", "31", "E31"], name: "การรวมตัวมื้อค่ำเวลา 19:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องอาหาร (โต๊ะมื้อค่ำ)", desc: "การรวมตัวรับประทานอาหารมื้อค่ำเวลา 19:00 น. มีสตูว์เนื้อปรุงเสร็จโดย PC 5 ตามตารางเวรบน Monopad โดยเหยื่อเรียวตะ (B) ไม่ได้มาร่วมโต๊ะอาหาร" },
 ];
+
+const PC_INVESTIGATION_CLUES = {
+  1: ['EVD-07', 'EVD-20', 'EVD-06', 'EVD-24'],
+  2: ['EVD-07', 'EVD-03', 'EVD-15', 'EVD-31'],
+  3: ['EVD-07', 'EVD-27', 'EVD-10', 'EVD-24'],
+  4: ['EVD-07', 'EVD-30', 'EVD-19', 'EVD-29'],
+  5: ['EVD-07', 'EVD-16', 'EVD-02', 'EVD-21', 'EVD-05']
+};
+
+function grantInvestigationClues(silent = false) {
+  let slot = 0;
+  if (myPlayer && myPlayer.pcSlot) {
+    slot = parseInt(myPlayer.pcSlot, 10);
+  } else {
+    const qSlot = new URLSearchParams(window.location.search).get('pc');
+    if (qSlot) slot = parseInt(qSlot, 10);
+  }
+  if (!slot || slot < 1 || slot > 5) return;
+
+  const assigned = PC_INVESTIGATION_CLUES[slot] || [];
+  if (!assigned.length) return;
+
+  let currentUnlocked = getUnlockedClues();
+  let newlyUnlocked = [];
+  assigned.forEach(cid => {
+    if (!currentUnlocked.includes(cid)) {
+      currentUnlocked.push(cid);
+      newlyUnlocked.push(cid);
+    }
+  });
+
+  if (newlyUnlocked.length > 0) {
+    saveUnlockedClues(currentUnlocked);
+    // Broadcast newly discovered clues to host
+    newlyUnlocked.forEach(cid => {
+      broadcast({
+        type: 'clue_discovered',
+        clueId: cid,
+        playerName: (myPlayer && myPlayer.name) ? myPlayer.name : `PC ${slot}`,
+        userHash: currentUserHash
+      });
+    });
+  }
+
+  if (typeof renderCluesList === 'function') {
+    renderCluesList();
+  }
+
+  if (!silent) {
+    const clueLines = assigned.map(cid => {
+      const c = ALL_CLUES_DATA.find(x => x.id === cid);
+      return `• [${cid}] ${c ? c.name : cid}`;
+    }).join('\n');
+    showInvestigationClueModal(clueLines, slot);
+  }
+}
+
+function showInvestigationClueModal(clueLines, slot) {
+  let modal = document.getElementById('pcInvestigationModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'pcInvestigationModal';
+    modal.style.position = 'fixed';
+    modal.style.inset = '0';
+    modal.style.zIndex = '999999';
+    modal.style.background = 'rgba(0,0,0,0.85)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.padding = '20px';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div style="background:#151528; border:3px solid var(--mono-cyan); border-radius:12px; max-width:440px; width:100%; padding:22px; text-align:center; box-shadow:0 0 30px rgba(0,240,255,0.35); color:#fff;">
+      <div style="font-size:2.4rem; margin-bottom:8px;">🔍</div>
+      <h3 style="color:var(--mono-cyan); font-weight:900; margin-bottom:8px; font-size:1.2rem;">ช่วงเวลาการสืบสวนเริ่มต้นขึ้นแล้ว!</h3>
+      <p style="color:#cbd5e1; font-size:0.88rem; margin-bottom:12px; line-height:1.5;">
+        คุณได้รับบันทึกและเบาะแสส่วนตัวประจำตัวละครของคุณเรียบร้อยแล้ว:
+      </p>
+      <div style="background:rgba(0,240,255,0.08); border:1px solid rgba(0,240,255,0.3); border-radius:8px; padding:12px; text-align:left; font-size:0.84rem; color:#e2e8f0; line-height:1.6; margin-bottom:16px; white-space:pre-line;">
+${escapeHtml(clueLines)}
+      </div>
+      <button class="dangan-action-btn cyan" style="width:100%; padding:10px; font-weight:900;" onclick="closeInvestigationClueModal()">
+        🔍 รับทราบ / ตรวจสอบใน Monopad
+      </button>
+    </div>
+  `;
+  modal.style.display = 'flex';
+  playSfx('correct');
+}
+
+function closeInvestigationClueModal() {
+  const modal = document.getElementById('pcInvestigationModal');
+  if (modal) modal.style.display = 'none';
+  if (typeof switchPlayerTab === 'function') switchPlayerTab('clues');
+}
 
 let currentUserClueTagFilter = 'ALL';
 
@@ -2528,6 +2623,7 @@ function setStage(stage, config) {
     stopTimer();
     playSfx('gavel');
     logCourt(`🔍 [INVESTIGATION]: เริ่มต้นช่วงเวลาสืบสวนหาหลักฐาน (Turn-Based)! ออกค้นหาและสแกน QR Code`);
+    grantInvestigationClues();
   } else if (stage === 'trial') {
     autoUnlockTrialClues();
     playSfx('gavel');
@@ -2705,9 +2801,9 @@ function startTimer(duration) {
       if (gameState.stage === 'stage1') {
         evaluateStg1Batch();
       } else if (gameState.stage === 'stage2') {
-        showMinigameResult(false, "TIME EXHAUSTED!", "หมดเวลาการถอดรหัสคำศัพท์!", "ศาลไม่สามารถถอดรหัสกลไกได้ทันเวลา (-10% Influence)");
+        showMinigameResult(false, "TIME EXHAUSTED!", "หมดเวลาการถอดรหัสคำศัพท์!", "ไม่สามารถถอดรหัสกลไกได้ทันเวลา");
       } else if (gameState.stage === 'stage3') {
-        showMinigameResult(false, "TIME EXHAUSTED!", "หมดเวลาการดวลดาบคำพูด!", "ผู้เล่นไม่สามารถหักล้างข้อโต้แย้งได้ทันเวลา (-15% Influence)");
+        showMinigameResult(false, "TIME EXHAUSTED!", "หมดเวลาการดวลดาบคำพูด!", "ผู้เล่นไม่สามารถหักล้างข้อโต้แย้งได้ทันเวลา");
       } else if (gameState.stage === 'stage4') {
         evaluateLogicDiveMajority();
       } else if (gameState.stage === 'stage5') {
@@ -2924,7 +3020,7 @@ function renderStage(stage) {
 // AUTO CLUE DISCOVERY HELPER
 // ==========================================================
 function autoUnlockTrialClues() {
-  const trialClueIds = ['CORE-01', 'EVD-01', 'EVD-02', 'EVD-04', 'EVD-05', 'EVD-06', 'EVD-07', 'EVD-08', 'EVD-09', 'EVD-10', 'EVD-11', 'EVD-12', 'EVD-14'];
+  const trialClueIds = ['EVD-01', 'EVD-02', 'EVD-04', 'EVD-05', 'EVD-06', 'EVD-07', 'EVD-08', 'EVD-09', 'EVD-10', 'EVD-11', 'EVD-12', 'EVD-14'];
   if (!gameState.discoveredClues) gameState.discoveredClues = [];
   trialClueIds.forEach(cid => {
     if (!gameState.discoveredClues.includes(cid)) {
@@ -3106,7 +3202,7 @@ function updateStg1Display() {
     }
   } else {
     subs.forEach((s) => {
-      const isCorrect = (s.clueId === target || s.clueId === 'CORE-01');
+      const isCorrect = (s.clueId === target);
       const cObj = ALL_CLUES_DATA.find(c => c.id === s.clueId);
       const cName = cObj ? cObj.name : s.clueId;
       const el = document.createElement('div');
@@ -3127,7 +3223,7 @@ function evaluateStg1Batch() {
   let correctCount = 0;
 
   subs.forEach(s => {
-    if (s.clueId === target || s.clueId === 'CORE-01') {
+    if (s.clueId === target) {
       correctCount++;
     }
   });
@@ -3145,12 +3241,11 @@ function evaluateStg1Batch() {
       `มีนักเรียน ${correctCount} คนส่งหลักฐานถูกต้องตรงเป้าหมาย!`
     );
   } else {
-    gameState.influence = Math.max(0, gameState.influence - 15);
     showMinigameResult(
       false,
       "OBJECTION FAILED!",
-      `หลักฐานที่ส่งเข้ามาไม่ตรงกับจุดพิรุธ (-15% Influence)`,
-      `ไม่มีใครส่งหลักฐาน [${target}] เลย ศาลสูญเสียความน่าเชื่อถือ`
+      `หลักฐานที่ส่งเข้ามาไม่ตรงกับจุดพิรุธ`,
+      `ไม่มีใครส่งหลักฐาน [${target}] เลย`
     );
   }
 
@@ -3217,7 +3312,6 @@ function handleStg2Char(char) {
     }
   } else {
     gameState.stg2Mistakes = (gameState.stg2Mistakes || 0) + 1;
-    gameState.influence = Math.max(0, gameState.influence - 5);
     updateHangmanHealthDisplay();
     playSfx('wrong');
 
@@ -3226,8 +3320,8 @@ function handleStg2Char(char) {
       showMinigameResult(
         false,
         "INTEGRITY EXHAUSTED!",
-        "ศาลหมดความอดทนจากการเดาผิดพลาดหลายครั้ง!",
-        "ศาลสูญเสียความน่าเชื่อถือ ไม่สามารถถอดรหัสคำศัพท์ได้"
+        "เดาตัวอักษรผิดพลาดจนหมดโควตา!",
+        "ไม่สามารถถอดรหัสคำศัพท์เพื่อเปิดโปงกลไกได้"
       );
     }
   }
@@ -3305,34 +3399,64 @@ function handleRebuttalSlash(bulletId, pName) {
   if (isHost) broadcast({ type: 'sync_state', state: gameState });
 }
 
-function triggerRebuttalVerdict(isWin, skipBroadcast = false) {
+function triggerRebuttalVerdict(isWin, skipBroadcast = false, meta = null) {
   stopTimer();
+  const challenger = (meta && meta.challenger) || gameState.stg3Challenger || 'ฝ่ายโจมตี';
+  const opponent = (meta && meta.opponent) || gameState.stg3Opponent || 'ฝ่ายรับมือ';
+  const stmtEl = document.getElementById('rebuttalStatement');
+  const topic = (meta && meta.topic) || gameState.stg3Topic || (stmtEl ? stmtEl.innerText.replace(/^"|"$/g, '').trim() : 'ข้ออ้างที่อยู่เวลาเกิดเหตุ');
+
   if (isWin) {
+    const winnerName = (meta && meta.winner) || challenger;
+    const clueText = (meta && meta.clue) || gameState.stg3LeftClue || 'หลักฐานหักล้างข้ออ้าง';
     playSfx('counter');
     setTimeout(() => {
       showMinigameResult(
         true,
         "BLADE OF TRUTH!",
-        "คุณได้ฟันทำลายดาบปฏิเสธของคนร้ายสำเร็จ! 'Sore wa Chigau yo!'",
-        "ข้ออ้างของคนร้ายถูกหักล้างอย่างสิ้นเชิง! ความจริงเริ่มกระจ่างชัดขึ้นแล้ว"
+        `[${winnerName}] ชนะเรื่อง: "${topic}" ด้วยหลักฐาน: ${clueText}!`,
+        "ข้ออ้างของฝ่ายรับมือถูกฟันทำลายอย่างราบคาบ ความจริงกระจ่างขึ้นแล้ว!"
       );
     }, 400);
-    if (!skipBroadcast && isHost) broadcast({ type: 'rebuttal_verdict', isWin: true });
+    if (!skipBroadcast) {
+      broadcast({
+        type: 'rebuttal_verdict',
+        isWin: true,
+        winner: winnerName,
+        topic: topic,
+        clue: clueText,
+        challenger: challenger,
+        opponent: opponent
+      });
+    }
   } else {
-    gameState.influence = Math.max(0, gameState.influence - 15);
-    showMinigameResult(
-      false,
-      "REBUTTAL DEFEAT!",
-      "ข้อโต้แย้งถูกฟันกลับจนกระเด็น! (-15% Influence)",
-      "ศาลเสียความน่าเชื่อถือจากการถูกบดขยี้ในดาบปะทะ"
-    );
-    if (!skipBroadcast && isHost) broadcast({ type: 'rebuttal_verdict', isWin: false });
+    const winnerName = (meta && meta.winner) || opponent;
+    const clueText = (meta && meta.clue) || gameState.stg3RightClue || 'หลักฐานยืนยันความบริสุทธิ์';
+    playSfx('counter');
+    setTimeout(() => {
+      showMinigameResult(
+        true,
+        "COUNTER SHIELD DEFENSE!",
+        `[${winnerName}] ชนะเรื่อง: "${topic}" ด้วยหลักฐาน: ${clueText}!`,
+        "ฝ่ายรับมือสามารถปัดป้องและยืนยันข้อโต้แย้งของตนได้สำเร็จ!"
+      );
+    }, 400);
+    if (!skipBroadcast) {
+      broadcast({
+        type: 'rebuttal_verdict',
+        isWin: false,
+        winner: winnerName,
+        topic: topic,
+        clue: clueText,
+        challenger: challenger,
+        opponent: opponent
+      });
+    }
   }
 }
 
 function adminRebuttalVerdict(isWin) {
-  triggerRebuttalVerdict(isWin, true);
-  broadcast({ type: 'rebuttal_verdict', isWin: isWin });
+  triggerRebuttalVerdict(isWin, false);
 }
 
 
@@ -3527,21 +3651,20 @@ function evaluateLogicDiveMajority() {
   } else {
     // Collision crash - DO NOT reveal the correct answer!
     stopTimer();
-    gameState.influence = Math.max(0, gameState.influence - 15);
     playSfx('wrong');
 
     const crashNotice = document.getElementById('diveCrashNotice');
     if (crashNotice) {
       crashNotice.classList.remove('hidden');
       crashNotice.style.display = 'block';
-      crashNotice.innerText = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${winningChoice}] ซึ่งเป็นทางตัน (-15% Influence)`;
+      crashNotice.innerText = `💥 ชนผนังอุโมงค์! เสียงข้างมากเลือกข้อ [${winningChoice}] ซึ่งเป็นทางตัน`;
     }
 
     const lane = document.getElementById('lane' + winningChoice);
     if (lane) lane.classList.add('mismatch');
 
     gameState.stg4Evaluating = false;
-    logCourt(`⚠️ [LOGIC DIVE CRASH]: เสียงข้างมากเลือกข้อ [${winningChoice}] ผิดทาง! ชนผนังอุโมงค์ (-15% Influence)`);
+    logCourt(`⚠️ [LOGIC DIVE CRASH]: เสียงข้างมากเลือกข้อ [${winningChoice}] ผิดทาง! ชนผนังอุโมงค์`);
     broadcast({ type: 'logic_dive_crash', winningChoice: winningChoice });
   }
 }
@@ -3938,13 +4061,16 @@ const CLOSING_SLOT_TO_CARD = {
 function getClosingPlayersList() {
   const list = typeof getActivePlayersList === 'function' ? getActivePlayersList() : [];
   if (list && list.length >= 2) {
-    return list;
+    const copy = [...list];
+    copy.sort((a, b) => (parseInt(a.pcSlot, 10) || 1) - (parseInt(b.pcSlot, 10) || 1));
+    return copy;
   }
   const simRoster = [
-    { id: 'sim_naegi', userHash: 'sim_naegi', name: 'นาเอกิ', role: 'นักแต่งนิยาย' },
-    { id: 'sim_kyoko', userHash: 'sim_kyoko', name: 'เคียวโกะ', role: 'นักกีฬา' },
-    { id: 'sim_byakuya', userHash: 'sim_byakuya', name: 'เบียคุยะ', role: 'นักมายากล' },
-    { id: 'sim_aoi', userHash: 'sim_aoi', name: 'อาโออิ', role: 'นักชิม' }
+    { id: 'sim_naegi', userHash: 'sim_naegi', name: 'นาเอกิ', role: 'นักแต่งนิยาย', pcSlot: 1 },
+    { id: 'sim_kyoko', userHash: 'sim_kyoko', name: 'เคียวโกะ', role: 'นักกีฬา', pcSlot: 2 },
+    { id: 'sim_byakuya', userHash: 'sim_byakuya', name: 'เบียคุยะ', role: 'นักมายากล', pcSlot: 3 },
+    { id: 'sim_aoi', userHash: 'sim_aoi', name: 'อาโออิ', role: 'นักชิม', pcSlot: 4 },
+    { id: 'sim_hifumi', userHash: 'sim_hifumi', name: 'ฮิฟุมิ', role: 'ช่างกล', pcSlot: 5 }
   ];
   if (list && list.length > 0) {
     const merged = [...list];
@@ -3953,6 +4079,7 @@ function getClosingPlayersList() {
         merged.push(sp);
       }
     });
+    merged.sort((a, b) => (parseInt(a.pcSlot, 10) || 1) - (parseInt(b.pcSlot, 10) || 1));
     return merged;
   }
   return simRoster;
@@ -3994,12 +4121,17 @@ function distributeClosingCards() {
     playerBuckets[pIdx].push(card);
   });
 
-  // 3. Map buckets to player hands with multi-key indexing (id, userHash, name)
+  // 3. Map buckets to player hands with multi-key indexing (id, userHash, name, pcSlot)
   playersList.forEach((p, idx) => {
     const bucket = playerBuckets[idx] || [];
     if (p.id) hands[p.id] = bucket;
     if (p.userHash && p.userHash !== p.id) hands[p.userHash] = bucket;
     if (p.name) hands[p.name] = bucket;
+    if (p.pcSlot) {
+      hands['pc_' + p.pcSlot] = bucket;
+      hands['pc' + p.pcSlot] = bucket;
+    }
+    hands['pc_' + (idx + 1)] = bucket;
   });
 
   // Local fallback
@@ -4008,9 +4140,7 @@ function distributeClosingCards() {
   }
 
   gameState.closingPlayerHands = hands;
-  if (typeof isHost !== 'undefined' && isHost) {
-    broadcast({ type: 'closing_hands_sync', hands: hands });
-  }
+  broadcast({ type: 'closing_hands_sync', hands: hands });
 }
 
 function unlockNextClosingCard() {
@@ -4050,15 +4180,13 @@ function unlockNextClosingCard() {
   if (unlockedCard) {
     logCourt(`🔓 [CARD UNLOCKED]: การ์ดสำหรับช่องที่ ${nextSlot} ("${unlockedCard.title}") ถูกปลดล็อกแล้ว!`);
     playSfx('correct');
-    if (typeof isHost !== 'undefined' && isHost) {
-      broadcast({
-        type: 'closing_card_unlocked',
-        playerId: targetPlayerId,
-        cardId: unlockedCard.id,
-        cardTitle: unlockedCard.title,
-        hands: gameState.closingPlayerHands
-      });
-    }
+    broadcast({
+      type: 'closing_card_unlocked',
+      playerId: targetPlayerId,
+      cardId: unlockedCard.id,
+      cardTitle: unlockedCard.title,
+      hands: gameState.closingPlayerHands
+    });
     showToast(`🔓 ปลดล็อกการ์ดสำหรับช่องที่ ${nextSlot} แล้ว!`);
   }
 }
@@ -4080,9 +4208,13 @@ function adminSetClosingPage(page) {
   if (page < 1 || page > 5) return;
   gameState.closingCurrentPage = page;
   updateClosingDisplay();
-  if (typeof isHost !== 'undefined' && isHost) {
-    broadcast({ type: 'closing_page_change', page: page });
-  }
+  broadcast({ type: 'closing_page_change', page: page });
+  renderMobileTask('closing');
+}
+
+function playerSetClosingPage(page) {
+  if (page < 1 || page > 5) return;
+  gameState.closingCurrentPage = page;
   renderMobileTask('closing');
 }
 
@@ -4182,10 +4314,9 @@ function handleClosingSubmit(slot, cardId, pName) {
     }
     renderMobileTask('closing');
   } else {
-    gameState.influence = Math.max(0, gameState.influence - 10);
     playSfx('wrong');
-    logCourt(`❌ [CLOSING MISMATCH]: ${pName} วางการ์ดไม่ตรงกับช่องว่าง (-10% Influence)`);
-    showToast(`❌ วางการ์ดไม่ตรงกับช่องว่าง (-10% Influence)`);
+    logCourt(`❌ [CLOSING MISMATCH]: ${pName} วางการ์ดไม่ตรงกับช่องว่าง`);
+    showToast(`❌ วางการ์ดไม่ตรงกับช่องว่าง`);
     if (typeof isHost !== 'undefined' && isHost) {
       broadcast({ type: 'sync_state', state: gameState });
     }
@@ -4494,11 +4625,15 @@ function playerJoin() {
     resetJoinButton(`⚠️ การตอบรับจากศาลชั้นเรียนห้อง [${roomCode}] ใช้เวลานานเกินไป\n\nโปรดตรวจสอบว่า:\n1. หน้าจอหลักศาลชั้นเรียน (/court) กำลังเปิดอยู่และออนไลน์\n2. รหัสห้อง 6 หลัก [${roomCode}] ถูกต้องตรงกับบนจอศาล\nแล้วลองกดใหม่อีกครั้ง`);
   }, 7000);
 
+  const pcSlotSelect = document.getElementById('mobilePcSlotSelect');
+  const pcSlotVal = pcSlotSelect ? parseInt(pcSlotSelect.value, 10) : parseInt(new URLSearchParams(window.location.search).get('pc') || '1', 10);
+
   const claimPacket = {
     type: 'request_claim_character',
     role: role,
     playerName: name,
     userHash: currentUserHash,
+    pcSlot: pcSlotVal,
     clues: getUnlockedClues()
   };
 
@@ -4577,31 +4712,39 @@ function renderMobileTask(stage) {
     `;
   } else if (stage === 'stage1') {
     const target = gameState.stg1TargetClue || 'EVD-01';
-    const allDistractors = ['EVD-01', 'EVD-02', 'EVD-04', 'EVD-05', 'EVD-09', 'EVD-11', 'EVD-14'];
-    let chosenIds = [target];
-    for (const d of allDistractors) {
-      if (chosenIds.length >= 4) break;
-      if (!chosenIds.includes(d)) chosenIds.push(d);
-    }
-    chosenIds.sort();
+    const unlockedClueIds = getUnlockedClues();
+    // Only display clues the PC actually has unlocked in their Monopad!
+    let chosenIds = (Array.isArray(unlockedClueIds) && unlockedClueIds.length > 0)
+      ? [...unlockedClueIds]
+      : [];
 
     const pName = myPlayer ? myPlayer.name : 'ผู้เล่น';
     const existingSub = (gameState.stg1SubmissionsList || []).find(s => s.pName === pName);
     const hasChosen = Boolean(existingSub);
     const chosenClueId = existingSub ? existingSub.clueId : null;
 
-    const btnsHtml = chosenIds.map(cid => {
-      const clue = ALL_CLUES_DATA.find(c => c.id === cid) || { id: cid, name: cid };
-      const isSelected = (chosenClueId === cid);
-      return `<button class="p-task-btn ${isSelected ? 'btn-selected' : ''}" data-clue="${clue.id}" onclick="sendStg1('${clue.id}')">
-        [${clue.id}] ${clue.name} ${isSelected ? ' ✓' : ''}
-      </button>`;
-    }).join('');
+    let btnsHtml = '';
+    if (chosenIds.length === 0) {
+      btnsHtml = `
+        <div style="grid-column:1/-1; padding:16px; text-align:center; color:#ffe600; background:rgba(255,230,0,0.08); border:1px solid rgba(255,230,0,0.3); border-radius:8px;">
+          ⚠️ คุณยังไม่มีหลักฐานใน Monopad (โปรดสำรวจเก็บหลักฐานก่อนเริ่มคดี)
+        </div>
+      `;
+    } else {
+      btnsHtml = chosenIds.map(cid => {
+        const clue = ALL_CLUES_DATA.find(c => c.id === cid) || { id: cid, name: cid };
+        const isSelected = (chosenClueId === cid);
+        return `<button class="p-task-btn ${isSelected ? 'btn-selected' : ''}" data-clue="${clue.id}" onclick="sendStg1('${clue.id}')">
+          [${clue.id}] ${clue.name} ${isSelected ? ' ✓' : ''}
+        </button>`;
+      }).join('');
+    }
 
     const chosenObj = chosenClueId ? (ALL_CLUES_DATA.find(c => c.id === chosenClueId) || { id: chosenClueId, name: chosenClueId }) : null;
 
     area.innerHTML = `
       <h3 style="color:var(--court-gold); margin-bottom:12px; font-weight:900;">เลือกการ์ดหลักฐานที่ตรงกับอาวุธ/ปริศนา:</h3>
+      <p style="color:#aaa; font-size:0.85rem; margin-bottom:10px;">(เลือกจากหลักฐานที่คุณค้นพบใน Monopad)</p>
       <div class="mobile-task-grid" id="stg1MobileGrid" style="${hasChosen ? 'pointer-events: none;' : ''}">
         ${btnsHtml}
       </div>
@@ -4626,11 +4769,15 @@ function renderMobileTask(stage) {
     const row2 = ['A','S','D','F','G','H','J','K','L'];
     const row3 = ['Z','X','C','V','B','N','M'];
 
-    const renderRow = (letters) => `
-      <div style="display:flex; justify-content:center; gap:5px; margin-bottom:6px;">
-        ${letters.map(ch => {
-          const isGuessed = (gameState.stg2GuessedChars || []).includes(ch);
-          return `<button class="p-task-btn letter-btn" style="min-width:30px; padding:8px 4px; font-weight:900; font-size:1rem; opacity: ${(isMyTurn && !isGuessed) ? '1' : '0.25'};" ${(isMyTurn && !isGuessed) ? '' : 'disabled'} onclick="sendStg2Char('${ch}')">${ch}</button>`;
+    const renderRow = (keys) => `
+      <div class="hangman-keyboard-row">
+        ${keys.map(k => {
+          const used = gameState.stg2GuessedLetters && gameState.stg2GuessedLetters.includes(k);
+          return `<button class="hangman-key ${used ? 'used' : ''}" 
+                    onclick="sendStg2Char('${k}')" 
+                    ${used || !isMyTurn ? 'disabled' : ''}>
+                    ${k}
+                  </button>`;
         }).join('')}
       </div>
     `;
@@ -4656,16 +4803,21 @@ function renderMobileTask(stage) {
     const isChallenger = challenger && (myName === challenger || myName.includes(challenger) || challenger.includes(myName));
     const isOpponent = opponent && (myName === opponent || myName.includes(opponent) || opponent.includes(myName));
 
-    if (isChallenger) {
-      const activeBullets = (gameState.discoveredClues && gameState.discoveredClues.length) ? gameState.discoveredClues : ['CORE-01', 'EVD-01', 'EVD-04', 'EVD-14'];
-      let bulletOptions = activeBullets.map(cid => {
-        const c = ALL_CLUES_DATA.find(x => x.id === cid) || { id: cid, name: cid };
-        return `<option value="${c.id}">[${c.id}] ${c.name}</option>`;
-      }).join('');
+    // Clues available for truth blade: ONLY from this player's unlocked inventory
+    const myClueIds = getUnlockedClues();
+    const activeBullets = (Array.isArray(myClueIds) && myClueIds.length > 0)
+      ? myClueIds
+      : ((gameState.discoveredClues && gameState.discoveredClues.length) ? gameState.discoveredClues.filter(id => id !== 'CORE-01') : ['EVD-07']);
 
+    let bulletOptions = activeBullets.map(cid => {
+      const c = ALL_CLUES_DATA.find(x => x.id === cid) || { id: cid, name: cid };
+      return `<option value="${c.id}">[${c.id}] ${c.name}</option>`;
+    }).join('');
+
+    if (isChallenger) {
       area.innerHTML = `
         <h3 style="color:var(--mono-pink); margin-bottom:12px; font-weight:900;">⚔️ คุณคือ: ฝ่ายโจมตี (Truth Blade Duelist)!</h3>
-        <p style="color:#aaa; font-size:0.85rem; margin-bottom:10px;">vs <strong style="color:#ffe600;">${opponent || 'ฝ่ายตรงข้าม'}</strong></p>
+        <p style="color:#aaa; font-size:0.85rem; margin-bottom:10px;">vs <strong style="color:#ffe600;">${opponent || 'ฝ่ายรับมือ'}</strong></p>
         <div style="margin-bottom:12px; text-align:left;">
           <label style="font-size:0.85rem; color:#aaa; font-weight:700; display:block; margin-bottom:4px;">เลือกกระสุนความจริงที่ถือดาบเข้าปะทะ:</label>
           <select id="rebuttalEquippedBullet" style="width:100%; background:#1a1a2e; color:#fff; border:2px solid var(--mono-pink); padding:8px; border-radius:6px;">
@@ -4678,12 +4830,6 @@ function renderMobileTask(stage) {
       `;
     } else if (isOpponent) {
       // Opponent (defender) can counter-slash
-      const activeBullets = (gameState.discoveredClues && gameState.discoveredClues.length) ? gameState.discoveredClues : ['CORE-01', 'EVD-01', 'EVD-04', 'EVD-14'];
-      let bulletOptions = activeBullets.map(cid => {
-        const c = ALL_CLUES_DATA.find(x => x.id === cid) || { id: cid, name: cid };
-        return `<option value="${c.id}">[${c.id}] ${c.name}</option>`;
-      }).join('');
-
       area.innerHTML = `
         <h3 style="color:#ffe600; margin-bottom:12px; font-weight:900;">🛡️ คุณคือ: ฝ่ายรับมือ (Defender)!</h3>
         <p style="color:#aaa; font-size:0.85rem; margin-bottom:10px;">vs <strong style="color:var(--mono-pink);">${challenger || 'ฝ่ายโจมตี'}</strong></p>
@@ -4703,7 +4849,7 @@ function renderMobileTask(stage) {
         <div style="background:rgba(20,20,35,0.95); border:2px solid var(--mono-pink); border-radius:10px; padding:20px; text-align:center;">
           <div style="font-size:3rem; margin-bottom:10px;">⚔️</div>
           <h3 style="color:var(--mono-pink); font-weight:900;">การดวลดาบคำพูด (Rebuttal Showdown)</h3>
-          <p style="color:#ddd; font-size:0.95rem; margin-top:8px;"><strong style="color:var(--court-gold);">${challenger || '?'}</strong> vs <strong style="color:#ffe600;">${opponent || '?'}</strong></p>
+          <p style="color:#ddd; font-size:0.95rem; margin-top:8px;"><strong style="color:var(--court-gold);">${challenger || 'ฝ่ายโจมตี'}</strong> vs <strong style="color:#ffe600;">${opponent || 'ฝ่ายรับมือ'}</strong></p>
           <p style="color:#888; font-size:0.85rem; margin-top:12px;">จับตาดูการดวลดาบและลุ้นผลลัพธ์บนจอใหญ่ศาลชั้นเรียน...</p>
         </div>
       `;
@@ -4731,19 +4877,19 @@ function renderMobileTask(stage) {
       </div>
     `;
   } else if (stage === 'stage5') {
-    const leftLabel = gameState.stg5LeftTeam || '🔴 ฝ่ายซ้าย';
-    const rightLabel = gameState.stg5RightTeam || '🟢 ฝ่ายขวา';
+    const leftLabel = gameState.stg5LeftTeam || '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก';
+    const rightLabel = gameState.stg5RightTeam || '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง';
     const topicLabel = gameState.stg5Topic || 'ศึกสองขั้วความคิด';
 
     area.innerHTML = `
       <h3 style="color:var(--mono-yellow); margin-bottom:6px; font-weight:900;">Debate Scrum: เลือกดันฝั่งที่คุณเชื่อมั่น!</h3>
       <p style="font-size:0.88rem; color:#ccc; margin-bottom:14px;">หัวข้อ: "${topicLabel}"</p>
       <div style="display:flex; flex-direction:column; gap:12px;">
-        <button class="p-task-btn big-action-btn" style="background:#381119; border:3px solid #ff2255; box-shadow:4px 4px 0 #000; font-size:1.02rem;" onclick="broadcast({type:'stg5_scrum',delta:-4})">
-          👈 ดัน ${leftLabel} (-4%)
+        <button class="p-task-btn big-action-btn" style="background:#092537; border:3px solid #00f0ff; color:#00f0ff; box-shadow:4px 4px 0 #000; font-size:1.02rem; font-weight:900;" onclick="broadcast({type:'stg5_scrum',delta:-4})">
+          👈 ดัน ${leftLabel}
         </button>
-        <button class="p-task-btn big-action-btn" style="background:#12351e; border:3px solid #00ff88; box-shadow:4px 4px 0 #000; font-size:1.02rem;" onclick="broadcast({type:'stg5_scrum',delta:4})">
-          👉 ดัน ${rightLabel} (+4%)
+        <button class="p-task-btn big-action-btn" style="background:#370e28; border:3px solid #ff2b6d; color:#ff2b6d; box-shadow:4px 4px 0 #000; font-size:1.02rem; font-weight:900;" onclick="broadcast({type:'stg5_scrum',delta:4})">
+          👉 ดัน ${rightLabel}
         </button>
       </div>
     `;
@@ -4805,8 +4951,9 @@ function renderMobileTask(stage) {
         const slotBg = hasSelected ? '#2a112d' : '#141426';
         const slotActionColor = hasSelected ? '#ff2b6d' : '#94a3b8';
         const slotActionTxt = hasSelected ? '👈 วางการ์ดที่เลือก!' : 'แตะเพื่อวาง';
+        const pulseStyle = hasSelected ? 'animation: pulseGlow 1.5s infinite alternate;' : '';
         return `
-          <button class="p-task-btn" onclick="submitSelectedClosingCard(${s.slotId})" style="background:${slotBg}; border:${slotBorder}; border-radius:8px; padding:12px; margin-bottom:8px; width:100%; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+          <button class="p-task-btn" onclick="submitSelectedClosingCard(${s.slotId})" style="background:${slotBg}; border:${slotBorder}; border-radius:8px; padding:12px; margin-bottom:8px; width:100%; text-align:left; cursor:pointer; transition:all 0.2s ease; ${pulseStyle}">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div>
                 <span style="color:${slotActionColor}; font-weight:900; font-size:0.9rem;">📥 ช่องที่ ${s.pageSlot}:</span>
@@ -4827,7 +4974,7 @@ function renderMobileTask(stage) {
           <div class="p-closing-card locked" onclick="showToast('🔒 การ์ดใบนี้ถูกล็อกอยู่! ต้องรอให้เพื่อนช่วยกันไขช่องก่อนหน้าให้สำเร็จก่อน'); playSfx('wrong');" style="background:#0f111a; border:2px dashed #2e2e42; border-radius:8px; padding:10px; margin-bottom:8px; opacity:0.6; cursor:not-allowed; display:flex; align-items:center; gap:10px;">
             <span style="font-size:1.5rem; filter:grayscale(1);">🔒</span>
             <div style="flex:1;">
-              <span style="font-size:0.85rem; color:#94a3b8; font-weight:700;">🔒 การ์ดปริศนา [ยังไม่ถูกปลดล็อก]</span>
+              <span style="font-size:0.85rem; color:#94a3b8; font-weight:700;">🔒 การ์ดปริศนา ${c.page ? `(สำหรับหน้าที่ ${c.page})` : ''} [ยังไม่ถูกปลดล็อก]</span>
               <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">(แลกเปลี่ยนและปรึกษากับเพื่อนในศาลที่มีการ์ดปลดล็อก)</div>
             </div>
           </div>
@@ -4836,11 +4983,12 @@ function renderMobileTask(stage) {
         const borderStyle = isSelected ? '3px solid #ff2b6d' : '2px solid #444466';
         const bgStyle = isSelected ? 'rgba(255, 43, 109, 0.28)' : '#19192e';
         const shadowStyle = isSelected ? 'box-shadow: 0 0 16px rgba(255, 43, 109, 0.85); transform: scale(1.02);' : '';
+        const pageBadge = c.page ? `<span style="background:var(--mono-pink); color:#fff; font-size:0.7rem; font-weight:900; padding:1px 6px; border-radius:3px; margin-right:6px;">หน้า ${c.page}</span>` : '';
         return `
           <div class="p-closing-card ${isSelected ? 'selected' : ''}" onclick="selectClosingCard('${c.id}')" style="background:${bgStyle}; border:${borderStyle}; border-radius:8px; padding:12px; margin-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:10px; ${shadowStyle} transition:all 0.2s ease;">
             <span style="font-size:1.6rem;">${c.icon || '📄'}</span>
             <div style="flex:1;">
-              <div style="font-size:0.88rem; color:#fff; font-weight:${isSelected ? '900' : 'bold'}; line-height:1.35;">${c.title}</div>
+              <div style="font-size:0.88rem; color:#fff; font-weight:${isSelected ? '900' : 'bold'}; line-height:1.35;">${pageBadge}${c.title}</div>
               <div style="font-size:0.78rem; color:${isSelected ? 'var(--court-gold)' : 'var(--mono-cyan)'}; margin-top:4px; font-weight:${isSelected ? '800' : 'normal'};">
                 ${isSelected ? '👉 [เลือกการ์ดใบนี้แล้ว!] แตะปุ่มช่องว่างด้านบนเพื่อวาง' : '👆 แตะเพื่อเลือกการ์ดใบนี้'}
               </div>
@@ -4851,12 +4999,29 @@ function renderMobileTask(stage) {
     }).join('');
 
     area.innerHTML = `
-      <div style="margin-bottom:12px; border-bottom:1px solid #333348; padding-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="color:var(--mono-pink); font-weight:900; font-size:0.95rem;">📖 หน้าที่ ${curPage} / 5</span>
-          <span style="color:#aaa; font-size:0.8rem;">(DM กำลังเปิดหน้านี้)</span>
+      <div style="margin-bottom:12px; border-bottom:1px solid #333348; padding-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="color:var(--mono-pink); font-weight:900; font-size:0.95rem;">📖 มังงะสรุปคดี (หน้า ${curPage} / 5)</span>
+          <span style="color:#aaa; font-size:0.75rem;">(ศาล: หน้า ${gameState.closingCurrentPage || 1})</span>
         </div>
-        <div style="color:#fff; font-size:0.85rem; font-weight:700; margin-top:3px;">${pageData.title}</div>
+        <!-- Mobile Page Navigator -->
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; margin-bottom:8px; background:#121324; padding:5px 8px; border-radius:6px; border:1px solid #2a2a44;">
+          <button type="button" onclick="playerSetClosingPage(${Math.max(1, curPage - 1)})" style="background:#222238; border:1px solid #444; color:#fff; border-radius:4px; padding:4px 8px; font-size:0.75rem; cursor:pointer;" ${curPage === 1 ? 'disabled style="opacity:0.4; pointer-events:none;"' : ''}>◀ ก่อนหน้า</button>
+          <div style="display:flex; gap:4px;">
+            ${[1, 2, 3, 4, 5].map(p => {
+              const isActive = (p === curPage);
+              const pData = CLOSING_PAGES_DATA.find(x => x.page === p);
+              const pSlots = pData ? pData.panels.filter(x => x.type === 'slot').map(x => x.slotId) : [];
+              const pSolved = pSlots.length > 0 && pSlots.every(sId => gameState.closingSlots && gameState.closingSlots[sId]);
+              const bg = isActive ? 'var(--mono-pink)' : (pSolved ? '#00ff88' : '#22223a');
+              const color = (isActive || pSolved) ? '#000' : '#aaa';
+              const border = isActive ? '1px solid #fff' : '1px solid #444';
+              return `<span onclick="playerSetClosingPage(${p})" style="cursor:pointer; width:22px; height:22px; line-height:22px; text-align:center; font-size:0.75rem; font-weight:900; border-radius:4px; display:inline-block; background:${bg}; color:${color}; border:${border};">${p}</span>`;
+            }).join('')}
+          </div>
+          <button type="button" onclick="playerSetClosingPage(${Math.min(5, curPage + 1)})" style="background:#222238; border:1px solid #444; color:#fff; border-radius:4px; padding:4px 8px; font-size:0.75rem; cursor:pointer;" ${curPage === 5 ? 'disabled style="opacity:0.4; pointer-events:none;"' : ''}>ถัดไป ▶</button>
+        </div>
+        <div style="color:#fff; font-size:0.85rem; font-weight:700; line-height:1.3;">${pageData.title}</div>
       </div>
 
       <div style="margin-bottom:14px;">
@@ -4983,6 +5148,8 @@ function getMyClosingCards() {
     if (myPlayer.id && gameState.closingPlayerHands[myPlayer.id]) return gameState.closingPlayerHands[myPlayer.id];
     if (myPlayer.userHash && gameState.closingPlayerHands[myPlayer.userHash]) return gameState.closingPlayerHands[myPlayer.userHash];
     if (myPlayer.name && gameState.closingPlayerHands[myPlayer.name]) return gameState.closingPlayerHands[myPlayer.name];
+    if (myPlayer.pcSlot && gameState.closingPlayerHands['pc_' + myPlayer.pcSlot]) return gameState.closingPlayerHands['pc_' + myPlayer.pcSlot];
+    if (myPlayer.pcSlot && gameState.closingPlayerHands['pc' + myPlayer.pcSlot]) return gameState.closingPlayerHands['pc' + myPlayer.pcSlot];
   }
   // 2. Try currentUserHash
   if (typeof currentUserHash !== 'undefined' && currentUserHash && gameState.closingPlayerHands[currentUserHash]) {
@@ -4991,6 +5158,11 @@ function getMyClosingCards() {
   // 3. Try URL params
   try {
     const urlParams = new URLSearchParams(window.location.search);
+    const qPc = urlParams.get('pc');
+    if (qPc) {
+      if (gameState.closingPlayerHands['pc_' + qPc]) return gameState.closingPlayerHands['pc_' + qPc];
+      if (gameState.closingPlayerHands['pc' + qPc]) return gameState.closingPlayerHands['pc' + qPc];
+    }
     const qUser = urlParams.get('user');
     if (qUser && gameState.closingPlayerHands[qUser]) return gameState.closingPlayerHands[qUser];
     const qName = urlParams.get('name');
@@ -5013,17 +5185,38 @@ function selectClosingCard(cardId) {
   } else {
     selectedClosingCardId = cardId;
     playSfx('menu_select');
+    // Auto-navigate mobile view to card's page so the matching slot is right in front of the player
+    const cardObj = CLOSING_CARDS_DATA.find(c => c.id === cardId);
+    if (cardObj && cardObj.page && cardObj.page >= 1 && cardObj.page <= 5 && cardObj.page !== gameState.closingCurrentPage) {
+      gameState.closingCurrentPage = cardObj.page;
+      showToast(`📄 เปิดไปยังหน้าที่ ${cardObj.page} เพื่อให้วางการ์ดลงช่องว่างได้ทันที!`);
+    }
   }
   renderMobileTask('closing');
 }
 
 function submitSelectedClosingCard(slotId) {
-  if (!selectedClosingCardId) {
+  let cardToSubmit = selectedClosingCardId;
+  // Smart fallback: If no card currently selected, check if player holds an unlocked card for this slot
+  if (!cardToSubmit) {
+    const myCards = getMyClosingCards();
+    const unlockedCards = myCards.filter(c => !c.locked);
+    const targetCardId = CLOSING_SLOT_TO_CARD[slotId];
+    const matchingCard = unlockedCards.find(c => c.id === targetCardId);
+    if (matchingCard) {
+      cardToSubmit = matchingCard.id;
+    } else if (unlockedCards.length === 1) {
+      cardToSubmit = unlockedCards[0].id;
+    }
+  }
+
+  if (!cardToSubmit) {
     showToast('⚠️ กรุณาแตะเลือกการ์ดในมือก่อน แล้วค่อยกดวางลงช่องนี้!');
     playSfx('wrong');
     return;
   }
-  sendClosingCard(slotId, selectedClosingCardId);
+
+  sendClosingCard(slotId, cardToSubmit);
   selectedClosingCardId = null;
   renderMobileTask('closing');
 }
@@ -5150,8 +5343,7 @@ function handleSabotage(type, pName) {
     updateTimerDisplay();
     logCourt(`⏱️ [TIME GLITCH]: เวลาศาลชั้นเรียนถูกเร่งรัดกะทันหัน! (-10s)`);
   } else if (type === 'corrupt_data') {
-    gameState.influence = Math.max(0, gameState.influence - 10);
-    logCourt(`⚠️ [DATA CORRUPT]: ข้อมูลเท็จถูกแทรกแซงเข้าสู่ระบบ (-10% Influence)`);
+    logCourt(`⚠️ [DATA CORRUPT]: ข้อมูลเท็จถูกแทรกแซงเข้าสู่ระบบศาลชั้นเรียน!`);
   }
 }
 
@@ -6458,13 +6650,14 @@ function initSimulationLab() {
     };
   } catch (e) {}
 
-  // 3. Load the 4 isolated viewports with universal ?view= URLs that work on ANY web host
+  // 3. Load the 6 isolated viewports with universal ?view= URLs that work on ANY web host
   const fCourt = document.getElementById('simFrameCourt');
   const fAdmin = document.getElementById('simFrameAdmin');
   const fP1 = document.getElementById('simFramePlayer1');
   const fP2 = document.getElementById('simFramePlayer2');
   const fP3 = document.getElementById('simFramePlayer3');
   const fP4 = document.getElementById('simFramePlayer4');
+  const fP5 = document.getElementById('simFramePlayer5');
 
   const loc = window.location;
   const baseUrl = loc.protocol + '//' + loc.host;
@@ -6472,10 +6665,11 @@ function initSimulationLab() {
 
   const courtUrl = baseUrl + pathPrefix + '?view=court&room=' + simRoomCode;
   const adminUrl = baseUrl + pathPrefix + '?view=admin&room=' + simRoomCode + '&pin=295437&muted=1';
-  const p1Url = baseUrl + pathPrefix + '?view=player&user=sim_naegi&room=' + simRoomCode + '&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย') + '&muted=1';
-  const p2Url = baseUrl + pathPrefix + '?view=player&user=sim_kyoko&room=' + simRoomCode + '&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา') + '&muted=1';
-  const p3Url = baseUrl + pathPrefix + '?view=player&user=sim_byakuya&room=' + simRoomCode + '&name=' + encodeURIComponent('เบียคุยะ') + '&role=' + encodeURIComponent('นักมายากล') + '&muted=1';
-  const p4Url = baseUrl + pathPrefix + '?view=player&user=sim_aoi&room=' + simRoomCode + '&name=' + encodeURIComponent('อาโออิ') + '&role=' + encodeURIComponent('นักชิม') + '&muted=1';
+  const p1Url = baseUrl + pathPrefix + '?view=player&user=sim_naegi&room=' + simRoomCode + '&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย') + '&pc=1&muted=1';
+  const p2Url = baseUrl + pathPrefix + '?view=player&user=sim_kyoko&room=' + simRoomCode + '&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา') + '&pc=2&muted=1';
+  const p3Url = baseUrl + pathPrefix + '?view=player&user=sim_byakuya&room=' + simRoomCode + '&name=' + encodeURIComponent('เบียคุยะ') + '&role=' + encodeURIComponent('นักมายากล') + '&pc=3&muted=1';
+  const p4Url = baseUrl + pathPrefix + '?view=player&user=sim_aoi&room=' + simRoomCode + '&name=' + encodeURIComponent('อาโออิ') + '&role=' + encodeURIComponent('นักชิม') + '&pc=4&muted=1';
+  const p5Url = baseUrl + pathPrefix + '?view=player&user=sim_hifumi&room=' + simRoomCode + '&name=' + encodeURIComponent('ฮิฟุมิ') + '&role=' + encodeURIComponent('ช่างกล') + '&pc=5&muted=1';
 
   if (fCourt && (!fCourt.src || fCourt.src === 'about:blank' || !fCourt.src.includes(simRoomCode))) fCourt.src = courtUrl;
   if (fAdmin && (!fAdmin.src || fAdmin.src === 'about:blank' || !fAdmin.src.includes(simRoomCode))) fAdmin.src = adminUrl;
@@ -6483,6 +6677,7 @@ function initSimulationLab() {
   if (fP2 && (!fP2.src || fP2.src === 'about:blank' || !fP2.src.includes(simRoomCode) || fP2.src.includes('autoJoin=1'))) fP2.src = p2Url;
   if (fP3 && (!fP3.src || fP3.src === 'about:blank' || !fP3.src.includes(simRoomCode) || fP3.src.includes('autoJoin=1'))) fP3.src = p3Url;
   if (fP4 && (!fP4.src || fP4.src === 'about:blank' || !fP4.src.includes(simRoomCode) || fP4.src.includes('autoJoin=1'))) fP4.src = p4Url;
+  if (fP5 && (!fP5.src || fP5.src === 'about:blank' || !fP5.src.includes(simRoomCode) || fP5.src.includes('autoJoin=1'))) fP5.src = p5Url;
 
   setTimeout(() => { simProbePing(); }, 400);
 }
@@ -6594,7 +6789,8 @@ async function simPost(msg) {
       document.getElementById('simFramePlayer1'),
       document.getElementById('simFramePlayer2'),
       document.getElementById('simFramePlayer3'),
-      document.getElementById('simFramePlayer4')
+      document.getElementById('simFramePlayer4'),
+      document.getElementById('simFramePlayer5')
     ];
     iframes.forEach(f => {
       if (f && f.contentWindow) {
@@ -6672,12 +6868,51 @@ async function runSimGuarded(actionName, actionFn) {
   }
 }
 
+async function simSetPhase(phase) {
+  return runSimGuarded(`เปลี่ยน Phase: ${phase}`, async () => {
+    logSimEvent({ type: 'sim_info', text: `🔄 [ACTION]: สั่งเปลี่ยน Phase ของคดีเป็น "${phase}"...` });
+    await simPost({ type: 'set_stage', stage: phase });
+  });
+}
+
+async function simCollectClues() {
+  return runSimGuarded('จำลองเก็บหลักฐานเข้า Monopad', async () => {
+    logSimEvent({ type: 'sim_info', text: '📷 [ACTION]: จำลองผู้เล่น (PC 1-5) สแกน/รับหลักฐานประจำตัวเข้า Monopad...' });
+    const simPList = [
+      { user: 'sim_naegi', name: 'นาเอกิ', pc: 1 },
+      { user: 'sim_kyoko', name: 'เคียวโกะ', pc: 2 },
+      { user: 'sim_byakuya', name: 'เบียคุยะ', pc: 3 },
+      { user: 'sim_aoi', name: 'อาโออิ', pc: 4 },
+      { user: 'sim_hifumi', name: 'ฮิฟุมิ', pc: 5 }
+    ];
+    for (const sp of simPList) {
+      const clues = PC_INVESTIGATION_CLUES[sp.pc] || ['EVD-07'];
+      try {
+        localStorage.setItem('dangan_unlocked_' + sp.user, JSON.stringify(clues));
+        localStorage.setItem('dangan_unlocked_name_' + sp.name.trim().toLowerCase(), JSON.stringify(clues));
+      } catch(e) {}
+      for (const cid of clues) {
+        await simPost({
+          type: 'clue_discovered',
+          clueId: cid,
+          playerName: sp.name,
+          userHash: sp.user
+        });
+      }
+      await new Promise(r => setTimeout(r, 80));
+    }
+    await simPost({ type: 'refresh_clues' });
+    logSimEvent({ type: 'sim_info', text: '✅ [DONE]: จำลองเก็บหลักฐานประจำตัวละครครบทั้ง 5 คนเรียบร้อยแล้ว!' });
+  });
+}
+
 async function simJoinPlayersRaw() {
-  logSimEvent({ type: 'sim_info', text: '👤 [ACTION]: จำลองส่งคำขอสวมบทบาท 4 คน: นาเอกิ (นิยาย), เคียวโกะ (กีฬา), เบียคุยะ (มายากล), อาโออิ (ชิม)...' });
+  logSimEvent({ type: 'sim_info', text: '👤 [ACTION]: จำลองส่งคำขอสวมบทบาท 5 คน: นาเอกิ (PC1), เคียวโกะ (PC2), เบียคุยะ (PC3), อาโออิ (PC4), ฮิฟุมิ (PC5 Blackened)...' });
   await simPost({
     type: 'request_claim_character',
     role: 'นักแต่งนิยาย',
     playerName: 'นาเอกิ',
+    pcSlot: 1,
     userHash: 'sim_naegi'
   });
   await new Promise(r => setTimeout(r, 200));
@@ -6685,6 +6920,7 @@ async function simJoinPlayersRaw() {
     type: 'request_claim_character',
     role: 'นักกีฬา',
     playerName: 'เคียวโกะ',
+    pcSlot: 2,
     userHash: 'sim_kyoko'
   });
   await new Promise(r => setTimeout(r, 200));
@@ -6692,6 +6928,7 @@ async function simJoinPlayersRaw() {
     type: 'request_claim_character',
     role: 'นักมายากล',
     playerName: 'เบียคุยะ',
+    pcSlot: 3,
     userHash: 'sim_byakuya'
   });
   await new Promise(r => setTimeout(r, 200));
@@ -6699,7 +6936,16 @@ async function simJoinPlayersRaw() {
     type: 'request_claim_character',
     role: 'นักชิม',
     playerName: 'อาโออิ',
+    pcSlot: 4,
     userHash: 'sim_aoi'
+  });
+  await new Promise(r => setTimeout(r, 200));
+  await simPost({
+    type: 'request_claim_character',
+    role: 'ช่างกล',
+    playerName: 'ฮิฟุมิ',
+    pcSlot: 5,
+    userHash: 'sim_hifumi'
   });
 }
 
