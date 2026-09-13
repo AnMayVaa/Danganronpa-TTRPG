@@ -1435,25 +1435,21 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'closing_page_change') {
     gameState.closingCurrentPage = msg.page;
     updateClosingDisplay();
-    if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
-      renderMobileTask('closing');
-    }
+    renderMobileTask('closing');
   } else if (msg.type === 'closing_bonus_time') {
     showBonusTimePopup(msg.seconds);
   } else if (msg.type === 'closing_card_unlocked') {
     if (msg.hands) gameState.closingPlayerHands = msg.hands;
-    if (typeof myPlayer !== 'undefined' && myPlayer && myPlayer.id === msg.playerId) {
+    const isMe = (typeof myPlayer !== 'undefined' && myPlayer && (myPlayer.id === msg.playerId || myPlayer.userHash === msg.playerId || myPlayer.name === msg.playerId)) ||
+                 (typeof currentUserHash !== 'undefined' && currentUserHash === msg.playerId);
+    if (isMe) {
       playSfx('correct');
-      showToast('🔓 ปลดล็อกการ์ดใหม่ในมือคุณแล้ว!');
+      showToast(`🔓 ปลดล็อกการ์ดใหม่ในมือคุณแล้ว: ${msg.cardTitle || 'การ์ดสรุปคดี'}!`);
     }
-    if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
-      renderMobileTask('closing');
-    }
+    renderMobileTask('closing');
   } else if (msg.type === 'closing_hands_sync') {
     gameState.closingPlayerHands = msg.hands;
-    if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
-      renderMobileTask('closing');
-    }
+    renderMobileTask('closing');
   } else if (msg.type === 'submit_vote') {
     handleVoteSubmitted(msg.candidate, msg.voterId);
   } else if (msg.type === 'minigame_result') {
@@ -3926,31 +3922,89 @@ const CLOSING_CARDS_DATA = [
   { id: 'DECOY-DOOR', page: 0, slot: 0, title: 'คนร้ายใช้โซ่เหล็กคล้องล็อกประตูด้านนอกของห้องซักรีดไว้', icon: '🔒', decoy: true }
 ];
 
-function distributeClosingCards() {
-  const playersList = typeof getActivePlayersList === 'function' ? getActivePlayersList() : [];
-  const hands = {};
-  const allCards = JSON.parse(JSON.stringify(CLOSING_CARDS_DATA));
+const CLOSING_SLOT_TO_CARD = {
+  1: 'CARD-P1-S1',
+  2: 'CARD-P1-S2',
+  3: 'CARD-P2-S1',
+  4: 'CARD-P2-S2',
+  5: 'CARD-P3-S1',
+  6: 'CARD-P3-S2',
+  7: 'CARD-P4-S1',
+  8: 'CARD-P4-S2',
+  9: 'CARD-P5-S1',
+  10: 'CARD-P5-S2'
+};
 
-  // Starter card rule: exactly 1 card from Page 1 starts unlocked, all others start locked!
+function getClosingPlayersList() {
+  const list = typeof getActivePlayersList === 'function' ? getActivePlayersList() : [];
+  if (list && list.length >= 2) {
+    return list;
+  }
+  const simRoster = [
+    { id: 'sim_naegi', userHash: 'sim_naegi', name: 'นาเอกิ', role: 'นักแต่งนิยาย' },
+    { id: 'sim_kyoko', userHash: 'sim_kyoko', name: 'เคียวโกะ', role: 'นักกีฬา' },
+    { id: 'sim_byakuya', userHash: 'sim_byakuya', name: 'เบียคุยะ', role: 'นักมายากล' },
+    { id: 'sim_aoi', userHash: 'sim_aoi', name: 'อาโออิ', role: 'นักชิม' }
+  ];
+  if (list && list.length > 0) {
+    const merged = [...list];
+    simRoster.forEach(sp => {
+      if (!merged.some(p => p.id === sp.id || p.userHash === sp.userHash || p.name === sp.name)) {
+        merged.push(sp);
+      }
+    });
+    return merged;
+  }
+  return simRoster;
+}
+
+function distributeClosingCards() {
+  const playersList = getClosingPlayersList();
+  const hands = {};
+
+  // Separate correct cards and decoy cards
+  const correctCards = CLOSING_CARDS_DATA.filter(c => !c.decoy).map(c => JSON.parse(JSON.stringify(c)));
+  const decoyCards = CLOSING_CARDS_DATA.filter(c => c.decoy).map(c => JSON.parse(JSON.stringify(c)));
+
+  // Starter card rule: ONLY Slot 1 card (CARD-P1-S1) starts UNLOCKED. All other 14 cards start LOCKED!
   const starterCardId = 'CARD-P1-S1';
-  allCards.forEach(c => {
+  correctCards.forEach(c => {
     c.locked = (c.id !== starterCardId);
   });
+  decoyCards.forEach(c => {
+    c.locked = true;
+  });
 
-  // Shuffle cards
-  for (let i = allCards.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [allCards[i], allCards[j]] = [allCards[j], allCards[i]];
-  }
+  const numPlayers = Math.max(1, playersList.length);
+  const playerBuckets = Array.from({ length: numPlayers }, () => []);
 
-  if (playersList.length === 0) {
-    hands['local'] = allCards;
-  } else {
-    playersList.forEach(p => { hands[p.id] = []; });
-    allCards.forEach((card, idx) => {
-      const p = playersList[idx % playersList.length];
-      hands[p.id].push(card);
-    });
+  // 1. Distribute 10 correct cards round-robin among players
+  // Guarantees:
+  // - Zero duplicates across players
+  // - Every player gets multiple correct answers (no one is left out)
+  // - P0 gets S1, P1 gets S2, P2 gets S3, P3 gets S4, etc.
+  correctCards.forEach((card, idx) => {
+    const pIdx = idx % numPlayers;
+    playerBuckets[pIdx].push(card);
+  });
+
+  // 2. Distribute 5 decoy cards round-robin among players
+  decoyCards.forEach((card, idx) => {
+    const pIdx = idx % numPlayers;
+    playerBuckets[pIdx].push(card);
+  });
+
+  // 3. Map buckets to player hands with multi-key indexing (id, userHash, name)
+  playersList.forEach((p, idx) => {
+    const bucket = playerBuckets[idx] || [];
+    if (p.id) hands[p.id] = bucket;
+    if (p.userHash && p.userHash !== p.id) hands[p.userHash] = bucket;
+    if (p.name) hands[p.name] = bucket;
+  });
+
+  // Local fallback
+  if (playerBuckets.length > 0) {
+    hands['local'] = playerBuckets[0];
   }
 
   gameState.closingPlayerHands = hands;
@@ -3959,33 +4013,53 @@ function distributeClosingCards() {
   }
 }
 
-function unlockOneClosingCard() {
+function unlockNextClosingCard() {
   if (!gameState.closingPlayerHands) return;
-  const lockedPool = [];
-  Object.keys(gameState.closingPlayerHands).forEach(pId => {
-    gameState.closingPlayerHands[pId].forEach(card => {
-      if (card.locked) {
-        lockedPool.push({ pId, card });
-      }
-    });
+
+  // Find lowest unsolved slot (1 to 10)
+  let nextSlot = 0;
+  for (let s = 1; s <= 10; s++) {
+    if (!gameState.closingSlots || !gameState.closingSlots[s]) {
+      nextSlot = s;
+      break;
+    }
+  }
+  if (!nextSlot) return; // All slots already solved
+
+  const targetCardId = CLOSING_SLOT_TO_CARD[nextSlot];
+  if (!targetCardId) return;
+
+  let unlockedCard = null;
+  let targetPlayerId = null;
+
+  const seenHands = new Set();
+  Object.keys(gameState.closingPlayerHands).forEach(pKey => {
+    const hand = gameState.closingPlayerHands[pKey];
+    if (Array.isArray(hand) && !seenHands.has(hand)) {
+      seenHands.add(hand);
+      hand.forEach(card => {
+        if (card.id === targetCardId && card.locked) {
+          card.locked = false;
+          unlockedCard = card;
+          targetPlayerId = pKey;
+        }
+      });
+    }
   });
 
-  if (lockedPool.length > 0) {
-    const picked = lockedPool[Math.floor(Math.random() * lockedPool.length)];
-    picked.card.locked = false;
-    logCourt(`🔓 [CARD UNLOCKED]: การ์ด "${picked.card.title}" ถูกปลดล็อกแล้ว!`);
+  if (unlockedCard) {
+    logCourt(`🔓 [CARD UNLOCKED]: การ์ดสำหรับช่องที่ ${nextSlot} ("${unlockedCard.title}") ถูกปลดล็อกแล้ว!`);
     playSfx('correct');
     if (typeof isHost !== 'undefined' && isHost) {
       broadcast({
         type: 'closing_card_unlocked',
-        playerId: picked.pId,
-        cardId: picked.card.id,
+        playerId: targetPlayerId,
+        cardId: unlockedCard.id,
+        cardTitle: unlockedCard.title,
         hands: gameState.closingPlayerHands
       });
     }
-    if (typeof myPlayer !== 'undefined' && myPlayer && myPlayer.id === picked.pId) {
-      showToast(`🔓 ปลดล็อกการ์ดใหม่: ${picked.card.title}!`);
-    }
+    showToast(`🔓 ปลดล็อกการ์ดสำหรับช่องที่ ${nextSlot} แล้ว!`);
   }
 }
 
@@ -4009,9 +4083,7 @@ function adminSetClosingPage(page) {
   if (typeof isHost !== 'undefined' && isHost) {
     broadcast({ type: 'closing_page_change', page: page });
   }
-  if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
-    renderMobileTask('closing');
-  }
+  renderMobileTask('closing');
 }
 
 function adminPrevClosingPage() {
@@ -4068,11 +4140,23 @@ function handleClosingSubmit(slot, cardId, pName) {
       broadcast({ type: 'closing_bonus_time', seconds: 20 });
     }
 
-    // Unlock 1 locked card
-    unlockOneClosingCard();
+    // Sequentially unlock next required card
+    unlockNextClosingCard();
 
     logCourt(`📖 [CLOSING PAGE ${targetPage}]: ${pName} เติมมังงะช่องที่ ${slotNum} สำเร็จ! (+20s โบนัส)`);
     updateClosingDisplay();
+
+    // Check if current page is complete -> auto-advance page after short delay
+    const curPageSlots = (CLOSING_PAGES_DATA.find(p => p.page === targetPage)?.panels || [])
+      .filter(pan => pan.type === 'slot')
+      .map(pan => pan.slotId);
+    const curPageComplete = curPageSlots.length > 0 && curPageSlots.every(sId => gameState.closingSlots[sId]);
+    if (curPageComplete && targetPage < 5) {
+      setTimeout(() => {
+        adminSetClosingPage(targetPage + 1);
+        logCourt(`📄 [CLOSING AUTO-PAGE]: มังงะหน้าที่ ${targetPage} สมบูรณ์แล้ว! กำลังเปิดไปยังหน้าที่ ${targetPage + 1}...`);
+      }, 1000);
+    }
 
     // Check if all 10 slots are solved
     let solvedCount = 0;
@@ -4096,16 +4180,16 @@ function handleClosingSubmit(slot, cardId, pName) {
     if (typeof isHost !== 'undefined' && isHost) {
       broadcast({ type: 'sync_state', state: gameState });
     }
-    if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
-      renderMobileTask('closing');
-    }
+    renderMobileTask('closing');
   } else {
     gameState.influence = Math.max(0, gameState.influence - 10);
     playSfx('wrong');
     logCourt(`❌ [CLOSING MISMATCH]: ${pName} วางการ์ดไม่ตรงกับช่องว่าง (-10% Influence)`);
+    showToast(`❌ วางการ์ดไม่ตรงกับช่องว่าง (-10% Influence)`);
     if (typeof isHost !== 'undefined' && isHost) {
       broadcast({ type: 'sync_state', state: gameState });
     }
+    renderMobileTask('closing');
   }
 }
 
@@ -4121,15 +4205,21 @@ function updateClosingDisplay() {
 
   // Update dots
   for (let p = 1; p <= 5; p++) {
+    const pData = CLOSING_PAGES_DATA.find(x => x.page === p);
+    const pSlots = pData ? pData.panels.filter(x => x.type === 'slot').map(x => x.slotId) : [];
+    const pSolved = pSlots.length > 0 && pSlots.every(sId => gameState.closingSlots && gameState.closingSlots[sId]);
+
     const dot = document.getElementById(`dotP${p}`);
     if (dot) {
-      const pData = CLOSING_PAGES_DATA.find(x => x.page === p);
-      const pSlots = pData ? pData.panels.filter(x => x.type === 'slot').map(x => x.slotId) : [];
-      const pSolved = pSlots.length > 0 && pSlots.every(sId => gameState.closingSlots && gameState.closingSlots[sId]);
-
       dot.className = 'page-dot';
       if (p === curPage) dot.classList.add('active');
       if (pSolved) dot.classList.add('solved');
+    }
+    const dmDot = document.getElementById(`dmDotP${p}`);
+    if (dmDot) {
+      dmDot.className = 'page-dot';
+      if (p === curPage) dmDot.classList.add('active');
+      if (pSolved) dmDot.classList.add('solved');
     }
   }
 
@@ -4693,24 +4783,8 @@ function renderMobileTask(stage) {
     const pageData = CLOSING_PAGES_DATA.find(p => p.page === curPage) || CLOSING_PAGES_DATA[0];
     const pageSlots = pageData.panels.filter(p => p.type === 'slot');
 
-    // Retrieve my hand
-    let myCards = [];
-    if (gameState.closingPlayerHands) {
-      if (typeof myPlayer !== 'undefined' && myPlayer && gameState.closingPlayerHands[myPlayer.id]) {
-        myCards = gameState.closingPlayerHands[myPlayer.id];
-      } else if (gameState.closingPlayerHands['local']) {
-        myCards = gameState.closingPlayerHands['local'];
-      } else {
-        const keys = Object.keys(gameState.closingPlayerHands);
-        if (keys.length > 0) myCards = gameState.closingPlayerHands[keys[0]];
-      }
-    }
-    if (!myCards || myCards.length === 0) {
-      myCards = CLOSING_CARDS_DATA.map(c => ({
-        ...c,
-        locked: c.id !== 'CARD-P1-S1'
-      }));
-    }
+    // Retrieve my hand with robust multi-key resolution
+    const myCards = getMyClosingCards();
 
     // Slots HTML on active page
     const slotsHtml = pageSlots.map(s => {
@@ -4722,18 +4796,23 @@ function renderMobileTask(stage) {
               <span style="color:#00ff88; font-weight:900; font-size:0.85rem;">✅ ช่องที่ ${s.pageSlot} (เติมถูกต้องแล้ว):</span>
               <div style="color:#fff; font-size:0.8rem; margin-top:2px; line-height:1.3;">${s.desc}</div>
             </div>
-            <span style="font-size:1.4rem; margin-left:8px;">✓</span>
+            <span style="font-size:1.4rem; margin-left:8px; color:#00ff88;">✓</span>
           </div>
         `;
       } else {
+        const hasSelected = Boolean(selectedClosingCardId);
+        const slotBorder = hasSelected ? '2px dashed #ff2b6d' : '2px dashed #475569';
+        const slotBg = hasSelected ? '#2a112d' : '#141426';
+        const slotActionColor = hasSelected ? '#ff2b6d' : '#94a3b8';
+        const slotActionTxt = hasSelected ? '👈 วางการ์ดที่เลือก!' : 'แตะเพื่อวาง';
         return `
-          <button class="p-task-btn" onclick="submitSelectedClosingCard(${s.slotId})" style="background:#1f132b; border:2px dashed var(--mono-pink); border-radius:8px; padding:10px 12px; margin-bottom:8px; width:100%; text-align:left; cursor:pointer;">
+          <button class="p-task-btn" onclick="submitSelectedClosingCard(${s.slotId})" style="background:${slotBg}; border:${slotBorder}; border-radius:8px; padding:12px; margin-bottom:8px; width:100%; text-align:left; cursor:pointer; transition:all 0.2s ease;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div>
-                <span style="color:var(--mono-pink); font-weight:900; font-size:0.9rem;">📥 วางลงช่องที่ ${s.pageSlot}:</span>
-                <div style="color:#bbb; font-size:0.8rem; margin-top:2px;">${s.title}</div>
+                <span style="color:${slotActionColor}; font-weight:900; font-size:0.9rem;">📥 ช่องที่ ${s.pageSlot}:</span>
+                <div style="color:#e2e8f0; font-size:0.82rem; margin-top:3px; line-height:1.3;">${s.title}</div>
               </div>
-              <span style="font-size:1.1rem; color:var(--mono-pink); font-weight:900; white-space:nowrap; margin-left:8px;">👈 วางที่นี่</span>
+              <span style="font-size:0.85rem; color:${slotActionColor}; font-weight:900; white-space:nowrap; margin-left:8px; padding:4px 8px; background:rgba(0,0,0,0.3); border-radius:4px;">${slotActionTxt}</span>
             </div>
           </button>
         `;
@@ -4745,25 +4824,25 @@ function renderMobileTask(stage) {
       const isSelected = selectedClosingCardId === c.id;
       if (c.locked) {
         return `
-          <div class="p-closing-card locked" style="background:#0f111a; border:2px dashed #2e2e42; border-radius:8px; padding:10px; margin-bottom:8px; opacity:0.6; cursor:not-allowed; display:flex; align-items:center; gap:10px;">
+          <div class="p-closing-card locked" onclick="showToast('🔒 การ์ดใบนี้ถูกล็อกอยู่! ต้องรอให้เพื่อนช่วยกันไขช่องก่อนหน้าให้สำเร็จก่อน'); playSfx('wrong');" style="background:#0f111a; border:2px dashed #2e2e42; border-radius:8px; padding:10px; margin-bottom:8px; opacity:0.6; cursor:not-allowed; display:flex; align-items:center; gap:10px;">
             <span style="font-size:1.5rem; filter:grayscale(1);">🔒</span>
             <div style="flex:1;">
               <span style="font-size:0.85rem; color:#94a3b8; font-weight:700;">🔒 การ์ดปริศนา [ยังไม่ถูกปลดล็อก]</span>
-              <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">(แลกเปลี่ยนและปรึกษากับเพื่อนในศาลที่มีการ์ดใบที่ปลดล็อก)</div>
+              <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">(แลกเปลี่ยนและปรึกษากับเพื่อนในศาลที่มีการ์ดปลดล็อก)</div>
             </div>
           </div>
         `;
       } else {
-        const borderStyle = isSelected ? '3px solid var(--mono-pink)' : '2px solid #444466';
-        const bgStyle = isSelected ? 'rgba(255, 43, 109, 0.22)' : '#19192e';
-        const shadowStyle = isSelected ? 'box-shadow: 0 0 12px var(--mono-pink);' : '';
+        const borderStyle = isSelected ? '3px solid #ff2b6d' : '2px solid #444466';
+        const bgStyle = isSelected ? 'rgba(255, 43, 109, 0.28)' : '#19192e';
+        const shadowStyle = isSelected ? 'box-shadow: 0 0 16px rgba(255, 43, 109, 0.85); transform: scale(1.02);' : '';
         return `
-          <div class="p-closing-card ${isSelected ? 'selected' : ''}" onclick="selectClosingCard('${c.id}')" style="background:${bgStyle}; border:${borderStyle}; border-radius:8px; padding:10px; margin-bottom:8px; cursor:pointer; display:flex; align-items:center; gap:10px; ${shadowStyle} transition:all 0.2s ease;">
-            <span style="font-size:1.5rem;">${c.icon || '📄'}</span>
+          <div class="p-closing-card ${isSelected ? 'selected' : ''}" onclick="selectClosingCard('${c.id}')" style="background:${bgStyle}; border:${borderStyle}; border-radius:8px; padding:12px; margin-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:10px; ${shadowStyle} transition:all 0.2s ease;">
+            <span style="font-size:1.6rem;">${c.icon || '📄'}</span>
             <div style="flex:1;">
-              <span style="font-size:0.85rem; color:#fff; font-weight:${isSelected ? '800' : 'normal'};">${c.title}</span>
-              <div style="font-size:0.75rem; color:${isSelected ? 'var(--court-gold)' : 'var(--mono-cyan)'}; margin-top:2px;">
-                ${isSelected ? '👉 เลือกใบนี้แล้ว! กรุณากดปุ่มช่องว่างด้านบนเพื่อวาง' : 'แตะเพื่อเลือกการ์ดใบนี้'}
+              <div style="font-size:0.88rem; color:#fff; font-weight:${isSelected ? '900' : 'bold'}; line-height:1.35;">${c.title}</div>
+              <div style="font-size:0.78rem; color:${isSelected ? 'var(--court-gold)' : 'var(--mono-cyan)'}; margin-top:4px; font-weight:${isSelected ? '800' : 'normal'};">
+                ${isSelected ? '👉 [เลือกการ์ดใบนี้แล้ว!] แตะปุ่มช่องว่างด้านบนเพื่อวาง' : '👆 แตะเพื่อเลือกการ์ดใบนี้'}
               </div>
             </div>
           </div>
@@ -4896,32 +4975,70 @@ function sendLogicDiveChoice(ch) {
 
 let selectedClosingCardId = null;
 
-function selectClosingCard(cardId) {
-  selectedClosingCardId = cardId;
-  if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
-    renderMobileTask('closing');
+function getMyClosingCards() {
+  if (!gameState.closingPlayerHands) return [];
+
+  // 1. Try myPlayer object
+  if (typeof myPlayer !== 'undefined' && myPlayer) {
+    if (myPlayer.id && gameState.closingPlayerHands[myPlayer.id]) return gameState.closingPlayerHands[myPlayer.id];
+    if (myPlayer.userHash && gameState.closingPlayerHands[myPlayer.userHash]) return gameState.closingPlayerHands[myPlayer.userHash];
+    if (myPlayer.name && gameState.closingPlayerHands[myPlayer.name]) return gameState.closingPlayerHands[myPlayer.name];
   }
+  // 2. Try currentUserHash
+  if (typeof currentUserHash !== 'undefined' && currentUserHash && gameState.closingPlayerHands[currentUserHash]) {
+    return gameState.closingPlayerHands[currentUserHash];
+  }
+  // 3. Try URL params
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const qUser = urlParams.get('user');
+    if (qUser && gameState.closingPlayerHands[qUser]) return gameState.closingPlayerHands[qUser];
+    const qName = urlParams.get('name');
+    if (qName && gameState.closingPlayerHands[qName]) return gameState.closingPlayerHands[qName];
+  } catch(e) {}
+
+  // 4. Try local fallback
+  if (gameState.closingPlayerHands['local']) return gameState.closingPlayerHands['local'];
+
+  // 5. Fallback first key
+  const keys = Object.keys(gameState.closingPlayerHands);
+  if (keys.length > 0) return gameState.closingPlayerHands[keys[0]];
+
+  return [];
+}
+
+function selectClosingCard(cardId) {
+  if (selectedClosingCardId === cardId) {
+    selectedClosingCardId = null; // deselect
+  } else {
+    selectedClosingCardId = cardId;
+    playSfx('menu_select');
+  }
+  renderMobileTask('closing');
 }
 
 function submitSelectedClosingCard(slotId) {
   if (!selectedClosingCardId) {
-    showToast('⚠️ กรุณาคลิกเลือกการ์ดในมือก่อน แล้วค่อยกดวางลงช่อง!');
+    showToast('⚠️ กรุณาแตะเลือกการ์ดในมือก่อน แล้วค่อยกดวางลงช่องนี้!');
+    playSfx('wrong');
     return;
   }
   sendClosingCard(slotId, selectedClosingCardId);
   selectedClosingCardId = null;
-  if (typeof currentTab !== 'undefined' && currentTab === 'tasks') {
-    renderMobileTask('closing');
-  }
+  renderMobileTask('closing');
 }
 
 function sendClosingCard(slot, cardId) {
+  const pName = (typeof myPlayer !== 'undefined' && myPlayer && myPlayer.name) ? myPlayer.name : 'ผู้เล่น';
   broadcast({
     type: 'closing_submit',
     slot: slot,
     cardId: cardId,
-    playerName: myPlayer ? myPlayer.name : 'ผู้เล่น'
+    playerName: pName
   });
+  if (typeof isHost !== 'undefined' && isHost) {
+    handleClosingSubmit(slot, cardId, pName);
+  }
 }
 
 function sendStg6FinalBlow() {

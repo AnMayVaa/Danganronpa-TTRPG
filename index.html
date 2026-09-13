@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=3.8.1">
+  <link rel="stylesheet" href="/css/style.css?v=3.8.2">
   <!-- Early view detection script: immediately hides other page navigation buttons on Court and PC views -->
   <script>
     (function() {
@@ -708,10 +708,23 @@
                 </select>
               </div>
             </div>
-            <button class="dm-act-btn cyan" onclick="adminSetGame('closing')">
-              <strong>7. Closing Argument</strong>
-              <span>มังงะสรุปคดี (Culprit B Timeline)</span>
-            </button>
+            <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
+              <button class="dm-act-btn cyan" onclick="adminSetGame('closing')" style="width:100%;">
+                <strong>7. Closing Argument</strong>
+                <span>มังงะสรุปคดี (Culprit B Timeline)</span>
+              </button>
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; background:#141424; padding:6px 10px; border-radius:6px; border:1px solid #333348;">
+                <button type="button" class="small-btn grey" onclick="adminPrevClosingPage()" style="padding:4px 8px; font-size:0.75rem; font-weight:800;">◀ หน้าก่อน</button>
+                <div style="display:flex; gap:4px;" title="เปลี่ยนหน้ามังงะ (มีผลพร้อมกันทุกจอ)">
+                  <span class="page-dot active" id="dmDotP1" onclick="adminSetClosingPage(1)" style="cursor:pointer; width:22px; height:22px; line-height:22px; text-align:center; font-size:0.75rem; border-radius:4px; display:inline-block;">1</span>
+                  <span class="page-dot" id="dmDotP2" onclick="adminSetClosingPage(2)" style="cursor:pointer; width:22px; height:22px; line-height:22px; text-align:center; font-size:0.75rem; border-radius:4px; display:inline-block;">2</span>
+                  <span class="page-dot" id="dmDotP3" onclick="adminSetClosingPage(3)" style="cursor:pointer; width:22px; height:22px; line-height:22px; text-align:center; font-size:0.75rem; border-radius:4px; display:inline-block;">3</span>
+                  <span class="page-dot" id="dmDotP4" onclick="adminSetClosingPage(4)" style="cursor:pointer; width:22px; height:22px; line-height:22px; text-align:center; font-size:0.75rem; border-radius:4px; display:inline-block;">4</span>
+                  <span class="page-dot" id="dmDotP5" onclick="adminSetClosingPage(5)" style="cursor:pointer; width:22px; height:22px; line-height:22px; text-align:center; font-size:0.75rem; border-radius:4px; display:inline-block;">5</span>
+                </div>
+                <button type="button" class="small-btn cyan" onclick="adminNextClosingPage()" style="padding:4px 8px; font-size:0.75rem; font-weight:800;">หน้าถัดไป ▶</button>
+              </div>
+            </div>
             <div class="dm-combo-block" style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:6px;">
               <button class="dm-act-btn yellow" onclick="adminSetGame('stage7')" style="width:100%;">
                 <strong>🗳️ 8. เริ่มเปิดการโหวต (Voting Time)</strong>
@@ -2739,7 +2752,7 @@
   </button>
 
   <script src="/js/jsQR.min.js"></script>
-  <script src="/js/client.js?v=3.8.1"></script>
+  <script src="/js/client.js?v=3.8.2"></script>
   <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>
