@@ -2214,33 +2214,33 @@ const ALL_CLUES_DATA = [
   { id: "EVD-02", image: "assets/item_pork_bone.jpg?v=4.0.0", pin: "719304", aliases: ["BONE-02", "2", "E02"], name: "ท่อนกระดูกหมูในหม้อสตูว์", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องครัว (ก้นหม้อสตูว์)", desc: "ท่อนกระดูกหมูต้มสุก 2 ท่อนก้นหม้อสตูว์ บนผิวกระดูกท่อนหนึ่งมีรอยแตกร้าวและคราบสีคล้ำติดแน่นตามรอยแยก" },
   { id: "EVD-03", pin: "936154", aliases: ["PC2-03", "3", "E03"], name: "คำให้การของ PC 2", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 2 (1 AP)", desc: "คำให้การ: \"ตอน 17:30 ถึง 18:00 น. ฉันอยู่ในโรงยิม พอเดินออกมาที่โถงทางเดินเห็นหลอดไฟนีออนกะพริบ และไม่พบใครบริเวณนั้น\"" },
   { id: "EVD-04", image: "assets/room_blast_gate.jpg", pin: "873205", aliases: ["CLIP-04", "4", "E04"], name: "คลิปหนีบกระดาษเหล็ก", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "หน้าบอร์ดประชาสัมพันธ์โถงทางเข้าหลัก", desc: "คลิปหนีบกระดาษทำจากลวดเหล็ก 3 ตัว สภาพมีคราบสนิมเกาะ ตกอยู่ในร่องรอยต่อของพื้นปูนหน้าบอร์ดประชาสัมพันธ์" },
-  { id: "EVD-05", image: "assets/item_dryer_dry1.jpg", pin: "306795", aliases: ["DRY-05", "5", "E05"], name: "เครื่องอบผ้า DRY-1", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เครื่องอบผ้า)", desc: "เครื่องอบผ้าอุตสาหกรรม DRY-1 ทำงานเสร็จสิ้น ภายในมีรองเท้าบูทหนังหุ้มข้อของเหยื่อเรียวตะ (B) ที่หน้าปัดมีฟังก์ชันตั้งเวลาเริ่มทำงานล่วงหน้า (Delay Timer)" },
-  { id: "EVD-06", image: "assets/item_vending_machine.jpg", pin: "684129", aliases: ["VEND-06", "6", "E06"], name: "ตู้กดน้ำอัตโนมัติโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "ตู้กดเครื่องดื่มอัตโนมัติโถงทางเดินกลาง มีรอยบุบที่แผงด้านข้าง และมีเหรียญติดค้างในช่องหยอด" },
-  { id: "EVD-07", image: "assets/item_monokuma_file.png", pin: "482915", aliases: ["FILE-07", "7", "E07"], name: "Monokuma File #1", importance: "MUST", secretType: "CORE", typeLabel: "ผลชันสูตรทางการ (Core)", loc: "ห้องซักรีด (ร่างของเหยื่อเรียวตะ (B))", desc: "รายงานชันสูตรทางการ: เวลาเสียชีวิต ~21:00 น. กระดูกคอหักและขาดอากาศหายใจ แผลแตกท้ายทอยเกิดก่อนตาย 1-2 ชม. สวมถุงเท้าไม่สวมรองเท้า น้ำหนักตัว 65.0 กก." },
+  { id: "EVD-05", image: "assets/item_dryer_dry1.jpg?v=4.1.0", pin: "306795", aliases: ["DRY-05", "5", "E05"], name: "เครื่องอบผ้า DRY-1", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เครื่องอบผ้า)", desc: "เครื่องอบผ้าอุตสาหกรรม DRY-1 ทำงานเสร็จสิ้น ภายในมีรองเท้าบูทหนังหุ้มข้อของเหยื่อเรียวตะ ที่หน้าปัดมีฟังก์ชันตั้งเวลาเริ่มทำงานล่วงหน้า (Delay Timer)" },
+  { id: "EVD-06", image: "assets/item_vending_machine.jpg?v=4.1.0", pin: "684129", aliases: ["VEND-06", "6", "E06"], name: "ตู้กดน้ำอัตโนมัติโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "ตู้กดเครื่องดื่มอัตโนมัติโถงทางเดินกลาง มีรอยบุบที่แผงด้านข้าง และมีเหรียญติดค้างในช่องหยอด" },
+  { id: "EVD-07", image: "assets/item_monokuma_file.png", pin: "482915", aliases: ["FILE-07", "7", "E07"], name: "Monokuma File #1", importance: "MUST", secretType: "CORE", typeLabel: "ผลชันสูตรทางการ (Core)", loc: "ห้องซักรีด (ร่างของเหยื่อเรียวตะ)", desc: "รายงานชันสูตรทางการ: เวลาเสียชีวิต ~21:00 น. กระดูกคอหักและขาดอากาศหายใจ แผลแตกท้ายทอยเกิดก่อนตาย 1-2 ชม. สวมถุงเท้าไม่สวมรองเท้า น้ำหนักตัว 65.0 กก." },
   { id: "EVD-08", image: "assets/room_dining_hall.jpg", pin: "659143", aliases: ["SNACK-08", "8", "E08"], name: "ซองขนมปังกรอบใต้เก้าอี้", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "ห้องอาหาร (ใต้เก้าอี้ทานข้าว)", desc: "ซองฟอยล์บรรจุขนมปังกรอบรสสาหร่ายถูกฉีกเปิดทิ้งไว้ใต้เก้าอี้ห้องอาหาร ภายในซองมีเศษขนมปังกรอบเหลืออยู่เล็กน้อย" },
-  { id: "EVD-09", image: "assets/item_pink_rope.jpg", pin: "852179", aliases: ["ROPE-09", "9", "E09"], name: "เชือกไนลอนสีชมพูบนพื้น", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (พื้นข้างศพเรียวตะ (B))", desc: "เชือกไนลอนถักสีชมพู 8 มม. ขดอยู่บนพื้น ปลายด้านหนึ่งผูกเป็นบ่วง ส่วนปลายอีกด้านมีรอยตัดผิวเรียบ" },
-  { id: "EVD-10", image: "assets/item_water_meter.jpg", pin: "815307", aliases: ["METER-10", "10", "E10"], name: "มาตรวัดน้ำประปาหลัก", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "มาตรวัดน้ำประปาแสดงตัวเลขใช้น้ำสะสม 65.2 ลิตร และเข็มวัดยังหมุนด้วยอัตราประมาณ 0.4 ลิตร/นาที (24 ลิตร/ชม.)" },
+  { id: "EVD-09", image: "assets/item_pink_rope.jpg", pin: "852179", aliases: ["ROPE-09", "9", "E09"], name: "เชือกไนลอนสีชมพูบนพื้น", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (พื้นข้างศพเรียวตะ)", desc: "เชือกไนลอนถักสีชมพู 8 มม. ขดอยู่บนพื้น ปลายด้านหนึ่งผูกเป็นบ่วง ส่วนปลายอีกด้านมีรอยตัดผิวเรียบ" },
+  { id: "EVD-10", image: "assets/item_water_meter.jpg?v=4.1.0", pin: "815307", aliases: ["METER-10", "10", "E10"], name: "มาตรวัดน้ำประปาหลัก", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "มาตรวัดน้ำประปาแสดงตัวเลขใช้น้ำสะสม 65.2 ลิตร และเข็มวัดยังหมุนด้วยอัตราประมาณ 0.4 ลิตร/นาที (24 ลิตร/ชม.)" },
   { id: "EVD-11", image: "assets/item_bleach_gallon.jpg", pin: "741953", aliases: ["BLEACH-11", "11", "E11"], name: "แกลลอนน้ำยาฟอกขาวในถังขยะ", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "ห้องซักรีด (ถังขยะข้างเครื่องซักผ้า)", desc: "แกลลอนพลาสติกบรรจุน้ำยาฟอกขาวถูกทิ้งอยู่ในถังขยะห้องซักรีด ภายในแกลลอนว่างเปล่าและส่งกลิ่นคลอรีนรุนแรง" },
   { id: "EVD-12", image: "assets/item_pocket_knife.jpg?v=4.0.0", pin: "394820", aliases: ["KNIFE-12", "12", "E12"], name: "มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ร่างของเรียวตะ (กระเป๋าเสื้อ)", desc: "มีดพับอเนกประสงค์ใบมีด 7 ซม. กางค้างไว้ในกระเป๋าเสื้อเหยื่อเรียวตะ โคนใบมีดมีเศษเส้นใยสังเคราะห์สีชมพูติดอยู่" },
   { id: "EVD-13", image: "assets/room_kitchen.jpg", pin: "630841", aliases: ["FREEZE-13", "13", "E13"], name: "ช่องแช่แข็งในห้องครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (ช่องฟรีซ)", desc: "ช่องแช่แข็งตู้เย็นในครัวมีเกล็ดน้ำแข็งละลายเป็นแอ่งน้ำ และพบถุงพลาสติกบรรจุเนื้อสัตว์แช่แข็งถูกฉีกเปิดทิ้งไว้" },
   { id: "EVD-14", image: "assets/item_ceiling_pipe.jpg", pin: "928413", aliases: ["RAIL-14", "14", "E14"], name: "ราวท่อสแตนเลสเพดานห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เพดานสูง 4 ม.)", desc: "ท่อสแตนเลสขนานเพดานห้องซักรีดสูง 4 ม. เหนือแนวหน้าต่าง ผิวด้านบนของท่อมีรอยขูดถลอกเป็นแถบแนวยาว" },
   { id: "EVD-15", image: "assets/room_gymnasium.jpg", pin: "295418", aliases: ["CHAIN-15", "15", "E15"], name: "โซ่คล้องประตูหนีไฟโรงยิม", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โรงยิม (ประตูด้านหลัง)", desc: "โซ่เหล็กคล้องล็อกประตูหนีไฟด้านหลังโรงยิม ข้อโซ่ข้อหนึ่งมีรอยบากลึกจากใบเลื่อย และมีเศษผงเหล็กตกอยู่บนพื้นใต้บานประตู" },
   { id: "EVD-16", pin: "369842", aliases: ["PC5-16", "16", "E16"], name: "คำให้การของ PC 5", importance: "MUST", secretType: "TESTIMONY", typeLabel: "คำให้การ (Core)", loc: "ได้จากการถาม PC 5 (1 AP)", desc: "คำให้การ: \"ฉันมีเวรทำอาหารมื้อค่ำตามตารางใน Monopad อยู่ในครัวต้มสตูว์เนื้อตลอดเวลาช่วง 17:45 - 18:30 น. ไม่ได้ออกไปข้างนอก\"" },
-  { id: "EVD-17", pin: "785130", aliases: ["DROP-17", "17", "E17"], name: "รอยหยดน้ำบนพื้นโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "รอยหยดน้ำขนาดเล็กกระจายตัวเป็นแนวยาวบนพื้นกระเบื้องโถงทางเดิน ระหว่างบริเวณหน้าห้องซักรีดไปจนถึงหน้าประตูห้องครัว" },
+  { id: "EVD-17", image: "assets/item_water_drops.jpg?v=4.1.0", pin: "785130", aliases: ["DROP-17", "17", "E17"], name: "รอยหยดน้ำบนพื้นโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "รอยหยดน้ำขนาดเล็กกระจายตัวเป็นแนวยาวบนพื้นกระเบื้องโถงทางเดิน ระหว่างบริเวณหน้าห้องซักรีดไปจนถึงหน้าประตูห้องครัว" },
   { id: "EVD-18", image: "assets/room_glass_corridor.jpg", pin: "417285", aliases: ["GLASS-18", "18", "E18"], name: "เศษกระจกบริเวณเชิงบันได", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "เชิงบันไดทางขึ้นชั้น 2", desc: "เศษกระจกใสความหนา 5 มม. แตกกระจายอยู่บนขั้นบันไดทางขึ้นชั้น 2 บนขอบกระจกชิ้นหนึ่งมีคราบสีส้มอมแดงเกาะติดอยู่" },
   { id: "EVD-19", image: "assets/item_shattered_barrel.jpg", pin: "175936", aliases: ["BUCKET-19", "19", "E19"], name: "ซากถังน้ำพลาสติกตกแตก", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ลานปูนซักล้างด้านหลัง (ใต้หน้าต่าง)", desc: "ถังพลาสติก 80 ลิตร ตกแตกกระจายบนพื้นลานปูนด้านนอก มีน้ำสาดกระจายเปียกทั่วบริเวณลานปูน หูจับถังมีรอยเชือกไนลอนผูกติดอยู่" },
   { id: "EVD-20", pin: "472890", aliases: ["PC1-20", "20", "E20"], name: "คำให้การของ PC 1", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 1 (1 AP)", desc: "คำให้การ: \"ช่วง 17:45 น. ฉันทุบตู้กดน้ำที่กินเหรียญอยู่ที่โถงกลาง ได้ยินเสียงน้ำไหลเบาๆ ในแนวกำแพงข้างห้องซักรีด\"" },
   { id: "EVD-21", image: "assets/item_bloody_towel.jpg?v=4.0.0", pin: "904712", aliases: ["TOWEL-21", "21", "E21"], name: "ผ้าขนหนูสีกรมท่าเปื้อนเลือด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องครัว (ใต้ถุงขยะดำก้นถัง)", desc: "ผ้าขนหนูสีกรมท่าเนื้อหนาถูกขยำอยู่ใต้ถุงขยะดำก้นถังในครัว เมื่อคลี่ออกพบรอยเปื้อนสีน้ำตาลคล้ำแห้งกรัง" },
-  { id: "EVD-22", pin: "194836", aliases: ["NOTE-22", "22", "E22"], name: "แผ่นกระดาษโน้ตบนพื้นโถงทางเดิน", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "กระดาษสมุดฉีกขนาดฝ่ามือ มีลายมือเขียนตารางเกมโอเอกซ์และข้อความสั้นๆ ตกอยู่บนพื้นกระเบื้องโถงทางเดิน" },
-  { id: "EVD-23", pin: "541682", aliases: ["FAUCET-23", "23", "E23"], name: "สายยางน้ำเปิดทิ้งและน้ำท่วมขัง", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องซักรีด (แนวก๊อกน้ำและพื้นห้อง)", desc: "สายยางสีเขียวยาวต่ออยู่กับก๊อกน้ำที่เปิดวาล์วทิ้งไว้ ปลายสายยางดีดสะบัดตกอยู่บนพื้นห้องซักรีด น้ำไหลทะลักออกมาอย่างต่อเนื่องจนเจิ่งนองท่วมขังพื้นกระเบื้องทั่วห้อง" },
-  { id: "EVD-24", image: "assets/item_notice_board.jpg", pin: "249581", aliases: ["MAP-24", "24", "E24"], name: "แผนผังอาคารบนบอร์ดประชาสัมพันธ์", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "แผนผังอาคารชั้น 1 แสดงลานบริการด้านหลังเป็นพื้นที่ปิด ล้อมด้วยกำแพงคอนกรีตสูง 5 ม. ไร้ประตูทางออก" },
-  { id: "EVD-25", pin: "612847", aliases: ["RACK-25", "25", "E25"], name: "ราวแขวนผ้าขนหนูห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "ร่องรอย/สิ่งของ (Core)", loc: "ห้องซักรีด (ราวแขวนผ้า)", desc: "ราวแขวนผ้าสแตนเลสข้างอ่างล้างห้องซักรีด มีผ้าขนหนูสีกรมท่าแขวนอยู่ 4 ผืน และมีช่องว่างเว้น 1 จุด" },
+  { id: "EVD-22", image: "assets/item_notepad.jpg?v=4.1.0", pin: "194836", aliases: ["NOTE-22", "22", "E22"], name: "แผ่นกระดาษโน้ตบนพื้นโถงทางเดิน", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "กระดาษสมุดฉีกขนาดฝ่ามือ มีลายมือเขียนตารางเกมโอเอกซ์และข้อความสั้นๆ ตกอยู่บนพื้นกระเบื้องโถงทางเดิน" },
+  { id: "EVD-23", image: "assets/item_water_hose.jpg?v=4.1.0", pin: "541682", aliases: ["FAUCET-23", "23", "E23"], name: "สายยางน้ำเปิดทิ้งและน้ำท่วมขัง", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องซักรีด (แนวก๊อกน้ำและพื้นห้อง)", desc: "สายยางสีเขียวยาวต่ออยู่กับก๊อกน้ำที่เปิดวาล์วทิ้งไว้ ปลายสายยางดีดสะบัดตกอยู่บนพื้นห้องซักรีด น้ำไหลทะลักออกมาอย่างต่อเนื่องจนเจิ่งนองท่วมขังพื้นกระเบื้องทั่วห้อง" },
+  { id: "EVD-24", image: "assets/item_notice_board.jpg?v=4.1.0", pin: "249581", aliases: ["MAP-24", "24", "E24"], name: "แผนผังอาคารบนบอร์ดประชาสัมพันธ์", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "แผนผังอาคารชั้น 1 แสดงลานบริการด้านหลังเป็นพื้นที่ปิด ล้อมด้วยกำแพงคอนกรีตสูง 5 ม. ไร้ประตูทางออก" },
+  { id: "EVD-25", image: "assets/item_towel_rack.jpg?v=4.1.0", pin: "612847", aliases: ["RACK-25", "25", "E25"], name: "ราวแขวนผ้าขนหนูห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "ร่องรอย/สิ่งของ (Core)", loc: "ห้องซักรีด (ราวแขวนผ้า)", desc: "ราวแขวนผ้าสแตนเลสข้างอ่างล้างห้องซักรีด มีผ้าขนหนูสีกรมท่าแขวนอยู่ 4 ผืน และมีช่องว่างเว้น 1 จุด" },
   { id: "EVD-26", image: "assets/item_wine_bottle.jpg?v=4.0.0", pin: "248356", aliases: ["WINE-26", "26", "E26"], name: "ขวดไวน์และคราบบนเคาน์เตอร์ครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (เคาน์เตอร์ปรุงอาหาร)", desc: "ขวดไวน์แดงสำหรับปรุงอาหารเปิดฝาวางอยู่บนเคาน์เตอร์ครัว มีไวน์เหลืออยู่ก้นขวดเล็กน้อย บริเวณเคาน์เตอร์ข้างเตาพบรอยของเหลวสีแดงหกหยดเป็นจุดๆ" },
   { id: "EVD-27", pin: "180472", aliases: ["PC3-27", "27", "E27"], name: "คำให้การของ PC 3", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 3 (1 AP)", desc: "คำให้การ: \"ช่วง 17:30 ถึง 18:15 น. ฉันสำรวจประตูกล Blast Gate และมาตรวัดน้ำ ช่วงประมาณ 18:00 น. เห็น PC 4 เดินที่ทางเดินกระจกใส\"" },
   { id: "EVD-28", pin: "328691", aliases: ["TASTE-28", "28", "E28"], name: "รสชาติของน้ำซุปสตูว์เนื้อ", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (หม้อสตูว์บนเตา)", desc: "น้ำซุปสตูว์เนื้อในหม้อมีกลิ่นหอมของเครื่องเทศและไวน์แดง แต่เมื่อชิมแล้วจะสัมผัสได้ถึงรสชาติฝาดเฝื่อนคล้ายสนิมเหล็กผสมอยู่จางๆ" },
   { id: "EVD-29", pin: "561479", aliases: ["THUD-29", "29", "E29"], name: "เสียงกระแทกจากห้องซักรีดตอน 21:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องอาหาร (จุดรวมตัวเวลาราตรี)", desc: "ขณะที่ทุกคนรวมตัวอยู่ในห้องอาหารเวลา 21:00 น. มีเสียงเครื่องจักรหมุนกระแทกและเสียงวัตถุหนักตกกระทบดังสนั่นมาจากทางปีกห้องซักรีด" },
   { id: "EVD-30", pin: "527391", aliases: ["PC4-30", "30", "E30"], name: "คำให้การของ PC 4", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 4 (1 AP)", desc: "คำให้การ: \"ช่วง 17:30 ถึง 18:15 น. ฉันเดินอยู่ที่ทางเดินกระจก มองเห็นเงาวัตถุทรงกระบอกห้อยอยู่นอกหน้าต่างห้องซักรีด\"" },
-  { id: "EVD-31", pin: "439268", aliases: ["DINNER-31", "31", "E31"], name: "การรวมตัวมื้อค่ำเวลา 19:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องอาหาร (โต๊ะมื้อค่ำ)", desc: "การรวมตัวรับประทานอาหารมื้อค่ำเวลา 19:00 น. มีสตูว์เนื้อปรุงเสร็จโดย PC 5 ตามตารางเวรบน Monopad โดยเหยื่อเรียวตะ (B) ไม่ได้มาร่วมโต๊ะอาหาร" },
+  { id: "EVD-31", pin: "439268", aliases: ["DINNER-31", "31", "E31"], name: "การรวมตัวมื้อค่ำเวลา 19:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องอาหาร (โต๊ะมื้อค่ำ)", desc: "การรวมตัวรับประทานอาหารมื้อค่ำเวลา 19:00 น. มีสตูว์เนื้อปรุงเสร็จโดย PC 5 ตามตารางเวรบน Monopad โดยเหยื่อเรียวตะไม่ได้มาร่วมโต๊ะอาหาร" },
 ];
 
 const PC_INVESTIGATION_CLUES = {
@@ -2323,32 +2323,34 @@ function grantInvestigationClues(silent = false) {
   const assigned = PC_INVESTIGATION_CLUES[slot] || [];
   if (!assigned.length) return;
 
-  let currentUnlocked = getUnlockedClues();
-  let newlyUnlocked = [];
-  assigned.forEach(cid => {
-    if (!currentUnlocked.includes(cid)) {
-      currentUnlocked.push(cid);
-      newlyUnlocked.push(cid);
-    }
-  });
+  const prefix = getClueStoragePrefix();
+  const userKey = currentUserHash ? ('dangan_unlocked_' + prefix + currentUserHash) : null;
+  const existingRaw = userKey ? localStorage.getItem(userKey) : null;
 
-  if (newlyUnlocked.length > 0) {
+  let currentUnlocked;
+  if (!existingRaw) {
+    // New investigation session for this room! Start cleanly with strictly the assigned clues
+    currentUnlocked = [...assigned];
     saveUnlockedClues(currentUnlocked);
-    // Broadcast newly discovered clues to host
-    newlyUnlocked.forEach(cid => {
-      const c = ALL_CLUES_DATA.find(x => x.id === cid);
-      broadcast({
-        type: 'clue_discovered',
-        clueId: cid,
-        clueName: getClueDisplayName(c),
-        playerName: (myPlayer && myPlayer.name) ? myPlayer.name : 'ผู้เล่น',
-        userHash: currentUserHash
-      });
+  } else {
+    currentUnlocked = getUnlockedClues();
+    let newlyUnlocked = [];
+    assigned.forEach(cid => {
+      if (!currentUnlocked.includes(cid)) {
+        currentUnlocked.push(cid);
+        newlyUnlocked.push(cid);
+      }
     });
+    if (newlyUnlocked.length > 0) {
+      saveUnlockedClues(currentUnlocked);
+    }
   }
 
   if (typeof renderCluesList === 'function') {
     renderCluesList();
+  }
+  if (typeof renderPlayerCluesList === 'function') {
+    renderPlayerCluesList();
   }
 
   if (!silent) {
@@ -2403,35 +2405,88 @@ function closeInvestigationClueModal() {
 
 let currentUserClueTagFilter = 'ALL';
 
+function getClueStoragePrefix() {
+  const r = (typeof roomCode !== 'undefined' && roomCode) 
+    ? roomCode 
+    : ((typeof gameState !== 'undefined' && gameState && gameState.roomCode) ? gameState.roomCode : '');
+  return r ? (r.toUpperCase() + '_') : '';
+}
+
 function getUnlockedClues() {
-  const keysToTry = [
-    'dangan_unlocked_' + (currentUserHash || 'guest'),
-    (myPlayer && myPlayer.name) ? ('dangan_unlocked_name_' + myPlayer.name.trim().toLowerCase()) : null,
+  const prefix = getClueStoragePrefix();
+
+  // If player is identified by hash or character name
+  if (currentUserHash || (myPlayer && myPlayer.name)) {
+    const userKeys = [
+      currentUserHash ? ('dangan_unlocked_' + prefix + currentUserHash) : null,
+      currentUserHash ? ('dangan_unlocked_' + currentUserHash) : null,
+      (myPlayer && myPlayer.name) ? ('dangan_unlocked_name_' + prefix + myPlayer.name.trim().toLowerCase()) : null,
+      (myPlayer && myPlayer.name) ? ('dangan_unlocked_name_' + myPlayer.name.trim().toLowerCase()) : null
+    ].filter(Boolean);
+
+    for (const k of userKeys) {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        try {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr) && arr.length > 0) {
+            return Array.from(new Set(arr));
+          }
+        } catch(e) {}
+      }
+    }
+
+    // Default to player's starting investigation clues if they have a pcSlot
+    let slot = 0;
+    if (myPlayer && myPlayer.pcSlot) slot = parseInt(myPlayer.pcSlot, 10);
+    else {
+      const qSlot = new URLSearchParams(window.location.search).get('pc');
+      if (qSlot) slot = parseInt(qSlot, 10);
+    }
+    if (slot && PC_INVESTIGATION_CLUES[slot]) {
+      return [...PC_INVESTIGATION_CLUES[slot]];
+    }
+    return [];
+  }
+
+  // Fallback ONLY for guest with no account/name
+  const guestKeys = [
+    prefix ? ('dangan_unlocked_' + prefix + 'guest') : null,
     'dangan_unlocked_guest',
     'dangan_unlocked_default'
   ].filter(Boolean);
 
-  let merged = new Set();
-  keysToTry.forEach(k => {
+  for (const k of guestKeys) {
     const raw = localStorage.getItem(k);
     if (raw) {
       try {
         const arr = JSON.parse(raw);
-        if (Array.isArray(arr)) arr.forEach(id => merged.add(id));
+        if (Array.isArray(arr)) {
+          return Array.from(new Set(arr));
+        }
       } catch(e) {}
     }
-  });
-  return Array.from(merged);
+  }
+  return [];
 }
 
 function saveUnlockedClues(unlockedArray) {
-  const jsonStr = JSON.stringify(unlockedArray);
+  const prefix = getClueStoragePrefix();
+  const safeArr = Array.from(new Set(Array.isArray(unlockedArray) ? unlockedArray : []));
+  const jsonStr = JSON.stringify(safeArr);
+
   if (currentUserHash) {
+    localStorage.setItem('dangan_unlocked_' + prefix + currentUserHash, jsonStr);
     localStorage.setItem('dangan_unlocked_' + currentUserHash, jsonStr);
+  } else {
+    localStorage.setItem('dangan_unlocked_' + prefix + 'guest', jsonStr);
+    localStorage.setItem('dangan_unlocked_guest', jsonStr);
   }
-  localStorage.setItem('dangan_unlocked_guest', jsonStr);
+
   if (myPlayer && myPlayer.name) {
-    localStorage.setItem('dangan_unlocked_name_' + myPlayer.name.trim().toLowerCase(), jsonStr);
+    const nKey = myPlayer.name.trim().toLowerCase();
+    localStorage.setItem('dangan_unlocked_name_' + prefix + nKey, jsonStr);
+    localStorage.setItem('dangan_unlocked_name_' + nKey, jsonStr);
   }
 }
 
@@ -6769,7 +6824,7 @@ function initSimulationLab() {
   try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const k = localStorage.key(i);
-      if (k && !k.startsWith('dangan_unlocked_') && !k.startsWith('dangan_tags_') && !k.startsWith('dangan_notes_') && (k.includes('sim_') || k.toUpperCase().includes('SIM888') || k.startsWith('dangan_player_SIM') || k === 'dangan_player_SIM888')) {
+      if (k && (k.includes('sim_') || k.toUpperCase().includes('SIM888') || k.startsWith('dangan_player_SIM') || k === 'dangan_player_SIM888' || k.startsWith('dangan_unlocked_SIM888') || k.startsWith('dangan_unlocked_sim_') || k === 'dangan_unlocked_guest')) {
         localStorage.removeItem(k);
       }
     }
@@ -7041,7 +7096,9 @@ async function simCollectClues() {
     for (const sp of simPList) {
       const clues = PC_INVESTIGATION_CLUES[sp.pc] || ['EVD-07'];
       try {
+        localStorage.setItem('dangan_unlocked_SIM888_' + sp.user, JSON.stringify(clues));
         localStorage.setItem('dangan_unlocked_' + sp.user, JSON.stringify(clues));
+        localStorage.setItem('dangan_unlocked_SIM888_name_' + sp.name.trim().toLowerCase(), JSON.stringify(clues));
         localStorage.setItem('dangan_unlocked_name_' + sp.name.trim().toLowerCase(), JSON.stringify(clues));
       } catch(e) {}
       for (const cid of clues) {
