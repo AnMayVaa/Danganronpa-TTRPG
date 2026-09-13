@@ -1022,7 +1022,7 @@ body.dangan-body {
   border-radius: 10px;
 }
 
-.scrum-side.left { background: rgba(255, 34, 68, 0.15); border: 2px solid var(--mono-red); }
+.scrum-side.left { background: rgba(2, 132, 199, 0.15); border: 2px solid #38bdf8; box-shadow: 0 0 16px rgba(56, 189, 248, 0.3); }
 .scrum-side.right { background: rgba(0, 255, 136, 0.15); border: 2px solid var(--mono-green); }
 
 .scrum-gauge-box {
@@ -1645,6 +1645,8 @@ body.dangan-body {
 }
 
 /* ==========================================================
+   SABOTEUR DRAWER (EXCLUSIVE TO BLACKENED)
+   ========================================================== */
 .saboteur-dock {
   position: sticky;
   bottom: 0;
@@ -6811,6 +6813,14 @@ body.phase-investigation #playerSectionGuide,
   animation: stg6NeedleOscillate 0.8s infinite ease-in-out;
 }
 
+.stg6-reticle-needle.stationary {
+  left: 50% !important;
+  background: #64748b !important;
+  box-shadow: none !important;
+  opacity: 0.35 !important;
+  animation: none !important;
+}
+
 .stg6-ship-card {
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid #1e293b;
@@ -6828,5 +6838,55 @@ body.phase-investigation #playerSectionGuide,
   text-decoration: line-through;
   opacity: 0.7;
 }
+
+/* ==========================================================
+   DISQUALIFIED SPECTATOR (CREDIBILITY = 0)
+   ========================================================== */
+.disqualified-card {
+  animation: disqPulse 2s infinite ease-in-out;
+}
+@keyframes disqPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+  50% { box-shadow: 0 0 35px rgba(239, 68, 68, 0.6); }
+}
+
+/* ==========================================================
+   QUICK QUESTION / FLASH DECISION (MINI-GAME)
+   ========================================================== */
+#courtQuickQuestion .logic-dive-display {
+  max-width: 860px;
+  margin: 0 auto;
+}
+.qq-choice-btn {
+  background: #151528;
+  border: 2px solid #38bdf8;
+  color: #fff;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.qq-choice-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #00ffff;
+  transform: translateY(-2px);
+}
+.qq-choice-btn.selected {
+  background: rgba(0, 255, 136, 0.25);
+  border-color: #00ff88;
+  box-shadow: 0 0 16px rgba(0, 255, 136, 0.4);
+}
+.qq-choice-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 
 

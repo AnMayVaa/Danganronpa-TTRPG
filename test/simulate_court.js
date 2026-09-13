@@ -403,6 +403,34 @@ async function runSimulation() {
 
   console.log(`PASS (5 votes recorded & revealed in ${Math.max(...voteResults.map(r=>r.latency))} ms)`);
 
+  // -------------------------------------------------------------
+  // Test 15: Quick Question Minigame (Vote & Reveal)
+  // -------------------------------------------------------------
+  process.stdout.write('⚡ Step 15: Quick Question minigame & player votes... ');
+  await admin.send({
+    type: 'set_stage',
+    stage: 'quick_question',
+    config: {
+      id: 'qq_test',
+      question: 'เวลาทำร้ายเหยื่อในครัวคือช่วงเวลาใด!?',
+      choices: { A: '17:30 น.', B: '19:00 น.', C: '20:30 น.' },
+      correct: 'A'
+    }
+  });
+
+  const qqVote1Wait = court.waitFor(m => m.type === 'qq_vote' && m.voterId === 'u-naegi' && m.choice === 'A');
+  const qqVote2Wait = court.waitFor(m => m.type === 'qq_vote' && m.voterId === 'u-kyoko' && m.choice === 'A');
+  await player1.send({ type: 'qq_vote', choice: 'A', voterId: 'u-naegi', playerName: 'นาเอกิ' });
+  await player2.send({ type: 'qq_vote', choice: 'A', voterId: 'u-kyoko', playerName: 'เคียวโกะ' });
+  const [qq1, qq2] = await Promise.all([qqVote1Wait, qqVote2Wait]);
+  latencies.push(qq1.latency, qq2.latency);
+
+  const qqRevWait = player1.waitFor(m => m.type === 'qq_reveal');
+  await admin.send({ type: 'qq_reveal' });
+  const qqRev = await qqRevWait;
+  latencies.push(qqRev.latency);
+  console.log(`PASS (2 votes registered & revealed in ${Math.max(qq1.latency, qq2.latency) + qqRev.latency} ms)`);
+
   // Clean shutdown
   court.close();
   admin.close();
@@ -417,7 +445,7 @@ async function runSimulation() {
   const maxLatency = Math.max(...latencies);
 
   console.log('\n===============================================================');
-  console.log('🎉 ALL 14 EXPANDED REAL-TIME SIMULATION TESTS COMPLETED SUCCESSFULLY!');
+  console.log('🎉 ALL 15 EXPANDED REAL-TIME SIMULATION TESTS COMPLETED SUCCESSFULLY!');
   console.log(`📊 Statistics: Total Packets Tested: ${latencies.length}`);
   console.log(`⏱️ Average Latency: ${avgLatency} ms | Max Latency: ${maxLatency} ms`);
   console.log('💯 Real-Time Packet Delivery Rate: 100.0%');

@@ -463,6 +463,26 @@
         </div>
       </div>
 
+      <!-- FLASH DECISION: QUICK QUESTION (คำถามตรรกะสั้น 1 ข้อ) -->
+      <div id="courtQuickQuestion" class="court-box hidden">
+        <div class="slanted-banner cyan">FLASH DECISION: QUICK QUESTION</div>
+        <div class="logic-dive-display">
+          <div class="tube-stage" id="qqStageTag">⚡ FLASH QUESTION</div>
+          <h2 class="tube-question" id="qqQuestionText">
+            "คำถามตรรกะเร่งด่วน..."
+          </h2>
+          <div class="tube-choices" id="qqChoicesContainer">
+            <div class="choice-lane" id="qqLaneA"><strong>A:</strong> <span class="choice-text">ตัวเลือก A</span></div>
+            <div class="choice-lane" id="qqLaneB"><strong>B:</strong> <span class="choice-text">ตัวเลือก B</span></div>
+            <div class="choice-lane" id="qqLaneC"><strong>C:</strong> <span class="choice-text">ตัวเลือก C</span></div>
+          </div>
+          <div id="qqVoteTally" class="dive-vote-tally">
+            ⏳ รอผลการลงมติจากนักเรียนทุกคน... (<span id="qqVotedCount">0</span> / <span id="qqTotalVoters">0</span> คนตอบแล้ว)
+          </div>
+          <div id="qqResultNotice" class="hidden" style="margin-top:14px; padding:12px; border-radius:8px; font-weight:900; font-size:1.05rem; text-align:center;"></div>
+        </div>
+      </div>
+
       <!-- STAGE 5: DEBATE SCRUM (ศึกสองขั้วความคิด) -->
       <div id="courtStage5" class="court-box hidden">
         <div class="slanted-banner pink">MINI-GAME 5: DEBATE SCRUM</div>
@@ -525,15 +545,15 @@
 
               <!-- Fleet Ships Status -->
               <div style="background:rgba(15,23,42,0.85); border:1px solid #1e293b; border-radius:8px; padding:10px;">
-                <div style="font-size:0.75rem; color:#38bdf8; font-weight:900; margin-bottom:8px;">🛡️ เกราะทั้ง 3 ลำ (ต้องทำลายให้ครบ):</div>
+                <div style="font-size:0.75rem; color:#38bdf8; font-weight:900; margin-bottom:8px;">🛡️ เกราะทั้ง 3 ส่วน (ต้องทำลายให้ครบทั้งหมด):</div>
                 <div id="courtStg6FleetList">
-                  <div class="stg6-ship-card" id="courtShipCardShoulder">
-                    <span>🛡️ เกราะไหล่ (2 ช่อง)</span>
-                    <strong id="courtShipStatusShoulder" style="color:#38bdf8;">0 / 2</strong>
-                  </div>
                   <div class="stg6-ship-card" id="courtShipCardArm">
-                    <span>🛡️ เกราะแขน (2 ช่อง)</span>
+                    <span>🛡️ เกราะแขน (2 ช่องติดกัน)</span>
                     <strong id="courtShipStatusArm" style="color:#38bdf8;">0 / 2</strong>
+                  </div>
+                  <div class="stg6-ship-card" id="courtShipCardLeg">
+                    <span>🛡️ เกราะขา (2 ช่องติดกัน)</span>
+                    <strong id="courtShipStatusLeg" style="color:#38bdf8;">0 / 2</strong>
                   </div>
                   <div class="stg6-ship-card" id="courtShipCardCore">
                     <span>⚡ แกนหัวใจ (1 ช่อง)</span>
@@ -542,11 +562,17 @@
                 </div>
               </div>
 
-              <!-- Accusers Ammo Remaining -->
+              <!-- Court Shared Pool Ammo Remaining -->
               <div style="background:rgba(15,23,42,0.85); border:1px solid #1e293b; border-radius:8px; padding:10px;">
-                <div style="font-size:0.75rem; color:#a7f3d0; font-weight:900; margin-bottom:8px;">🎯 กระสุนความจริงฝ่ายศาล (คนละ 2 นัด):</div>
-                <div id="courtStg6AmmoList" style="display:flex; flex-direction:column; gap:4px; max-height:140px; overflow-y:auto;">
-                  <!-- Populated dynamically -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <span style="font-size:0.75rem; color:#a7f3d0; font-weight:900;">🎯 กระสุนความจริงกองกลาง:</span>
+                  <strong style="font-size:1.05rem; color:#facc15;"><span id="courtStg6PoolAmmoTxt">8</span> / 8 นัด</strong>
+                </div>
+                <div id="courtStg6PoolAmmoTrack" style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;">
+                  <!-- Populated dynamically with bullet chips -->
+                </div>
+                <div id="courtStg6AmmoList" style="display:flex; flex-direction:column; gap:4px; max-height:100px; overflow-y:auto; font-size:0.75rem; color:#94a3b8;">
+                  <!-- Accuser turn list -->
                 </div>
               </div>
             </div>
@@ -745,6 +771,21 @@
                 </button>
               </div>
             </div>
+            <!-- Quick Question Minigame (คำถามตรรกะสั้น 1 ข้อ) -->
+            <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
+              <button class="dm-act-btn cyan" onclick="adminStartQuickQuestion()" style="width:100%;">
+                <strong>⚡ Quick Question (คำถามตรรกะสั้น 1 ข้อ)</strong>
+                <span>เปิดโพลตอบคำถามเร่งด่วน 1 ข้อ เพื่อหาข้อยุติประเด็นสั้นๆ</span>
+              </button>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                <button class="small-btn yellow" onclick="openAdminMinigameModal('quick_question')" style="padding:6px; font-weight:900; font-size:0.8rem;">
+                  ⚙️ พรีเซ็ต/คำถาม
+                </button>
+                <button class="small-btn green" onclick="adminRevealQuickQuestion()" style="padding:6px; font-weight:900; font-size:0.8rem;">
+                  👁️ เฉลยผลบนจอใหญ่
+                </button>
+              </div>
+            </div>
             <button class="dm-act-btn green" onclick="adminSetGame('stage5')">
               <strong>5. Debate Scrum</strong>
               <span>ศึก 2 ขั้ว: โหวต A vs B (Auto-Conclude)</span>
@@ -852,6 +893,11 @@
             ตรวจสอบว่าผู้เล่นแต่ละคนครอบครองหลักฐานชิ้นใดแล้วบ้าง และสามารถกดมอบหลักฐานให้รายบุคคลหรือแจกให้ทุกคนได้ทันที
           </p>
           
+          <!-- Court-Wide Core Evidence Panel (PC 1-5 Aggregated) -->
+          <div id="adminCourtCoreEvidencePanel" style="background:rgba(15,23,42,0.95); border:1px solid #eab308; border-radius:8px; padding:10px 12px; margin-bottom:12px;">
+            <!-- Populated dynamically by JS -->
+          </div>
+
           <!-- Broadcast to all tool -->
           <div style="background:rgba(15,23,42,0.9); border:1px solid rgba(56,189,248,0.4); border-radius:6px; padding:8px 10px; margin-bottom:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
             <span style="font-size:0.8rem; color:#f1f5f9; font-weight:bold;">📢 มอบหลักฐานให้ทุกคน:</span>
@@ -1016,8 +1062,13 @@
           <button class="clue-scan-btn" onclick="openClueScannerModal()">
             📷 สแกน QR / กรอกรหัส
           </button>
-          <div style="font-size:0.88rem; color:#bbb; font-weight:700;">
-            กระสุนที่บันทึกแล้ว: <strong id="pUnlockedClueCount" style="color:var(--court-gold); font-size:1.1rem;">0</strong> / 31
+          <div style="text-align:right;">
+            <div style="font-size:0.88rem; color:#bbb; font-weight:700;">
+              กระสุนที่บันทึกแล้ว: <strong id="pUnlockedClueCount" style="color:var(--court-gold); font-size:1.1rem;">0</strong> / 31
+            </div>
+            <div style="font-size:0.75rem; color:#38bdf8; font-weight:bold; margin-top:2px;">
+              Core สำคัญ (รวมศาล): <strong id="pCourtCoreCount" style="color:#facc15;">0</strong> / 10
+            </div>
           </div>
         </div>
 
@@ -1025,6 +1076,7 @@
           <input type="text" id="clueSearchInput" placeholder="🔎 ค้นหาหรือกรองกระสุนความจริง..." onkeyup="filterPlayerClues()">
           <div class="clue-filter-tags">
             <button class="clue-tag-btn active" onclick="filterUserClueTag('ALL')">ทั้งหมด</button>
+            <button class="clue-tag-btn gold" onclick="filterUserClueTag('CORE')" style="background:rgba(234,179,8,0.2); border:1px solid #eab308; color:#facc15; font-weight:900;">⭐ Core (คดี)</button>
             <button class="clue-tag-btn yellow" onclick="filterUserClueTag('IMPORTANT')">⭐ สำคัญ</button>
             <button class="clue-tag-btn blue" onclick="filterUserClueTag('DOUBT')">❓ สงสัย</button>
             <button class="clue-tag-btn red" onclick="filterUserClueTag('TRASH')">❌ หลอก/ขยะ</button>
@@ -2544,6 +2596,7 @@
           <button id="cfgTabStage5" class="stage-tab-btn" onclick="selectConfigTab('stage5')">5. Debate Scrum</button>
           <button id="cfgTabStage6" class="stage-tab-btn" onclick="selectConfigTab('stage6')">6. Argument</button>
           <button id="cfgTabStage7" class="stage-tab-btn" onclick="selectConfigTab('stage7')">7. Closing</button>
+          <button id="cfgTabQuick_question" class="stage-tab-btn" onclick="selectConfigTab('quick_question')">⚡ Quick Q</button>
         </div>
 
         <!-- Stage 1 Config -->
@@ -2702,6 +2755,43 @@
             • <strong>หน้า 4 (20:00-21:00):</strong> ตั้งเวลาเครื่องอบผ้าหมุนรองเท้าบูท -> สร้าง Alibi ช่วงไฟดับ 20:30 น.<br>
             • <strong>หน้า 5 (21:00-21:05):</strong> มวลน้ำดึงถังตกลงพื้นคอร์ทยาร์ด -> ร่างถูกกระชากแขวนติดเพดานห้องซักรีด!<br>
             <span style="color:var(--court-gold); font-size:0.8rem;">* เริ่มต้นตั้งเวลา 90s (ยังไม่นับถอยหลังจนกว่า DM จะกดเริ่ม) / วางถูก 1 ช่องได้เวลาโบนัส +20s และสุ่มปลดล็อกการ์ดใหม่!</span>
+          </div>
+        </div>
+
+        <!-- Quick Question Config -->
+        <div id="cfgPaneQuick_question" class="cfg-pane hidden">
+          <div class="preset-group">
+            <span class="preset-title">⚡ 1-Click Presets (Quick Decision):</span>
+            <div class="preset-btn-row">
+              <button class="preset-chip" onclick="applyPresetQuickQuestion('attack_time')">⏱️ เวลาทำร้ายในครัว (17:30)</button>
+              <button class="preset-chip" onclick="applyPresetQuickQuestion('death_cause')">💀 เหตุตายจริง (ขาดอากาศหายใจ)</button>
+              <button class="preset-chip" onclick="applyPresetQuickQuestion('auto_pulley')">🛢️ กลไกชักรอก (ถังน้ำถ่วงน้ำหนัก)</button>
+              <button class="preset-chip" onclick="applyPresetQuickQuestion('dryer_sound')">👟 เสียง 21:00 น. (รองเท้าในเครื่องอบผ้า)</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label style="font-size:0.85rem; color:#ccc;">คำถามตรรกะสั้น (Quick Question):</label>
+            <input type="text" id="cfgQqQuestion" class="manual-code-input" style="width:100%; margin-top:4px;" value="เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?">
+          </div>
+          <div style="margin-top:8px;">
+            <label style="font-size:0.85rem; color:#ccc;">ตัวเลือก A:</label>
+            <input type="text" id="cfgQqChoiceA" class="manual-code-input" style="width:100%; margin-top:4px;" value="17:30 น. (ช่วงเตรียมอาหารเย็น)">
+          </div>
+          <div style="margin-top:8px;">
+            <label style="font-size:0.85rem; color:#ccc;">ตัวเลือก B:</label>
+            <input type="text" id="cfgQqChoiceB" class="manual-code-input" style="width:100%; margin-top:4px;" value="19:00 น. (ช่วงเริ่มรับประทานอาหาร)">
+          </div>
+          <div style="margin-top:8px;">
+            <label style="font-size:0.85rem; color:#ccc;">ตัวเลือก C:</label>
+            <input type="text" id="cfgQqChoiceC" class="manual-code-input" style="width:100%; margin-top:4px;" value="20:30 น. (ช่วงก่อนไฟดับ)">
+          </div>
+          <div style="margin-top:8px;">
+            <label style="font-size:0.85rem; color:#ccc;">คำตอบที่ถูกต้อง:</label>
+            <select id="cfgQqCorrect" class="manual-code-input" style="width:100%; margin-top:4px;">
+              <option value="A" selected>ข้อ A</option>
+              <option value="B">ข้อ B</option>
+              <option value="C">ข้อ C</option>
+            </select>
           </div>
         </div>
 
