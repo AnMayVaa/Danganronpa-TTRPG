@@ -431,6 +431,30 @@ async function runSimulation() {
   latencies.push(qqRev.latency);
   console.log(`PASS (2 votes registered & revealed in ${Math.max(qq1.latency, qq2.latency) + qqRev.latency} ms)`);
 
+  // -------------------------------------------------------------
+  // Test 16: Emergency Escape Proximity (DM Authorize & Reset)
+  // -------------------------------------------------------------
+  process.stdout.write('🚪 Step 16: Emergency Escape Proximity (DM Authorize & Sync)... ');
+  const proxAuthWait = player1.waitFor(m => m.type === 'admin_set_escape_proximity' && m.targetUser === 'u-naegi' && m.granted === true);
+  await admin.send({
+    type: 'admin_set_escape_proximity',
+    targetUser: 'u-naegi',
+    granted: true
+  });
+  const proxRes = await proxAuthWait;
+  latencies.push(proxRes.latency);
+
+  // DM reset all
+  const proxResetWait = player1.waitFor(m => m.type === 'admin_set_escape_proximity' && m.targetUser === 'ALL' && m.granted === false);
+  await admin.send({
+    type: 'admin_set_escape_proximity',
+    targetUser: 'ALL',
+    granted: false
+  });
+  const proxResetRes = await proxResetWait;
+  latencies.push(proxResetRes.latency);
+  console.log(`PASS (Authorized & Reset in ${proxRes.latency + proxResetRes.latency} ms)`);
+
   // Clean shutdown
   court.close();
   admin.close();
@@ -445,7 +469,7 @@ async function runSimulation() {
   const maxLatency = Math.max(...latencies);
 
   console.log('\n===============================================================');
-  console.log('🎉 ALL 15 EXPANDED REAL-TIME SIMULATION TESTS COMPLETED SUCCESSFULLY!');
+  console.log('🎉 ALL 16 EXPANDED REAL-TIME SIMULATION TESTS COMPLETED SUCCESSFULLY!');
   console.log(`📊 Statistics: Total Packets Tested: ${latencies.length}`);
   console.log(`⏱️ Average Latency: ${avgLatency} ms | Max Latency: ${maxLatency} ms`);
   console.log('💯 Real-Time Packet Delivery Rate: 100.0%');

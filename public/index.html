@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=4.0.0">
+  <link rel="stylesheet" href="/css/style.css?v=4.2.0">
   <!-- Early view detection script: immediately hides other page navigation buttons on Court and PC views -->
   <script>
     (function() {
@@ -934,6 +934,41 @@
           </div>
         </div>
 
+        <!-- Emergency Fake Exit Proximity Controller -->
+        <div class="admin-card" style="border-left: 4px solid #ef4444;">
+          <h2 class="admin-card-title" style="color:#ef4444;">🚪 จัดการพิกัดทางออกลับฉุกเฉิน (Emergency Exit Proximity)</h2>
+          <p style="font-size:0.83rem; color:#aaa; margin:4px 0 10px 0; line-height:1.4;">
+            ควบคุมระบบเซนเซอร์ตรวจจับตำแหน่ง: ยืนยันว่า PC คนใดเดินมาอยู่หน้าประตูทางออกลับแล้ว (เพื่อให้ Monopad ของผู้เล่นปลดล็อกปุ่มถอดรหัสลับ)
+          </p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; gap:8px; align-items:center;">
+              <select id="adminEscapePlayerSelect" class="dm-styled-select" style="flex:1; padding:8px 10px; font-size:0.88rem; background:#1c1c32; color:#fff; border:1px solid #444; border-radius:6px;">
+                <option value="">-- เลือกผู้เล่นที่อยู่หน้าประตู --</option>
+              </select>
+              <button class="small-btn green" onclick="adminAuthorizeSelectedEscapePlayer(true)" style="padding:8px 12px; font-size:0.85rem; font-weight:900; white-space:nowrap;">
+                🚪 ยืนยันพิกัด (Unlock)
+              </button>
+              <button class="small-btn red" onclick="adminAuthorizeSelectedEscapePlayer(false)" style="padding:8px 12px; font-size:0.85rem; white-space:nowrap;">
+                🔒 ล็อก (Lock)
+              </button>
+            </div>
+            <div id="adminEscapeProximityStatusChips" style="display:flex; flex-wrap:wrap; gap:6px; min-height:24px;">
+              <!-- Dynamic player proximity status badges -->
+            </div>
+            <div style="display:flex; gap:8px; margin-top:4px;">
+              <button class="small-btn cyan" onclick="adminAuthorizeAllEscapePlayers(true)" style="flex:1; padding:8px; font-size:0.8rem; font-weight:bold;">
+                🔓 ยืนยันให้ทุกคน (All PCs)
+              </button>
+              <button class="small-btn grey" onclick="adminAuthorizeAllEscapePlayers(false)" style="flex:1; padding:8px; font-size:0.8rem;">
+                🔒 รีเซ็ตล็อกทั้งหมด
+              </button>
+              <button class="small-btn yellow" onclick="adminPreviewFakeEscape()" style="flex:1; padding:8px; font-size:0.8rem; font-weight:bold;" title="ทดสอบดูหน้าต่างคัทซีนเตาเผาศพบนจอนี้">
+                👁️ พรีวิวคัทซีนหลอก
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Room Configuration & Session Management -->
         <div class="admin-card">
           <h2 class="admin-card-title">⚙️ จัดการห้อง & รีเซ็ตรอบ (Kahoot-Style)</h2>
@@ -1065,9 +1100,6 @@
           <div style="text-align:right;">
             <div style="font-size:0.88rem; color:#bbb; font-weight:700;">
               กระสุนที่บันทึกแล้ว: <strong id="pUnlockedClueCount" style="color:var(--court-gold); font-size:1.1rem;">0</strong> / 31
-            </div>
-            <div style="font-size:0.75rem; color:#38bdf8; font-weight:bold; margin-top:2px;">
-              Core สำคัญ (รวมศาล): <strong id="pCourtCoreCount" style="color:#facc15;">0</strong> / 10
             </div>
           </div>
         </div>
@@ -1457,6 +1489,23 @@
               <li><strong>กฎข้อที่ 7 (ประกาศพิเศษคดีฆาตกรรม):</strong> หากเกิดคดีฆาตกรรมขึ้นก่อนเวลา 22:00 น. ผู้อำนวยการจะประกาศ "ระงับกฎเคอร์ฟิว Night Time ชั่วคราว" เพื่อให้นักเรียนมีเวลาสืบสวนสถานที่เกิดเหตุได้อย่างเต็มที่จนกว่าจะเริ่มเปิดศาล</li>
             </ul>
           </div>
+
+          <!-- Secret Emergency Exit Protocol Card (Hidden in Monopad Rules) -->
+          <div id="pSecretEscapeCard" class="dr1-secret-terminal-card locked">
+            <div class="secret-terminal-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="blink-dot red"></span>
+                <span style="font-family:monospace; font-weight:900; letter-spacing:1px; color:#ff4466;">EMERGENCY_OVERRIDE_PORT_v1.04</span>
+              </div>
+              <span id="pEscapeProximityBadge" class="proximity-badge locked">🔒 พิกัดถูกล็อก</span>
+            </div>
+            <p class="secret-terminal-desc">
+              ⚠️ ตรวจพบโปรโตคอลฉุกเฉินซ่อนอยู่ในเฟิร์มแวร์ Monopad... ระบบจะทำงานได้เมื่อเซนเซอร์ตรวจพบว่าคุณยืนอยู่หน้าประตูทางออกลับ (ต้องให้ DM ยืนยันพิกัด)
+            </p>
+            <button id="btnStartEscapeBypass" class="dangan-action-btn grey" onclick="attemptStartEmergencyEscape()">
+              🔒 เซนเซอร์ล็อก: ยังไม่ได้รับการยืนยันพิกัดหน้าประตูจาก DM
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1468,7 +1517,7 @@
           <span class="sab-title">☠️ เมนูลับคนร้าย (SABOTAGE PANEL)</span>
           <span id="sabArrow">▲</span>
         </div>
-        <div id="saboteurOptions" class="sab-options-grid">
+        <div id="saboteurOptions" class="sab-options-grid" style="display:none;">
           <p class="sab-hint">🤫 แอบกดก่อกวนตอนเพื่อนเผลอเพื่อปั่นป่วนศาล!</p>
           <div class="sab-btn-group">
             <button id="sabBtnGlitch" class="sab-trigger-btn" onclick="sendSabotage('glitch')">
@@ -2928,13 +2977,124 @@
     </div>
   </div>
 
+  <!-- ============================================== -->
+  <!-- MODAL 7: FAKE EMERGENCY ESCAPE PROTOCOL MODAL  -->
+  <!-- ============================================== -->
+  <div id="emergencyEscapeModal" class="modal-backdrop emergency-escape-backdrop hidden">
+    <div class="modal-dialog emergency-escape-dialog">
+      <!-- Top Title Bar -->
+      <div class="escape-terminal-titlebar">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="escape-siren-dot"></span>
+          <span style="font-family:monospace; font-weight:900; letter-spacing:1px; color:#ff4466;">MONOPAD EMERGENCY BYPASS v1.04</span>
+        </div>
+        <button class="escape-modal-close-btn" onclick="closeEmergencyEscapeModal()">✕</button>
+      </div>
+
+      <!-- Phase 1: Keypad & Hack Input Screen -->
+      <div id="escapePhaseKeypad" class="escape-phase-box">
+        <div class="escape-terminal-header">
+          <div class="escape-icon-pulse">🚨</div>
+          <h2 class="escape-title">ถอดรหัสประตูฉุกเฉินชั้นใต้ดิน</h2>
+          <p class="escape-subtitle">SECURITY HATCH OVERRIDE PROTOCOL</p>
+        </div>
+
+        <div class="escape-sensor-status-card">
+          <div class="sensor-row">
+            <span>📍 พิกัดทางกายภาพ:</span>
+            <strong style="color:#10b981;">✅ ยืนยันหน้าประตูกลไกฉุกเฉิน (DM Verified)</strong>
+          </div>
+          <div class="sensor-row">
+            <span>📡 สถานะลิงก์ดาวเทียม:</span>
+            <strong style="color:#38bdf8;">เชื่อมต่อเซิร์ฟเวอร์ควบคุมระบบหลัก</strong>
+          </div>
+        </div>
+
+        <div class="escape-pin-container">
+          <label style="font-size:0.85rem; color:#aaa;">กรอกรหัสผ่านฉุกเฉิน 6 หลัก:</label>
+          <div id="escapePinDisplay" class="escape-pin-display">------</div>
+          <div class="escape-keypad-grid">
+            <button class="escape-key-btn" onclick="pressEscapeKey('1')">1</button>
+            <button class="escape-key-btn" onclick="pressEscapeKey('2')">2</button>
+            <button class="escape-key-btn" onclick="pressEscapeKey('3')">3</button>
+            <button class="escape-key-btn" onclick="pressEscapeKey('4')">4</button>
+            <button class="escape-key-btn" onclick="pressEscapeKey('5')">5</button>
+            <button class="escape-key-btn" onclick="pressEscapeKey('6')">6</button>
+            <button class="escape-key-btn" onclick="pressEscapeKey('7')">7</button>
+            <button class="escape-key-btn" onclick="pressEscapeKey('8')">8</button>
+            <button class="escape-key-btn" onclick="pressEscapeKey('9')">9</button>
+            <button class="escape-key-btn clear" onclick="pressEscapeKey('CLR')">CLR</button>
+            <button class="escape-key-btn" onclick="pressEscapeKey('0')">0</button>
+            <button class="escape-key-btn del" onclick="pressEscapeKey('DEL')">⌫</button>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px;">
+          <button class="dangan-action-btn green pulse-anim" onclick="submitEscapeKeypad()">
+            🔓 ยืนยันรหัสปลดล็อกประตู (UNLOCK)
+          </button>
+          <button class="dangan-action-btn red" onclick="forceHackOverride()" style="font-size:0.85rem;">
+            ⚡ บังคับเจาะระบบอัตโนมัติ (FORCE BYPASS OVERRIDE)
+          </button>
+        </div>
+      </div>
+
+      <!-- Phase 2: Alarm & Countdown Screen -->
+      <div id="escapePhaseCountdown" class="escape-phase-box hidden">
+        <div class="escape-alarm-beacon">
+          <div class="beacon-ring"></div>
+          <div class="beacon-core">🚨</div>
+        </div>
+        <div class="escape-status-glitch">⚠️ EMERGENCY HATCH OPENING IN PROGRESS ⚠️</div>
+        <div class="escape-countdown-big" id="escapeCountdownNum">10</div>
+        <p class="escape-countdown-desc" id="escapeCountdownDesc">
+          กำลังส่งสัญญาณปลดสลักแม่เหล็กไฟฟ้าบานประตูหนา 50 ซม...
+        </p>
+        <div class="escape-progress-bar-wrap">
+          <div id="escapeProgressBar" class="escape-progress-bar-fill"></div>
+        </div>
+        <div style="font-size:0.8rem; color:#f87171; font-family:monospace; margin-top:10px;">
+          DO NOT DISCONNECT / ห้ามปิดหน้าจอระหว่างดำเนินการ
+        </div>
+      </div>
+
+      <!-- Phase 3: Monokuma Jump-scare / Troll Reveal -->
+      <div id="escapePhaseTroll" class="escape-phase-box hidden">
+        <div class="monokuma-troll-avatar-wrap">
+          <div class="monokuma-troll-head">🐻</div>
+        </div>
+        <div class="troll-burst-banner">💥 U P U P U P U ! ! 💥</div>
+        
+        <div class="troll-speech-bubble">
+          <h3 style="color:#ef4444; font-size:1.15rem; margin:0 0 8px 0; font-weight:900;">
+            "อุพุพุพุ! ยินดีด้วยนะเจ้าเด็กดื้อที่อุตส่าห์แอบเปิดประตูบานนี้ได้!!"
+          </h3>
+          <p style="color:#f1f5f9; font-size:0.95rem; line-height:1.6; margin:0 0 10px 0;">
+            แต่เสียใจด้วยนะ... ประตูบานนี้มันไม่ใช่ทางออกหรอก! <strong>นี่มันคือท่อส่งขยะลงเตาเผาศพใต้ดินต่างหากล่ะ!!</strong> อยากโดนย่างสดหรือไง!?
+          </p>
+          <p style="color:#facc15; font-size:0.9rem; line-height:1.5; margin:0; font-weight:bold;">
+            หนทางเดียวที่จะได้ออกไปสู่โลกภายนอก... คือต้องฆ่าเพื่อนแล้วเอาชนะในศาลชั้นเรียนให้ได้เท่านั้นแหละ! วะฮ่าฮ่าฮ่า!!
+          </p>
+        </div>
+
+        <div class="troll-error-box">
+          <code>[CRITICAL ERROR 403: ESCAPE_PROTOCOL_VOID - INCINERATOR_ONLINE]</code>
+        </div>
+
+        <button class="dangan-action-btn red" onclick="closeEmergencyEscapeModal()" style="margin-top:14px; width:100%;">
+          🚪 ปิดหน้าต่าง (ยอมรับความจริงอันสิ้นหวัง)
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Floating Desktop PC Hotkeys Help Button -->
   <button id="btnOpenHotkeys" class="floating-hotkeys-btn pc-only-btn" onclick="openHotkeysModal()" title="ดูรายการคีย์ลัดคอมพิวเตอร์ (Hotkey: ?)">
     ⌨️ Hotkeys
   </button>
 
   <script src="/js/jsQR.min.js"></script>
-  <script src="/js/client.js?v=4.1.0"></script>
+  <script src="/js/client.js?v=4.2.0"></script>
   <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>

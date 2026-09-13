@@ -1148,8 +1148,12 @@ function handleIncomingMessage(msg, senderConn) {
       }
     });
 
-    const pcSlot = msg.pcSlot ? parseInt(msg.pcSlot, 10) : ((Object.keys(gameState.players).length % 5) + 1);
-    const isKiller = (parseInt(pcSlot, 10) === 5);
+    let pcSlot = msg.pcSlot ? parseInt(msg.pcSlot, 10) : ((Object.keys(gameState.players).length % 5) + 1);
+    const isHifumi = Boolean(reqName && (reqName.includes('ฮิฟุมิ') || reqName.toLowerCase().includes('hifumi') || reqName.includes('ยามาดะ')));
+    if (isHifumi) {
+      pcSlot = 5;
+    }
+    const isKiller = (parseInt(pcSlot, 10) === 5) || isHifumi;
     const playerObj = {
       id: senderId,
       name: reqName,
@@ -1221,16 +1225,7 @@ function handleIncomingMessage(msg, senderConn) {
     document.getElementById('pMyStatus').innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
     document.getElementById('pMyStatus').className = 'p-status normal';
 
-    const qPcClaim = new URLSearchParams(window.location.search).get('pc');
-    const isSaboteurClaim = (parseInt(myPlayer.pcSlot, 10) === 5 || myPlayer.isKiller || qPcClaim === '5');
-    const sabPanelEl = document.getElementById('mobileSaboteurPanel');
-    if (sabPanelEl) {
-      if (isSaboteurClaim) {
-        sabPanelEl.classList.remove('hidden');
-      } else {
-        sabPanelEl.classList.add('hidden');
-      }
-    }
+    updateSaboteurPanelVisibility();
 
     showToast(`✨ คุณ [${myPlayer.name}] เข้าสู่เกมเรียบร้อยแล้ว!`);
     updateMonopadDeviceBar();
@@ -1267,6 +1262,27 @@ function handleIncomingMessage(msg, senderConn) {
     if (opt) {
       opt.disabled = false;
       opt.innerText = `PC: สุดยอด${msg.role}`;
+    }
+  } else if (msg.type === 'admin_set_escape_proximity') {
+    if (!gameState.escapeProximity) gameState.escapeProximity = {};
+    if (msg.targetUser === 'ALL') {
+      if (gameState.players) {
+        Object.keys(gameState.players).forEach(k => {
+          gameState.escapeProximity[k] = Boolean(msg.granted);
+        });
+      }
+      gameState.escapeProximity['*'] = Boolean(msg.granted);
+    } else if (msg.targetUser) {
+      gameState.escapeProximity[msg.targetUser] = Boolean(msg.granted);
+    }
+    updateEscapeProximityUI();
+    updateAdminEscapeProximityDisplay();
+    if (msg.granted) {
+      const myHash = currentUserHash || (myPlayer && myPlayer.userHash) || (myPlayer && myPlayer.id);
+      if (msg.targetUser === 'ALL' || msg.targetUser === myHash || (myPlayer && msg.targetUser === myPlayer.name)) {
+        showToast('🔓 เซนเซอร์ Monopad ยืนยัน: ตรวจพบพิกัดหน้าประตูทางออกฉุกเฉินแล้ว!');
+        playSfx('correct');
+      }
     }
   } else if (msg.type === 'player_leave') {
     if (gameState.players[msg.peerId]) {
@@ -1564,15 +1580,19 @@ function applyState(st) {
   renderStage(gameState.stage);
   updateMonopadPhaseTabs(gameState.stage);
   updateMonopadDeviceBar();
-  if (gameState.players) {
-    Object.values(gameState.players).forEach(p => {
-      const opt = document.getElementById('optRole_' + p.role);
-      if (opt) {
-        opt.disabled = true;
-        opt.innerText = `[❌ ถูกเลือกแล้ว] ${p.role} (${p.name})`;
-      }
-    });
+  if (myPlayer && gameState.players) {
+    const updatedMe = Object.values(gameState.players).find(x => 
+      (myPlayer.id && x.id === myPlayer.id) ||
+      (myPlayer.name && x.name && x.name.toLowerCase() === myPlayer.name.toLowerCase()) ||
+      (currentUserHash && x.userHash === currentUserHash)
+    );
+    if (updatedMe) {
+      Object.assign(myPlayer, updatedMe);
+    }
   }
+  updateSaboteurPanelVisibility();
+  updateEscapeProximityUI();
+  updateAdminEscapeProximityDisplay();
 }
 
 // ==========================================================
@@ -1980,14 +2000,7 @@ function initPlayerSession(hash) {
         statusEl.innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
         statusEl.className = 'p-status normal';
       }
-      if (sabPanel) {
-        const isSab = (parseInt(p.pcSlot, 10) === 5 || p.isKiller || qPc === '5');
-        if (isSab) {
-          sabPanel.classList.remove('hidden');
-        } else {
-          sabPanel.classList.add('hidden');
-        }
-      }
+      updateSaboteurPanelVisibility();
       return;
     } catch(e) {
       clearPlayerLocalData();
@@ -2072,6 +2085,8 @@ function switchPlayerTab(tab) {
     if (t) t.classList.add('active');
     if (p) p.classList.remove('hidden');
   }
+  updateSaboteurPanelVisibility();
+  updateEscapeProximityUI();
 }
 
 const CHARACTER_DATA = {
@@ -2700,19 +2715,7 @@ function renderPlayerCluesList() {
   const countBadge = document.getElementById('pUnlockedClueCount');
   if (countBadge) countBadge.innerText = unlocked.length;
 
-  const coreClues = ALL_CLUES_DATA.filter(c => c.importance === 'MUST' || c.secretType === 'CORE');
-  const myCoreCount = coreClues.filter(c => unlocked.includes(c.id)).length;
-  const courtCoreBadge = document.getElementById('pCourtCoreCount');
-  if (courtCoreBadge) {
-    // Collect union of clues from players if available, else player's own
-    let courtCoreCount = myCoreCount;
-    if (gameState && gameState.players) {
-      const allHeld = new Set(Object.values(gameState.players).flatMap(p => p.clues || []));
-      unlocked.forEach(cid => allHeld.add(cid));
-      courtCoreCount = coreClues.filter(c => allHeld.has(c.id)).length;
-    }
-    courtCoreBadge.innerText = courtCoreCount;
-  }
+
 
   const q = (document.getElementById('clueSearchInput') ? document.getElementById('clueSearchInput').value : '').toLowerCase().trim();
 
@@ -5577,8 +5580,13 @@ function playerJoin() {
     resetJoinButton(`⚠️ การตอบรับจากศาลชั้นเรียนห้อง [${roomCode}] ใช้เวลานานเกินไป\n\nโปรดตรวจสอบว่า:\n1. หน้าจอหลักศาลชั้นเรียน (/court) กำลังเปิดอยู่และออนไลน์\n2. รหัสห้อง 6 หลัก [${roomCode}] ถูกต้องตรงกับบนจอศาล\nแล้วลองกดใหม่อีกครั้ง`);
   }, 7000);
 
+  const isHifumiJoin = Boolean(name && (name.includes('ฮิฟุมิ') || name.toLowerCase().includes('hifumi') || name.includes('ยามาดะ')));
   const pcSlotSelect = document.getElementById('mobilePcSlotSelect');
-  const pcSlotVal = pcSlotSelect ? parseInt(pcSlotSelect.value, 10) : parseInt(new URLSearchParams(window.location.search).get('pc') || '1', 10);
+  let pcSlotVal = pcSlotSelect ? parseInt(pcSlotSelect.value, 10) : parseInt(new URLSearchParams(window.location.search).get('pc') || '1', 10);
+  if (isHifumiJoin) {
+    pcSlotVal = 5;
+    if (pcSlotSelect) pcSlotSelect.value = '5';
+  }
 
   const claimPacket = {
     type: 'request_claim_character',
@@ -5644,6 +5652,7 @@ function renderMobileTask(stage) {
   const area = document.getElementById('mobileTaskArea');
   if (!area) return;
   area.innerHTML = '';
+  updateSaboteurPanelVisibility();
 
   // Auto-switch to game tab if stage is active
   if (stage !== 'lobby') {
@@ -6856,15 +6865,65 @@ function submitPlayerVote(cand) {
 // ==========================================================
 // SABOTEUR ACTIONS
 // ==========================================================
+function isCurrentPlayerSaboteur() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const qPc = urlParams.get('pc');
+  const qUser = (urlParams.get('user') || '').toLowerCase();
+  const qName = (urlParams.get('name') || '').toLowerCase();
+
+  if (qPc === '5' || qUser.includes('hifumi') || qName.includes('ฮิฟุมิ') || qName.includes('hifumi')) {
+    return true;
+  }
+
+  // Check myPlayer
+  if (myPlayer) {
+    if (parseInt(myPlayer.pcSlot, 10) === 5 || myPlayer.isKiller === true) return true;
+    if (myPlayer.name && (myPlayer.name.includes('ฮิฟุมิ') || myPlayer.name.toLowerCase().includes('hifumi') || myPlayer.name.includes('ยามาดะ'))) return true;
+    if (myPlayer.role === 'ช่างกล' || myPlayer.role === 'นักเขียนการ์ตูน') return true;
+  }
+
+  // Check in gameState.players
+  if (gameState && gameState.players) {
+    const pList = Object.values(gameState.players);
+    const p = pList.find(x => 
+      (myPlayer && (x.id === myPlayer.id || x.name === myPlayer.name || (x.userHash && x.userHash === myPlayer.userHash))) ||
+      (currentUserHash && x.userHash === currentUserHash) ||
+      (qUser && (x.userHash === qUser || x.id === qUser))
+    );
+    if (p) {
+      if (parseInt(p.pcSlot, 10) === 5 || p.isKiller === true) return true;
+      if (p.name && (p.name.includes('ฮิฟุมิ') || p.name.toLowerCase().includes('hifumi') || p.name.includes('ยามาดะ'))) return true;
+      if (p.role === 'ช่างกล' || p.role === 'นักเขียนการ์ตูน') return true;
+    }
+  }
+
+  return false;
+}
+
+function updateSaboteurPanelVisibility() {
+  const sabPanel = document.getElementById('mobileSaboteurPanel');
+  if (!sabPanel) return;
+  const isSab = isCurrentPlayerSaboteur();
+  if (isSab) {
+    sabPanel.classList.remove('hidden');
+    sabPanel.style.display = 'block';
+  } else {
+    sabPanel.classList.add('hidden');
+    sabPanel.style.display = 'none';
+  }
+}
+
 function toggleSaboteurDock() {
   const body = document.getElementById('saboteurOptions');
   const arrow = document.getElementById('sabArrow');
-  if (body.style.display === 'flex') {
+  if (!body) return;
+  const isShown = (body.style.display === 'flex') || (body.style.display !== 'none' && window.getComputedStyle(body).display === 'flex');
+  if (isShown) {
     body.style.display = 'none';
-    arrow.innerText = '▲';
+    if (arrow) arrow.innerText = '▲';
   } else {
     body.style.display = 'flex';
-    arrow.innerText = '▼';
+    if (arrow) arrow.innerText = '▼';
   }
 }
 
@@ -6938,6 +6997,297 @@ function handleSabotage(type, pName) {
   } else if (type === 'corrupt_data') {
     logCourt(`⚠️ [DATA CORRUPT]: ข้อมูลเท็จถูกแทรกแซงเข้าสู่ระบบศาลชั้นเรียน!`);
   }
+}
+
+// ==========================================================
+// FAKE EMERGENCY ESCAPE PROTOCOL & PROXIMITY SENSOR
+// ==========================================================
+let currentEscapePin = '';
+let escapeCountdownTimer = null;
+
+function isMyEscapeProximityGranted() {
+  if (!gameState) return false;
+  if (!gameState.escapeProximity) gameState.escapeProximity = {};
+  if (gameState.escapeProximity['*'] === true) return true;
+  if (currentUserHash && gameState.escapeProximity[currentUserHash] === true) return true;
+  if (myPlayer) {
+    if (myPlayer.userHash && gameState.escapeProximity[myPlayer.userHash] === true) return true;
+    if (myPlayer.id && gameState.escapeProximity[myPlayer.id] === true) return true;
+    if (myPlayer.name && gameState.escapeProximity[myPlayer.name] === true) return true;
+    if (myPlayer.pcSlot && (gameState.escapeProximity['pc_' + myPlayer.pcSlot] === true || gameState.escapeProximity[myPlayer.pcSlot] === true)) return true;
+  }
+  return false;
+}
+
+function updateEscapeProximityUI() {
+  const card = document.getElementById('pSecretEscapeCard');
+  const badge = document.getElementById('pEscapeProximityBadge');
+  const btn = document.getElementById('btnStartEscapeBypass');
+  if (!card && !btn) return;
+
+  const isGranted = isMyEscapeProximityGranted();
+
+  if (card) {
+    card.classList.toggle('unlocked', isGranted);
+    card.classList.toggle('locked', !isGranted);
+  }
+
+  if (badge) {
+    if (isGranted) {
+      badge.innerText = '🔓 พิกัดพร้อมถอดรหัส';
+      badge.className = 'proximity-badge unlocked';
+    } else {
+      badge.innerText = '🔒 พิกัดถูกล็อก';
+      badge.className = 'proximity-badge locked';
+    }
+  }
+
+  if (btn) {
+    if (isGranted) {
+      btn.disabled = false;
+      btn.className = 'dangan-action-btn red pulse-anim';
+      btn.innerText = '🚨 เซนเซอร์ยืนยันพิกัดแล้ว! กดเพื่อเริ่มถอดรหัส (BYPASS)';
+    } else {
+      btn.disabled = true;
+      btn.className = 'dangan-action-btn grey';
+      btn.innerText = '🔒 เซนเซอร์ล็อก: ยังไม่ได้รับการยืนยันพิกัดหน้าประตูจาก DM';
+    }
+  }
+}
+
+function updateAdminEscapeProximityDisplay() {
+  const select = document.getElementById('adminEscapePlayerSelect');
+  const chips = document.getElementById('adminEscapeProximityStatusChips');
+  if (!select && !chips) return;
+
+  if (!gameState.escapeProximity) gameState.escapeProximity = {};
+  const prox = gameState.escapeProximity;
+  const players = gameState.players ? Object.values(gameState.players) : [];
+
+  if (select) {
+    const curVal = select.value;
+    let html = '<option value="">-- เลือกผู้เล่นที่อยู่หน้าประตู --</option>';
+    players.forEach(p => {
+      const uKey = p.userHash || p.id || p.name;
+      const isOk = (prox['*'] === true) || (prox[uKey] === true) || (prox[p.name] === true);
+      html += `<option value="${escapeHtml(uKey)}">${escapeHtml(p.name)} (${p.role || 'PC ' + (p.pcSlot || '?')}) ${isOk ? ' [🔓 ปลดล็อก]' : ' [🔒 ล็อก]'}</option>`;
+    });
+    select.innerHTML = html;
+    if (curVal) select.value = curVal;
+  }
+
+  if (chips) {
+    let chipsHtml = '';
+    if (prox['*'] === true) {
+      chipsHtml = `<span class="proximity-badge unlocked" style="display:inline-block; margin:2px;">🌐 ทุกคน (All PCs): ยืนยันพิกัดแล้ว</span>`;
+    } else if (players.length === 0) {
+      chipsHtml = `<span style="font-size:0.75rem; color:#777;">(ยังไม่มีผู้เล่นออนไลน์)</span>`;
+    } else {
+      players.forEach(p => {
+        const uKey = p.userHash || p.id || p.name;
+        const isOk = (prox[uKey] === true) || (prox[p.name] === true);
+        chipsHtml += `<span class="proximity-badge ${isOk ? 'unlocked' : 'locked'}" style="display:inline-block; margin:2px; font-size:0.75rem;">
+          ${escapeHtml(p.name)}: ${isOk ? '🔓 หน้าประตู' : '🔒 ล็อก'}
+        </span>`;
+      });
+    }
+    chips.innerHTML = chipsHtml;
+  }
+}
+
+function adminAuthorizeSelectedEscapePlayer(granted) {
+  const select = document.getElementById('adminEscapePlayerSelect');
+  if (!select) return;
+  const target = select.value;
+  if (!target) {
+    showToast('⚠️ กรุณาเลือกผู้เล่นจากรายการก่อน');
+    return;
+  }
+  if (!gameState.escapeProximity) gameState.escapeProximity = {};
+  gameState.escapeProximity[target] = Boolean(granted);
+
+  const packet = {
+    type: 'admin_set_escape_proximity',
+    targetUser: target,
+    granted: Boolean(granted)
+  };
+  broadcast(packet);
+  if (isHost) {
+    broadcast({ type: 'sync_state', state: gameState });
+  }
+  updateAdminEscapeProximityDisplay();
+  updateEscapeProximityUI();
+  showToast(granted ? `🚪 ยืนยันพิกัดหน้าประตูสำเร็จ!` : `🔒 ล็อกพิกัดเรียบร้อย`);
+  playSfx(granted ? 'correct' : 'wrong');
+}
+
+function adminAuthorizeAllEscapePlayers(granted) {
+  if (!gameState.escapeProximity) gameState.escapeProximity = {};
+  if (granted) {
+    gameState.escapeProximity['*'] = true;
+    if (gameState.players) {
+      Object.keys(gameState.players).forEach(k => {
+        gameState.escapeProximity[k] = true;
+      });
+    }
+  } else {
+    gameState.escapeProximity = {};
+  }
+  const packet = {
+    type: 'admin_set_escape_proximity',
+    targetUser: 'ALL',
+    granted: Boolean(granted)
+  };
+  broadcast(packet);
+  if (isHost) {
+    broadcast({ type: 'sync_state', state: gameState });
+  }
+  updateAdminEscapeProximityDisplay();
+  updateEscapeProximityUI();
+  showToast(granted ? `🔓 ยืนยันพิกัดหน้าประตูให้ผู้เล่นทุกคนแล้ว!` : `🔒 รีเซ็ตล็อกพิกัดทั้งหมดแล้ว`);
+  playSfx(granted ? 'correct' : 'wrong');
+}
+
+function attemptStartEmergencyEscape() {
+  if (!isMyEscapeProximityGranted()) {
+    showToast('⚠️ สัญญาณขัดข้อง: เซนเซอร์ประตูไม่พบคุณที่หน้าประตูทางออกฉุกเฉิน! (ต้องให้ DM ยืนยันพิกัดก่อน)');
+    playSfx('wrong');
+    return;
+  }
+  openEmergencyEscapeModal();
+}
+
+function openEmergencyEscapeModal() {
+  const modal = document.getElementById('emergencyEscapeModal');
+  if (!modal) return;
+  currentEscapePin = '';
+  const pinDisp = document.getElementById('escapePinDisplay');
+  if (pinDisp) pinDisp.innerText = '------';
+
+  const pKeypad = document.getElementById('escapePhaseKeypad');
+  const pCountdown = document.getElementById('escapePhaseCountdown');
+  const pTroll = document.getElementById('escapePhaseTroll');
+  if (pKeypad) pKeypad.classList.remove('hidden');
+  if (pCountdown) pCountdown.classList.add('hidden');
+  if (pTroll) pTroll.classList.add('hidden');
+
+  modal.classList.remove('hidden');
+  playSfx('glitch');
+}
+
+function closeEmergencyEscapeModal() {
+  if (escapeCountdownTimer) {
+    clearInterval(escapeCountdownTimer);
+    escapeCountdownTimer = null;
+  }
+  const modal = document.getElementById('emergencyEscapeModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function pressEscapeKey(k) {
+  playSfx('click');
+  const pinDisp = document.getElementById('escapePinDisplay');
+  if (k === 'CLR') {
+    currentEscapePin = '';
+  } else if (k === 'DEL') {
+    currentEscapePin = currentEscapePin.slice(0, -1);
+  } else if (currentEscapePin.length < 6) {
+    currentEscapePin += k;
+  }
+
+  if (pinDisp) {
+    let disp = currentEscapePin;
+    while (disp.length < 6) disp += '-';
+    pinDisp.innerText = disp;
+  }
+}
+
+function submitEscapeKeypad() {
+  if (currentEscapePin.length < 6) {
+    showToast('⚠️ กรุณากรอกรหัสผ่านฉุกเฉินให้ครบ 6 หลัก');
+    playSfx('wrong');
+    return;
+  }
+  startEmergencyCountdown();
+}
+
+function forceHackOverride() {
+  playSfx('glitch');
+  const pinDisp = document.getElementById('escapePinDisplay');
+  if (pinDisp) {
+    pinDisp.innerText = '999999';
+  }
+  setTimeout(() => {
+    startEmergencyCountdown();
+  }, 400);
+}
+
+function startEmergencyCountdown() {
+  playSfx('break');
+  const pKeypad = document.getElementById('escapePhaseKeypad');
+  const pCountdown = document.getElementById('escapePhaseCountdown');
+  const pTroll = document.getElementById('escapePhaseTroll');
+  if (pKeypad) pKeypad.classList.add('hidden');
+  if (pCountdown) pCountdown.classList.remove('hidden');
+  if (pTroll) pTroll.classList.add('hidden');
+
+  let rem = 10;
+  const numEl = document.getElementById('escapeCountdownNum');
+  const barEl = document.getElementById('escapeProgressBar');
+  const descEl = document.getElementById('escapeCountdownDesc');
+
+  if (numEl) numEl.innerText = rem;
+  if (barEl) barEl.style.width = '0%';
+
+  if (escapeCountdownTimer) clearInterval(escapeCountdownTimer);
+
+  escapeCountdownTimer = setInterval(() => {
+    rem--;
+    if (numEl) numEl.innerText = rem;
+    if (barEl) barEl.style.width = `${((10 - rem) / 10) * 100}%`;
+
+    if (rem > 0) {
+      playSfx('chime');
+      if (descEl) {
+        if (rem === 7) descEl.innerText = 'กำลังส่งคลื่นแม่เหล็กปลดล็อกกลอนนิรภัยชั้นที่ 2...';
+        if (rem === 4) descEl.innerText = 'ระบบระบายความร้อนทำงาน... ประตูกำลังเลื่อนเปิด!';
+        if (rem === 2) descEl.innerText = 'ตรวจพบอุณหภูมิสูงผิดปกติในช่องทางเดิน...!?';
+      }
+    } else {
+      clearInterval(escapeCountdownTimer);
+      escapeCountdownTimer = null;
+      triggerEmergencyTrollReveal();
+    }
+  }, 1000);
+}
+
+function triggerEmergencyTrollReveal() {
+  playSfx('wrong');
+  playSfx('laugh');
+
+  const pCountdown = document.getElementById('escapePhaseCountdown');
+  const pTroll = document.getElementById('escapePhaseTroll');
+  if (pCountdown) pCountdown.classList.add('hidden');
+  if (pTroll) pTroll.classList.remove('hidden');
+
+  // Auto-reset this player's proximity lock so the troll isn't immediately repeated
+  const myHash = currentUserHash || (myPlayer && myPlayer.userHash) || (myPlayer && myPlayer.id);
+  if (myHash && gameState && gameState.escapeProximity) {
+    gameState.escapeProximity[myHash] = false;
+    delete gameState.escapeProximity['*'];
+    broadcast({
+      type: 'admin_set_escape_proximity',
+      targetUser: myHash,
+      granted: false
+    });
+    updateEscapeProximityUI();
+    updateAdminEscapeProximityDisplay();
+  }
+}
+
+function adminPreviewFakeEscape() {
+  openEmergencyEscapeModal();
+  showToast('👁️ กำลังพรีวิวระบบถอดรหัสทางออกฉุกเฉิน (DM Preview)');
 }
 
 // ==========================================================
@@ -7408,6 +7758,9 @@ function updatePlayerDisplays() {
 
   updateAdminDisplay();
   updateMobileCredDisplay();
+  updateSaboteurPanelVisibility();
+  updateEscapeProximityUI();
+  updateAdminEscapeProximityDisplay();
 }
 
 function updateMobileCredDisplay() {
@@ -8267,6 +8620,7 @@ window.addEventListener('DOMContentLoaded', () => {
   handleRoute();
   initRealtime();
   initGlobalKeyboardShortcuts();
+  updateSaboteurPanelVisibility();
 });
 
 window.addEventListener('beforeunload', () => {
