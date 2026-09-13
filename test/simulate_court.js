@@ -317,20 +317,33 @@ async function runSimulation() {
   console.log(`PASS (${sabRes.latency} ms)`);
 
   // -------------------------------------------------------------
-  // Test 12: Stage 6 Argument Armament Hit & Final Blow
+  // Test 12: Stage 6 Argument Armament (Rhythm Battleship)
   // -------------------------------------------------------------
-  process.stdout.write('🔨 Step 12: Stage 6 Argument Armament hit & final blow... ');
-  await admin.send({ type: 'set_stage', stage: 'stage6' });
-  const armPromise = court.waitFor(m => m.type === 'stg6_hit');
-  await player1.send({ type: 'stg6_hit', playerName: 'นาเอกิ' });
-  const armRes = await armPromise;
-  latencies.push(armRes.latency);
+  process.stdout.write('🔨 Step 12: Stage 6 Argument Armament setup, shot & final blow... ');
+  await admin.send({ type: 'set_stage', stage: 'stage6', config: { targetPlayer: 'ฮิฟุมิ' } });
 
+  // Accused (Player 5) sets up secret armor & traps
+  const setupPromise = court.waitFor(m => m.type === 'stg6_setup_secret');
+  await player5.send({
+    type: 'stg6_setup_secret',
+    secret: { shoulder: [0, 1], arm: [4, 5], core: [10], traps: [8, 15] },
+    playerName: 'ฮิฟุมิ'
+  });
+  const setupRes = await setupPromise;
+  latencies.push(setupRes.latency);
+
+  // Accuser (Player 1) fires shot with rhythm timing
+  const shotPromise = court.waitFor(m => m.type === 'stg6_shot_fired' || m.type === 'stg6_hit');
+  await player1.send({ type: 'stg6_shot_fired', shooter: 'นาเอกิ', cellIndex: 0, timing: 'good' });
+  const shotRes = await shotPromise;
+  latencies.push(shotRes.latency);
+
+  // Final blow
   const armBlowWait = court.waitFor(m => m.type === 'stg6_final_blow');
   await player1.send({ type: 'stg6_final_blow', playerName: 'นาเอกิ' });
   const armBlowRes = await armBlowWait;
   latencies.push(armBlowRes.latency);
-  console.log(`PASS (Hit & Final Blow in ${armRes.latency + armBlowRes.latency} ms)`);
+  console.log(`PASS (Setup, Shot & Final Blow in ${setupRes.latency + shotRes.latency + armBlowRes.latency} ms)`);
 
   // -------------------------------------------------------------
   // Test 13: Stage 7 Closing Argument (Page Sync & Card Unlock)

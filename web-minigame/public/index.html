@@ -483,25 +483,78 @@
         </div>
       </div>
 
-      <!-- STAGE 6: ARGUMENT ARMAMENT (ทุบเกราะความจริง) -->
+      <!-- STAGE 6: ARGUMENT ARMAMENT (RHYTHM BATTLESHIP) -->
       <div id="courtStage6" class="court-box hidden">
-        <div class="slanted-banner red">MINI-GAME 6: ARGUMENT ARMAMENT</div>
-        <h2 class="riddle-title" id="armamentCourtTitle">"ทุบทำลายเกราะการปฏิเสธของ: <span id="armamentTargetName" style="color:var(--mono-pink);">นักมายากล (A)</span>"</h2>
-        <div class="armament-target">
-          <div class="wave-indicator-bar">
-            <span>DENIAL WAVE: <strong id="armamentWaveTxt" style="color:var(--dr-red); font-size:1.15rem;">1 / 4</strong></span>
-          </div>
-          <div class="shield-meter">
-            <span>ARMAMENT SHIELD:</span>
-            <div class="shield-track">
-              <div id="shieldFill" class="shield-fill" style="width: 100%;"></div>
+        <div class="slanted-banner red">MINI-GAME 6: ARGUMENT ARMAMENT (RHYTHM BATTLESHIP)</div>
+        <h2 class="riddle-title" id="armamentCourtTitle">"ทุบทำลายเกราะจิตวิทยาของ: <span id="armamentTargetName" style="color:var(--mono-pink);">ผู้ถูกกล่าวหา</span>"</h2>
+        
+        <div class="stg6-court-wrap">
+          <!-- Top bar with active turn and fleet counter -->
+          <div class="stg6-court-top-bar">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="stg6PhaseBadge" style="background:#dc2626; color:#fff; font-size:0.75rem; font-weight:900; padding:3px 8px; border-radius:4px;">PHASE: วางเกราะ</span>
+              <span id="stg6TurnIndicatorTxt" style="font-size:0.92rem; color:#f8fafc; font-weight:800;">รอผู้ถูกกล่าวหาติดตั้งเกราะ...</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; font-size:0.85rem; color:#94a3b8;">
+              <span>เกราะที่เหลือ: <strong id="stg6BlocksRemainingTxt" style="color:var(--court-gold); font-size:1.1rem;">5</strong> / 5 ช่อง</span>
             </div>
           </div>
-          <div class="culprit-scream" id="culpritScreamText">
-            "ฉันไม่ได้ทำอะไรทั้งนั้น! ตอนนั้นฉันต้มน้ำซุปอยู่ในครัวคนเดียว!!"
+
+          <!-- Main Layout: 4x4 Radar Grid + Side Stats -->
+          <div class="stg6-court-main-layout">
+            <!-- Left: 4x4 Radar Grid -->
+            <div class="stg6-radar-panel">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid rgba(0,240,255,0.2); padding-bottom:6px;">
+                <span style="font-size:0.8rem; color:#38bdf8; font-weight:900; letter-spacing:1px;">🛰️ RADAR GRID (4x4)</span>
+                <span id="stg6TrapAlert" style="display:none; font-size:0.75rem; background:#581c87; color:#e9d5ff; border:1px solid #c084fc; padding:2px 6px; border-radius:4px; font-weight:bold;">⚡ TRAP PENALTY: เข็มเร็วขึ้น 1.5x</span>
+              </div>
+              <div id="courtStg6Grid" class="stg6-radar-grid-4x4">
+                <!-- 16 Cells Populated Dynamically -->
+              </div>
+            </div>
+
+            <!-- Right: Culprit Info, Fleet Status, Ammo -->
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <!-- Culprit Scream Quote -->
+              <div style="background:rgba(20,20,35,0.9); border:1px solid #334155; border-radius:8px; padding:10px;">
+                <div style="font-size:0.75rem; color:#94a3b8; font-weight:bold; margin-bottom:4px;">🗯️ คำปฏิเสธของคนร้าย:</div>
+                <div id="culpritScreamText" style="font-size:0.85rem; color:#fca5a5; font-style:italic; line-height:1.4;">
+                  "ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!"
+                </div>
+              </div>
+
+              <!-- Fleet Ships Status -->
+              <div style="background:rgba(15,23,42,0.85); border:1px solid #1e293b; border-radius:8px; padding:10px;">
+                <div style="font-size:0.75rem; color:#38bdf8; font-weight:900; margin-bottom:8px;">🛡️ เกราะทั้ง 3 ลำ (ต้องทำลายให้ครบ):</div>
+                <div id="courtStg6FleetList">
+                  <div class="stg6-ship-card" id="courtShipCardShoulder">
+                    <span>🛡️ เกราะไหล่ (2 ช่อง)</span>
+                    <strong id="courtShipStatusShoulder" style="color:#38bdf8;">0 / 2</strong>
+                  </div>
+                  <div class="stg6-ship-card" id="courtShipCardArm">
+                    <span>🛡️ เกราะแขน (2 ช่อง)</span>
+                    <strong id="courtShipStatusArm" style="color:#38bdf8;">0 / 2</strong>
+                  </div>
+                  <div class="stg6-ship-card" id="courtShipCardCore">
+                    <span>⚡ แกนหัวใจ (1 ช่อง)</span>
+                    <strong id="courtShipStatusCore" style="color:var(--court-gold);">0 / 1</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Accusers Ammo Remaining -->
+              <div style="background:rgba(15,23,42,0.85); border:1px solid #1e293b; border-radius:8px; padding:10px;">
+                <div style="font-size:0.75rem; color:#a7f3d0; font-weight:900; margin-bottom:8px;">🎯 กระสุนความจริงฝ่ายศาล (คนละ 2 นัด):</div>
+                <div id="courtStg6AmmoList" style="display:flex; flex-direction:column; gap:4px; max-height:140px; overflow-y:auto;">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+            </div>
           </div>
-          <div id="armamentFinalBlowBanner" class="armament-final-banner hidden">
-            💥 เกราะการปฏิเสธแตกสะบั้นแล้ว! ผู้เล่นทุกคนกดยิงกระสุนความจริงนัดสุดท้ายพร้อมกัน!!
+
+          <!-- Final Blow Banner -->
+          <div id="armamentFinalBlowBanner" class="armament-final-banner hidden" style="width:100%; margin-top:12px; text-align:center;">
+            💥 เกราะทั้งหมดถูกทำลายสิ้นเชิงแล้ว! กดยิงกระสุนความจริงนัดสุดท้ายเพื่อปิดฉาก!!
           </div>
         </div>
       </div>
@@ -699,13 +752,17 @@
             <div class="dm-combo-block armament-block">
               <button class="dm-act-btn orange" onclick="adminStartArmament()" style="width:100%;">
                 <strong>6. Argument Armament</strong>
-                <span>4 คลื่นปฏิเสธ & กระสุนนัดสุดท้าย</span>
+                <span>Rhythm Battleship: ทลายเกราะ 3 ลำ</span>
               </button>
               <div class="dm-select-row">
                 <span class="dm-select-label">ผู้ถูกกล่าวหา:</span>
                 <select id="adminArmamentTargetSelect" class="dm-styled-select">
                   <!-- Options populated dynamically by JS from gameState.players -->
                 </select>
+              </div>
+              <div style="display:flex; gap:6px; margin-top:4px;">
+                <button type="button" class="small-btn yellow" onclick="adminStg6Retry()" style="flex:1; padding:4px 6px; font-size:0.75rem; font-weight:800;">🔄 เริ่มใหม่ (Retry)</button>
+                <button type="button" class="small-btn cyan" onclick="adminStg6ForcePass()" style="flex:1; padding:4px 6px; font-size:0.75rem; font-weight:800;">⏩ ทลายเกราะ (OK)</button>
               </div>
             </div>
             <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
@@ -2609,12 +2666,18 @@
 
         <!-- Stage 6 Config (Argument Armament) -->
         <div id="cfgPaneStage6" class="cfg-pane hidden">
+          <div style="margin-bottom:10px;">
+            <label style="font-size:0.85rem; color:var(--court-gold); font-weight:bold;">1. เลือกผู้ถูกกล่าวหา (คนโดนรุมวางเกราะ):</label>
+            <select id="cfgStg6TargetSelect" class="dm-styled-select" style="width:100%; margin-top:4px;">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets:</span>
             <div class="preset-btn-row">
-              <button class="preset-chip" onclick="applyPresetStage6('นักมายากล (A)', 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!')">ปฏิเสธกลไกเชือกและน้ำ</button>
-              <button class="preset-chip" onclick="applyPresetStage6('นักมายากล (A)', 'กระดูกหมูในหม้อสตูว์ก็แค่ของทำอาหาร! จะมาปรักปรำว่าเป็นอาวุธฟาดหัวได้ยังไงกัน!?')">ข้ออ้างกระดูกหมู</button>
-              <button class="preset-chip" onclick="applyPresetStage6('นักมายากล (A)', 'พวกแกไม่มีหลักฐานมัดตัวฉันหรอก! มายากลอันสมบูรณ์แบบของฉัน... ไม่มีวันพังทลายเด็ดขาด!!')">คำดิ้นรนสุดท้าย</button>
+              <button class="preset-chip" onclick="applyPresetStage6('ฮิฟุมิ', 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!')">ปฏิเสธกลไกเชือกและน้ำ</button>
+              <button class="preset-chip" onclick="applyPresetStage6('ฮิฟุมิ', 'กระดูกหมูในหม้อสตูว์ก็แค่ของทำอาหาร! จะมาปรักปรำว่าเป็นอาวุธฟาดหัวได้ยังไงกัน!?')">ข้ออ้างกระดูกหมู</button>
+              <button class="preset-chip" onclick="applyPresetStage6('ฮิฟุมิ', 'พวกแกไม่มีหลักฐานมัดตัวฉันหรอก! แผนการอันสมบูรณ์แบบของฉัน... ไม่มีวันพังทลายเด็ดขาด!!')">คำดิ้นรนสุดท้าย</button>
             </div>
           </div>
           <div style="margin-top:10px;">

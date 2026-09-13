@@ -1427,15 +1427,28 @@ function handleIncomingMessage(msg, senderConn) {
     }
   } else if (msg.type === 'stg5_scrum') {
     handleStg5Scrum(msg.delta);
+  } else if (msg.type === 'stg6_setup_secret') {
+    handleStg6SetupSecret(msg.secret, msg.playerName);
+  } else if (msg.type === 'stg6_shot_fired') {
+    handleStg6Shot(msg.shooter, msg.cellIndex, msg.timing);
   } else if (msg.type === 'stg6_counter') {
     handleStg6Counter(msg.playerName);
   } else if (msg.type === 'stg6_hit') {
-    handleStg6Hit(msg.playerName);
+    handleStg6LegacyHit(msg.playerName);
   } else if (msg.type === 'stg6_final_blow') {
     handleStg6FinalBlow(msg.playerName);
+  } else if (msg.type === 'stg6_dm_retry') {
+    handleStg6DmRetry();
+  } else if (msg.type === 'stg6_dm_force_pass') {
+    handleStg6DmForcePass();
   } else if (msg.type === 'armament_final_ready') {
+    if (gameState) gameState.stg6FinalReady = true;
+    const banner = document.getElementById('armamentFinalBlowBanner');
+    if (banner) banner.classList.remove('hidden');
     const box = document.getElementById('finalBlowMobileBox');
     if (box) box.style.display = 'block';
+    updateStage6Displays();
+    renderMobileTask('stage6');
   } else if (msg.type === 'closing_submit') {
     handleClosingSubmit(msg.slot, msg.cardId, msg.playerName);
   } else if (msg.type === 'closing_page_change') {
@@ -2867,19 +2880,50 @@ function setStage(stage, config) {
     playSfx('gavel');
   } else if (stage === 'stage6') {
     autoUnlockTrialClues();
-    gameState.stg6Wave = 1;
-    gameState.stg6MaxWave = 4;
-    gameState.stg6Shield = 100;
+    let target = config?.targetPlayer || (document.getElementById('adminArmamentTargetSelect')?.value) || (document.getElementById('cfgStg6TargetSelect')?.value) || '';
+    if (!target) {
+      const pList = Object.values(gameState.players || {});
+      const hifumi = pList.find(p => p.name && (p.name.includes('ฮิฟุมิ') || p.name.includes('Hifumi')));
+      if (hifumi) target = hifumi.name;
+      else if (pList.length > 0) target = pList[pList.length - 1].name;
+      else target = 'ฮิฟุมิ';
+    }
+    gameState.stg6TargetPlayer = target;
+    gameState.stg6Phase = 'placement';
+    gameState.stg6Grid = Array(16).fill(null);
+    gameState.stg6Secret = null;
+    gameState.stg6Ships = {
+      shoulder: { name: 'เกราะไหล่', size: 2, hits: 0, sunk: false },
+      arm: { name: 'เกราะแขน', size: 2, hits: 0, sunk: false },
+      core: { name: 'แกนหัวใจ', size: 1, hits: 0, sunk: false }
+    };
+    gameState.stg6BlocksRemaining = 5;
     gameState.stg6Finished = false;
     gameState.stg6FinalReady = false;
     stg6FinalBlowSent = false;
-    gameState.stg6TargetPlayer = config?.targetPlayer || (document.getElementById('adminArmamentTargetSelect')?.value) || '';
+    gameState.stg6Defeat = false;
+    gameState.stg6TrapPenaltyActive = false;
+
+    // Accusers (all other players)
+    const allPlayers = Object.values(gameState.players || {});
+    let accusers = allPlayers.filter(p => p.name !== target).map(p => p.name);
+    if (accusers.length === 0) {
+      accusers = ['นาเอกิ', 'เคียวโกะ', 'เบียคุยะ', 'อาโออิ'];
+    }
+    gameState.stg6Accusers = accusers;
+    gameState.stg6CurrentTurnIndex = 0;
+    gameState.stg6PlayerAmmo = {};
+    accusers.forEach(p => {
+      gameState.stg6PlayerAmmo[p] = 2;
+    });
+
     if (config && config.scream) {
       gameState.stg6Statement = config.scream;
-    } else {
-      gameState.stg6Statement = gameState.stg6Denials[0];
+    } else if (!gameState.stg6Statement) {
+      gameState.stg6Statement = 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!';
     }
-    updateShieldDisplay();
+
+    updateStage6Displays();
     const banner = document.getElementById('armamentFinalBlowBanner');
     if (banner) banner.classList.add('hidden');
     gameState.timeRemaining = 60;
@@ -2887,6 +2931,7 @@ function setStage(stage, config) {
     stopTimer();
     updateTimerDisplay();
     playSfx('gavel');
+    logCourt(`⚔️ [STAGE 6: ARGUMENT ARMAMENT]: ผู้ถูกกล่าวหาคือ [${gameState.stg6TargetPlayer}] เข้าสู่ช่วงติดตั้งเกราะ 3 ลำและกับดักสะท้อนบนเรดาร์ 4x4!`);
   } else if (stage === 'closing') {
     autoUnlockTrialClues();
     gameState.closingCurrentPage = 1;
@@ -3130,7 +3175,7 @@ function renderStage(stage) {
   } else if (stage === 'stage6') {
     const s6 = document.getElementById('courtStage6');
     if (s6) s6.classList.remove('hidden');
-    updateShieldDisplay();
+    updateStage6Displays();
   } else if (stage === 'closing') {
     const cl = document.getElementById('courtClosing');
     if (cl) cl.classList.remove('hidden');
@@ -3597,20 +3642,24 @@ function adminRebuttalVerdict(isWin) {
 
 
 function populateArmamentTargetSelect() {
-  const sel = document.getElementById('adminArmamentTargetSelect');
-  if (!sel) return;
+  const sel1 = document.getElementById('adminArmamentTargetSelect');
+  const sel2 = document.getElementById('cfgStg6TargetSelect');
   const players = Object.values(gameState.players || {});
-  const currentVal = sel.value;
-  sel.innerHTML = '';
-  players.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.name;
-    opt.textContent = p.name;
-    sel.appendChild(opt);
+
+  [sel1, sel2].forEach(sel => {
+    if (!sel) return;
+    const currentVal = sel.value;
+    sel.innerHTML = '';
+    players.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    });
+    if (currentVal && sel.querySelector(`option[value="${CSS.escape(currentVal)}"]`)) {
+      sel.value = currentVal;
+    }
   });
-  if (currentVal && sel.querySelector(`option[value="${CSS.escape(currentVal)}"]`)) {
-    sel.value = currentVal;
-  }
 }
 
 function populateRebuttalSelects() {
@@ -3923,28 +3972,238 @@ function playerScrumPush(delta, btnEl) {
   }
 }
 
-// 6. Argument Armament
-function handleStg6Hit(pName) {
-  gameState.stg6Shield = Math.max(0, gameState.stg6Shield - 5);
-  updateShieldDisplay();
-  playSfx('blade');
-  if (gameState.stg6Shield <= 0) {
-    if (gameState.stg6Wave < (gameState.stg6MaxWave || 4)) {
-      gameState.stg6Wave++;
-      gameState.stg6Shield = 100;
-      gameState.stg6Statement = gameState.stg6Denials[gameState.stg6Wave - 1] || gameState.stg6Statement;
-      playSfx('break');
-      logCourt(`💥 [ARMAMENT BREAK]: ทลายเกราะคลื่นที่ ${gameState.stg6Wave - 1} สำเร็จ! คนร้ายสติแตกเข้าสู่คลื่นที่ ${gameState.stg6Wave}!`);
-      updateShieldDisplay();
-      if (isHost) broadcast({ type: 'sync_state', state: gameState });
+// ==========================================================
+// 6. ARGUMENT ARMAMENT (RHYTHM BATTLESHIP OVERHAUL)
+// ==========================================================
+
+function formatStg6Coord(idx) {
+  const row = Math.floor(idx / 4);
+  const col = idx % 4;
+  return `${String.fromCharCode(65 + row)}${col + 1}`;
+}
+
+function generateRandomStg6Placements() {
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const occupied = new Set();
+
+    function placeShip(size) {
+      const isHorizontal = Math.random() < 0.5;
+      const rMax = isHorizontal ? 4 : 4 - size + 1;
+      const cMax = isHorizontal ? 4 - size + 1 : 4;
+      const r = Math.floor(Math.random() * rMax);
+      const c = Math.floor(Math.random() * cMax);
+      const cells = [];
+      for (let i = 0; i < size; i++) {
+        const idx = isHorizontal ? (r * 4 + (c + i)) : ((r + i) * 4 + c);
+        if (occupied.has(idx)) return null;
+        cells.push(idx);
+      }
+      cells.forEach(idx => occupied.add(idx));
+      return cells;
+    }
+
+    const shoulder = placeShip(2);
+    if (!shoulder) continue;
+
+    const arm = placeShip(2);
+    if (!arm) continue;
+
+    const core = placeShip(1);
+    if (!core) continue;
+
+    const remaining = [];
+    for (let i = 0; i < 16; i++) {
+      if (!occupied.has(i)) remaining.push(i);
+    }
+    if (remaining.length < 2) continue;
+    remaining.sort(() => Math.random() - 0.5);
+    const traps = [remaining[0], remaining[1]];
+
+    return { shoulder, arm, core, traps };
+  }
+
+  return {
+    shoulder: [0, 1],
+    arm: [8, 12],
+    core: [5],
+    traps: [10, 15]
+  };
+}
+
+function handleStg6SetupSecret(secret, pName) {
+  if (gameState.stage !== 'stage6') return;
+  gameState.stg6Secret = secret;
+  gameState.stg6Phase = 'shooting';
+  logCourt(`🛡️ [ARMAMENT]: ${pName || gameState.stg6TargetPlayer || 'ผู้ถูกกล่าวหา'} ยืนยันตำแหน่งเกราะ 3 ลำและกับดักสะท้อนเรียบร้อย! เริ่มต้นการระดมยิง!`);
+  playSfx('gavel');
+  updateStage6Displays();
+  renderMobileTask('stage6');
+  if (isHost) broadcast({ type: 'sync_state', state: gameState });
+}
+
+function handleStg6Shot(shooter, cellIndex, timing) {
+  if (gameState.stage !== 'stage6' || gameState.stg6Finished) return;
+  if (gameState.stg6Phase === 'placement') {
+    gameState.stg6Secret = generateRandomStg6Placements();
+    gameState.stg6Phase = 'shooting';
+  }
+
+  if (!gameState.stg6Secret) {
+    gameState.stg6Secret = generateRandomStg6Placements();
+  }
+
+  const sPlayer = shooter || (gameState.stg6Accusers && gameState.stg6Accusers[gameState.stg6CurrentTurnIndex]) || 'ผู้เล่น';
+
+  if (!gameState.stg6PlayerAmmo) gameState.stg6PlayerAmmo = {};
+  if (typeof gameState.stg6PlayerAmmo[sPlayer] !== 'number') {
+    gameState.stg6PlayerAmmo[sPlayer] = 2;
+  }
+
+  // Deduct 1 ammo
+  gameState.stg6PlayerAmmo[sPlayer] = Math.max(0, gameState.stg6PlayerAmmo[sPlayer] - 1);
+
+  // Check Perfect Timing Bonus (+1 Ammo)
+  if (timing === 'perfect') {
+    gameState.stg6PlayerAmmo[sPlayer] += 1;
+    playSfx('counter');
+    logCourt(`🌟 [PERFECT TIMING!]: ${sPlayer} จับจังหวะเพอร์เฟกต์! ได้รับกระสุนความจริงคืน +1 นัด! (คงเหลือ ${gameState.stg6PlayerAmmo[sPlayer]} นัด)`);
+  }
+
+  // Check Miss Timing
+  if (timing === 'miss') {
+    playSfx('wrong');
+    logCourt(`❌ [MISS TIMING!]: ${sPlayer} เล็งพลาดจังหวะ! กระสุนขัดลำกล้อง เสียกระสุนเปล่า 1 นัด (คงเหลือ ${gameState.stg6PlayerAmmo[sPlayer]} นัด)!`);
+  } else {
+    // Timing is 'good' or 'perfect'
+    let targetIdx = cellIndex;
+    if (typeof targetIdx !== 'number' || targetIdx < 0 || targetIdx > 15) {
+      const unrevealed = [];
+      for (let i = 0; i < 16; i++) {
+        if (!gameState.stg6Grid || !gameState.stg6Grid[i]) unrevealed.push(i);
+      }
+      targetIdx = unrevealed.length > 0 ? unrevealed[0] : 0;
+    }
+
+    const coordStr = formatStg6Coord(targetIdx);
+    const sec = gameState.stg6Secret || generateRandomStg6Placements();
+    let hitType = 'miss';
+    let shipKey = null;
+
+    if (sec.shoulder && sec.shoulder.includes(targetIdx)) {
+      hitType = 'hit';
+      shipKey = 'shoulder';
+    } else if (sec.arm && sec.arm.includes(targetIdx)) {
+      hitType = 'hit';
+      shipKey = 'arm';
+    } else if (sec.core && sec.core.includes(targetIdx)) {
+      hitType = 'hit';
+      shipKey = 'core';
+    } else if (sec.traps && sec.traps.includes(targetIdx)) {
+      hitType = 'trap';
+    }
+
+    if (!gameState.stg6Grid) gameState.stg6Grid = Array(16).fill(null);
+    gameState.stg6Grid[targetIdx] = hitType;
+
+    if (hitType === 'hit') {
+      gameState.stg6BlocksRemaining = Math.max(0, (gameState.stg6BlocksRemaining || 5) - 1);
+      if (!gameState.stg6Ships) {
+        gameState.stg6Ships = {
+          shoulder: { name: 'เกราะไหล่', size: 2, hits: 0, sunk: false },
+          arm: { name: 'เกราะแขน', size: 2, hits: 0, sunk: false },
+          core: { name: 'แกนหัวใจ', size: 1, hits: 0, sunk: false }
+        };
+      }
+      if (shipKey && gameState.stg6Ships[shipKey]) {
+        gameState.stg6Ships[shipKey].hits = (gameState.stg6Ships[shipKey].hits || 0) + 1;
+        if (gameState.stg6Ships[shipKey].hits >= gameState.stg6Ships[shipKey].size) {
+          gameState.stg6Ships[shipKey].sunk = true;
+          playSfx('break');
+          logCourt(`💥 [ARMOR DESTROYED]: ${sPlayer} ยิงเจาะพิกัด [${coordStr}]! เกราะส่วน [${gameState.stg6Ships[shipKey].name}] พังทลายสิ้นเชิง!!`);
+        } else {
+          playSfx('blade');
+          logCourt(`🎯 [DIRECT HIT!]: ${sPlayer} ยิงโดน [${gameState.stg6Ships[shipKey].name}] ที่พิกัด [${coordStr}]! (เกราะรวมเหลือ ${gameState.stg6BlocksRemaining} ช่อง)`);
+        }
+      }
+      gameState.stg6TrapPenaltyActive = false;
+    } else if (hitType === 'trap') {
+      gameState.stg6TrapPenaltyActive = true;
+      playSfx('wrong');
+      logCourt(`⚡ [COUNTER-TRAP TRIGGERED!]: ${sPlayer} ยิงโดนกับดักสะท้อนที่พิกัด [${coordStr}]! คนยิงถัดไปจะเจอเข็มสวิงเร็วขึ้น 1.5x และโซนแคบลง 30%!`);
     } else {
-      playSfx('break');
-      const banner = document.getElementById('armamentFinalBlowBanner');
-      if (banner) banner.classList.remove('hidden');
-      logCourt(`💥 [ARMAMENT READY]: เกราะการปฏิเสธของคนร้ายพังทลายสิ้นเชิง! เล็งยิงกระสุนความจริงนัดสุดท้าย!`);
-      if (isHost) broadcast({ type: 'armament_final_ready' });
+      playSfx('splash');
+      logCourt(`💦 [SPLASH MISS]: ${sPlayer} ยิงพิกัด [${coordStr}] กระทบพื้นที่ว่างเปล่า!`);
+      gameState.stg6TrapPenaltyActive = false;
     }
   }
+
+  // Check Victory Condition (All 5 blocks destroyed)
+  if (gameState.stg6BlocksRemaining <= 0) {
+    gameState.stg6FinalReady = true;
+    playSfx('break');
+    const banner = document.getElementById('armamentFinalBlowBanner');
+    if (banner) banner.classList.remove('hidden');
+    logCourt(`💥 [ARMAMENT ALL BROKEN]: เกราะการปฏิเสธของคนร้ายพังทลายสิ้นเชิงทั้ง 3 ลำ! เล็งยิงกระสุนความจริงนัดสุดท้ายเพื่อปิดฉาก!`);
+    if (isHost) broadcast({ type: 'armament_final_ready' });
+    updateStage6Displays();
+    renderMobileTask('stage6');
+    if (isHost) broadcast({ type: 'sync_state', state: gameState });
+    return;
+  }
+
+  // Check Defeat Condition (All accusers out of ammo)
+  const totalAmmoRemaining = (gameState.stg6Accusers || []).reduce((sum, p) => sum + (gameState.stg6PlayerAmmo[p] || 0), 0);
+  if (totalAmmoRemaining <= 0) {
+    gameState.stg6Defeat = true;
+    playSfx('wrong');
+    logCourt(`💀 [OUT OF AMMO]: ฝ่ายศาลใช้กระสุนความจริงหมดเกลี้ยงแล้ว! รอ DM รีเซ็ต (Retry) หรือกดบังคับผ่าน (OK)`);
+    updateStage6Displays();
+    renderMobileTask('stage6');
+    if (isHost) broadcast({ type: 'sync_state', state: gameState });
+    return;
+  }
+
+  // Advance turn to next accuser who has ammo
+  const accusers = gameState.stg6Accusers || [];
+  if (accusers.length > 0) {
+    let curIdx = typeof gameState.stg6CurrentTurnIndex === 'number' ? gameState.stg6CurrentTurnIndex : 0;
+    for (let step = 1; step <= accusers.length; step++) {
+      const candidateIdx = (curIdx + step) % accusers.length;
+      const candidateName = accusers[candidateIdx];
+      if ((gameState.stg6PlayerAmmo[candidateName] || 0) > 0) {
+        gameState.stg6CurrentTurnIndex = candidateIdx;
+        break;
+      }
+    }
+  }
+
+  updateStage6Displays();
+  renderMobileTask('stage6');
+  if (isHost) broadcast({ type: 'sync_state', state: gameState });
+}
+
+function handleStg6LegacyHit(pName) {
+  if (gameState.stage !== 'stage6' || gameState.stg6Finished) return;
+  if (!gameState.stg6Secret) {
+    gameState.stg6Secret = generateRandomStg6Placements();
+  }
+  const sec = gameState.stg6Secret;
+  const shipCells = [...(sec.shoulder || []), ...(sec.arm || []), ...(sec.core || [])];
+  let targetIdx = shipCells.find(idx => !gameState.stg6Grid || !gameState.stg6Grid[idx]);
+  if (targetIdx === undefined) {
+    for (let i = 0; i < 16; i++) {
+      if (!gameState.stg6Grid || !gameState.stg6Grid[i]) {
+        targetIdx = i;
+        break;
+      }
+    }
+  }
+  if (targetIdx === undefined) targetIdx = 0;
+  handleStg6Shot(pName || 'ผู้เล่น', targetIdx, 'good');
+}
+
+function handleStg6Counter(pName) {
+  playSfx('blade');
 }
 
 function handleStg6FinalBlow(pName) {
@@ -3967,28 +4226,220 @@ function handleStg6FinalBlow(pName) {
   }, 400);
 }
 
-function updateShieldDisplay() {
-  const fill = document.getElementById('shieldFill');
-  const waveTxt = document.getElementById('armamentWaveTxt');
-  const scEl = document.getElementById('culpritScreamText');
-  const targetEl = document.getElementById('armamentTargetName');
-  if (fill) fill.style.width = `${gameState.stg6Shield}%`;
-  if (waveTxt) waveTxt.innerText = `${gameState.stg6Wave || 1} / 4`;
-  if (scEl && gameState.stg6Statement) scEl.innerText = `"${gameState.stg6Statement}"`;
-  if (targetEl && gameState.stg6TargetPlayer) targetEl.innerText = gameState.stg6TargetPlayer;
+function adminStg6Retry() {
+  if (gameState.stage !== 'stage6') return;
+  handleStg6DmRetry();
+  broadcast({ type: 'stg6_dm_retry' });
 }
 
-function handleStg6Counter(pName) {
-  if (gameState.stg6Shield >= 100) return;
-  gameState.stg6Shield = Math.min(100, gameState.stg6Shield + 4);
-  updateShieldDisplay();
-  playSfx('blade');
+function handleStg6DmRetry() {
+  gameState.stg6Phase = 'placement';
+  gameState.stg6Grid = Array(16).fill(null);
+  gameState.stg6Secret = null;
+  gameState.stg6Ships = {
+    shoulder: { name: 'เกราะไหล่', size: 2, hits: 0, sunk: false },
+    arm: { name: 'เกราะแขน', size: 2, hits: 0, sunk: false },
+    core: { name: 'แกนหัวใจ', size: 1, hits: 0, sunk: false }
+  };
+  gameState.stg6BlocksRemaining = 5;
+  gameState.stg6Finished = false;
+  gameState.stg6FinalReady = false;
+  gameState.stg6Defeat = false;
+  gameState.stg6TrapPenaltyActive = false;
+  gameState.stg6CurrentTurnIndex = 0;
+  (gameState.stg6Accusers || []).forEach(p => {
+    gameState.stg6PlayerAmmo[p] = 2;
+  });
+  const banner = document.getElementById('armamentFinalBlowBanner');
+  if (banner) banner.classList.add('hidden');
+  playSfx('gavel');
+  logCourt(`🔄 [DM RETRY]: ผู้ดูแลศาลรีเซ็ต Stage 6 (Argument Armament) เริ่มต้นรอบใหม่!`);
+  updateStage6Displays();
+  renderMobileTask('stage6');
+}
+
+function adminStg6ForcePass() {
+  if (gameState.stage !== 'stage6') return;
+  handleStg6DmForcePass();
+  broadcast({ type: 'stg6_dm_force_pass' });
+}
+
+function handleStg6DmForcePass() {
+  gameState.stg6BlocksRemaining = 0;
+  gameState.stg6FinalReady = true;
+  gameState.stg6Defeat = false;
+  if (!gameState.stg6Ships) {
+    gameState.stg6Ships = {
+      shoulder: { name: 'เกราะไหล่', size: 2, hits: 2, sunk: true },
+      arm: { name: 'เกราะแขน', size: 2, hits: 2, sunk: true },
+      core: { name: 'แกนหัวใจ', size: 1, hits: 1, sunk: true }
+    };
+  } else {
+    gameState.stg6Ships.shoulder.hits = 2; gameState.stg6Ships.shoulder.sunk = true;
+    gameState.stg6Ships.arm.hits = 2; gameState.stg6Ships.arm.sunk = true;
+    gameState.stg6Ships.core.hits = 1; gameState.stg6Ships.core.sunk = true;
+  }
+  const banner = document.getElementById('armamentFinalBlowBanner');
+  if (banner) banner.classList.remove('hidden');
+  playSfx('break');
+  logCourt(`⏩ [DM FORCE PASS]: ผู้ดูแลศาลทลายเกราะคนร้ายโดยตรง! ปลดล็อกกระสุนความจริงนัดสุดท้าย!`);
+  updateStage6Displays();
+  renderMobileTask('stage6');
 }
 
 function adminStartArmament() {
   const sel = document.getElementById('adminArmamentTargetSelect');
-  const target = sel ? sel.value : 'นักมายากล (A)';
+  let target = sel ? sel.value : '';
+  if (!target) {
+    const cfgSel = document.getElementById('cfgStg6TargetSelect');
+    target = cfgSel ? cfgSel.value : '';
+  }
   adminSetGame('stage6', { targetPlayer: target });
+}
+
+function updateStage6Displays() {
+  const targetName = gameState.stg6TargetPlayer || 'ผู้ถูกกล่าวหา';
+  const targetEl = document.getElementById('armamentTargetName');
+  if (targetEl) targetEl.innerText = targetName;
+
+  const screamEl = document.getElementById('culpritScreamText');
+  if (screamEl && gameState.stg6Statement) screamEl.innerText = `"${gameState.stg6Statement}"`;
+
+  // Phase Badge
+  const badgeEl = document.getElementById('stg6PhaseBadge');
+  if (badgeEl) {
+    if (gameState.stg6FinalReady) {
+      badgeEl.innerText = 'FINAL BLOW!';
+      badgeEl.style.background = '#eab308';
+    } else if (gameState.stg6Defeat) {
+      badgeEl.innerText = 'กระสุนหมด!';
+      badgeEl.style.background = '#ef4444';
+    } else if (gameState.stg6Phase === 'shooting') {
+      badgeEl.innerText = 'PHASE: ระดมยิง';
+      badgeEl.style.background = '#10b981';
+    } else {
+      badgeEl.innerText = 'PHASE: วางเกราะ';
+      badgeEl.style.background = '#dc2626';
+    }
+  }
+
+  // Turn indicator
+  const turnEl = document.getElementById('stg6TurnIndicatorTxt');
+  if (turnEl) {
+    if (gameState.stg6FinalReady) {
+      turnEl.innerText = '💥 เกราะพังทลายหมดแล้ว! ยิงกระสุนความจริงนัดสุดท้าย!';
+    } else if (gameState.stg6Defeat) {
+      turnEl.innerText = '💀 กระสุนฝ่ายศาลหมดเกลี้ยง! รอคำสั่งจาก DM...';
+    } else if (gameState.stg6Phase === 'shooting') {
+      const curShooter = (gameState.stg6Accusers && gameState.stg6Accusers[gameState.stg6CurrentTurnIndex]) || 'ผู้เล่น';
+      const curAmmo = (gameState.stg6PlayerAmmo && gameState.stg6PlayerAmmo[curShooter]) || 0;
+      turnEl.innerHTML = `🎯 ตาของ: <strong style="color:#38bdf8;">${escapeHtml(curShooter)}</strong> (กระสุนเหลือ ${curAmmo} นัด)`;
+    } else {
+      turnEl.innerText = `รอ ${targetName} ติดตั้งเกราะจิตวิทยา...`;
+    }
+  }
+
+  // Blocks remaining counter
+  const blocksEl = document.getElementById('stg6BlocksRemainingTxt');
+  if (blocksEl) {
+    blocksEl.innerText = typeof gameState.stg6BlocksRemaining === 'number' ? gameState.stg6BlocksRemaining : 5;
+  }
+
+  // Trap alert banner
+  const trapAlertEl = document.getElementById('stg6TrapAlert');
+  if (trapAlertEl) {
+    trapAlertEl.style.display = gameState.stg6TrapPenaltyActive ? 'inline-block' : 'none';
+  }
+
+  // 4x4 Grid rendering on Court Screen
+  const gridEl = document.getElementById('courtStg6Grid');
+  if (gridEl) {
+    gridEl.innerHTML = '';
+    const gridData = gameState.stg6Grid || Array(16).fill(null);
+    for (let i = 0; i < 16; i++) {
+      const cell = document.createElement('div');
+      const coord = formatStg6Coord(i);
+      const state = gridData[i];
+      cell.className = 'stg6-grid-cell';
+
+      let contentHtml = `<span class="stg6-coord-label">${coord}</span>`;
+      if (state === 'hit') {
+        cell.classList.add('revealed-hit');
+        contentHtml += `<span style="font-size:1.1rem;">💥</span><span style="font-size:0.65rem; color:#fca5a5;">HIT</span>`;
+      } else if (state === 'miss') {
+        cell.classList.add('revealed-miss');
+        contentHtml += `<span style="font-size:1.1rem;">💦</span><span style="font-size:0.65rem; color:#bae6fd;">MISS</span>`;
+      } else if (state === 'trap') {
+        cell.classList.add('revealed-trap');
+        contentHtml += `<span style="font-size:1.1rem;">⚡</span><span style="font-size:0.65rem; color:#e9d5ff;">TRAP</span>`;
+      } else {
+        contentHtml += `<span style="font-size:0.9rem; color:#475569;">?</span>`;
+      }
+      cell.innerHTML = contentHtml;
+      gridEl.appendChild(cell);
+    }
+  }
+
+  // Fleet cards
+  const sShips = gameState.stg6Ships || {
+    shoulder: { name: 'เกราะไหล่', size: 2, hits: 0, sunk: false },
+    arm: { name: 'เกราะแขน', size: 2, hits: 0, sunk: false },
+    core: { name: 'แกนหัวใจ', size: 1, hits: 0, sunk: false }
+  };
+
+  const cardS = document.getElementById('courtShipCardShoulder');
+  const txtS = document.getElementById('courtShipStatusShoulder');
+  if (cardS && txtS) {
+    txtS.innerText = sShips.shoulder.sunk ? '💥 พังทลาย!' : `${sShips.shoulder.hits || 0} / 2`;
+    cardS.className = 'stg6-ship-card' + (sShips.shoulder.sunk ? ' destroyed' : '');
+  }
+
+  const cardA = document.getElementById('courtShipCardArm');
+  const txtA = document.getElementById('courtShipStatusArm');
+  if (cardA && txtA) {
+    txtA.innerText = sShips.arm.sunk ? '💥 พังทลาย!' : `${sShips.arm.hits || 0} / 2`;
+    cardA.className = 'stg6-ship-card' + (sShips.arm.sunk ? ' destroyed' : '');
+  }
+
+  const cardC = document.getElementById('courtShipCardCore');
+  const txtC = document.getElementById('courtShipStatusCore');
+  if (cardC && txtC) {
+    txtC.innerText = sShips.core.sunk ? '💥 พังทลาย!' : `${sShips.core.hits || 0} / 1`;
+    cardC.className = 'stg6-ship-card' + (sShips.core.sunk ? ' destroyed' : '');
+  }
+
+  // Accusers Ammo List
+  const ammoListEl = document.getElementById('courtStg6AmmoList');
+  if (ammoListEl) {
+    ammoListEl.innerHTML = '';
+    const accusers = gameState.stg6Accusers || [];
+    const curShooterIdx = gameState.stg6CurrentTurnIndex || 0;
+    accusers.forEach((pName, idx) => {
+      const ammo = (gameState.stg6PlayerAmmo && gameState.stg6PlayerAmmo[pName]) || 0;
+      const isCur = idx === curShooterIdx && gameState.stg6Phase === 'shooting' && !gameState.stg6FinalReady && !gameState.stg6Defeat;
+      let bulletsStr = '';
+      for (let b = 0; b < 2; b++) {
+        bulletsStr += (b < ammo) ? '🌕 ' : '🌑 ';
+      }
+      if (ammo > 2) {
+        bulletsStr += `(+${ammo - 2})`;
+      }
+      const item = document.createElement('div');
+      item.style.cssText = `display:flex; justify-content:space-between; align-items:center; padding:3px 6px; border-radius:4px; font-size:0.78rem; background:${isCur ? 'rgba(56,189,248,0.2)' : 'rgba(0,0,0,0.2)'}; border:${isCur ? '1px solid #38bdf8' : '1px solid transparent'};`;
+      item.innerHTML = `
+        <span>${isCur ? '👉 ' : ''}<strong>${escapeHtml(pName)}</strong></span>
+        <span style="letter-spacing:2px; font-weight:bold; color:${ammo > 0 ? '#00ff88' : '#64748b'};">${bulletsStr} (${ammo} นัด)</span>
+      `;
+      ammoListEl.appendChild(item);
+    });
+  }
+
+  // Final blow banner
+  const banner = document.getElementById('armamentFinalBlowBanner');
+  if (banner) {
+    if (gameState.stg6FinalReady) banner.classList.remove('hidden');
+    else banner.classList.add('hidden');
+  }
 }
 
 // 7. Closing Argument (Mini-Game 7) - 5-Page Airtight Manga Overhaul
@@ -5090,29 +5541,286 @@ function renderMobileTask(stage) {
       targetName.includes(myPlayer.name)
     ));
 
+    const isShootingPhase = gameState.stg6Phase === 'shooting';
+    const isFinalReady = Boolean(gameState.stg6FinalReady);
+    const isDefeat = Boolean(gameState.stg6Defeat);
+
     if (isTarget) {
-      area.innerHTML = `
-        <div style="background:rgba(40,10,20,0.95); border:2px solid var(--mono-pink); border-radius:10px; padding:16px; text-align:center;">
-          <h3 style="color:var(--mono-pink); margin-bottom:8px; font-weight:900;">⚠️ คุณกำลังถูกทั้งศาลชั้นเรียนต้อนจนมุม!</h3>
-          <p style="color:#ddd; font-size:0.9rem; margin-bottom:14px;">เพื่อนๆ กำลังรุมทุบทำลายข้ออ้างของคุณ! กดปุ่มโต้กลับเพื่อฟื้นฟูเกราะการปฏิเสธ!</p>
-          <button class="p-task-btn big-action-btn" style="background:#5e111a; border:3px solid var(--mono-pink); box-shadow:0 0 16px var(--mono-pink); font-size:1.1rem; color:#fff;" onclick="broadcast({type:'stg6_counter', playerName: myPlayer ? myPlayer.name : 'ผู้ถูกต้อน'})">
-            🛡️ ตอกกลับข้อกล่าวหา! (+4% Shield)
-          </button>
-        </div>
-      `;
+      // VIEW FOR ACCUSED (คนโดนรุมวางเกราะ)
+      if (!isShootingPhase) {
+        if (!stg6AccusedPlacement) {
+          stg6AccusedPlacement = { shoulder: [], arm: [], core: [], traps: [] };
+        }
+        const curType = stg6AccusedPlacingType || 'shoulder';
+        const p = stg6AccusedPlacement;
+        const totalPlaced = (p.shoulder?.length || 0) + (p.arm?.length || 0) + (p.core?.length || 0) + (p.traps?.length || 0);
+        const canConfirm = (p.shoulder?.length === 2) && (p.arm?.length === 2) && (p.core?.length === 1) && (p.traps?.length === 2);
+
+        let gridCellsHtml = '';
+        for (let i = 0; i < 16; i++) {
+          const coord = formatStg6Coord(i);
+          let assignedType = null;
+          let label = '?';
+          let bg = 'rgba(15,23,42,0.85)';
+          let border = '1px solid #334155';
+          let textColor = '#64748b';
+
+          if (p.shoulder?.includes(i)) {
+            assignedType = 'shoulder'; label = '🛡️ ไหล่'; bg = 'rgba(56,189,248,0.3)'; border = '2px solid #38bdf8'; textColor = '#38bdf8';
+          } else if (p.arm?.includes(i)) {
+            assignedType = 'arm'; label = '🛡️ แขน'; bg = 'rgba(56,189,248,0.3)'; border = '2px solid #38bdf8'; textColor = '#38bdf8';
+          } else if (p.core?.includes(i)) {
+            assignedType = 'core'; label = '⚡ แกน'; bg = 'rgba(250,204,21,0.35)'; border = '2px solid #facc15'; textColor = '#facc15';
+          } else if (p.traps?.includes(i)) {
+            assignedType = 'traps'; label = '⚠️ กับดัก'; bg = 'rgba(168,85,247,0.35)'; border = '2px solid #a855f7'; textColor = '#c084fc';
+          }
+
+          gridCellsHtml += `
+            <div onclick="stg6TogglePlaceCell(${i})" style="position:relative; aspect-ratio:1; background:${bg}; border:${border}; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; user-select:none; transition:all 0.15s;">
+              <span style="position:absolute; top:2px; left:4px; font-size:0.6rem; color:#64748b; font-family:monospace;">${coord}</span>
+              <span style="font-size:0.75rem; font-weight:bold; color:${textColor}; margin-top:6px;">${label}</span>
+            </div>
+          `;
+        }
+
+        area.innerHTML = `
+          <div style="background:rgba(20,10,30,0.95); border:2px solid var(--mono-pink); border-radius:10px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:0.8rem; background:var(--mono-pink); color:#fff; font-weight:900; padding:2px 8px; border-radius:4px;">🛡️ ติดตั้งเกราะลับ</span>
+              <span style="font-size:0.78rem; color:#fca5a5;">วางแล้ว: <strong>${totalPlaced} / 7 ช่อง</strong></span>
+            </div>
+            <p style="font-size:0.78rem; color:#cbd5e1; margin-bottom:10px; line-height:1.3;">
+              คุณกำลังถูกทั้งศาลระดมยิง! เลือกชิ้นส่วนด้านล่าง แล้วแตะตาราง 4x4 เพื่อแอบติดตั้งตำแหน่งเกราะและกับดัก:
+            </p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
+              <button type="button" class="p-task-btn" onclick="stg6SelectPlaceType('shoulder')" style="padding:6px; font-size:0.78rem; background:${curType === 'shoulder' ? '#0369a1' : '#0f172a'}; border:2px solid ${curType === 'shoulder' ? '#38bdf8' : '#334155'}; color:#fff;">
+                🛡️ เกราะไหล่ (${p.shoulder?.length || 0}/2)
+              </button>
+              <button type="button" class="p-task-btn" onclick="stg6SelectPlaceType('arm')" style="padding:6px; font-size:0.78rem; background:${curType === 'arm' ? '#0369a1' : '#0f172a'}; border:2px solid ${curType === 'arm' ? '#38bdf8' : '#334155'}; color:#fff;">
+                🛡️ เกราะแขน (${p.arm?.length || 0}/2)
+              </button>
+              <button type="button" class="p-task-btn" onclick="stg6SelectPlaceType('core')" style="padding:6px; font-size:0.78rem; background:${curType === 'core' ? '#854d0e' : '#0f172a'}; border:2px solid ${curType === 'core' ? '#facc15' : '#334155'}; color:#fff;">
+                ⚡ แกนหัวใจ (${p.core?.length || 0}/1)
+              </button>
+              <button type="button" class="p-task-btn" onclick="stg6SelectPlaceType('traps')" style="padding:6px; font-size:0.78rem; background:${curType === 'traps' ? '#6b21a8' : '#0f172a'}; border:2px solid ${curType === 'traps' ? '#c084fc' : '#334155'}; color:#fff;">
+                ⚠️ กับดัก (${p.traps?.length || 0}/2)
+              </button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;">
+              ${gridCellsHtml}
+            </div>
+
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="p-task-btn" onclick="stg6AccusedAutoPlace()" style="flex:1; padding:8px; font-size:0.85rem; background:#334155; border:1px solid #64748b; color:#f8fafc;">
+                🎲 สุ่มวางอัตโนมัติ
+              </button>
+              <button type="button" class="p-task-btn" onclick="stg6ConfirmPlacement()" style="flex:1.2; padding:8px; font-size:0.88rem; font-weight:900; background:${canConfirm ? '#15803d' : '#1e293b'}; border:2px solid ${canConfirm ? '#22c55e' : '#475569'}; color:${canConfirm ? '#fff' : '#94a3b8'};" ${canConfirm ? '' : 'disabled'}>
+                ✅ ยืนยันตำแหน่งเกราะ
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        // Shooting Phase (Accused Spectator Grid)
+        const p = gameState.stg6Secret || { shoulder: [], arm: [], core: [], traps: [] };
+        const gridData = gameState.stg6Grid || Array(16).fill(null);
+
+        let defenseCellsHtml = '';
+        for (let i = 0; i < 16; i++) {
+          const coord = formatStg6Coord(i);
+          const state = gridData[i];
+          let bg = 'rgba(15,23,42,0.85)';
+          let border = '1px solid #334155';
+          let icon = '·';
+          let textColor = '#475569';
+
+          if (p.shoulder?.includes(i) || p.arm?.includes(i)) {
+            border = '1px dashed #38bdf8'; icon = '🛡️';
+          } else if (p.core?.includes(i)) {
+            border = '1px dashed #facc15'; icon = '⚡';
+          } else if (p.traps?.includes(i)) {
+            border = '1px dashed #c084fc'; icon = '⚠️';
+          }
+
+          if (state === 'hit') {
+            bg = 'radial-gradient(circle, #b91c1c, #450a0a)'; border = '2px solid #ef4444'; icon = '💥'; textColor = '#fca5a5';
+          } else if (state === 'miss') {
+            bg = 'radial-gradient(circle, #0369a1, #082f49)'; border = '2px solid #38bdf8'; icon = '💦'; textColor = '#bae6fd';
+          } else if (state === 'trap') {
+            bg = 'radial-gradient(circle, #9333ea, #3b0764)'; border = '2px solid #c084fc'; icon = '⚡'; textColor = '#e9d5ff';
+          }
+
+          defenseCellsHtml += `
+            <div style="position:relative; aspect-ratio:1; background:${bg}; border:${border}; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <span style="position:absolute; top:2px; left:4px; font-size:0.58rem; color:#64748b; font-family:monospace;">${coord}</span>
+              <span style="font-size:0.95rem; color:${textColor}; margin-top:6px;">${icon}</span>
+            </div>
+          `;
+        }
+
+        area.innerHTML = `
+          <div style="background:rgba(20,10,30,0.95); border:2px solid var(--mono-pink); border-radius:10px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:0.8rem; background:#dc2626; color:#fff; font-weight:900; padding:2px 8px; border-radius:4px;">🚨 กำลังถูกระดมยิง!</span>
+              <span style="font-size:0.82rem; color:var(--court-gold); font-weight:bold;">เกราะเหลือ: ${gameState.stg6BlocksRemaining} / 5</span>
+            </div>
+            <p style="font-size:0.78rem; color:#cbd5e1; margin-bottom:8px;">
+              ศาลกำลังระดมยิงเกราะของคุณ! ดูความเคลื่อนไหวสดจากจอเรดาร์ลับ:
+            </p>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;">
+              ${defenseCellsHtml}
+            </div>
+            <div style="background:rgba(0,0,0,0.4); padding:8px; border-radius:6px; font-size:0.75rem; color:#94a3b8; text-align:center;">
+              ตาของ: <strong style="color:#38bdf8;">${(gameState.stg6Accusers && gameState.stg6Accusers[gameState.stg6CurrentTurnIndex]) || 'ฝ่ายศาล'}</strong> กำลังเล็งยิง...
+            </div>
+          </div>
+        `;
+      }
     } else {
-      area.innerHTML = `
-        <h3 style="color:var(--mono-yellow); margin-bottom:6px; font-weight:900;">Argument Armament: รุมทุบเกราะคนร้าย!</h3>
-        <p style="font-size:0.88rem; color:#ccc; margin-bottom:14px;">ผู้ถูกต้อน: <strong style="color:var(--mono-pink);">${targetName}</strong></p>
-        <button class="p-task-btn big-action-btn" style="background:#423414; border:3px solid var(--mono-yellow); box-shadow:4px 4px 0 #000;" onclick="broadcast({type:'stg6_hit', playerName: myPlayer ? myPlayer.name : 'ผู้เล่น'})">
-          🔨 ทุบเกราะความจริง! (-5% Shield)
-        </button>
-        <div id="finalBlowMobileBox" style="margin-top:14px; display:none;">
-          <button class="p-task-btn big-action-btn" style="background:#5e111a; border:3px solid var(--mono-pink); box-shadow:0 0 16px var(--mono-pink); font-size:1.15rem;" onclick="sendStg6FinalBlow()">
-            💥 ยิงกระสุนความจริงนัดสุดท้าย: [มีดปอกผลไม้ในมือ B]!
-          </button>
-        </div>
-      `;
+      // VIEW FOR ACCUSERS (ฝ่ายศาลที่เหลือ)
+      if (!isShootingPhase) {
+        area.innerHTML = `
+          <div style="background:rgba(15,23,42,0.95); border:2px solid #38bdf8; border-radius:10px; padding:18px; text-align:center;">
+            <div style="font-size:2rem; margin-bottom:8px; animation:spin 3s infinite linear;">🛰️</div>
+            <h3 style="color:#38bdf8; margin-bottom:6px; font-weight:900;">Argument Armament: Rhythm Battleship</h3>
+            <p style="font-size:0.88rem; color:#cbd5e1; line-height:1.4; margin-bottom:12px;">
+              กำลังรอผู้ถูกกล่าวหา <strong style="color:var(--mono-pink);">[${targetName}]</strong> ติดตั้งเกราะลับและกับดักสะท้อน...
+            </p>
+            <div style="font-size:0.78rem; color:#94a3b8; background:rgba(0,0,0,0.3); padding:8px; border-radius:6px;">
+              เตรียมกระสุนความจริงคนละ 2 นัด เพื่อระดมยิงทำลายเกราะ 3 ลำให้สิ้นซาก!
+            </div>
+          </div>
+        `;
+      } else if (isFinalReady) {
+        area.innerHTML = `
+          <div style="background:rgba(40,10,20,0.95); border:3px solid var(--court-gold); border-radius:10px; padding:16px; text-align:center; box-shadow:0 0 20px rgba(250,204,21,0.6);">
+            <div style="font-size:2.2rem; margin-bottom:6px;">💥</div>
+            <h3 style="color:var(--court-gold); margin-bottom:6px; font-weight:900;">เกราะการปฏิเสธพังทลายสิ้นเชิงแล้ว!</h3>
+            <p style="font-size:0.85rem; color:#f8fafc; margin-bottom:14px;">
+              เปิดช่องว่างหัวใจคนร้าย! ลั่นไกกระสุนความจริงนัดสุดท้ายเพื่อปิดฉาก!
+            </p>
+            <button class="p-task-btn big-action-btn" style="background:linear-gradient(135deg, #991b1b, #dc2626); border:3px solid var(--court-gold); box-shadow:0 0 16px var(--court-gold); font-size:1.1rem; color:#fff; font-weight:900;" onclick="sendStg6FinalBlow()">
+              🎯 ยิงกระสุนความจริงนัดสุดท้าย: [มีดปอกผลไม้ในมือ B]!
+            </button>
+          </div>
+        `;
+      } else if (isDefeat) {
+        area.innerHTML = `
+          <div style="background:rgba(30,10,10,0.95); border:2px solid #ef4444; border-radius:10px; padding:16px; text-align:center;">
+            <div style="font-size:2rem; margin-bottom:6px;">💀</div>
+            <h3 style="color:#ef4444; margin-bottom:6px; font-weight:900;">กระสุนฝ่ายศาลหมดเกลี้ยง!</h3>
+            <p style="font-size:0.85rem; color:#cbd5e1;">
+              ไม่สามารถทลายเกราะคนร้ายได้ทัน... รอผู้ดูแลศาล (DM) ตัดสินใจเริ่มใหม่ (Retry) หรือทลายเกราะ (OK)
+            </p>
+          </div>
+        `;
+      } else {
+        const curShooter = (gameState.stg6Accusers && gameState.stg6Accusers[gameState.stg6CurrentTurnIndex]) || '';
+        const isMyTurn = Boolean(myPlayer && myPlayer.name === curShooter);
+        const myAmmo = (gameState.stg6PlayerAmmo && myPlayer && gameState.stg6PlayerAmmo[myPlayer.name]) || 0;
+        const gridData = gameState.stg6Grid || Array(16).fill(null);
+
+        let shooterGridHtml = '';
+        for (let i = 0; i < 16; i++) {
+          const coord = formatStg6Coord(i);
+          const state = gridData[i];
+          const isSelected = (stg6AccuserSelectedCoord === i);
+
+          let bg = 'rgba(15,23,42,0.85)';
+          let border = '1px solid #334155';
+          let content = `<span style="font-size:0.9rem; color:#475569;">?</span>`;
+          let cursor = isMyTurn && !state ? 'cursor:pointer;' : 'cursor:default;';
+
+          if (state === 'hit') {
+            bg = 'radial-gradient(circle, #b91c1c, #450a0a)'; border = '2px solid #ef4444';
+            content = `<span style="font-size:1.1rem;">💥</span><span style="font-size:0.6rem; color:#fca5a5;">HIT</span>`;
+          } else if (state === 'miss') {
+            bg = 'radial-gradient(circle, #0369a1, #082f49)'; border = '2px solid #38bdf8';
+            content = `<span style="font-size:1.1rem;">💦</span><span style="font-size:0.6rem; color:#bae6fd;">MISS</span>`;
+          } else if (state === 'trap') {
+            bg = 'radial-gradient(circle, #9333ea, #3b0764)'; border = '2px solid #c084fc';
+            content = `<span style="font-size:1.1rem;">⚡</span><span style="font-size:0.6rem; color:#e9d5ff;">TRAP</span>`;
+          } else if (isSelected) {
+            bg = 'rgba(0, 240, 255, 0.25)'; border = '2px solid #00ffff';
+            content = `<span style="font-size:1.1rem; color:#00ffff;">🎯</span>`;
+          }
+
+          shooterGridHtml += `
+            <div onclick="${isMyTurn && !state ? `stg6SelectCoord(${i})` : ''}" style="position:relative; aspect-ratio:1; background:${bg}; border:${border}; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; ${cursor} transition:all 0.15s; ${isSelected ? 'box-shadow:0 0 14px #00ffff;' : ''}">
+              <span style="position:absolute; top:2px; left:4px; font-size:0.6rem; color:#64748b; font-family:monospace;">${coord}</span>
+              ${content}
+            </div>
+          `;
+        }
+
+        const selectedCoordStr = (typeof stg6AccuserSelectedCoord === 'number') ? formatStg6Coord(stg6AccuserSelectedCoord) : 'แตะเลือกในตาราง';
+        const hasPenalty = Boolean(gameState.stg6TrapPenaltyActive);
+
+        if (isMyTurn) {
+          area.innerHTML = `
+            <div style="background:rgba(10,20,35,0.95); border:2px solid #38bdf8; border-radius:10px; padding:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="font-size:0.8rem; background:#0284c7; color:#fff; font-weight:900; padding:2px 8px; border-radius:4px; animation:pulseGlow 1.2s infinite alternate;">🎯 ตาของคุณเล็งยิง!</span>
+                <span style="font-size:0.82rem; color:#00ff88; font-weight:bold;">กระสุนคุณ: ${myAmmo} นัด</span>
+              </div>
+              <p style="font-size:0.78rem; color:#94a3b8; margin-bottom:8px;">
+                1. แตะเลือกพิกัดเป้าหมาย 2. จับจังหวะเข็มให้อยู่ตรงกลาง แล้วกดยิง!
+              </p>
+
+              <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;">
+                ${shooterGridHtml}
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:0.82rem;">
+                <span style="color:#94a3b8;">เป้าหมายที่เล็ง: <strong style="color:#00ffff; font-size:0.95rem;">[ ${selectedCoordStr} ]</strong></span>
+                ${hasPenalty ? '<span style="color:#c084fc; font-weight:bold; font-size:0.75rem;">⚡ TRAP ACTIVE (เข็มเร็ว 1.5x)</span>' : ''}
+              </div>
+
+              <div class="stg6-reticle-container" style="margin-top:4px; margin-bottom:10px; padding:8px;">
+                <div id="stg6MobileTrack" class="stg6-reticle-track" style="height:38px;">
+                  <div class="reticle-zone-miss"></div>
+                  <div class="reticle-zone-good" style="color:#00ff88;">GOOD</div>
+                  <div class="reticle-zone-perfect" style="color:#000;">PERFECT</div>
+                  <div class="reticle-zone-good" style="color:#00ff88;">GOOD</div>
+                  <div class="reticle-zone-miss"></div>
+                  <div id="stg6MobileNeedle" class="stg6-reticle-needle oscillating ${hasPenalty ? 'penalty' : ''}"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:#64748b; margin-top:4px; padding:0 4px;">
+                  <span>MISS (เสียกระสุน)</span>
+                  <span style="color:#00ff88;">GOOD (ยิงโดน)</span>
+                  <span style="color:#facc15;">PERFECT (+1 กระสุน)</span>
+                  <span style="color:#00ff88;">GOOD (ยิงโดน)</span>
+                  <span>MISS (เสียกระสุน)</span>
+                </div>
+              </div>
+
+              <button type="button" class="p-task-btn big-action-btn" style="background:linear-gradient(135deg, #0369a1, #0284c7); border:3px solid #38bdf8; box-shadow:0 0 16px rgba(56,189,248,0.7); font-size:1.15rem; font-weight:900; color:#fff;" onclick="stg6FireShot()">
+                🎯 FIRE! ลั่นไกพิกัด [${selectedCoordStr}]
+              </button>
+            </div>
+          `;
+        } else {
+          area.innerHTML = `
+            <div style="background:rgba(15,23,42,0.95); border:2px solid #334155; border-radius:10px; padding:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="font-size:0.8rem; background:#334155; color:#cbd5e1; font-weight:bold; padding:2px 8px; border-radius:4px;">⏳ รอตาเพื่อนยิง</span>
+                <span style="font-size:0.82rem; color:#00ff88; font-weight:bold;">กระสุนคุณ: ${myAmmo} นัด</span>
+              </div>
+              <p style="font-size:0.82rem; color:#f8fafc; margin-bottom:8px; text-align:center;">
+                ตาของ: <strong style="color:#38bdf8; font-size:0.95rem;">[${curShooter}]</strong> กำลังเล็งยิง...
+              </p>
+              <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;">
+                ${shooterGridHtml}
+              </div>
+              <div style="font-size:0.75rem; color:#94a3b8; text-align:center; background:rgba(0,0,0,0.3); padding:6px; border-radius:4px;">
+                เกราะคงเหลือ: <strong style="color:var(--court-gold);">${gameState.stg6BlocksRemaining} / 5 ช่อง</strong>
+              </div>
+            </div>
+          `;
+        }
+      }
     }
   } else if (stage === 'closing') {
     const curPage = gameState.closingCurrentPage || 1;
@@ -5439,6 +6147,154 @@ function sendClosingCard(slot, cardId) {
   });
   if (typeof isHost !== 'undefined' && isHost) {
     handleClosingSubmit(slot, cardId, pName);
+  }
+}
+
+// ==========================================================
+// STAGE 6 RHYTHM BATTLESHIP INTERACTION HELPERS (MOBILE)
+// ==========================================================
+let stg6AccusedPlacingType = 'shoulder';
+let stg6AccusedPlacement = { shoulder: [], arm: [], core: [], traps: [] };
+let stg6AccuserSelectedCoord = null;
+
+function stg6SelectPlaceType(type) {
+  stg6AccusedPlacingType = type;
+  renderMobileTask('stage6');
+}
+
+function stg6TogglePlaceCell(idx) {
+  if (!stg6AccusedPlacement) {
+    stg6AccusedPlacement = { shoulder: [], arm: [], core: [], traps: [] };
+  }
+  const curType = stg6AccusedPlacingType || 'shoulder';
+  const limits = { shoulder: 2, arm: 2, core: 1, traps: 2 };
+  const maxLimit = limits[curType] || 2;
+
+  // Remove idx from other categories if present
+  ['shoulder', 'arm', 'core', 'traps'].forEach(k => {
+    if (k !== curType && stg6AccusedPlacement[k]) {
+      stg6AccusedPlacement[k] = stg6AccusedPlacement[k].filter(i => i !== idx);
+    }
+  });
+
+  if (!stg6AccusedPlacement[curType]) stg6AccusedPlacement[curType] = [];
+  const list = stg6AccusedPlacement[curType];
+  const exists = list.indexOf(idx);
+  if (exists >= 0) {
+    list.splice(exists, 1);
+  } else {
+    if (list.length >= maxLimit) {
+      list.shift(); // rotate out oldest
+    }
+    list.push(idx);
+  }
+  renderMobileTask('stage6');
+}
+
+function stg6AccusedAutoPlace() {
+  stg6AccusedPlacement = generateRandomStg6Placements();
+  renderMobileTask('stage6');
+}
+
+function stg6ConfirmPlacement() {
+  if (!stg6AccusedPlacement) return;
+  const p = stg6AccusedPlacement;
+  if ((p.shoulder || []).length !== 2) {
+    showToast('⚠️ กรุณาวาง เกราะไหล่ ให้ครบ 2 ช่อง');
+    return;
+  }
+  if ((p.arm || []).length !== 2) {
+    showToast('⚠️ กรุณาวาง เกราะแขน ให้ครบ 2 ช่อง');
+    return;
+  }
+  if ((p.core || []).length !== 1) {
+    showToast('⚠️ กรุณาวาง แกนหัวใจ ให้ครบ 1 ช่อง');
+    return;
+  }
+  if ((p.traps || []).length !== 2) {
+    showToast('⚠️ กรุณาวาง กับดักสะท้อน ให้ครบ 2 ช่อง');
+    return;
+  }
+
+  const pName = myPlayer ? myPlayer.name : (gameState.stg6TargetPlayer || 'ผู้ถูกกล่าวหา');
+  broadcast({
+    type: 'stg6_setup_secret',
+    secret: stg6AccusedPlacement,
+    playerName: pName
+  });
+  if (typeof isHost !== 'undefined' && isHost) {
+    handleStg6SetupSecret(stg6AccusedPlacement, pName);
+  }
+}
+
+function stg6SelectCoord(idx) {
+  if (gameState.stg6Grid && gameState.stg6Grid[idx]) return;
+  stg6AccuserSelectedCoord = idx;
+  renderMobileTask('stage6');
+}
+
+function getStg6NeedlePosition(needleEl, trackEl) {
+  if (needleEl && trackEl) {
+    const nRect = needleEl.getBoundingClientRect();
+    const tRect = trackEl.getBoundingClientRect();
+    if (tRect.width > 0) {
+      const leftRel = (nRect.left + nRect.width / 2) - tRect.left;
+      return Math.max(0, Math.min(100, (leftRel / tRect.width) * 100));
+    }
+  }
+  const period = gameState.stg6TrapPenaltyActive ? 800 : 1200;
+  const phase = (Date.now() % period) / period;
+  return Math.abs((phase * 2) - 1) * 100;
+}
+
+function stg6FireShot() {
+  if (!myPlayer) return;
+  const pName = myPlayer.name;
+  if ((gameState.stg6PlayerAmmo && gameState.stg6PlayerAmmo[pName]) <= 0) {
+    showToast('⚠️ คุณไม่มีกระสุนเหลือแล้ว!');
+    return;
+  }
+
+  let targetIdx = stg6AccuserSelectedCoord;
+  if (typeof targetIdx !== 'number' || targetIdx < 0 || targetIdx > 15 || (gameState.stg6Grid && gameState.stg6Grid[targetIdx])) {
+    for (let i = 0; i < 16; i++) {
+      if (!gameState.stg6Grid || !gameState.stg6Grid[i]) {
+        targetIdx = i;
+        break;
+      }
+    }
+  }
+  if (targetIdx === undefined || targetIdx === null) {
+    showToast('⚠️ กระดานถูกเปิดหมดแล้ว!');
+    return;
+  }
+
+  const needle = document.getElementById('stg6MobileNeedle');
+  const track = document.getElementById('stg6MobileTrack');
+  const pos = getStg6NeedlePosition(needle, track);
+
+  const isPenalty = Boolean(gameState.stg6TrapPenaltyActive);
+  let timing = 'miss';
+  if (isPenalty) {
+    if (pos >= 47 && pos <= 53) timing = 'perfect';
+    else if ((pos >= 35 && pos < 47) || (pos > 53 && pos <= 65)) timing = 'good';
+    else timing = 'miss';
+  } else {
+    if (pos >= 44 && pos <= 56) timing = 'perfect';
+    else if ((pos >= 25 && pos < 44) || (pos > 56 && pos <= 75)) timing = 'good';
+    else timing = 'miss';
+  }
+
+  stg6AccuserSelectedCoord = null;
+
+  broadcast({
+    type: 'stg6_shot_fired',
+    shooter: pName,
+    cellIndex: targetIdx,
+    timing: timing
+  });
+  if (typeof isHost !== 'undefined' && isHost) {
+    handleStg6Shot(pName, targetIdx, timing);
   }
 }
 
@@ -6207,6 +7063,18 @@ function applyPresetStage5(topic, left, right) {
 }
 
 function applyPresetStage6(opp, scream) {
+  const cfgSel = document.getElementById('cfgStg6TargetSelect');
+  const admSel = document.getElementById('adminArmamentTargetSelect');
+  [cfgSel, admSel].forEach(sel => {
+    if (sel && opp) {
+      for (let opt of sel.options) {
+        if (opt.value === opp || opt.text.includes(opp)) {
+          sel.value = opt.value;
+          break;
+        }
+      }
+    }
+  });
   const sInput = document.getElementById('cfgStg6Scream');
   if (sInput) sInput.value = scream;
 }
@@ -6241,8 +7109,9 @@ function adminLaunchSelectedConfigGame() {
     const right = document.getElementById('cfgStg5Right') ? document.getElementById('cfgStg5Right').value : '';
     config = { topic: topic, leftTeam: left, rightTeam: right };
   } else if (stg === 'stage6') {
+    const target = (document.getElementById('cfgStg6TargetSelect')?.value) || (document.getElementById('adminArmamentTargetSelect')?.value) || '';
     const scream = document.getElementById('cfgStg6Scream') ? document.getElementById('cfgStg6Scream').value : '';
-    config = { opponent: 'นักมายากล (A)', scream: scream };
+    config = { targetPlayer: target, opponent: target, scream: scream };
   } else if (stg === 'stage7') {
     config = { mode: 'full' };
     setStage('closing', config);
@@ -7236,13 +8105,26 @@ async function simStage5Scrum() {
 }
 
 async function simStage6ArmamentRaw() {
-  logSimEvent({ type: 'sim_info', text: '🔨 [ACTION]: เริ่ม Stage 6 (Argument Armament) ทุบเกราะความจริง...' });
-  await simPost({ type: 'set_stage', stage: 'stage6' });
-  for (let i = 0; i < 4; i++) {
-    await new Promise(r => setTimeout(r, 200));
-    await simPost({ type: 'stg6_hit', playerName: 'นาเอกิ' });
+  logSimEvent({ type: 'sim_info', text: '🔨 [ACTION]: เริ่ม Stage 6 (Argument Armament: Rhythm Battleship)...' });
+  await simPost({ type: 'set_stage', stage: 'stage6', config: { targetPlayer: 'ฮิฟุมิ' } });
+  await new Promise(r => setTimeout(r, 200));
+
+  const secretLayout = {
+    shoulder: [0, 1],
+    arm: [4, 5],
+    core: [10],
+    traps: [8, 15]
+  };
+  await simPost({ type: 'stg6_setup_secret', secret: secretLayout, playerName: 'ฮิฟุมิ' });
+  await new Promise(r => setTimeout(r, 200));
+
+  const targetCells = [0, 1, 4, 5, 10];
+  for (let idx of targetCells) {
+    await simPost({ type: 'stg6_shot_fired', shooter: 'นาเอกิ', cellIndex: idx, timing: 'good' });
+    await new Promise(r => setTimeout(r, 180));
   }
-  await new Promise(r => setTimeout(r, 450));
+
+  await new Promise(r => setTimeout(r, 350));
   await simPost({ type: 'stg6_final_blow', playerName: 'นาเอกิ' });
 }
 
