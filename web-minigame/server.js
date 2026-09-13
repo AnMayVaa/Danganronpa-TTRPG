@@ -92,6 +92,17 @@ function requestHandler(req, res) {
   }
 
   let cleanUrl = (req.url || '/').split('?')[0];
+  try {
+    const urlObj = new URL(req.url || '/', 'http://localhost');
+    const routeParam = urlObj.searchParams.get('__route');
+    if (routeParam) {
+      cleanUrl = '/api/' + routeParam;
+    } else if (req.headers && req.headers['x-matched-path'] && req.headers['x-matched-path'].startsWith('/api')) {
+      cleanUrl = req.headers['x-matched-path'];
+    } else if (req.headers && req.headers['x-vercel-matched-path'] && req.headers['x-vercel-matched-path'].startsWith('/api')) {
+      cleanUrl = req.headers['x-vercel-matched-path'];
+    }
+  } catch(e) {}
 
   // -------------------------------------------------------------
   // 1. SSE REAL-TIME STREAM: GET /api/rooms/:code/stream (Fixes BUG-08, BUG-11, BUG-20)
@@ -164,13 +175,16 @@ function requestHandler(req, res) {
       msg._serverTime = Date.now();
       msg._room = code;
 
-      // Buffer recent messages
-      if (!roomMessageBuffers.has(code)) {
-        roomMessageBuffers.set(code, []);
+      // Buffer recent messages (exclude transient real-time events that shouldn't replay on reconnect)
+      const transientTypes = ['closing_bonus_time', 'trigger_fx', 'play_sfx', 'sabotage'];
+      if (!transientTypes.includes(msg.type)) {
+        if (!roomMessageBuffers.has(code)) {
+          roomMessageBuffers.set(code, []);
+        }
+        const buf = roomMessageBuffers.get(code);
+        buf.push(msg);
+        if (buf.length > 50) buf.shift();
       }
-      const buf = roomMessageBuffers.get(code);
-      buf.push(msg);
-      if (buf.length > 50) buf.shift();
 
       // Update room heartbeat & stage
       if (activeRooms.has(code)) {
@@ -277,7 +291,9 @@ function requestHandler(req, res) {
           roomMessageBuffers.delete(code);
           const subs = roomSubscribers.get(code);
           if (subs) {
+            const kickMsg = `data: ${JSON.stringify({ type: 'room_closed', roomCode: code, reason: `ห้องศาล [${code}] ถูกปิดโดยผู้ดูแล` })}\n\n`;
             subs.forEach(clientRes => {
+              try { clientRes.write(kickMsg); } catch(e) {}
               try { clientRes.end('event: room_closed\ndata: {"closed":true}\n\n'); } catch(e) {}
             });
             roomSubscribers.delete(code);
@@ -371,7 +387,7 @@ function requestHandler(req, res) {
         res.writeHead(500);
         res.end('Server Error');
       } else {
-        res.writeHead(200, { 'Content-Type': contentType });
+        res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache', 'Expires': '0' });
         res.end(content);
       }
     });

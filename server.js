@@ -175,13 +175,16 @@ function requestHandler(req, res) {
       msg._serverTime = Date.now();
       msg._room = code;
 
-      // Buffer recent messages
-      if (!roomMessageBuffers.has(code)) {
-        roomMessageBuffers.set(code, []);
+      // Buffer recent messages (exclude transient real-time events that shouldn't replay on reconnect)
+      const transientTypes = ['closing_bonus_time', 'trigger_fx', 'play_sfx', 'sabotage'];
+      if (!transientTypes.includes(msg.type)) {
+        if (!roomMessageBuffers.has(code)) {
+          roomMessageBuffers.set(code, []);
+        }
+        const buf = roomMessageBuffers.get(code);
+        buf.push(msg);
+        if (buf.length > 50) buf.shift();
       }
-      const buf = roomMessageBuffers.get(code);
-      buf.push(msg);
-      if (buf.length > 50) buf.shift();
 
       // Update room heartbeat & stage
       if (activeRooms.has(code)) {

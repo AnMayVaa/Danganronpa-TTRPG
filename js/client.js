@@ -1214,17 +1214,22 @@ function handleIncomingMessage(msg, senderConn) {
     document.getElementById('mobileGameScreen').classList.remove('hidden');
 
     document.getElementById('pMyName').innerText = myPlayer.name;
-    document.getElementById('pMyRole').innerText = myPlayer.role ? `[${myPlayer.role}]` : '';
+    document.getElementById('pMyRole').innerText = ''; // No role tags displayed
     const pHash = document.getElementById('pMyHash');
     if (pHash) pHash.innerText = '#' + (currentUserHash || 'USER');
 
     document.getElementById('pMyStatus').innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
     document.getElementById('pMyStatus').className = 'p-status normal';
 
-    if (myPlayer.isKiller || myPlayer.pcSlot === 5) {
-      document.getElementById('mobileSaboteurPanel').classList.remove('hidden');
-    } else {
-      document.getElementById('mobileSaboteurPanel').classList.add('hidden');
+    const qPcClaim = new URLSearchParams(window.location.search).get('pc');
+    const isSaboteurClaim = (parseInt(myPlayer.pcSlot, 10) === 5 || myPlayer.isKiller || qPcClaim === '5');
+    const sabPanelEl = document.getElementById('mobileSaboteurPanel');
+    if (sabPanelEl) {
+      if (isSaboteurClaim) {
+        sabPanelEl.classList.remove('hidden');
+      } else {
+        sabPanelEl.classList.add('hidden');
+      }
     }
 
     showToast(`✨ คุณ [${myPlayer.name}] เข้าสู่เกมเรียบร้อยแล้ว!`);
@@ -1434,11 +1439,15 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'closing_submit') {
     handleClosingSubmit(msg.slot, msg.cardId, msg.playerName);
   } else if (msg.type === 'closing_page_change') {
-    gameState.closingCurrentPage = msg.page;
-    updateClosingDisplay();
-    renderMobileTask('closing');
+    if (gameState && gameState.stage === 'closing') {
+      gameState.closingCurrentPage = msg.page;
+      updateClosingDisplay();
+      renderMobileTask('closing');
+    }
   } else if (msg.type === 'closing_bonus_time') {
-    showBonusTimePopup(msg.seconds);
+    if (gameState && gameState.stage === 'closing') {
+      showBonusTimePopup(msg.seconds);
+    }
   } else if (msg.type === 'closing_card_unlocked') {
     if (msg.hands) gameState.closingPlayerHands = msg.hands;
     const isMe = (typeof myPlayer !== 'undefined' && myPlayer && (myPlayer.id === msg.playerId || myPlayer.userHash === msg.playerId || myPlayer.name === msg.playerId)) ||
@@ -1874,6 +1883,7 @@ function initPlayerSession(hash) {
   const qName = urlParams.get('name');
   const qRole = urlParams.get('role');
   const qAutoJoin = urlParams.get('autoJoin');
+  const qPc = urlParams.get('pc');
 
   if (qRoom) {
     roomCode = qRoom.trim().toUpperCase();
@@ -1890,6 +1900,10 @@ function initPlayerSession(hash) {
   if (qRole) {
     const roleSel = document.getElementById('mobileRoleSelect');
     if (roleSel) roleSel.value = qRole;
+  }
+  if (qPc) {
+    const pcSel = document.getElementById('mobilePcSlotSelect');
+    if (pcSel) pcSel.value = qPc;
   }
 
   // Check if room changed from previous session
@@ -1910,6 +1924,10 @@ function initPlayerSession(hash) {
       if (nameInp) nameInp.value = p.name;
       const roleSel = document.getElementById('mobileRoleSelect');
       if (roleSel) roleSel.value = p.role;
+      if (p.pcSlot) {
+        const pcSel = document.getElementById('mobilePcSlotSelect');
+        if (pcSel) pcSel.value = p.pcSlot;
+      }
 
       const joinScr = document.getElementById('mobileJoinScreen');
       if (joinScr) joinScr.classList.add('hidden');
@@ -1919,7 +1937,7 @@ function initPlayerSession(hash) {
       const nameEl = document.getElementById('pMyName');
       if (nameEl) nameEl.innerText = p.name;
       const roleEl = document.getElementById('pMyRole');
-      if (roleEl) roleEl.innerText = `[${p.role}]`;
+      if (roleEl) roleEl.innerText = ''; // Never show role tags
 
       const statusEl = document.getElementById('pMyStatus');
       const sabPanel = document.getElementById('mobileSaboteurPanel');
@@ -1928,7 +1946,8 @@ function initPlayerSession(hash) {
         statusEl.className = 'p-status normal';
       }
       if (sabPanel) {
-        if (p.isKiller || p.pcSlot === 5) {
+        const isSab = (parseInt(p.pcSlot, 10) === 5 || p.isKiller || qPc === '5');
+        if (isSab) {
           sabPanel.classList.remove('hidden');
         } else {
           sabPanel.classList.add('hidden');
@@ -2192,7 +2211,7 @@ function renderPlayerCharSheet() {
 
 const ALL_CLUES_DATA = [
   { id: "EVD-01", image: "assets/room_central_corridor.jpg", pin: "830627", aliases: ["CUP-01", "1", "E01"], name: "แก้วเก็บความเย็นหน้าหอพัก", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โถงทางเดินหน้าหอพักนักเรียน", desc: "แก้วสแตนเลสเก็บความเย็นตกอยู่บนพื้นทางเดินหน้าหอพัก ตัวแก้วมีรอยบุบที่ขอบก้นแก้ว และมีคราบของเหลวสีน้ำตาลแดงแห้งติดอยู่บนพื้น" },
-  { id: "EVD-02", image: "assets/item_pork_bone.jpg", pin: "719304", aliases: ["BONE-02", "2", "E02"], name: "ท่อนกระดูกหมูในหม้อสตูว์", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องครัว (ก้นหม้อสตูว์)", desc: "ท่อนกระดูกหมูต้มสุก 2 ท่อนก้นหม้อสตูว์ บนผิวกระดูกท่อนหนึ่งมีรอยแตกร้าวและคราบสีคล้ำติดแน่นตามรอยแยก" },
+  { id: "EVD-02", image: "assets/item_pork_bone.jpg?v=4.0.0", pin: "719304", aliases: ["BONE-02", "2", "E02"], name: "ท่อนกระดูกหมูในหม้อสตูว์", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องครัว (ก้นหม้อสตูว์)", desc: "ท่อนกระดูกหมูต้มสุก 2 ท่อนก้นหม้อสตูว์ บนผิวกระดูกท่อนหนึ่งมีรอยแตกร้าวและคราบสีคล้ำติดแน่นตามรอยแยก" },
   { id: "EVD-03", pin: "936154", aliases: ["PC2-03", "3", "E03"], name: "คำให้การของ PC 2", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 2 (1 AP)", desc: "คำให้การ: \"ตอน 17:30 ถึง 18:00 น. ฉันอยู่ในโรงยิม พอเดินออกมาที่โถงทางเดินเห็นหลอดไฟนีออนกะพริบ และไม่พบใครบริเวณนั้น\"" },
   { id: "EVD-04", image: "assets/room_blast_gate.jpg", pin: "873205", aliases: ["CLIP-04", "4", "E04"], name: "คลิปหนีบกระดาษเหล็ก", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "หน้าบอร์ดประชาสัมพันธ์โถงทางเข้าหลัก", desc: "คลิปหนีบกระดาษทำจากลวดเหล็ก 3 ตัว สภาพมีคราบสนิมเกาะ ตกอยู่ในร่องรอยต่อของพื้นปูนหน้าบอร์ดประชาสัมพันธ์" },
   { id: "EVD-05", image: "assets/item_dryer_dry1.jpg", pin: "306795", aliases: ["DRY-05", "5", "E05"], name: "เครื่องอบผ้า DRY-1", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เครื่องอบผ้า)", desc: "เครื่องอบผ้าอุตสาหกรรม DRY-1 ทำงานเสร็จสิ้น ภายในมีรองเท้าบูทหนังหุ้มข้อของเหยื่อเรียวตะ (B) ที่หน้าปัดมีฟังก์ชันตั้งเวลาเริ่มทำงานล่วงหน้า (Delay Timer)" },
@@ -2202,7 +2221,7 @@ const ALL_CLUES_DATA = [
   { id: "EVD-09", image: "assets/item_pink_rope.jpg", pin: "852179", aliases: ["ROPE-09", "9", "E09"], name: "เชือกไนลอนสีชมพูบนพื้น", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (พื้นข้างศพเรียวตะ (B))", desc: "เชือกไนลอนถักสีชมพู 8 มม. ขดอยู่บนพื้น ปลายด้านหนึ่งผูกเป็นบ่วง ส่วนปลายอีกด้านมีรอยตัดผิวเรียบ" },
   { id: "EVD-10", image: "assets/item_water_meter.jpg", pin: "815307", aliases: ["METER-10", "10", "E10"], name: "มาตรวัดน้ำประปาหลัก", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "มาตรวัดน้ำประปาแสดงตัวเลขใช้น้ำสะสม 65.2 ลิตร และเข็มวัดยังหมุนด้วยอัตราประมาณ 0.4 ลิตร/นาที (24 ลิตร/ชม.)" },
   { id: "EVD-11", image: "assets/item_bleach_gallon.jpg", pin: "741953", aliases: ["BLEACH-11", "11", "E11"], name: "แกลลอนน้ำยาฟอกขาวในถังขยะ", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "ห้องซักรีด (ถังขยะข้างเครื่องซักผ้า)", desc: "แกลลอนพลาสติกบรรจุน้ำยาฟอกขาวถูกทิ้งอยู่ในถังขยะห้องซักรีด ภายในแกลลอนว่างเปล่าและส่งกลิ่นคลอรีนรุนแรง" },
-  { id: "EVD-12", image: "assets/item_pocket_knife.jpg", pin: "394820", aliases: ["KNIFE-12", "12", "E12"], name: "มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ (B)", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ร่างของเรียวตะ (B) (กระเป๋าเสื้อ)", desc: "มีดพับอเนกประสงค์ใบมีด 7 ซม. กางค้างไว้ในกระเป๋าเสื้อเหยื่อเรียวตะ (B) โคนใบมีดมีเศษเส้นใยสังเคราะห์สีชมพูติดอยู่" },
+  { id: "EVD-12", image: "assets/item_pocket_knife.jpg?v=4.0.0", pin: "394820", aliases: ["KNIFE-12", "12", "E12"], name: "มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ร่างของเรียวตะ (กระเป๋าเสื้อ)", desc: "มีดพับอเนกประสงค์ใบมีด 7 ซม. กางค้างไว้ในกระเป๋าเสื้อเหยื่อเรียวตะ โคนใบมีดมีเศษเส้นใยสังเคราะห์สีชมพูติดอยู่" },
   { id: "EVD-13", image: "assets/room_kitchen.jpg", pin: "630841", aliases: ["FREEZE-13", "13", "E13"], name: "ช่องแช่แข็งในห้องครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (ช่องฟรีซ)", desc: "ช่องแช่แข็งตู้เย็นในครัวมีเกล็ดน้ำแข็งละลายเป็นแอ่งน้ำ และพบถุงพลาสติกบรรจุเนื้อสัตว์แช่แข็งถูกฉีกเปิดทิ้งไว้" },
   { id: "EVD-14", image: "assets/item_ceiling_pipe.jpg", pin: "928413", aliases: ["RAIL-14", "14", "E14"], name: "ราวท่อสแตนเลสเพดานห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เพดานสูง 4 ม.)", desc: "ท่อสแตนเลสขนานเพดานห้องซักรีดสูง 4 ม. เหนือแนวหน้าต่าง ผิวด้านบนของท่อมีรอยขูดถลอกเป็นแถบแนวยาว" },
   { id: "EVD-15", image: "assets/room_gymnasium.jpg", pin: "295418", aliases: ["CHAIN-15", "15", "E15"], name: "โซ่คล้องประตูหนีไฟโรงยิม", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โรงยิม (ประตูด้านหลัง)", desc: "โซ่เหล็กคล้องล็อกประตูหนีไฟด้านหลังโรงยิม ข้อโซ่ข้อหนึ่งมีรอยบากลึกจากใบเลื่อย และมีเศษผงเหล็กตกอยู่บนพื้นใต้บานประตู" },
@@ -2211,12 +2230,12 @@ const ALL_CLUES_DATA = [
   { id: "EVD-18", image: "assets/room_glass_corridor.jpg", pin: "417285", aliases: ["GLASS-18", "18", "E18"], name: "เศษกระจกบริเวณเชิงบันได", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "เชิงบันไดทางขึ้นชั้น 2", desc: "เศษกระจกใสความหนา 5 มม. แตกกระจายอยู่บนขั้นบันไดทางขึ้นชั้น 2 บนขอบกระจกชิ้นหนึ่งมีคราบสีส้มอมแดงเกาะติดอยู่" },
   { id: "EVD-19", image: "assets/item_shattered_barrel.jpg", pin: "175936", aliases: ["BUCKET-19", "19", "E19"], name: "ซากถังน้ำพลาสติกตกแตก", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ลานปูนซักล้างด้านหลัง (ใต้หน้าต่าง)", desc: "ถังพลาสติก 80 ลิตร ตกแตกกระจายบนพื้นลานปูนด้านนอก มีน้ำสาดกระจายเปียกทั่วบริเวณลานปูน หูจับถังมีรอยเชือกไนลอนผูกติดอยู่" },
   { id: "EVD-20", pin: "472890", aliases: ["PC1-20", "20", "E20"], name: "คำให้การของ PC 1", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 1 (1 AP)", desc: "คำให้การ: \"ช่วง 17:45 น. ฉันทุบตู้กดน้ำที่กินเหรียญอยู่ที่โถงกลาง ได้ยินเสียงน้ำไหลเบาๆ ในแนวกำแพงข้างห้องซักรีด\"" },
-  { id: "EVD-21", image: "assets/item_bloody_towel.jpg", pin: "904712", aliases: ["TOWEL-21", "21", "E21"], name: "ผ้าขนหนูสีกรมท่าเปื้อนเลือด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องครัว (ใต้ถุงขยะดำก้นถัง)", desc: "ผ้าขนหนูสีกรมท่าเนื้อหนาถูกขยำอยู่ใต้ถุงขยะดำก้นถังในครัว เมื่อคลี่ออกพบรอยเปื้อนสีน้ำตาลคล้ำแห้งกรัง" },
+  { id: "EVD-21", image: "assets/item_bloody_towel.jpg?v=4.0.0", pin: "904712", aliases: ["TOWEL-21", "21", "E21"], name: "ผ้าขนหนูสีกรมท่าเปื้อนเลือด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องครัว (ใต้ถุงขยะดำก้นถัง)", desc: "ผ้าขนหนูสีกรมท่าเนื้อหนาถูกขยำอยู่ใต้ถุงขยะดำก้นถังในครัว เมื่อคลี่ออกพบรอยเปื้อนสีน้ำตาลคล้ำแห้งกรัง" },
   { id: "EVD-22", pin: "194836", aliases: ["NOTE-22", "22", "E22"], name: "แผ่นกระดาษโน้ตบนพื้นโถงทางเดิน", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "กระดาษสมุดฉีกขนาดฝ่ามือ มีลายมือเขียนตารางเกมโอเอกซ์และข้อความสั้นๆ ตกอยู่บนพื้นกระเบื้องโถงทางเดิน" },
   { id: "EVD-23", pin: "541682", aliases: ["FAUCET-23", "23", "E23"], name: "สายยางน้ำเปิดทิ้งและน้ำท่วมขัง", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องซักรีด (แนวก๊อกน้ำและพื้นห้อง)", desc: "สายยางสีเขียวยาวต่ออยู่กับก๊อกน้ำที่เปิดวาล์วทิ้งไว้ ปลายสายยางดีดสะบัดตกอยู่บนพื้นห้องซักรีด น้ำไหลทะลักออกมาอย่างต่อเนื่องจนเจิ่งนองท่วมขังพื้นกระเบื้องทั่วห้อง" },
   { id: "EVD-24", image: "assets/item_notice_board.jpg", pin: "249581", aliases: ["MAP-24", "24", "E24"], name: "แผนผังอาคารบนบอร์ดประชาสัมพันธ์", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "แผนผังอาคารชั้น 1 แสดงลานบริการด้านหลังเป็นพื้นที่ปิด ล้อมด้วยกำแพงคอนกรีตสูง 5 ม. ไร้ประตูทางออก" },
   { id: "EVD-25", pin: "612847", aliases: ["RACK-25", "25", "E25"], name: "ราวแขวนผ้าขนหนูห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "ร่องรอย/สิ่งของ (Core)", loc: "ห้องซักรีด (ราวแขวนผ้า)", desc: "ราวแขวนผ้าสแตนเลสข้างอ่างล้างห้องซักรีด มีผ้าขนหนูสีกรมท่าแขวนอยู่ 4 ผืน และมีช่องว่างเว้น 1 จุด" },
-  { id: "EVD-26", image: "assets/crime_scene_kitchen_stew.jpg", pin: "248356", aliases: ["WINE-26", "26", "E26"], name: "ขวดไวน์และคราบบนเคาน์เตอร์ครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (เคาน์เตอร์ปรุงอาหาร)", desc: "ขวดไวน์แดงสำหรับปรุงอาหารเปิดฝาวางอยู่บนเคาน์เตอร์ครัว มีไวน์เหลืออยู่ก้นขวดเล็กน้อย บริเวณเคาน์เตอร์ข้างเตาพบรอยของเหลวสีแดงหกหยดเป็นจุดๆ" },
+  { id: "EVD-26", image: "assets/item_wine_bottle.jpg?v=4.0.0", pin: "248356", aliases: ["WINE-26", "26", "E26"], name: "ขวดไวน์และคราบบนเคาน์เตอร์ครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (เคาน์เตอร์ปรุงอาหาร)", desc: "ขวดไวน์แดงสำหรับปรุงอาหารเปิดฝาวางอยู่บนเคาน์เตอร์ครัว มีไวน์เหลืออยู่ก้นขวดเล็กน้อย บริเวณเคาน์เตอร์ข้างเตาพบรอยของเหลวสีแดงหกหยดเป็นจุดๆ" },
   { id: "EVD-27", pin: "180472", aliases: ["PC3-27", "27", "E27"], name: "คำให้การของ PC 3", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 3 (1 AP)", desc: "คำให้การ: \"ช่วง 17:30 ถึง 18:15 น. ฉันสำรวจประตูกล Blast Gate และมาตรวัดน้ำ ช่วงประมาณ 18:00 น. เห็น PC 4 เดินที่ทางเดินกระจกใส\"" },
   { id: "EVD-28", pin: "328691", aliases: ["TASTE-28", "28", "E28"], name: "รสชาติของน้ำซุปสตูว์เนื้อ", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (หม้อสตูว์บนเตา)", desc: "น้ำซุปสตูว์เนื้อในหม้อมีกลิ่นหอมของเครื่องเทศและไวน์แดง แต่เมื่อชิมแล้วจะสัมผัสได้ถึงรสชาติฝาดเฝื่อนคล้ายสนิมเหล็กผสมอยู่จางๆ" },
   { id: "EVD-29", pin: "561479", aliases: ["THUD-29", "29", "E29"], name: "เสียงกระแทกจากห้องซักรีดตอน 21:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องอาหาร (จุดรวมตัวเวลาราตรี)", desc: "ขณะที่ทุกคนรวมตัวอยู่ในห้องอาหารเวลา 21:00 น. มีเสียงเครื่องจักรหมุนกระแทกและเสียงวัตถุหนักตกกระทบดังสนั่นมาจากทางปีกห้องซักรีด" },
@@ -2225,12 +2244,71 @@ const ALL_CLUES_DATA = [
 ];
 
 const PC_INVESTIGATION_CLUES = {
-  1: ['EVD-07', 'EVD-20', 'EVD-06', 'EVD-24'],
-  2: ['EVD-07', 'EVD-03', 'EVD-15', 'EVD-31'],
-  3: ['EVD-07', 'EVD-27', 'EVD-10', 'EVD-24'],
-  4: ['EVD-07', 'EVD-30', 'EVD-19', 'EVD-29'],
-  5: ['EVD-07', 'EVD-16', 'EVD-02', 'EVD-21', 'EVD-05']
+  1: ['EVD-07', 'EVD-20'],
+  2: ['EVD-07', 'EVD-03'],
+  3: ['EVD-07', 'EVD-27'],
+  4: ['EVD-07', 'EVD-30'],
+  5: ['EVD-07', 'EVD-16']
 };
+
+function getPlayerNameByPcSlot(slotNum) {
+  if (gameState && gameState.players) {
+    const p = Object.values(gameState.players).find(x => parseInt(x.pcSlot, 10) === parseInt(slotNum, 10));
+    if (p && p.name) return p.name;
+  }
+  if (myPlayer && parseInt(myPlayer.pcSlot, 10) === parseInt(slotNum, 10) && myPlayer.name) {
+    return myPlayer.name;
+  }
+  return null;
+}
+
+function getClueDisplayName(c) {
+  if (!c) return '';
+  const clueId = typeof c === 'string' ? c : c.id;
+  const clueObj = typeof c === 'object' ? c : ALL_CLUES_DATA.find(x => x.id === clueId);
+  if (!clueObj) return clueId;
+
+  if (clueId === 'EVD-20') {
+    const pName = getPlayerNameByPcSlot(1);
+    return pName ? `คำให้การของ ${pName}` : 'คำให้การของ ผู้เล่น 1';
+  }
+  if (clueId === 'EVD-03') {
+    const pName = getPlayerNameByPcSlot(2);
+    return pName ? `คำให้การของ ${pName}` : 'คำให้การของ ผู้เล่น 2';
+  }
+  if (clueId === 'EVD-27') {
+    const pName = getPlayerNameByPcSlot(3);
+    return pName ? `คำให้การของ ${pName}` : 'คำให้การของ ผู้เล่น 3';
+  }
+  if (clueId === 'EVD-30') {
+    const pName = getPlayerNameByPcSlot(4);
+    return pName ? `คำให้การของ ${pName}` : 'คำให้การของ ผู้เล่น 4';
+  }
+  if (clueId === 'EVD-16') {
+    const pName = getPlayerNameByPcSlot(5);
+    return pName ? `คำให้การของ ${pName}` : 'คำให้การของ ผู้เล่น 5';
+  }
+
+  return clueObj.name.replace(/\[.*?\]/g, '').trim();
+}
+
+function getClueDisplayDesc(c) {
+  if (!c) return '';
+  const clueObj = typeof c === 'object' ? c : ALL_CLUES_DATA.find(x => x.id === (typeof c === 'string' ? c : c.id));
+  if (!clueObj || !clueObj.desc) return '';
+  let desc = clueObj.desc;
+  const p1 = getPlayerNameByPcSlot(1);
+  const p2 = getPlayerNameByPcSlot(2);
+  const p3 = getPlayerNameByPcSlot(3);
+  const p4 = getPlayerNameByPcSlot(4);
+  const p5 = getPlayerNameByPcSlot(5);
+  if (p1) desc = desc.replace(/PC\s*1/g, p1);
+  if (p2) desc = desc.replace(/PC\s*2/g, p2);
+  if (p3) desc = desc.replace(/PC\s*3/g, p3);
+  if (p4) desc = desc.replace(/PC\s*4/g, p4);
+  if (p5) desc = desc.replace(/PC\s*5/g, p5);
+  return desc;
+}
 
 function grantInvestigationClues(silent = false) {
   let slot = 0;
@@ -2258,10 +2336,12 @@ function grantInvestigationClues(silent = false) {
     saveUnlockedClues(currentUnlocked);
     // Broadcast newly discovered clues to host
     newlyUnlocked.forEach(cid => {
+      const c = ALL_CLUES_DATA.find(x => x.id === cid);
       broadcast({
         type: 'clue_discovered',
         clueId: cid,
-        playerName: (myPlayer && myPlayer.name) ? myPlayer.name : `PC ${slot}`,
+        clueName: getClueDisplayName(c),
+        playerName: (myPlayer && myPlayer.name) ? myPlayer.name : 'ผู้เล่น',
         userHash: currentUserHash
       });
     });
@@ -2274,13 +2354,14 @@ function grantInvestigationClues(silent = false) {
   if (!silent) {
     const clueLines = assigned.map(cid => {
       const c = ALL_CLUES_DATA.find(x => x.id === cid);
-      return `• [${cid}] ${c ? c.name : cid}`;
+      return `• [${cid}] ${getClueDisplayName(c)}`;
     }).join('\n');
     showInvestigationClueModal(clueLines, slot);
   }
 }
 
 function showInvestigationClueModal(clueLines, slot) {
+  if (currentView === 'admin' || currentView === 'court' || currentView === 'simulation') return;
   let modal = document.getElementById('pcInvestigationModal');
   if (!modal) {
     modal = document.createElement('div');
@@ -2539,9 +2620,9 @@ function renderPlayerCluesList() {
           <div class="clue-header">
             <span class="clue-code" style="color:var(--mono-yellow); font-weight:900;">${c.id}</span>
           </div>
-          <div class="clue-name">${c.name}</div>
-          <div class="clue-location">📍 สถานที่พบ: ${c.loc}</div>
-          <div class="clue-desc">${c.desc}</div>
+          <div class="clue-name">${getClueDisplayName(c)}</div>
+          <div class="clue-location">📍 สถานที่พบ: ${escapeHtml(c.loc)}</div>
+          <div class="clue-desc">${getClueDisplayDesc(c)}</div>
 
           <!-- 3-State Tag Picker -->
           <div class="clue-tag-picker">
@@ -3354,7 +3435,7 @@ function updateHangmanDisplay() {
   const activeP = getActiveHangmanPlayer();
   const nameEl = document.getElementById('hangmanActivePlayerName');
   if (nameEl) {
-    nameEl.innerText = activeP ? `${activeP.name} [${activeP.role}]` : 'กำลังเชื่อมต่อผู้เล่น...';
+    nameEl.innerText = activeP ? activeP.name : 'กำลังเชื่อมต่อผู้เล่น...';
   }
 }
 
@@ -3777,6 +3858,16 @@ function updateScrumDisplay() {
   if (rightEl && gameState.stg5RightTeam) rightEl.innerText = gameState.stg5RightTeam;
 }
 
+function playerScrumPush(delta, btnEl) {
+  playSfx('rebuttal_slash');
+  broadcast({ type: 'stg5_scrum', delta: delta });
+  if (btnEl) {
+    btnEl.classList.remove('scrum-tap-active');
+    void btnEl.offsetWidth; // trigger reflow
+    btnEl.classList.add('scrum-tap-active');
+  }
+}
+
 // 6. Argument Armament
 function handleStg6Hit(pName) {
   gameState.stg6Shield = Math.max(0, gameState.stg6Shield - 5);
@@ -3864,8 +3955,8 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P1-S1', 'EVD-14', 'EVD-12', 'ACTION-CUT'],
         art: '🍖',
-        title: 'ช่องว่างที่ 1: การลงมือสังหารในครัว',
-        desc: 'คนร้ายใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเหยื่อเรียวตะจนหมดสติในครัวเวลา 17:30 น.'
+        title: 'ช่องว่างที่ 1: การลงมือจู่โจม',
+        desc: 'คนร้ายใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเหยื่อเรียวตะจนสลบในห้องซักรีดเวลา 17:30 น.'
       },
       {
         num: 3,
@@ -3875,7 +3966,7 @@ const CLOSING_PAGES_DATA = [
         acceptedIds: ['CARD-P1-S2', 'EVD-11', 'EVD-09', 'ACTION-NOOSE'],
         art: '🍲',
         title: 'ช่องว่างที่ 2: การทำลายหลักฐานและอาวุธ',
-        desc: 'คนร้ายโยนท่อนกระดูกหมูเปื้อนเลือดลงก้นหม้อสตูว์เนื้อที่กำลังเดือดเพื่อต้มล้างคราบและซ่อนอาวุธ'
+        desc: 'คนร้ายโยนท่อนกระดูกหมูเปื้อนเลือดลงก้นหม้อสตูว์เนื้อที่กำลังเดือดในครัวเพื่อต้มล้างคราบและซ่อนอาวุธ'
       },
       {
         num: 4,
@@ -3887,13 +3978,13 @@ const CLOSING_PAGES_DATA = [
   },
   {
     page: 2,
-    title: 'การเคลื่อนย้ายร่าง & ติดตั้งรอกเชือกห้องซักรีด (17:45 – 18:30 น.)',
+    title: 'การติดตั้งรอกเชือกและจัดวางร่างในห้องซักรีด (17:45 – 18:30 น.)',
     panels: [
       {
         num: 1,
         type: 'story',
         art: '🚪',
-        desc: 'คนร้ายแบกร่างของเรียวตะที่หมดสติออกจากครัว แอบนำมาซ่อนในห้องซักรีดที่ไม่มีผู้คน'
+        desc: 'เหยื่อเรียวตะสลบแน่นิ่งอยู่บนพื้นห้องซักรีด คนร้ายจึงเริ่มติดตั้งกลไกเชือกและรอกตามแผนการ'
       },
       {
         num: 2,
@@ -4028,7 +4119,7 @@ const CLOSING_PAGES_DATA = [
 ];
 
 const CLOSING_CARDS_DATA = [
-  { id: 'CARD-P1-S1', page: 1, slot: 1, title: 'ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเหยื่อสลบในครัว (17:30 น.)', icon: '🍖' },
+  { id: 'CARD-P1-S1', page: 1, slot: 1, title: 'ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเหยื่อสลบในห้องซักรีด (17:30 น.)', icon: '🍖' },
   { id: 'CARD-P1-S2', page: 1, slot: 2, title: 'โยนท่อนกระดูกหมูเปื้อนเลือดลงไปต้มในหม้อสตูว์เนื้อเพื่อทำลายหลักฐาน', icon: '🍲' },
   { id: 'CARD-P2-S1', page: 2, slot: 3, title: 'ใช้เชือกตากผ้าไนลอนสีชมพูร้อยผูกมัดลำตัวและรอบคอของเหยื่อเรียวตะ', icon: '🪢' },
   { id: 'CARD-P2-S2', page: 2, slot: 4, title: 'พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️' },
@@ -4038,12 +4129,32 @@ const CLOSING_CARDS_DATA = [
   { id: 'CARD-P4-S2', page: 4, slot: 8, title: 'ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอก', icon: '👢' },
   { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย', icon: '💥' },
   { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงร่างเหยื่อลอยขึ้นไปแขวนตรึงแน่นติดท่อเพดานห้องซักรีด', icon: '⛓️' },
+  // 15 unique decoy cards
   { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'เหยื่อเรียวตะฟื้นสติและชักมีดพับออกมาตัดเชือกเพื่อหลบหนี', icon: '🔪', decoy: true },
   { id: 'DECOY-LADDER', page: 0, slot: 0, title: 'คนร้ายปีนบันไดออกไปทางหน้าต่างสูงเพื่อผูกเชือกภายนอกอาคาร', icon: '🪜', decoy: true },
-  { id: 'DECOY-BREAKER', page: 0, slot: 0, title: 'คนร้ายแอบไปสับคัตเอาต์ตัดสะพานไฟหลักในห้องควบคุม', icon: '⚡', decoy: true },
-  { id: 'DECOY-WASH', page: 0, slot: 0, title: 'คนร้ายนำเสื้อผ้าเปื้อนเลือดของตนเองใส่ลงไปซักในเครื่องซักผ้า', icon: '🫧', decoy: true },
-  { id: 'DECOY-DOOR', page: 0, slot: 0, title: 'คนร้ายใช้โซ่เหล็กคล้องล็อกประตูด้านนอกของห้องซักรีดไว้', icon: '🔒', decoy: true }
+  { id: 'DECOY-BREAKER', page: 0, slot: 0, title: 'คนร้ายแอบไปสับคัตเอาต์ตัดสะพานไฟหลักในห้องควบคุมเพื่อดับไฟทั้งตึก', icon: '⚡', decoy: true },
+  { id: 'DECOY-WASH', page: 0, slot: 0, title: 'คนร้ายนำเสื้อผ้าเปื้อนเลือดของตนเองใส่ลงไปปั่นซักในเครื่องซักผ้า', icon: '🫧', decoy: true },
+  { id: 'DECOY-DOOR', page: 0, slot: 0, title: 'คนร้ายใช้โซ่เหล็กคล้องล็อกประตูด้านนอกของห้องซักรีดไว้', icon: '🔒', decoy: true },
+  { id: 'DECOY-POISON', page: 0, slot: 0, title: 'คนร้ายแอบหยอดยาพิษร้ายแรงลงในแก้วน้ำชาของเหยื่อก่อนลงมือ', icon: '🧪', decoy: true },
+  { id: 'DECOY-VENT', page: 0, slot: 0, title: 'คนร้ายมุดท่อระบายอากาศจากห้องครัวตรงไปยังห้องซักรีดโดยไม่ผ่านโถงทางเดิน', icon: '🕳️', decoy: true },
+  { id: 'DECOY-FREEZER', page: 0, slot: 0, title: 'คนร้ายซ่อนร่างของเหยื่อไว้ในตู้แช่แข็งขนาดใหญ่จนตัวแข็งก่อนนำไปแขวน', icon: '🧊', decoy: true },
+  { id: 'DECOY-WEIGHTS', page: 0, slot: 0, title: 'คนร้ายใช้ดัมเบลและแผ่นเหล็กยกน้ำหนักจากยิมมาถ่วงน้ำหนักแทนถังน้ำ', icon: '🏋️', decoy: true },
+  { id: 'DECOY-GLOVES', page: 0, slot: 0, title: 'คนร้ายสวมถุงมือยางและโยนทิ้งลงในเตาเผาขยะเพื่อไม่ให้ทิ้งรอยนิ้วมือ', icon: '🧤', decoy: true },
+  { id: 'DECOY-CLOCK', page: 0, slot: 0, title: 'คนร้ายหมุนเข็มนาฬิกาแขวนผนังในห้องซักรีดให้เร็วขึ้น 30 นาทีเพื่อลวงเวลา', icon: '⏰', decoy: true },
+  { id: 'DECOY-WINDOW', page: 0, slot: 0, title: 'คนร้ายใช้ค้อนทุบกระจกหน้าต่างห้องซักรีดให้แตกเพื่อแกล้งทำเป็นทางหลบหนี', icon: '🪟', decoy: true },
+  { id: 'DECOY-CURTAIN', page: 0, slot: 0, title: 'คนร้ายใช้ผ้าม่านห้องอาบน้ำห่อหุ้มร่างเหยื่อเพื่อป้องกันเลือดเปรอะเปื้อนพื้น', icon: '🚿', decoy: true },
+  { id: 'DECOY-CLEANER', page: 0, slot: 0, title: 'คนร้ายใช้น้ำยาฟอกขาวเข้มข้นราดขัดพื้นห้องซักรีดเพื่อกำจัดรอยรองเท้า', icon: '🧴', decoy: true },
+  { id: 'DECOY-FIRE', page: 0, slot: 0, title: 'คนร้ายจุดไฟเผากองเศษผ้าเพื่อเปิดระบบสปริงเกลอร์ฉีดน้ำล้างห้อง', icon: '🔥', decoy: true }
 ];
+
+const CLOSING_UNLOCK_ORDER = [1, 5, 3, 7, 2, 6, 8, 4, 9, 10];
+const PC_CLOSING_SLOTS = {
+  1: [1, 6],
+  2: [4, 7],
+  3: [2, 9],
+  4: [3, 8],
+  5: [5, 10]
+};
 
 const CLOSING_SLOT_TO_CARD = {
   1: 'CARD-P1-S1',
@@ -4093,8 +4204,8 @@ function distributeClosingCards() {
   const correctCards = CLOSING_CARDS_DATA.filter(c => !c.decoy).map(c => JSON.parse(JSON.stringify(c)));
   const decoyCards = CLOSING_CARDS_DATA.filter(c => c.decoy).map(c => JSON.parse(JSON.stringify(c)));
 
-  // Starter card rule: ONLY Slot 1 card (CARD-P1-S1) starts UNLOCKED. All other 14 cards start LOCKED!
-  const starterCardId = 'CARD-P1-S1';
+  // Starter card rule: ONLY Slot 1 card (CARD-P1-S1) starts UNLOCKED. All other cards start LOCKED!
+  const starterCardId = CLOSING_SLOT_TO_CARD[CLOSING_UNLOCK_ORDER[0]] || 'CARD-P1-S1';
   correctCards.forEach(c => {
     c.locked = (c.id !== starterCardId);
   });
@@ -4105,23 +4216,32 @@ function distributeClosingCards() {
   const numPlayers = Math.max(1, playersList.length);
   const playerBuckets = Array.from({ length: numPlayers }, () => []);
 
-  // 1. Distribute 10 correct cards round-robin among players
-  // Guarantees:
-  // - Zero duplicates across players
-  // - Every player gets multiple correct answers (no one is left out)
-  // - P0 gets S1, P1 gets S2, P2 gets S3, P3 gets S4, etc.
-  correctCards.forEach((card, idx) => {
-    const pIdx = idx % numPlayers;
-    playerBuckets[pIdx].push(card);
-  });
+  if (numPlayers >= 5) {
+    // Exact PC 1..5 distribution: 2 correct + 3 decoys = 5 cards each
+    Object.entries(PC_CLOSING_SLOTS).forEach(([slotStr, slots]) => {
+      const pIdx = parseInt(slotStr, 10) - 1;
+      slots.forEach(slotNum => {
+        const card = correctCards.find(c => c.slot === slotNum);
+        if (card && playerBuckets[pIdx]) {
+          playerBuckets[pIdx].push(card);
+        }
+      });
+      const decoysForP = decoyCards.slice(pIdx * 3, (pIdx + 1) * 3);
+      decoysForP.forEach(d => {
+        if (playerBuckets[pIdx]) playerBuckets[pIdx].push(d);
+      });
+    });
+  } else {
+    // Fallback for fewer than 5 players
+    correctCards.forEach((card, idx) => {
+      playerBuckets[idx % numPlayers].push(card);
+    });
+    decoyCards.forEach((card, idx) => {
+      playerBuckets[idx % numPlayers].push(card);
+    });
+  }
 
-  // 2. Distribute 5 decoy cards round-robin among players
-  decoyCards.forEach((card, idx) => {
-    const pIdx = idx % numPlayers;
-    playerBuckets[pIdx].push(card);
-  });
-
-  // 3. Map buckets to player hands with multi-key indexing (id, userHash, name, pcSlot)
+  // Map buckets to player hands with multi-key indexing (id, userHash, name, pcSlot)
   playersList.forEach((p, idx) => {
     const bucket = playerBuckets[idx] || [];
     if (p.id) hands[p.id] = bucket;
@@ -4146,9 +4266,9 @@ function distributeClosingCards() {
 function unlockNextClosingCard() {
   if (!gameState.closingPlayerHands) return;
 
-  // Find lowest unsolved slot (1 to 10)
+  // Find first unsolved slot in non-linear unlock order [1, 5, 3, 7, 2, 6, 8, 4, 9, 10]
   let nextSlot = 0;
-  for (let s = 1; s <= 10; s++) {
+  for (const s of CLOSING_UNLOCK_ORDER) {
     if (!gameState.closingSlots || !gameState.closingSlots[s]) {
       nextSlot = s;
       break;
@@ -4178,7 +4298,7 @@ function unlockNextClosingCard() {
   });
 
   if (unlockedCard) {
-    logCourt(`🔓 [CARD UNLOCKED]: การ์ดสำหรับช่องที่ ${nextSlot} ("${unlockedCard.title}") ถูกปลดล็อกแล้ว!`);
+    logCourt(`🔓 [CARD UNLOCKED]: การ์ดสำหรับช่องที่ ${nextSlot} (หน้าที่ ${unlockedCard.page}: "${unlockedCard.title}") ถูกปลดล็อกแล้ว!`);
     playSfx('correct');
     broadcast({
       type: 'closing_card_unlocked',
@@ -4187,11 +4307,12 @@ function unlockNextClosingCard() {
       cardTitle: unlockedCard.title,
       hands: gameState.closingPlayerHands
     });
-    showToast(`🔓 ปลดล็อกการ์ดสำหรับช่องที่ ${nextSlot} แล้ว!`);
+    showToast(`🔓 ปลดล็อกการ์ดสำหรับช่องที่ ${nextSlot} (หน้าที่ ${unlockedCard.page}) แล้ว!`);
   }
 }
 
 function showBonusTimePopup(seconds) {
+  if (currentView === 'admin' || currentView === 'simulation' || (gameState && gameState.stage !== 'closing')) return;
   const existing = document.querySelector('.bonus-time-toast');
   if (existing) existing.remove();
   const toast = document.createElement('div');
@@ -4278,16 +4399,28 @@ function handleClosingSubmit(slot, cardId, pName) {
     logCourt(`📖 [CLOSING PAGE ${targetPage}]: ${pName} เติมมังงะช่องที่ ${slotNum} สำเร็จ! (+20s โบนัส)`);
     updateClosingDisplay();
 
-    // Check if current page is complete -> auto-advance page after short delay
+    // Check if current page is complete -> auto-advance page to next unsolved page after short delay
     const curPageSlots = (CLOSING_PAGES_DATA.find(p => p.page === targetPage)?.panels || [])
       .filter(pan => pan.type === 'slot')
       .map(pan => pan.slotId);
     const curPageComplete = curPageSlots.length > 0 && curPageSlots.every(sId => gameState.closingSlots[sId]);
-    if (curPageComplete && targetPage < 5) {
-      setTimeout(() => {
-        adminSetClosingPage(targetPage + 1);
-        logCourt(`📄 [CLOSING AUTO-PAGE]: มังงะหน้าที่ ${targetPage} สมบูรณ์แล้ว! กำลังเปิดไปยังหน้าที่ ${targetPage + 1}...`);
-      }, 1000);
+    if (curPageComplete) {
+      let nextUnsolvedPage = 0;
+      for (let p = 1; p <= 5; p++) {
+        const pSlots = (CLOSING_PAGES_DATA.find(x => x.page === p)?.panels || [])
+          .filter(pan => pan.type === 'slot')
+          .map(pan => pan.slotId);
+        if (pSlots.some(sId => !gameState.closingSlots[sId])) {
+          nextUnsolvedPage = p;
+          break;
+        }
+      }
+      if (nextUnsolvedPage > 0 && nextUnsolvedPage !== targetPage) {
+        setTimeout(() => {
+          adminSetClosingPage(nextUnsolvedPage);
+          logCourt(`📄 [CLOSING AUTO-PAGE]: มังงะหน้าที่ ${targetPage} สมบูรณ์แล้ว! กำลังเปิดไปยังหน้าที่ ${nextUnsolvedPage}...`);
+        }, 1000);
+      }
     }
 
     // Check if all 10 slots are solved
@@ -4733,9 +4866,11 @@ function renderMobileTask(stage) {
     } else {
       btnsHtml = chosenIds.map(cid => {
         const clue = ALL_CLUES_DATA.find(c => c.id === cid) || { id: cid, name: cid };
+        const cName = getClueDisplayName(clue);
         const isSelected = (chosenClueId === cid);
-        return `<button class="p-task-btn ${isSelected ? 'btn-selected' : ''}" data-clue="${clue.id}" onclick="sendStg1('${clue.id}')">
-          [${clue.id}] ${clue.name} ${isSelected ? ' ✓' : ''}
+        return `<button class="p-task-btn ${isSelected ? 'btn-selected' : ''}" data-clue="${clue.id}" onclick="sendStg1('${clue.id}')" style="padding:10px 12px; font-size:0.88rem; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <span><strong>[${clue.id}]</strong> ${escapeHtml(cName)}</span>
+          ${isSelected ? '<span style="color:#00ff88; font-weight:900; margin-left:6px;">✓ เลือกแล้ว</span>' : ''}
         </button>`;
       }).join('');
     }
@@ -4749,7 +4884,7 @@ function renderMobileTask(stage) {
         ${btnsHtml}
       </div>
       <div id="stg1MobileFeedback" style="display:${hasChosen ? 'block' : 'none'}; margin-top:12px; padding:10px; background:rgba(0,255,136,0.15); border:1px solid #00ff88; border-radius:6px; color:#00ff88; font-weight:bold; text-align:center;">
-        ${hasChosen ? `✅ คุณเลือก [${chosenClueId}: ${chosenObj ? chosenObj.name : ''}] เรียบร้อยแล้ว (รอผลสรุปพร้อมเพื่อน)` : ''}
+        ${hasChosen ? `✅ คุณเลือก [${chosenClueId}: ${chosenObj ? getClueDisplayName(chosenObj) : ''}] เรียบร้อยแล้ว (รอผลสรุปพร้อมเพื่อน)` : ''}
       </div>
     `;
   } else if (stage === 'idle') {
@@ -4885,10 +5020,10 @@ function renderMobileTask(stage) {
       <h3 style="color:var(--mono-yellow); margin-bottom:6px; font-weight:900;">Debate Scrum: เลือกดันฝั่งที่คุณเชื่อมั่น!</h3>
       <p style="font-size:0.88rem; color:#ccc; margin-bottom:14px;">หัวข้อ: "${topicLabel}"</p>
       <div style="display:flex; flex-direction:column; gap:12px;">
-        <button class="p-task-btn big-action-btn" style="background:#092537; border:3px solid #00f0ff; color:#00f0ff; box-shadow:4px 4px 0 #000; font-size:1.02rem; font-weight:900;" onclick="broadcast({type:'stg5_scrum',delta:-4})">
+        <button class="p-task-btn big-action-btn" style="background:#092537; border:3px solid #00f0ff; color:#00f0ff; box-shadow:4px 4px 0 #000; font-size:1.02rem; font-weight:900; transition:all 0.1s ease;" onclick="playerScrumPush(-4, this)">
           👈 ดัน ${leftLabel}
         </button>
-        <button class="p-task-btn big-action-btn" style="background:#370e28; border:3px solid #ff2b6d; color:#ff2b6d; box-shadow:4px 4px 0 #000; font-size:1.02rem; font-weight:900;" onclick="broadcast({type:'stg5_scrum',delta:4})">
+        <button class="p-task-btn big-action-btn" style="background:#370e28; border:3px solid #ff2b6d; color:#ff2b6d; box-shadow:4px 4px 0 #000; font-size:1.02rem; font-weight:900; transition:all 0.1s ease;" onclick="playerScrumPush(4, this)">
           👉 ดัน ${rightLabel}
         </button>
       </div>
@@ -4968,6 +5103,20 @@ function renderMobileTask(stage) {
 
     // Cards HTML in player hand
     const cardsHtml = myCards.map(c => {
+      const isPlaced = Boolean(c.slot && gameState.closingSlots && gameState.closingSlots[c.slot]);
+      if (isPlaced) {
+        return `
+          <div class="p-closing-card placed" style="background:#0d1d16; border:1px solid #1e5238; border-radius:8px; padding:10px; margin-bottom:8px; opacity:0.65; cursor:default; display:flex; align-items:center; gap:10px;">
+            <span style="font-size:1.5rem; filter:grayscale(0.5);">✅</span>
+            <div style="flex:1;">
+              <div style="font-size:0.85rem; color:#86efac; font-weight:700; text-decoration:line-through;">
+                <span style="background:#166534; color:#dcfce7; font-size:0.7rem; font-weight:900; padding:1px 6px; border-radius:3px; margin-right:6px;">✓ วางในมังงะแล้ว</span>${c.title}
+              </div>
+              <div style="font-size:0.75rem; color:#4ade80; margin-top:2px;">(บรรจุลงในหน้า ${c.page} ช่องที่ ${c.slot} เรียบร้อยแล้ว)</div>
+            </div>
+          </div>
+        `;
+      }
       const isSelected = selectedClosingCardId === c.id;
       if (c.locked) {
         return `
@@ -5180,13 +5329,17 @@ function getMyClosingCards() {
 }
 
 function selectClosingCard(cardId) {
+  const cardObj = CLOSING_CARDS_DATA.find(c => c.id === cardId);
+  if (cardObj && cardObj.slot && gameState.closingSlots && gameState.closingSlots[cardObj.slot]) {
+    showToast('✓ การ์ดใบนี้ถูกนำไปวางในมังงะเรียบร้อยแล้ว!');
+    return;
+  }
   if (selectedClosingCardId === cardId) {
     selectedClosingCardId = null; // deselect
   } else {
     selectedClosingCardId = cardId;
     playSfx('menu_select');
     // Auto-navigate mobile view to card's page so the matching slot is right in front of the player
-    const cardObj = CLOSING_CARDS_DATA.find(c => c.id === cardId);
     if (cardObj && cardObj.page && cardObj.page >= 1 && cardObj.page <= 5 && cardObj.page !== gameState.closingCurrentPage) {
       gameState.closingCurrentPage = cardObj.page;
       showToast(`📄 เปิดไปยังหน้าที่ ${cardObj.page} เพื่อให้วางการ์ดลงช่องว่างได้ทันที!`);
@@ -5200,13 +5353,13 @@ function submitSelectedClosingCard(slotId) {
   // Smart fallback: If no card currently selected, check if player holds an unlocked card for this slot
   if (!cardToSubmit) {
     const myCards = getMyClosingCards();
-    const unlockedCards = myCards.filter(c => !c.locked);
+    const availableCards = myCards.filter(c => !c.locked && !(c.slot && gameState.closingSlots && gameState.closingSlots[c.slot]));
     const targetCardId = CLOSING_SLOT_TO_CARD[slotId];
-    const matchingCard = unlockedCards.find(c => c.id === targetCardId);
+    const matchingCard = availableCards.find(c => c.id === targetCardId);
     if (matchingCard) {
       cardToSubmit = matchingCard.id;
-    } else if (unlockedCards.length === 1) {
-      cardToSubmit = unlockedCards[0].id;
+    } else if (availableCards.length === 1) {
+      cardToSubmit = availableCards[0].id;
     }
   }
 
@@ -5610,17 +5763,18 @@ function renderAdminEvidenceTracker() {
             ${ALL_CLUES_DATA.map(c => {
               const has = pClues.includes(c.id);
               const isCore = (c.importance === 'MUST' || c.secretType === 'CORE');
+              const cName = getClueDisplayName(c);
               if (has) {
                 return `
                   <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; border-radius:4px; padding:4px 6px; font-size:0.75rem; color:#a7f3d0; display:flex; align-items:center; justify-content:space-between;">
-                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(c.name)}">✓ [${c.id}] ${escapeHtml(c.name)}</span>
+                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(cName)}">✓ [${c.id}] ${escapeHtml(cName)}</span>
                     <span style="font-size:0.65rem; background:#065f46; color:#fff; padding:1px 4px; border-radius:3px; margin-left:4px;">มีแล้ว</span>
                   </div>
                 `;
               } else {
                 return `
                   <button type="button" class="small-btn" onclick="adminGrantClue('${pKey}', '${c.id}')" style="background:${isCore ? 'rgba(239,68,68,0.15)' : 'rgba(30,41,59,0.8)'}; border:1px solid ${isCore ? '#ef4444' : '#475569'}; border-radius:4px; padding:4px 6px; font-size:0.75rem; color:${isCore ? '#fca5a5' : '#cbd5e1'}; display:flex; align-items:center; justify-content:space-between; cursor:pointer; text-align:left;" title="คลิกเพื่อมอบหลักฐานนี้ให้ ${escapeHtml(p.name)}">
-                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">+ [${c.id}] ${escapeHtml(c.name)}</span>
+                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">+ [${c.id}] ${escapeHtml(cName)}</span>
                     <span style="font-size:0.65rem; background:${isCore ? '#991b1b' : '#334155'}; color:#fff; padding:1px 4px; border-radius:3px; margin-left:4px;">${isCore ? 'CORE' : 'มอบ'}</span>
                   </button>
                 `;
@@ -5635,7 +5789,6 @@ function renderAdminEvidenceTracker() {
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <div>
           <strong style="color:#f8fafc; font-size:0.95rem;">${escapeHtml(p.name)}</strong>
-          <span style="font-size:0.8rem; color:#38bdf8; margin-left:6px;">[${escapeHtml(p.role || 'นักเรียน')}]</span>
           ${p.isKiller ? '<span style="font-size:0.7rem; background:#dc2626; color:#fff; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">SABOTEUR</span>' : ''}
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
