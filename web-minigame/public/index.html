@@ -3352,7 +3352,7 @@
   <!-- ============================================== -->
   <!-- MODAL: DRESS-UP AVATAR CREATOR                 -->
   <!-- ============================================== -->
-  <div id="avatarDressUpModal" class="dangan-modal hidden">
+  <div id="avatarDressUpModal" class="modal-backdrop dangan-modal hidden" onclick="if(event.target===this) closeAvatarModal()">
     <div class="dangan-modal-box avatar-dressup-box">
       <div class="dangan-modal-header" style="background:#1e1e32; border-bottom:2px solid var(--mono-pink);">
         <h3 class="modal-title" style="color:var(--mono-pink); font-size:1.05rem;">🎨 แต่งตัวตัวละคร (DRESS-UP AVATAR)</h3>
@@ -3424,7 +3424,7 @@
   </button>
 
   <script src="/js/jsQR.min.js"></script>
-  <script src="/js/client.js?v=4.5.0"></script>
+  <script src="/js/client.js?v=4.5.1"></script>
   <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>

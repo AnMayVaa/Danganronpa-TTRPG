@@ -328,6 +328,14 @@ function openAvatarModal() {
   modal.classList.remove('hidden');
   renderAvatarModalControls();
   updateAvatarModalPreview();
+
+  // Smooth scroll into view so the player clearly sees where it is on all screens
+  setTimeout(() => {
+    const box = modal.querySelector('.avatar-dressup-box') || modal;
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const content = modal.querySelector('.avatar-dressup-content');
+    if (content) content.scrollTop = 0;
+  }, 40);
 }
 
 function closeAvatarModal() {
@@ -436,6 +444,8 @@ function saveAvatarFromModal() {
   currentAvatarConfig = Object.assign({}, tempAvatarConfig);
   saveAvatarConfigToLocal(currentAvatarConfig);
   updateAvatarJoinPreview();
+  const topAv = document.getElementById('pMyAvatar');
+  if (topAv) topAv.innerHTML = renderAvatarSvg(currentAvatarConfig, 38);
   if (myPlayer) {
     myPlayer.avatarConfig = currentAvatarConfig;
     broadcast({
@@ -4040,9 +4050,9 @@ function updateStg0CourtDisplay() {
       if (quoteEl) quoteEl.innerText = gameState.stg0.objectionQuote || '⚡ นั่นผิดแล้ว! (SORE WA CHIGAU YO!)';
       if (giantAv) {
         if (gameState.stg0.buzzedAvatarConfig) {
-          giantAv.innerHTML = renderAvatarSvg(gameState.stg0.buzzedAvatarConfig, 180);
+          giantAv.innerHTML = renderAvatarSvg(gameState.stg0.buzzedAvatarConfig, 140);
         } else {
-          giantAv.innerText = gameState.stg0.buzzedAvatar || '👤';
+          giantAv.innerHTML = `<div style="font-size:3.5rem; line-height:140px; text-align:center;">${gameState.stg0.buzzedAvatar || '👤'}</div>`;
         }
       }
       if (objName) objName.innerText = gameState.stg0.buzzedBy;
@@ -4402,40 +4412,49 @@ function renderMobileStage0Task() {
       optionsHtml = myClues.map(c => `<option value="${c.id}" ${gameState.stg0.selectedClueId === c.id ? 'selected' : ''}>[${c.id}] ${c.name} (${c.loc})</option>`).join('');
     }
 
+    const myAvConfig = myPlayer?.avatarConfig || currentAvatarConfig;
+    const myAvHtml = renderAvatarSvg(myAvConfig, 88);
+
     html += `
+      <!-- Character Avatar Objection Rising Cut-In -->
+      <div class="stg0-mobile-cutin-card by-me">
+        <div class="stg0-mobile-avatar-rise">
+          ${myAvHtml}
+        </div>
+        <div class="stg0-mobile-cutin-details">
+          <div class="stg0-mobile-badge-objection">⚡ คุณลุกขึ้นคัดค้าน! (OBJECTION!)</div>
+          <div class="stg0-mobile-quote">"${gameState.stg0.objectionQuote || '⚡ นั่นผิดแล้ว!'}"</div>
+          <div class="stg0-mobile-hint">📢 อธิบายเหตุผลที่โต๊ะ แล้วเลือกกระสุนความจริงยิงขึ้นจอ:</div>
+        </div>
+      </div>
+
       <div class="stg0-objector-action-card">
-        <div style="color:#00f0ff; font-weight:900; font-size:1.05rem; margin-bottom:4px;">
-          ⚡ คุณได้รับสิทธิ์คัดค้าน! (Objection Locked!)
-        </div>
-        <div style="color:#ff4081; font-weight:800; font-size:0.88rem; margin-bottom:8px; font-style:italic;">
-          "${gameState.stg0.objectionQuote || 'นั่นผิดแล้ว!'}"
-        </div>
-        <div style="font-size:0.82rem; color:#cbd5e1; line-height:1.4; margin-bottom:10px;">
-          📢 พูดอธิบายเหตุผลหักล้างต่อที่ประชุมศาลที่โต๊ะ และเลือก<strong>กระสุนความจริงที่คุณมี</strong>ยิงขึ้นจอ:
-        </div>
         <div style="margin-bottom:10px;">
-          <label style="font-size:0.78rem; color:#ffe600; font-weight:bold;">กระสุนความจริงที่คุณครอบครอง (${myClues.length} ชิ้น):</label>
-          <select id="stg0MobileClueSelect" class="stg0-clue-select">
+          <label style="font-size:0.8rem; color:#ffe600; font-weight:bold;">🎯 กระสุนความจริงที่คุณครอบครอง (${myClues.length} ชิ้น):</label>
+          <select id="stg0MobileClueSelect" class="stg0-clue-select" style="width:100%; margin-top:4px;">
             ${optionsHtml}
           </select>
         </div>
-        <button class="p-task-btn" onclick="stg0ShootClue()" style="background:linear-gradient(135deg,#ffe600,#ff0055); color:#000; font-weight:900; font-size:0.95rem; border:none; padding:12px;">
+        <button class="p-task-btn" onclick="stg0ShootClue()" style="background:linear-gradient(135deg,#ffe600,#ff0055); color:#000; font-weight:900; font-size:1rem; border:none; padding:12px; width:100%; border-radius:8px; box-shadow:0 0 15px rgba(255,230,0,0.5); cursor:pointer;">
           🎯 ยิงกระสุนความจริง (FIRE TRUTH BULLET!)
         </button>
       </div>
     `;
   } else {
+    const otherAvConfig = gameState.stg0.buzzedAvatarConfig;
+    const otherAvHtml = otherAvConfig ? renderAvatarSvg(otherAvConfig, 88) : `<div style="font-size:3rem; line-height:88px; text-align:center;">${gameState.stg0.buzzedAvatar || '👤'}</div>`;
+
     html += `
-      <div class="stg0-locked-wrap">
-        <div style="font-size:2.2rem; margin-bottom:6px;">🔒</div>
-        <div style="color:#ff4081; font-weight:900; font-size:1.05rem; margin-bottom:4px;">
-          [${gameState.stg0.buzzedBy}] ได้รับสิทธิ์คัดค้าน!
+      <!-- Other Player Objection Rising Cut-In -->
+      <div class="stg0-mobile-cutin-card by-other">
+        <div class="stg0-mobile-avatar-rise">
+          ${otherAvHtml}
         </div>
-        <div style="font-size:0.85rem; color:#cbd5e1; margin-bottom:10px; font-style:italic;">
-          "${gameState.stg0.objectionQuote || 'ขอคัดค้าน!'}"
-        </div>
-        <div style="font-size:0.8rem; color:#94a3b8; line-height:1.4;">
-          โปรดฟังเหตุผลการหักล้างของเพื่อนที่โต๊ะ และรอผลการตัดสินจาก DM
+        <div class="stg0-mobile-cutin-details">
+          <div class="stg0-mobile-badge-locked">🔒 [${escapeHtml(gameState.stg0.buzzedBy)}] ลุกขึ้นคัดค้าน!</div>
+          <div style="font-size:0.8rem; color:var(--mono-cyan); font-weight:700; margin-bottom:2px;">${escapeHtml(gameState.stg0.buzzedRole || 'ผู้ร่วมอภิปราย')}</div>
+          <div class="stg0-mobile-quote">"${escapeHtml(gameState.stg0.objectionQuote || 'ขอคัดค้าน!')}"</div>
+          <div class="stg0-mobile-hint">โปรดฟังเหตุผลการหักล้างของเพื่อนที่โต๊ะจริง และรอผลการตัดสินจาก DM</div>
         </div>
       </div>
     `;
