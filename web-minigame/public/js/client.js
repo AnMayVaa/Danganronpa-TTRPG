@@ -1,4 +1,454 @@
 
+// ============================================================
+// DRESS-UP AVATAR CREATOR & SVG ENGINE
+// ============================================================
+const AVATAR_OPTIONS = {
+  skins: [
+    { id: 0, name: 'ขาวอมชมพู', color: '#ffe0bd', shadow: '#e8b892' },
+    { id: 1, name: 'ผิวสองสี', color: '#ffd1a4', shadow: '#dba574' },
+    { id: 2, name: 'ผิวแทน', color: '#c68652', shadow: '#9c6136' },
+    { id: 3, name: 'ขาวซีด', color: '#f5ebe6', shadow: '#d6c0b6' }
+  ],
+  hairStyles: [
+    { id: 0, name: 'สไปกี้ตัวเอก (Spiky Ahoge)' },
+    { id: 1, name: 'แสกข้างสุขุม (Slick Part)' },
+    { id: 2, name: 'ผมยาวสลวย (Long Straight)' },
+    { id: 3, name: 'ทวินเทล (Twin Tails)' },
+    { id: 4, name: 'บ็อบนุ่มนวล (Fluffy Bob)' },
+    { id: 5, name: 'ไวลด์/นักเลง (Wild Pompadour)' }
+  ],
+  hairColors: [
+    { id: 0, name: 'ดำขลับ', color: '#25262c', highlight: '#444654' },
+    { id: 1, name: 'น้ำตาลเข้ม', color: '#543625', highlight: '#785038' },
+    { id: 2, name: 'บลอนด์ทอง', color: '#dfaa33', highlight: '#f3c760' },
+    { id: 3, name: 'ม่วงพาสเทล', color: '#887bb0', highlight: '#b1a5d6' },
+    { id: 4, name: 'ชมพูนีออน', color: '#ff2e88', highlight: '#ff66a8' },
+    { id: 5, name: 'ฟ้าไซเบอร์', color: '#00b4d8', highlight: '#48cae4' },
+    { id: 6, name: 'ขาวเงิน', color: '#d8dee9', highlight: '#f1f5f9' }
+  ],
+  eyes: [
+    { id: 0, name: 'มุ่งมั่น (Confident)' },
+    { id: 1, name: 'สุขุม/เฉียบคม (Analytical)' },
+    { id: 2, name: 'สดใส (Cheerful)' },
+    { id: 3, name: 'เจ้าเล่ห์ (Smug)' },
+    { id: 4, name: 'เคร่งขรึม (Serious)' }
+  ],
+  outfits: [
+    { id: 0, name: 'สูทนักเรียน (Blazer)', color: '#1e212d', trim: '#ff3366', tie: '#e63946' },
+    { id: 1, name: 'ชุดกะลาสี (Sailor)', color: '#1d3557', trim: '#f1faee', tie: '#e63946' },
+    { id: 2, name: 'เสื้อฮู้ด (Hoodie)', color: '#386641', trim: '#6a994e', tie: '#a7c957' },
+    { id: 3, name: 'เสื้อกั๊กทางการ (Vest)', color: '#2b2d42', trim: '#8d99ae', tie: '#ffd166' },
+    { id: 4, name: 'ชุดวอร์ม (Tracksuit)', color: '#d90429', trim: '#ffffff', tie: '#ffffff' }
+  ],
+  accessories: [
+    { id: 0, name: 'ไม่มี (None)' },
+    { id: 1, name: 'แว่นตาดำ (Glasses)' },
+    { id: 2, name: 'แว่นตากลม (Round Glasses)' },
+    { id: 3, name: 'พลาสเตอร์ยา (Bandage)' },
+    { id: 4, name: 'กิ๊บติดผม (Hairpin)' },
+    { id: 5, name: 'หูฟังเกมมิ่ง (Headphones)' }
+  ]
+};
+
+let currentAvatarConfig = loadSavedAvatarConfig();
+let tempAvatarConfig = Object.assign({}, currentAvatarConfig);
+
+function loadSavedAvatarConfig() {
+  try {
+    const saved = localStorage.getItem('dangan_avatar_config');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return { skin: 0, hairStyle: 0, hairColor: 0, eyes: 0, outfit: 0, acc: 0 };
+}
+
+function saveAvatarConfigToLocal(cfg) {
+  try {
+    localStorage.setItem('dangan_avatar_config', JSON.stringify(cfg));
+  } catch(e) {}
+}
+
+function renderAvatarSvg(cfg, size = 100) {
+  const conf = Object.assign({ skin: 0, hairStyle: 0, hairColor: 0, eyes: 0, outfit: 0, acc: 0 }, cfg || {});
+  const skin = AVATAR_OPTIONS.skins[conf.skin % AVATAR_OPTIONS.skins.length] || AVATAR_OPTIONS.skins[0];
+  const hairCol = AVATAR_OPTIONS.hairColors[conf.hairColor % AVATAR_OPTIONS.hairColors.length] || AVATAR_OPTIONS.hairColors[0];
+  const outfit = AVATAR_OPTIONS.outfits[conf.outfit % AVATAR_OPTIONS.outfits.length] || AVATAR_OPTIONS.outfits[0];
+  const hairStyle = conf.hairStyle % AVATAR_OPTIONS.hairStyles.length;
+  const eyesStyle = conf.eyes % AVATAR_OPTIONS.eyes.length;
+  const accStyle = conf.acc % AVATAR_OPTIONS.accessories.length;
+
+  let backHair = '';
+  if (hairStyle === 2) {
+    backHair = `<path d="M 24 40 C 18 60, 16 85, 14 98 L 32 98 C 30 75, 28 55, 28 40 Z" fill="${hairCol.color}" />
+                <path d="M 76 40 C 82 60, 84 85, 86 98 L 68 98 C 70 75, 72 55, 72 40 Z" fill="${hairCol.color}" />`;
+  } else if (hairStyle === 3) {
+    backHair = `<path d="M 22 35 C 10 45, 6 70, 8 92 C 14 78, 20 60, 24 45 Z" fill="${hairCol.color}" />
+                <path d="M 78 35 C 90 45, 94 70, 92 92 C 86 78, 80 60, 76 45 Z" fill="${hairCol.color}" />`;
+  }
+
+  let bodyOutfit = '';
+  if (conf.outfit === 0) {
+    bodyOutfit = `
+      <path d="M 20 98 L 24 72 L 36 66 L 50 74 L 64 66 L 76 72 L 80 98 Z" fill="${outfit.color}" />
+      <path d="M 38 67 L 50 90 L 62 67 Z" fill="#ffffff" />
+      <path d="M 47 70 L 53 70 L 52 88 L 50 93 L 48 88 Z" fill="${outfit.tie}" />
+      <path d="M 34 66 L 46 80 L 38 82 L 26 73 Z" fill="#2d3142" />
+      <path d="M 66 66 L 54 80 L 62 82 L 74 73 Z" fill="#2d3142" />
+      <circle cx="34" cy="78" r="2.5" fill="${outfit.trim}" />
+    `;
+  } else if (conf.outfit === 1) {
+    bodyOutfit = `
+      <path d="M 20 98 L 24 72 L 36 66 L 50 72 L 64 66 L 76 72 L 80 98 Z" fill="${outfit.color}" />
+      <path d="M 32 66 L 50 86 L 68 66 L 75 73 L 50 95 L 25 73 Z" fill="${outfit.trim}" />
+      <path d="M 44 80 L 56 80 L 50 88 Z" fill="${outfit.tie}" />
+      <circle cx="50" cy="80" r="3" fill="#ffffff" />
+    `;
+  } else if (conf.outfit === 2) {
+    bodyOutfit = `
+      <path d="M 20 98 L 24 72 L 34 64 L 50 68 L 66 64 L 76 72 L 80 98 Z" fill="${outfit.color}" />
+      <path d="M 49 68 L 51 68 L 51 98 L 49 98 Z" fill="${outfit.trim}" />
+      <path d="M 38 66 Q 50 78 62 66 Q 50 72 38 66 Z" fill="${outfit.trim}" />
+      <line x1="45" y1="74" x2="45" y2="88" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
+      <line x1="55" y1="74" x2="55" y2="88" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
+    `;
+  } else if (conf.outfit === 3) {
+    bodyOutfit = `
+      <path d="M 20 98 L 24 72 L 36 66 L 50 72 L 64 66 L 76 72 L 80 98 Z" fill="#ffffff" />
+      <path d="M 26 73 L 42 75 L 42 98 L 20 98 Z" fill="${outfit.color}" />
+      <path d="M 74 73 L 58 75 L 58 98 L 80 98 Z" fill="${outfit.color}" />
+      <path d="M 47 68 L 53 68 L 52 86 L 50 90 L 48 86 Z" fill="${outfit.tie}" />
+    `;
+  } else {
+    bodyOutfit = `
+      <path d="M 20 98 L 24 72 L 36 66 L 50 70 L 64 66 L 76 72 L 80 98 Z" fill="${outfit.color}" />
+      <line x1="22" y1="73" x2="20" y2="98" stroke="${outfit.trim}" stroke-width="2.5" />
+      <line x1="78" y1="73" x2="80" y2="98" stroke="${outfit.trim}" stroke-width="2.5" />
+      <line x1="50" y1="70" x2="50" y2="98" stroke="#ffffff" stroke-width="2" />
+    `;
+  }
+
+  const neckHead = `
+    <polygon points="44,60 56,60 54,72 46,72" fill="${skin.shadow}" />
+    <polygon points="45,61 55,61 53,70 47,70" fill="${skin.color}" />
+    <circle cx="28" cy="46" r="5" fill="${skin.shadow}" />
+    <circle cx="29" cy="46" r="3.5" fill="${skin.color}" />
+    <circle cx="72" cy="46" r="5" fill="${skin.shadow}" />
+    <circle cx="71" cy="46" r="3.5" fill="${skin.color}" />
+    <path d="M 30 38 Q 28 54 50 67 Q 72 54 70 38 Q 70 20 50 20 Q 30 20 30 38 Z" fill="${skin.color}" />
+  `;
+
+  let eyesSvg = '';
+  if (eyesStyle === 0) {
+    eyesSvg = `
+      <path d="M 35 37 Q 40 34 46 36" stroke="#222" stroke-width="2" stroke-linecap="round" fill="none" />
+      <path d="M 65 37 Q 60 34 54 36" stroke="#222" stroke-width="2" stroke-linecap="round" fill="none" />
+      <path d="M 35 43 Q 41 39 46 43" stroke="#222" stroke-width="2.5" fill="none" />
+      <circle cx="41" cy="44" r="3.5" fill="#1d3557" />
+      <circle cx="42" cy="43" r="1.2" fill="#ffffff" />
+      <path d="M 65 43 Q 59 39 54 43" stroke="#222" stroke-width="2.5" fill="none" />
+      <circle cx="59" cy="44" r="3.5" fill="#1d3557" />
+      <circle cx="60" cy="43" r="1.2" fill="#ffffff" />
+      <path d="M 50 49 L 49 53 L 51 53" stroke="${skin.shadow}" stroke-width="1.5" fill="none" />
+      <path d="M 45 58 Q 50 62 55 58" stroke="#993344" stroke-width="2" stroke-linecap="round" fill="none" />
+    `;
+  } else if (eyesStyle === 1) {
+    eyesSvg = `
+      <line x1="35" y1="36" x2="46" y2="36" stroke="#222" stroke-width="2" stroke-linecap="round" />
+      <line x1="65" y1="36" x2="54" y2="36" stroke="#222" stroke-width="2" stroke-linecap="round" />
+      <path d="M 34 43 L 46 42" stroke="#222" stroke-width="2.8" stroke-linecap="round" />
+      <circle cx="40" cy="44" r="2.8" fill="#58355e" />
+      <circle cx="41" cy="43" r="1" fill="#ffffff" />
+      <path d="M 66 43 L 54 42" stroke="#222" stroke-width="2.8" stroke-linecap="round" />
+      <circle cx="60" cy="44" r="2.8" fill="#58355e" />
+      <circle cx="61" cy="43" r="1" fill="#ffffff" />
+      <path d="M 50 49 L 49 53" stroke="${skin.shadow}" stroke-width="1.5" />
+      <line x1="46" y1="58" x2="54" y2="58" stroke="#883344" stroke-width="2" stroke-linecap="round" />
+    `;
+  } else if (eyesStyle === 2) {
+    eyesSvg = `
+      <path d="M 34 35 Q 40 33 46 36" stroke="#222" stroke-width="2" stroke-linecap="round" fill="none" />
+      <path d="M 66 35 Q 60 33 54 36" stroke="#222" stroke-width="2" stroke-linecap="round" fill="none" />
+      <ellipse cx="40" cy="44" rx="4" ry="5" fill="#3a5a40" />
+      <circle cx="41" cy="42" r="1.8" fill="#ffffff" />
+      <ellipse cx="60" cy="44" rx="4" ry="5" fill="#3a5a40" />
+      <circle cx="61" cy="42" r="1.8" fill="#ffffff" />
+      <ellipse cx="33" cy="51" rx="3.5" ry="1.5" fill="#ff758f" opacity="0.6" />
+      <ellipse cx="67" cy="51" rx="3.5" ry="1.5" fill="#ff758f" opacity="0.6" />
+      <path d="M 44 56 Q 50 64 56 56 Z" fill="#cc3355" />
+    `;
+  } else if (eyesStyle === 3) {
+    eyesSvg = `
+      <path d="M 34 37 L 46 35" stroke="#222" stroke-width="2" stroke-linecap="round" />
+      <path d="M 54 34 Q 60 30 66 35" stroke="#222" stroke-width="2" stroke-linecap="round" fill="none" />
+      <path d="M 34 43 Q 40 40 46 44" stroke="#222" stroke-width="2.5" fill="none" />
+      <circle cx="41" cy="44" r="3" fill="#b5179e" />
+      <circle cx="42" cy="43" r="1" fill="#fff" />
+      <path d="M 66 42 Q 60 39 54 43" stroke="#222" stroke-width="2.5" fill="none" />
+      <circle cx="59" cy="43" r="3" fill="#b5179e" />
+      <circle cx="60" cy="42" r="1" fill="#fff" />
+      <path d="M 47 58 Q 54 58 57 53" stroke="#881133" stroke-width="2" stroke-linecap="round" fill="none" />
+    `;
+  } else {
+    eyesSvg = `
+      <path d="M 34 35 L 47 38" stroke="#222" stroke-width="2.5" stroke-linecap="round" />
+      <path d="M 66 35 L 53 38" stroke="#222" stroke-width="2.5" stroke-linecap="round" />
+      <path d="M 35 44 L 46 43" stroke="#222" stroke-width="2.5" stroke-linecap="round" />
+      <circle cx="41" cy="45" r="3" fill="#9d0208" />
+      <circle cx="42" cy="44" r="1" fill="#fff" />
+      <path d="M 65 44 L 54 43" stroke="#222" stroke-width="2.5" stroke-linecap="round" />
+      <circle cx="59" cy="45" r="3" fill="#9d0208" />
+      <circle cx="60" cy="44" r="1" fill="#fff" />
+      <path d="M 45 59 Q 50 56 55 59" stroke="#771122" stroke-width="2" stroke-linecap="round" fill="none" />
+    `;
+  }
+
+  let frontHair = '';
+  if (hairStyle === 0) {
+    frontHair = `
+      <path d="M 50 20 Q 52 4 60 6 Q 54 10 50 18 Z" fill="${hairCol.color}" />
+      <path d="M 26 38 C 24 20, 36 12, 50 12 C 64 12, 76 20, 74 38 C 72 32, 68 28, 64 34 C 60 26, 56 26, 52 38 C 48 26, 44 26, 40 36 C 36 28, 30 30, 26 38 Z" fill="${hairCol.color}" />
+      <path d="M 34 18 Q 50 14 66 18 Q 50 16 34 18 Z" fill="${hairCol.highlight}" opacity="0.8" />
+    `;
+  } else if (hairStyle === 1) {
+    frontHair = `
+      <path d="M 26 36 C 25 18, 38 12, 50 12 C 64 12, 75 18, 74 36 C 72 30, 68 28, 62 30 C 52 30, 42 36, 32 40 C 29 36, 27 36, 26 36 Z" fill="${hairCol.color}" />
+      <path d="M 36 16 Q 50 14 64 18" stroke="${hairCol.highlight}" stroke-width="2" fill="none" />
+    `;
+  } else if (hairStyle === 2) {
+    frontHair = `
+      <path d="M 26 44 C 24 20, 36 12, 50 12 C 64 12, 76 20, 74 44 C 72 34, 68 32, 66 40 C 62 30, 56 28, 50 32 C 44 28, 38 30, 34 40 C 32 32, 28 34, 26 44 Z" fill="${hairCol.color}" />
+      <path d="M 32 20 Q 50 16 68 20" stroke="${hairCol.highlight}" stroke-width="2" fill="none" />
+    `;
+  } else if (hairStyle === 3) {
+    frontHair = `
+      <circle cx="20" cy="34" r="3.5" fill="#ff0055" />
+      <circle cx="80" cy="34" r="3.5" fill="#ff0055" />
+      <path d="M 26 40 C 25 18, 36 12, 50 12 C 64 12, 75 18, 74 40 C 70 32, 66 30, 60 34 C 54 28, 46 28, 40 34 C 34 30, 30 32, 26 40 Z" fill="${hairCol.color}" />
+    `;
+  } else if (hairStyle === 4) {
+    frontHair = `
+      <path d="M 24 46 C 20 28, 32 10, 50 10 C 68 10, 80 28, 76 46 C 74 38, 70 34, 66 42 C 60 32, 54 30, 50 34 C 46 30, 40 32, 34 42 C 30 34, 26 38, 24 46 Z" fill="${hairCol.color}" />
+    `;
+  } else {
+    frontHair = `
+      <path d="M 28 36 C 24 16, 28 4, 50 2 C 72 4, 76 16, 72 36 C 70 28, 66 26, 62 32 C 58 22, 52 22, 48 30 C 42 22, 36 26, 32 32 C 30 28, 28 32, 28 36 Z" fill="${hairCol.color}" />
+      <path d="M 40 8 Q 50 5 60 8" stroke="${hairCol.highlight}" stroke-width="2" fill="none" />
+    `;
+  }
+
+  let accSvg = '';
+  if (accStyle === 1) {
+    accSvg = `
+      <rect x="33" y="40" width="13" height="8" rx="2" fill="none" stroke="#222222" stroke-width="2" />
+      <rect x="54" y="40" width="13" height="8" rx="2" fill="none" stroke="#222222" stroke-width="2" />
+      <line x1="46" y1="44" x2="54" y2="44" stroke="#222222" stroke-width="2" />
+      <line x1="28" y1="43" x2="33" y2="43" stroke="#222222" stroke-width="1.8" />
+      <line x1="67" y1="43" x2="72" y2="43" stroke="#222222" stroke-width="1.8" />
+    `;
+  } else if (accStyle === 2) {
+    accSvg = `
+      <circle cx="40" cy="44" r="6" fill="none" stroke="#d4af37" stroke-width="1.8" />
+      <circle cx="60" cy="44" r="6" fill="none" stroke="#d4af37" stroke-width="1.8" />
+      <path d="M 46 44 Q 50 42 54 44" stroke="#d4af37" stroke-width="1.8" fill="none" />
+    `;
+  } else if (accStyle === 3) {
+    accSvg = `
+      <rect x="33" y="50" width="7" height="4" rx="1" transform="rotate(-15 36 52)" fill="#ffffff" stroke="#c0a080" stroke-width="0.8" />
+    `;
+  } else if (accStyle === 4) {
+    accSvg = `
+      <line x1="64" y1="28" x2="72" y2="34" stroke="#ff0055" stroke-width="2.5" stroke-linecap="round" />
+      <line x1="72" y1="28" x2="64" y2="34" stroke="#ff0055" stroke-width="2.5" stroke-linecap="round" />
+    `;
+  } else if (accStyle === 5) {
+    accSvg = `
+      <path d="M 28 62 C 26 76, 74 76, 72 62" stroke="#222228" stroke-width="5" stroke-linecap="round" fill="none" />
+      <rect x="23" y="58" width="8" height="12" rx="3" fill="#ff0055" />
+      <rect x="69" y="58" width="8" height="12" rx="3" fill="#ff0055" />
+    `;
+  }
+
+  const gradId = 'bgGrad_' + size + '_' + Math.floor(Math.random()*100000);
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" class="dangan-avatar-svg">
+      <defs>
+        <radialGradient id="${gradId}" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#2a2a44" />
+          <stop offset="100%" stop-color="#121220" />
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill="url(#${gradId})" stroke="#3f3f60" stroke-width="2" />
+      ${backHair}
+      ${bodyOutfit}
+      ${neckHead}
+      ${eyesSvg}
+      ${frontHair}
+      ${accSvg}
+    </svg>
+  `.trim();
+}
+
+function updateAvatarJoinPreview() {
+  const wrap = document.getElementById('joinAvatarSvgWrap');
+  if (wrap) {
+    wrap.innerHTML = renderAvatarSvg(currentAvatarConfig, 64);
+  }
+  const myAv = document.getElementById('pMyAvatar');
+  if (myAv) {
+    myAv.innerHTML = renderAvatarSvg(currentAvatarConfig, 38);
+  }
+}
+
+function randomizeAvatarAndRender() {
+  currentAvatarConfig = {
+    skin: Math.floor(Math.random() * AVATAR_OPTIONS.skins.length),
+    hairStyle: Math.floor(Math.random() * AVATAR_OPTIONS.hairStyles.length),
+    hairColor: Math.floor(Math.random() * AVATAR_OPTIONS.hairColors.length),
+    eyes: Math.floor(Math.random() * AVATAR_OPTIONS.eyes.length),
+    outfit: Math.floor(Math.random() * AVATAR_OPTIONS.outfits.length),
+    acc: Math.floor(Math.random() * AVATAR_OPTIONS.accessories.length)
+  };
+  saveAvatarConfigToLocal(currentAvatarConfig);
+  updateAvatarJoinPreview();
+  if (myPlayer) {
+    myPlayer.avatarConfig = currentAvatarConfig;
+    broadcast({
+      type: 'update_player_avatar',
+      userHash: currentUserHash,
+      avatarConfig: currentAvatarConfig
+    });
+    renderPlayerCharSheet();
+  }
+  showToast('🎲 สุ่มชุดตัวละครใหม่เรียบร้อย!');
+}
+
+function openAvatarModal() {
+  tempAvatarConfig = Object.assign({}, myPlayer?.avatarConfig || currentAvatarConfig);
+  const modal = document.getElementById('avatarDressUpModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  renderAvatarModalControls();
+  updateAvatarModalPreview();
+}
+
+function closeAvatarModal() {
+  const modal = document.getElementById('avatarDressUpModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function updateAvatarModalPreview() {
+  const wrap = document.getElementById('avatarModalPreviewWrap');
+  if (wrap) wrap.innerHTML = renderAvatarSvg(tempAvatarConfig, 140);
+}
+
+function switchAvatarTab(tab) {
+  ['hair', 'face', 'outfit', 'acc'].forEach(t => {
+    const pane = document.getElementById(`avatarPane${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    const btn = document.getElementById(`avTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    if (pane) pane.classList.toggle('hidden', t !== tab);
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+}
+
+function renderAvatarModalControls() {
+  const hairGrid = document.getElementById('avatarHairChoices');
+  if (hairGrid) {
+    hairGrid.innerHTML = AVATAR_OPTIONS.hairStyles.map((h, idx) => `
+      <div class="avatar-choice-card ${tempAvatarConfig.hairStyle === idx ? 'active' : ''}" onclick="selectAvatarOption('hairStyle', ${idx})">
+        ${h.name}
+      </div>
+    `).join('');
+  }
+
+  const hairColorGrid = document.getElementById('avatarHairColorSwatches');
+  if (hairColorGrid) {
+    hairColorGrid.innerHTML = AVATAR_OPTIONS.hairColors.map((c, idx) => `
+      <div class="avatar-color-swatch ${tempAvatarConfig.hairColor === idx ? 'active' : ''}" 
+           style="background:${c.color};" 
+           title="${c.name}"
+           onclick="selectAvatarOption('hairColor', ${idx})"></div>
+    `).join('');
+  }
+
+  const skinGrid = document.getElementById('avatarSkinSwatches');
+  if (skinGrid) {
+    skinGrid.innerHTML = AVATAR_OPTIONS.skins.map((s, idx) => `
+      <div class="avatar-color-swatch ${tempAvatarConfig.skin === idx ? 'active' : ''}" 
+           style="background:${s.color};" 
+           title="${s.name}"
+           onclick="selectAvatarOption('skin', ${idx})"></div>
+    `).join('');
+  }
+
+  const eyeGrid = document.getElementById('avatarEyeChoices');
+  if (eyeGrid) {
+    eyeGrid.innerHTML = AVATAR_OPTIONS.eyes.map((e, idx) => `
+      <div class="avatar-choice-card ${tempAvatarConfig.eyes === idx ? 'active' : ''}" onclick="selectAvatarOption('eyes', ${idx})">
+        ${e.name}
+      </div>
+    `).join('');
+  }
+
+  const outfitGrid = document.getElementById('avatarOutfitChoices');
+  if (outfitGrid) {
+    outfitGrid.innerHTML = AVATAR_OPTIONS.outfits.map((o, idx) => `
+      <div class="avatar-choice-card ${tempAvatarConfig.outfit === idx ? 'active' : ''}" onclick="selectAvatarOption('outfit', ${idx})">
+        ${o.name}
+      </div>
+    `).join('');
+  }
+
+  const accGrid = document.getElementById('avatarAccChoices');
+  if (accGrid) {
+    accGrid.innerHTML = AVATAR_OPTIONS.accessories.map((a, idx) => `
+      <div class="avatar-choice-card ${tempAvatarConfig.acc === idx ? 'active' : ''}" onclick="selectAvatarOption('acc', ${idx})">
+        ${a.name}
+      </div>
+    `).join('');
+  }
+}
+
+function selectAvatarOption(key, val) {
+  tempAvatarConfig[key] = val;
+  updateAvatarModalPreview();
+  renderAvatarModalControls();
+}
+
+function randomizeAvatarInModal() {
+  tempAvatarConfig = {
+    skin: Math.floor(Math.random() * AVATAR_OPTIONS.skins.length),
+    hairStyle: Math.floor(Math.random() * AVATAR_OPTIONS.hairStyles.length),
+    hairColor: Math.floor(Math.random() * AVATAR_OPTIONS.hairColors.length),
+    eyes: Math.floor(Math.random() * AVATAR_OPTIONS.eyes.length),
+    outfit: Math.floor(Math.random() * AVATAR_OPTIONS.outfits.length),
+    acc: Math.floor(Math.random() * AVATAR_OPTIONS.accessories.length)
+  };
+  updateAvatarModalPreview();
+  renderAvatarModalControls();
+}
+
+function resetAvatarInModal() {
+  tempAvatarConfig = { skin: 0, hairStyle: 0, hairColor: 0, eyes: 0, outfit: 0, acc: 0 };
+  updateAvatarModalPreview();
+  renderAvatarModalControls();
+}
+
+function saveAvatarFromModal() {
+  currentAvatarConfig = Object.assign({}, tempAvatarConfig);
+  saveAvatarConfigToLocal(currentAvatarConfig);
+  updateAvatarJoinPreview();
+  if (myPlayer) {
+    myPlayer.avatarConfig = currentAvatarConfig;
+    broadcast({
+      type: 'update_player_avatar',
+      userHash: currentUserHash,
+      avatarConfig: currentAvatarConfig
+    });
+    renderPlayerCharSheet();
+  }
+  closeAvatarModal();
+  showToast('💾 บันทึกตัวละครเรียบร้อยแล้ว!');
+}
+
 // ==========================================================
 // MONOPAD PHASE FILTERING & DEVICE BAR HELPERS
 // ==========================================================
@@ -1173,9 +1623,7 @@ function handleIncomingMessage(msg, senderConn) {
 
     // Auto-assign available role internally if not specified
     if (!reqRole) {
-      const defaultRoles = ['นักแต่งนิยาย', 'นักกีฬา', 'ทายาทตระกูลขุนนาง', 'นักชิม', 'นักเขียนการ์ตูน', 'ช่างกล'];
-      const takenRoles = Object.values(gameState.players).map(p => p.role);
-      reqRole = defaultRoles.find(r => !takenRoles.includes(r)) || `นักเรียน (${Object.keys(gameState.players).length + 1})`;
+      reqRole = msg.role || (pcSlot ? `สุดยอดนักเรียนมัธยมปลาย (PC ${pcSlot})` : `สุดยอดนักเรียนมัธยมปลาย`);
     }
 
     // Deduplication guard: Remove any prior entry matching the same userHash OR same name to prevent character doubling!
@@ -1200,6 +1648,7 @@ function handleIncomingMessage(msg, senderConn) {
       isKiller: isKiller,
       roomCode: roomCode,
       userHash: msg.userHash || senderId,
+      avatarConfig: msg.avatarConfig || currentAvatarConfig,
       clues: Array.isArray(msg.clues) ? msg.clues : []
     };
     const canonicalKey = msg.userHash || senderId;
@@ -1256,7 +1705,12 @@ function handleIncomingMessage(msg, senderConn) {
     document.getElementById('mobileGameScreen').classList.remove('hidden');
 
     document.getElementById('pMyName').innerText = myPlayer.name;
-    document.getElementById('pMyRole').innerText = ''; // No role tags displayed
+    const pRoleEl = document.getElementById('pMyRole');
+    if (pRoleEl) pRoleEl.innerText = '';
+    const pRoleDisp = document.getElementById('pMyRoleDisplay');
+    if (pRoleDisp) pRoleDisp.innerText = myPlayer.role || 'สุดยอดนักเรียนมัธยมปลาย';
+    const pAvEl = document.getElementById('pMyAvatar');
+    if (pAvEl) pAvEl.innerHTML = renderAvatarSvg(myPlayer.avatarConfig || currentAvatarConfig, 38);
     const pHash = document.getElementById('pMyHash');
     if (pHash) pHash.innerText = '#' + (currentUserHash || 'USER');
 
@@ -1432,7 +1886,12 @@ function handleIncomingMessage(msg, senderConn) {
       gameState.influence = Math.max(0, Math.min(100, gameState.influence + (msg.delta || 0)));
     }
     if (msg.delta < 0) playSfx('wrong');
-    else if (msg.delta > 0) playSfx('correct');
+  } else if (msg.type === 'update_player_avatar') {
+    const p = Object.values(gameState.players).find(pl => pl.userHash === msg.userHash || pl.id === msg.userHash);
+    if (p) {
+      p.avatarConfig = msg.avatarConfig;
+      updatePlayerDisplays();
+    }
   } else if (msg.type === 'sabotage') {
     handleSabotage(msg.sabType, msg.playerName, msg.senderHash);
   } else if (msg.type === 'stg0_buzz') {
@@ -2037,8 +2496,12 @@ function initPlayerSession(hash) {
 
       const nameEl = document.getElementById('pMyName');
       if (nameEl) nameEl.innerText = p.name;
-      const roleEl = document.getElementById('pMyRole');
-      if (roleEl) roleEl.innerText = ''; // Never show role tags
+      const pRoleEl = document.getElementById('pMyRole');
+      if (pRoleEl) pRoleEl.innerText = '';
+      const pRoleDisp = document.getElementById('pMyRoleDisplay');
+      if (pRoleDisp) pRoleDisp.innerText = p.role || 'สุดยอดนักเรียนมัธยมปลาย';
+      const pAvEl = document.getElementById('pMyAvatar');
+      if (pAvEl) pAvEl.innerHTML = renderAvatarSvg(p.avatarConfig || currentAvatarConfig, 38);
 
       const statusEl = document.getElementById('pMyStatus');
       const sabPanel = document.getElementById('mobileSaboteurPanel');
@@ -2136,58 +2599,58 @@ function switchPlayerTab(tab) {
 }
 
 const CHARACTER_DATA = {
-  'นักแต่งนิยาย': {
-    title: 'PC 1: สุดยอดนักแต่งนิยาย (Ultimate Novelist)',
-    stats: ['INT 16 (+3)', 'WIS 15 (+2)', 'CHA 12 (+1)'],
-    personality: 'นิ่งสุขุม ช่างสังเกต มองทุกการกระทำเป็นพล็อตนิยายสืบสวน มีสมุดโน้ตติดตัวเสมอ',
-    hook: 'กฎนักสังเกตการณ์: แอบจดพฤติกรรมแปลกๆ ของเพื่อนลงสมุด และเปรียบเทียบทุกเบาะแสเหมือนพล็อตในนิยายสืบสวน',
+  'สุดยอดนักเรียนโชคดี': {
+    title: 'PC 1: สุดยอดนักเรียนโชคดี (Ultimate Lucky Student)',
+    stats: ['INT 15 (+2)', 'WIS 15 (+2)', 'LUK 18 (+4)'],
+    personality: 'มองโลกในแง่ดี ช่างสังเกต มุ่งมั่นตามหาความจริงและเชื่อมั่นในเพื่อนร่วมชั้นทุกคน',
+    hook: 'กฎแห่งความหวัง: ไม่ยอมแพ้ต่อความสิ้นหวัง แอบจดพฤติกรรมและความผิดปกติของเพื่อนๆ เพื่อเชื่อมโยงกระสุนความจริง',
     timeline: [
-      { time: '17:30 - 18:30 น.', desc: 'นั่งเขียนนิยายมุมโถงกลาง สังเกตเห็นสุดยอดนักมายากลเดินเข้าออกระหว่างห้องครัวกับบันไดลงชั้นใต้ดิน 2-3 รอบด้วยท่าทางเร่งรีบ' },
-      { time: '19:00 - 20:00 น.', desc: 'ร่วมโต๊ะกินสตูว์เนื้อร่วมกับทุกคน จากนั้นก็นั่งอ่านสมุดโน้ตอยู่ที่ห้องนั่งเล่นยาวๆ' },
+      { time: '17:30 - 18:30 น.', desc: 'เดินสำรวจรอบโถงกลาง สังเกตเห็นคนเดินเข้าออกระหว่างห้องครัวกับบันไดลงชั้นใต้ดินด้วยท่าทางเร่งรีบ' },
+      { time: '19:00 - 20:00 น.', desc: 'ร่วมโต๊ะกินสตูว์เนื้อร่วมกับทุกคน จากนั้นก็นั่งคุยแลกเปลี่ยนข้อมูลอยู่ที่ห้องนั่งเล่น' },
       { time: '20:00 - 21:00 น.', desc: 'ช่วงไฟดับสั้นๆ นั่งพักสายตาอยู่บนโซฟาห้องนั่งเล่น ไม่ได้ลุกไปไหน มีเพื่อนคนอื่นนั่งอยู่ข้างๆ' },
       { time: '21:00 น.', desc: 'เสียงกระแทกดัง "ตึง! ตึง! ตึง!" มาจากห้องซักรีดใต้ดิน วิ่งตามกลุ่มไปพังประตูและเห็นร่าง B ห้อยอยู่บนเพดาน' }
     ]
   },
-  'นักกีฬา': {
-    title: 'PC 2: สุดยอดนักกีฬา (Ultimate Athlete)',
-    stats: ['STR 16 (+3)', 'AGI 15 (+2)', 'CON 14 (+2)'],
-    personality: 'พลังล้นเหลือ เชื่อมั่นในการลงมือทำมากกว่าคำพูด รักความยุติธรรม ตรงไปตรงมา',
-    hook: 'เมื่อตอนบ่าย คุณไปดูห้องออกกำลังกาย แต่พบว่า "ลูกตุ้มเหล็กถ่วงน้ำหนัก (68 กก.)" และดัมเบลคู่โปรดหายไปจากชั้นวาง!',
+  'สุดยอดนักสืบ': {
+    title: 'PC 2: สุดยอดนักสืบ (Ultimate Detective)',
+    stats: ['INT 18 (+4)', 'WIS 16 (+3)', 'DEX 14 (+2)'],
+    personality: 'เยือกเย็น สุขุม ช่างวิเคราะห์ ใช้ตรรกะและหลักฐานทางนิติวิทยาศาสตร์นำทาง',
+    hook: 'สัมผัสนักสืบ: ตรวจพบร่องรอยการเคลื่อนย้ายวัตถุหนักและคราบสารเคมีผิดปกติในสถานที่เกิดเหตุ',
     timeline: [
-      { time: '17:30 - 18:30 น.', desc: 'วิ่งวอร์มรอบอาคาร สังเกตเห็นไฟในห้องซักรีดใต้ดินเปิดอยู่ และได้ยินเสียงน้ำไหลในท่อประปาดังผิดปกติ' },
-      { time: '19:00 - 20:00 น.', desc: 'กินสตูว์เนื้ออย่างเอร็ดอร่อย ชื่นชมว่าเนื้อและกระดูกชิ้นใหญ่สะใจ' },
-      { time: '20:00 - 21:00 น.', desc: 'วิดพื้นในห้องพัก ได้ยินเสียงคล้ายของหนักเลื่อนถ่วงพื้นด้านล่าง' },
-      { time: '21:00 น.', desc: 'วิ่งนำขบวนไปช่วยถีบพังประตูห้องซักรีด' }
+      { time: '17:30 - 18:30 น.', desc: 'ตรวจตราอาคาร สังเกตเห็นไฟในห้องซักรีดใต้ดินเปิดอยู่ และได้ยินเสียงน้ำไหลในท่อประปาดังผิดปกติ' },
+      { time: '19:00 - 20:00 น.', desc: 'ร่วมมื้ออาหารค่ำ สังเกตปริมาณวัตถุดิบและพฤติกรรมของผู้ร่วมโต๊ะ' },
+      { time: '20:00 - 21:00 น.', desc: 'วิเคราะห์ข้อมูลในห้องพัก ได้ยินเสียงคล้ายของหนักเลื่อนถ่วงพื้นด้านล่าง' },
+      { time: '21:00 น.', desc: 'นำทีมไปยังห้องซักรีดและเริ่มกระบวนการตรวจสอบนิติเวชเบื้องต้น' }
     ]
   },
-  'ทายาทตระกูลขุนนาง': {
-    title: 'PC 3: สุดยอดทายาทตระกูลขุนนาง (Ultimate Affluent Progeny)',
-    stats: ['INT 16 (+3)', 'CHA 15 (+2)', 'WIS 14 (+2)'],
-    personality: 'เยือกเย็น สุขุม ช่างสังเกต มองเกมการฆาตกรรมนี้เป็นเพียงการละเล่นที่ตนต้องอยู่รอด',
-    hook: 'คุณสังเกตเห็นพิรุธของทุกคนที่โถงทางเดิน และมีข้อมูลเกี่ยวกับประตูกล Blast Gate และมาตรวัดน้ำ',
+  'สุดยอดทายาทมหาเศรษฐี': {
+    title: 'PC 3: สุดยอดทายาทมหาเศรษฐี (Ultimate Affluent Progeny)',
+    stats: ['INT 17 (+3)', 'CHA 16 (+3)', 'WIS 14 (+2)'],
+    personality: 'หยิ่งทรนง เยือกเย็น ฉลาดหลักแหลม มองเกมการฆาตกรรมนี้เป็นสิ่งที่ต้องชนะด้วยสติปัญญาอันเหนือชั้น',
+    hook: 'สายตาผู้นำ: สังเกตเห็นพิรุธของทุกคนที่โถงทางเดิน และมีข้อมูลเกี่ยวกับประตูกล Blast Gate และมาตรวัดน้ำ',
     timeline: [
       { time: '17:30 - 18:15 น.', desc: 'สำรวจประตูกล Blast Gate และมาตรวัดน้ำ' },
-      { time: '18:00 น.', desc: 'เห็น PC 4 เดินอยู่ที่ทางเดินกระจกใส' },
-      { time: '19:00 - 20:00 น.', desc: 'ร่วมโต๊ะกินสตูว์เนื้อเงียบๆ' },
-      { time: '21:00 น.', desc: 'เดินตามกลุ่มไปห้องซักรีดเพื่อยืนยันข้อเท็จจริง' }
+      { time: '18:00 น.', desc: 'เห็นเพื่อนเดินอยู่ที่ทางเดินกระจกใส' },
+      { time: '19:00 - 20:00 น.', desc: 'ร่วมโต๊ะกินสตูว์เนื้อเงียบๆ สังเกตปฏิกิริยาของแต่ละคน' },
+      { time: '21:00 น.', desc: 'เดินตามกลุ่มไปห้องซักรีดเพื่อพิสูจน์ข้อเท็จจริง' }
     ]
   },
-  'นักมายากล': {
-    title: 'PC 3: สุดยอดนักมายากล (Ultimate Magician)',
-    stats: ['DEX 16 (+3)', 'CHA 15 (+2)', 'INT 14 (+2)'],
-    personality: 'ร่าเริง พูดจาติดตลก มีลูกเล่นแพรวพราว ช่างสังเกตกลลวง',
-    hook: 'คุณมีความรู้เรื่องกลไกการเบี่ยงเบนความสนใจและอุปกรณ์เวที',
+  'สุดยอดนักว่ายน้ำ': {
+    title: 'PC 4: สุดยอดนักว่ายน้ำ (Ultimate Swimming Pro)',
+    stats: ['STR 16 (+3)', 'AGI 16 (+3)', 'CON 15 (+2)'],
+    personality: 'ร่าเริง ตรงไปตรงมา รักเพื่อน มีสัญชาตญาณร่างกายและความคล่องแคล่วเป็นเลิศ',
+    hook: 'ประสาทสัมผัสฉับไว: ได้ยินเสียงน้ำไหลผิดปกติและสัมผัสได้ถึงกลิ่นคาวและรสเค็มจัดในอาหาร',
     timeline: [
-      { time: '17:30 - 18:30 น.', desc: 'ซ้อมทริคมายากลบริเวณโถงกลาง' },
-      { time: '19:00 - 20:00 น.', desc: 'ร่วมโต๊ะอาหารค่ำ' },
-      { time: '20:00 - 21:00 น.', desc: 'พักผ่อนในห้องนั่งเล่น' },
-      { time: '21:00 น.', desc: 'ตามไปดูเหตุการณ์ที่ห้องซักรีด' }
+      { time: '17:30 - 18:30 น.', desc: 'วอร์มร่างกายและเดินตรวจเครื่องดื่ม พบว่าเกลือและเครื่องปรุงถูกใช้ไปในปริมาณมากผิดปกติ' },
+      { time: '19:00 - 20:00 น.', desc: 'ร่วมกินสตูว์และทักท้วงเรื่องรสเค็มจัดและกลิ่นคาวสนิม' },
+      { time: '20:00 - 21:00 น.', desc: 'พักผ่อนดื่มน้ำในห้องอาหาร' },
+      { time: '21:00 น.', desc: 'วิ่งนำขบวนตามเสียงกระแทกไปยังห้องซักรีด' }
     ]
   },
-  'นักเขียนการ์ตูน': {
-    title: 'PC 5: สุดยอดนักเขียนการ์ตูน (Ultimate Doujin Creator - The Blackened)',
+  'สุดยอดนักเขียนโดจิน': {
+    title: 'PC 5: สุดยอดนักเขียนโดจิน (Ultimate Doujin Creator - The Blackened)',
     stats: ['DEX 16 (+3)', 'INT 15 (+2)', 'CON 13 (+1)'],
-    personality: 'พูดจาเพ้อฝัน มีความมั่นใจในโลก 2D แต่แอบซ่อนความทะเยอทะยานและแผนการอำมหิตไว้',
+    personality: 'พูดจาเพ้อฝัน มีความมั่นใจในโลก 2D แต่แอบซ่อนความทะเยอทะยานและแผนการอันแยบยลไว้',
     isKiller: true,
     hook: '⚠️ ความลับคนร้าย: คุณคือผู้เซ็ตกับดักฆ่า B! คุณใช้ท่อนกระดูกหมูฟาดหัว B สลบ นำกระดูกไปต้มในหม้อสตูว์ ผูกเชือกกับลูกตุ้มและเจาะถังน้ำเพื่อตั้งเวลา... แต่ความจริง B ตัดเชือกและเกิดอุบัติเหตุคอหักตายเอง!',
     timeline: [
@@ -2197,43 +2660,27 @@ const CHARACTER_DATA = {
       { time: '21:00 น.', desc: 'แกล้งทำเป็นตกใจสุดขีดเมื่อเห็นศพ B ห้อยอยู่' }
     ]
   },
-  'นักชิม': {
-    title: 'PC 4: สุดยอดนักชิม (Ultimate Gourmet)',
-    stats: ['WIS 16 (+3)', 'CON 14 (+2)', 'CHA 13 (+1)'],
-    personality: 'พิถีพิถันเรื่องกลิ่นและรสชาติ ช่างสังเกตรายละเอียดเล็กๆ น้อยๆ ในอาหาร',
-    hook: 'ประสาทสัมผัสเรื่องรสและกลิ่นของคุณดีเยี่ยม ตอนกินสตูว์คุณสัมผัสได้ถึงรสเค็มจัดผิดปกติและกลิ่นคาวสนิมเหล็กของเลือดสด!',
-    timeline: [
-      { time: '17:30 - 18:30 น.', desc: 'เดินตรวจเครื่องปรุงในครัว พบว่าเกลือและไวน์แดงถูกใช้ไปในปริมาณมหาศาลผิดปกติ' },
-      { time: '19:00 - 20:00 น.', desc: 'ร่วมกินสตูว์และทักท้วงเรื่องรสเค็มจัดและกลิ่นคาวสนิม แต่เพื่อนๆ กำลังหิวจึงมองข้าม' },
-      { time: '20:00 - 21:00 น.', desc: 'จิบชาล้างคออยู่ในห้องอาหาร' },
-      { time: '21:00 น.', desc: 'วิ่งตามกลิ่นน้ำยาซักผ้าและควันไฟไปยังห้องซักรีด' }
-    ]
-  },
-  'นักแสดงผาดโผน': {
-    title: 'PC 5: สุดยอดนักแสดงผาดโผน (Ultimate Stuntman)',
-    stats: ['AGI 16 (+3)', 'DEX 15 (+2)', 'STR 13 (+1)'],
-    personality: 'บ้าบิ่น ไม่กลัวความสูง เชี่ยวชาญอุปกรณ์นิรภัย เชือก รอก และเงื่อนผูกลำตัว',
-    hook: 'คุณมีความรู้เรื่องเงื่อนเชือกอย่างลึกซึ้ง คุณสังเกตเห็นว่าเชือกที่ผูกร่าง B มีเงื่อนโบว์ไลน์ (Bowline) และสายรัดลำตัวปีนเขาแบบมีห่วงนิรภัย',
-    timeline: [
-      { time: '17:30 - 18:30 น.', desc: 'ปีนซ้อมบนระเบียง สังเกตเห็นเชือกเส้นใหญ่ผูกโยงจากหน้าต่างห้องซักรีดออกไปยังถังน้ำนอกกำแพง' },
-      { time: '19:00 - 20:00 น.', desc: 'กินสตูว์เนื้อและเล่าประสบการณ์สตันท์' },
-      { time: '20:00 - 21:00 น.', desc: 'ซ้อมยืดเหยียดกล้ามเนื้อในทางเดิน' },
-      { time: '21:00 น.', desc: 'วิ่งไปช่วยสำรวจเงื่อนเชือกที่ร่างของ B' }
-    ]
-  },
-  'ช่างกล': {
-    title: 'PC 6: สุดยอดช่างกล (Ultimate Mechanic)',
-    stats: ['INT 16 (+3)', 'DEX 14 (+2)', 'CON 13 (+1)'],
-    personality: 'ชอบรื้อ ซ่อม และวิเคราะห์เครื่องจักร ท่อประปา ตู้ไฟ เครื่องยนต์',
-    hook: 'คุณสังเกตเห็นว่าระบบตั้งเวลาของเครื่องอบผ้าและวาล์วระบายน้ำประปาถูกใครบางคนดัดแปลงให้ทำงานประสานกับไฟดับ!',
+  'สุดยอดนักประดิษฐ์': {
+    title: 'PC 6: สุดยอดนักประดิษฐ์ (Ultimate Inventor)',
+    stats: ['INT 17 (+3)', 'DEX 15 (+2)', 'CON 13 (+1)'],
+    personality: 'หมกมุ่นกับกลไก ชอบรื้อ แก้ไข และสร้างสิ่งประดิษฐ์พิลึกพิลั่น',
+    hook: 'วิศวกรรมย้อนรอย: สังเกตเห็นระบบตั้งเวลาของเครื่องอบผ้าและวาล์วระบายน้ำประปาถูกดัดแปลงให้ทำงานสอดคล้องกับจังหวะไฟดับ',
     timeline: [
       { time: '17:30 - 18:30 น.', desc: 'ตรวจตู้ไฟและแผงท่อประปาชั้นใต้ดิน พบว่าวาล์วน้ำหลักถูกปรับแต่ง' },
-      { time: '19:00 - 20:00 น.', desc: 'กินสตูว์เนื้อ' },
-      { time: '20:00 - 21:00 น.', desc: 'ช่วงไฟดับ คุณไปตรวจดูตู้ไฟพบเศษใยเชือกตากผ้าไนลอนไหม้คาเบรกเกอร์' },
+      { time: '19:00 - 20:00 น.', desc: 'ร่วมกินสตูว์เนื้อ' },
+      { time: '20:00 - 21:00 น.', desc: 'ช่วงไฟดับ ไปตรวจดูตู้ไฟพบเศษใยเชือกตากผ้าไนลอนไหม้คาเบรกเกอร์' },
       { time: '21:00 น.', desc: 'ตรวจเครื่องอบผ้าในห้องซักรีดพบแผงตั้งเวลาหยุดทำงาน' }
     ]
   }
 };
+
+// Aliases for slot number indexing
+CHARACTER_DATA['1'] = CHARACTER_DATA['PC1'] = CHARACTER_DATA['PC 1'] = CHARACTER_DATA['สุดยอดนักเรียนโชคดี'];
+CHARACTER_DATA['2'] = CHARACTER_DATA['PC2'] = CHARACTER_DATA['PC 2'] = CHARACTER_DATA['สุดยอดนักสืบ'];
+CHARACTER_DATA['3'] = CHARACTER_DATA['PC3'] = CHARACTER_DATA['PC 3'] = CHARACTER_DATA['สุดยอดทายาทมหาเศรษฐี'];
+CHARACTER_DATA['4'] = CHARACTER_DATA['PC4'] = CHARACTER_DATA['PC 4'] = CHARACTER_DATA['สุดยอดนักว่ายน้ำ'];
+CHARACTER_DATA['5'] = CHARACTER_DATA['PC5'] = CHARACTER_DATA['PC 5'] = CHARACTER_DATA['สุดยอดนักเขียนโดจิน'];
+CHARACTER_DATA['6'] = CHARACTER_DATA['PC6'] = CHARACTER_DATA['PC 6'] = CHARACTER_DATA['สุดยอดนักประดิษฐ์'];
 
 let playerCredibilityHearts = 5;
 function cyclePlayerCredibility() {
@@ -2256,11 +2703,21 @@ function renderPlayerCharSheet() {
   const container = document.getElementById('pCharSheetContent');
   if (!container) return;
 
-  const role = (myPlayer && myPlayer.role) ? myPlayer.role : 'นักแต่งนิยาย';
-  const cData = CHARACTER_DATA[role] || CHARACTER_DATA['นักแต่งนิยาย'];
+  const charName = (myPlayer && myPlayer.name) ? myPlayer.name : 'ตัวละครของคุณ';
+  const role = (myPlayer && myPlayer.role) ? myPlayer.role : 'สุดยอดนักเรียนมัธยมปลาย';
+  const pcSlot = (myPlayer && myPlayer.pcSlot) ? myPlayer.pcSlot : 1;
+  const isKiller = Boolean(myPlayer && (myPlayer.isKiller || myPlayer.pcSlot === 5));
+  const cData = CHARACTER_DATA[role] || CHARACTER_DATA[String(pcSlot)] || CHARACTER_DATA['PC' + pcSlot] || null;
+
+  const title = `PC ${pcSlot}: ${role}`;
+  const stats = (cData && cData.stats) ? cData.stats : ['INT 15 (+2)', 'WIS 14 (+2)', 'CHA 13 (+1)', 'DEX 12 (+1)'];
+  const personality = (cData && cData.personality) ? cData.personality : `นักเรียนผู้มีความสามารถเฉพาะทางด้าน "${role}" ร่วมค้นหาความจริงและหักล้างคำโกหกในศาลชั้นเรียน`;
+  const hook = isKiller
+    ? '⚠️ ความลับคนร้าย: คุณคือผู้เซ็ตกับดักฆ่า B! คุณใช้ท่อนกระดูกหมูฟาดหัว B สลบ นำกระดูกไปต้มในหม้อสตูว์ ผูกเชือกกับลูกตุ้มและเจาะถังน้ำเพื่อตั้งเวลา... แต่ความจริง B ตัดเชือกและเกิดอุบัติเหตุคอหักตายเอง!'
+    : ((cData && cData.hook) ? cData.hook : `🎯 ทักษะเฉพาะตัว: ใช้สัญชาตญาณและความชำนาญในฐานะ "${role}" ตรวจสอบเบาะแสและจับพิรุธพฤติกรรมที่ขัดแย้ง`);
 
   let timelineHtml = '';
-  if (cData.timeline) {
+  if (cData && cData.timeline) {
     cData.timeline.forEach(item => {
       timelineHtml += `
         <div style="margin-bottom:10px; padding:8px 12px; background:rgba(0,0,0,0.3); border-left:3px solid var(--mono-yellow); border-radius:4px;">
@@ -2269,6 +2726,12 @@ function renderPlayerCharSheet() {
         </div>
       `;
     });
+  } else {
+    timelineHtml = `
+      <div style="padding:10px 12px; background:rgba(0,0,0,0.25); border-left:3px solid #38bdf8; border-radius:4px; font-size:0.85rem; color:#cbd5e1; line-height:1.4;">
+        ⏱️ <strong>ช่วงเกิดเหตุ (17:30 - 21:00 น.):</strong> ทำกิจกรรมตามบทบาทและสังเกตสิ่งรอบตัว บันทึกเบาะแสลงใน Monopad เพื่อใช้เป็นกระสุนความจริงในศาล
+      </div>
+    `;
   }
 
   let hearts = '';
@@ -2276,11 +2739,20 @@ function renderPlayerCharSheet() {
     hearts += `<span>${i < playerCredibilityHearts ? '❤️' : '🖤'}</span>`;
   }
 
+  const avConfig = myPlayer?.avatarConfig || currentAvatarConfig;
+  const avSvg = renderAvatarSvg(avConfig, 80);
+
   container.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-      <div>
-        <h2 style="color:var(--court-gold); font-size:1.2rem; margin-bottom:2px;">${cData.title}</h2>
-        <div style="font-size:0.8rem; color:#aaa;">แฟ้มประวัตินักเรียน & กฎบทบาทเฉพาะบุคคล (2d6 System)</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:80px; height:80px; border-radius:50%; border:2.5px solid var(--mono-pink); overflow:hidden; flex-shrink:0; background:#111122; box-shadow:0 0 15px rgba(255,46,136,0.4);">
+          ${avSvg}
+        </div>
+        <div>
+          <div style="font-size:0.85rem; color:var(--mono-cyan); font-weight:800;">👤 ${escapeHtml(charName)} (PC ${pcSlot})</div>
+          <h2 style="color:var(--court-gold); font-size:1.15rem; margin:2px 0 4px 0; font-weight:900;">${escapeHtml(title)}</h2>
+          <button type="button" class="small-btn pink" onclick="openAvatarModal()" style="font-size:0.75rem; padding:4px 10px;">🎨 แต่งตัว / เปลี่ยนสีหน้า</button>
+        </div>
       </div>
       <a href="/character_sheet.html" target="_blank" class="small-btn yellow" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-weight:900; padding:8px 12px; font-size:0.85rem;">
         🖨️ เปิด Character Sheet พิมพ์ A4
@@ -2297,7 +2769,7 @@ function renderPlayerCharSheet() {
         </div>
       </div>
       <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-        ${(cData.stats || []).map(st => `<span style="background:#111122; border:1px solid #444; border-radius:4px; padding:3px 8px; font-size:0.82rem; font-weight:700; color:#fff;">${st}</span>`).join('')}
+        ${stats.map(st => `<span style="background:#111122; border:1px solid #444; border-radius:4px; padding:3px 8px; font-size:0.82rem; font-weight:700; color:#fff;">${st}</span>`).join('')}
       </div>
 
       <!-- Credibility Hearts Tracker -->
@@ -2314,12 +2786,21 @@ function renderPlayerCharSheet() {
 
     <!-- Roleplay Hook & Talents -->
     <div style="background:rgba(20,20,35,0.85); border:2px solid var(--mono-dark-border); border-radius:8px; padding:12px; margin-bottom:14px;">
-      <div style="font-size:0.85rem; font-weight:900; color:var(--mono-yellow); margin-bottom:6px;">🎭 ลักษณะนิสัย & กฎควบคุมพฤติกรรม:</div>
-      <p style="font-size:0.85rem; color:#ddd; margin-bottom:8px; line-height:1.4;">${cData.personality || ''}</p>
+      <div style="font-size:0.85rem; font-weight:900; color:var(--mono-yellow); margin-bottom:6px;">🎭 ลักษณะนิสัย & บทบาท:</div>
+      <p style="font-size:0.85rem; color:#ddd; margin-bottom:8px; line-height:1.4;">${personality}</p>
       <div style="background:rgba(255,230,0,0.1); border-left:3px solid var(--mono-yellow); padding:8px 10px; font-size:0.82rem; color:#eee; line-height:1.35;">
-        ${cData.hook || ''}
+        ${hook}
       </div>
     </div>
+
+    ${isKiller ? `
+      <div style="background:rgba(220,20,60,0.15); border:2px solid #ef4444; border-radius:8px; padding:12px; margin-bottom:14px;">
+        <div style="font-size:0.85rem; font-weight:900; color:#ef4444; margin-bottom:6px;">🩸 ความลับคนร้าย (The Blackened):</div>
+        <div style="font-size:0.82rem; color:#fca5a5; line-height:1.4;">
+          ⚠️ คุณคือคนร้ายผู้ลงมือในคดีนี้! ใช้แผงควบคุม Saboteur ในการก่อกวนศาล โยนความผิด และปกปิดข้อเท็จจริงเพื่อเอาชีวิตรอดให้ได้
+        </div>
+      </div>
+    ` : ''}
 
     <!-- Personal Timeline -->
     <div style="background:rgba(20,20,35,0.85); border:2px solid var(--mono-dark-border); border-radius:8px; padding:12px;">
@@ -3557,7 +4038,13 @@ function updateStg0CourtDisplay() {
       const bName = document.getElementById('stg0BulletName');
 
       if (quoteEl) quoteEl.innerText = gameState.stg0.objectionQuote || '⚡ นั่นผิดแล้ว! (SORE WA CHIGAU YO!)';
-      if (giantAv) giantAv.innerText = gameState.stg0.buzzedAvatar || '👤';
+      if (giantAv) {
+        if (gameState.stg0.buzzedAvatarConfig) {
+          giantAv.innerHTML = renderAvatarSvg(gameState.stg0.buzzedAvatarConfig, 180);
+        } else {
+          giantAv.innerText = gameState.stg0.buzzedAvatar || '👤';
+        }
+      }
       if (objName) objName.innerText = gameState.stg0.buzzedBy;
       if (objTitle) objTitle.innerText = gameState.stg0.buzzedRole || 'ประกาศคัดค้านความจริง!';
 
@@ -3613,12 +4100,14 @@ function stg0PressBuzzer() {
 
   const myName = myPlayer ? myPlayer.name : 'ผู้เล่น';
   const myAvatar = myPlayer?.avatar || '👤';
-  const myRole = myPlayer?.role || 'นักเรียน';
+  const myAvatarConfig = myPlayer?.avatarConfig || currentAvatarConfig;
+  const myRole = myPlayer?.role || 'สุดยอดนักเรียนมัธยมปลาย';
   const quote = OBJECTION_CATCHPHRASES[Math.floor(Math.random() * OBJECTION_CATCHPHRASES.length)];
 
   if (!gameState.stg0) gameState.stg0 = {};
   gameState.stg0.buzzedBy = myName;
   gameState.stg0.buzzedAvatar = myAvatar;
+  gameState.stg0.buzzedAvatarConfig = myAvatarConfig;
   gameState.stg0.buzzedRole = myRole;
   gameState.stg0.objectionQuote = quote;
   gameState.stg0.isPaused = true;
@@ -3632,6 +4121,7 @@ function stg0PressBuzzer() {
     type: 'stg0_buzz',
     player: myName,
     avatar: myAvatar,
+    avatarConfig: myAvatarConfig,
     role: myRole,
     quote: quote
   });
@@ -3673,7 +4163,8 @@ function handleStg0Buzz(msg) {
   if (!gameState.stg0) gameState.stg0 = {};
   gameState.stg0.buzzedBy = msg.player;
   gameState.stg0.buzzedAvatar = msg.avatar || '👤';
-  gameState.stg0.buzzedRole = msg.role || 'นักเรียน';
+  gameState.stg0.buzzedAvatarConfig = msg.avatarConfig || null;
+  gameState.stg0.buzzedRole = msg.role || 'สุดยอดนักเรียนมัธยมปลาย';
   gameState.stg0.objectionQuote = msg.quote || '⚡ นั่นผิดแล้ว!';
   gameState.stg0.isPaused = true;
   gameState.stg0.selectedClueId = null;
@@ -3726,16 +4217,23 @@ function handleStg0Verdict(msg) {
   }
 
   setTimeout(() => {
-    if (gameState.stage === 'stage0') {
-      gameState.stg0.buzzedBy = null;
-      gameState.stg0.selectedClueId = null;
-      gameState.stg0.isPaused = false;
+    if (msg.approved) {
       const overlay = document.getElementById('stg0ObjectionOverlay');
       if (overlay) overlay.classList.add('hidden');
-      updateStg0CourtDisplay();
-      updateAdminStg0Display();
-      if (currentView === 'player' || gameState.stage === 'stage0') {
-        renderMobileTask('stage0');
+      const breakLayer = document.getElementById('stg0BreakLayer');
+      if (breakLayer) breakLayer.classList.add('hidden');
+    } else {
+      if (gameState.stage === 'stage0') {
+        gameState.stg0.buzzedBy = null;
+        gameState.stg0.selectedClueId = null;
+        gameState.stg0.isPaused = false;
+        const overlay = document.getElementById('stg0ObjectionOverlay');
+        if (overlay) overlay.classList.add('hidden');
+        updateStg0CourtDisplay();
+        updateAdminStg0Display();
+        if (currentView === 'player' || gameState.stage === 'stage0') {
+          renderMobileTask('stage0');
+        }
       }
     }
   }, msg.approved ? 3500 : 2000);
@@ -3823,18 +4321,17 @@ function adminStg0Verdict(approved) {
     clueId: clueId
   });
 
-  setTimeout(() => {
-    if (gameState.stage === 'stage0') {
-      gameState.stg0.buzzedBy = null;
-      gameState.stg0.selectedClueId = null;
-      gameState.stg0.isPaused = false;
-      const overlay = document.getElementById('stg0ObjectionOverlay');
-      if (overlay) overlay.classList.add('hidden');
-      updateStg0CourtDisplay();
-      updateAdminStg0Display();
-      renderMobileTask('stage0');
-    }
-  }, approved ? 3500 : 2000);
+  if (approved) {
+    // When ✅ BREAK! (Approved): After 3.5s dramatic glass break animation, return to ⚖️ Class Trial!
+    setTimeout(() => {
+      adminSetGame('trial');
+    }, 3500);
+  } else {
+    // When ❌ REJECT (Denied): Resume Non-Stop Debate rotation loop after 2.0s so debate continues!
+    setTimeout(() => {
+      adminStg0Resume();
+    }, 2000);
+  }
 }
 
 function adminStg0Resume() {
@@ -5509,11 +6006,11 @@ function getClosingPlayersList() {
     return copy;
   }
   const simRoster = [
-    { id: 'sim_naegi', userHash: 'sim_naegi', name: 'นาเอกิ', role: 'นักแต่งนิยาย', pcSlot: 1 },
-    { id: 'sim_kyoko', userHash: 'sim_kyoko', name: 'เคียวโกะ', role: 'นักกีฬา', pcSlot: 2 },
-    { id: 'sim_byakuya', userHash: 'sim_byakuya', name: 'เบียคุยะ', role: 'ทายาทตระกูลขุนนาง', pcSlot: 3 },
-    { id: 'sim_aoi', userHash: 'sim_aoi', name: 'อาโออิ', role: 'นักชิม', pcSlot: 4 },
-    { id: 'sim_hifumi', userHash: 'sim_hifumi', name: 'ฮิฟุมิ', role: 'ช่างกล', pcSlot: 5 }
+    { id: 'sim_naegi', userHash: 'sim_naegi', name: 'นาเอกิ', role: 'สุดยอดนักเรียนโชคดี', pcSlot: 1 },
+    { id: 'sim_kyoko', userHash: 'sim_kyoko', name: 'เคียวโกะ', role: 'สุดยอดนักสืบ', pcSlot: 2 },
+    { id: 'sim_byakuya', userHash: 'sim_byakuya', name: 'เบียคุยะ', role: 'สุดยอดทายาทมหาเศรษฐี', pcSlot: 3 },
+    { id: 'sim_aoi', userHash: 'sim_aoi', name: 'อาโออิ', role: 'สุดยอดนักว่ายน้ำ', pcSlot: 4 },
+    { id: 'sim_hifumi', userHash: 'sim_hifumi', name: 'ฮิฟุมิ', role: 'สุดยอดนักเขียนโดจิน (The Blackened)', pcSlot: 5 }
   ];
   if (list && list.length > 0) {
     const merged = [...list];
@@ -6061,8 +6558,8 @@ function playerJoin() {
   if (!room) { alert('กรุณากรอกรหัสห้อง 6 หลัก'); return; }
   if (!name) { alert('กรุณากรอกชื่อของคุณ'); return; }
 
-  const roleSelect = document.getElementById('mobileRoleSelect');
-  const role = roleSelect ? roleSelect.value : (new URLSearchParams(window.location.search).get('role') || '');
+  const roleInput = document.getElementById('mobileRoleInput');
+  const role = (roleInput ? roleInput.value.trim() : '') || (new URLSearchParams(window.location.search).get('role') || '');
 
   roomCode = room;
   localStorage.setItem('dangan_current_room', roomCode);
@@ -6100,10 +6597,11 @@ function playerJoin() {
 
   const claimPacket = {
     type: 'request_claim_character',
-    role: role,
+    role: role || `สุดยอดนักเรียนมัธยมปลาย (PC ${pcSlotVal})`,
     playerName: name,
     userHash: currentUserHash,
     pcSlot: pcSlotVal,
+    avatarConfig: currentAvatarConfig,
     clues: getUnlockedClues()
   };
 
@@ -7610,8 +8108,11 @@ function handleSabotage(type, pName, senderHash) {
     return;
   }
 
-  // SENDER IMMUNITY: The saboteur who sent the attack is immune to own visual/audio disruptions!
+  // SABOTEUR CAMOUFLAGE (PC 5 / Blackened):
+  // Show fake visual disruption on PC 5's screen too so table neighbors sitting beside PC 5 don't suspect them!
+  // Displays a discreet badge allowing PC 5 to tap anywhere to dismiss immediately.
   if (isMe) {
+    applySaboteurCamouflage(type);
     return;
   }
 
@@ -7687,6 +8188,108 @@ function handleSabotage(type, pName, senderHash) {
     }, 1200);
     logCourt(`💥 [PANIC SHOCK]: จิตใจของผู้เข้าร่วมศาลสั่นคลอนกะทันหัน!`);
   }
+}
+
+function applySaboteurCamouflage(type) {
+  let badge = document.getElementById('sabotageCamouflageBadge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'sabotageCamouflageBadge';
+    badge.className = 'sabotage-camouflaged-badge';
+    badge.innerHTML = '🕶️ ระบบพรางตัว (ตบตาเพื่อน) • [แตะเพื่อปลดทันที]';
+    badge.onclick = dismissSabotageCamouflage;
+    document.body.appendChild(badge);
+  }
+
+  if (type === 'glitch') {
+    const overlay = document.getElementById('screenGlitch');
+    if (overlay) {
+      overlay.classList.remove('hidden');
+      overlay.style.display = 'flex';
+      overlay.onclick = dismissSabotageCamouflage;
+      setTimeout(() => {
+        if (overlay) overlay.style.display = 'none';
+        const b = document.getElementById('sabotageCamouflageBadge');
+        if (b) b.remove();
+      }, 4000);
+    }
+  } else if (type === 'smoke_blind') {
+    const smoke = document.getElementById('screenSmoke');
+    if (smoke) {
+      smoke.classList.remove('hidden');
+      smoke.style.display = 'flex';
+      smoke.onclick = dismissSabotageCamouflage;
+      setTimeout(() => {
+        if (smoke) smoke.style.display = 'none';
+        const b = document.getElementById('sabotageCamouflageBadge');
+        if (b) b.remove();
+      }, 5000);
+    }
+  } else if (type === 'sound_jammer') {
+    const banner = document.getElementById('audioJammerBanner');
+    if (banner) {
+      banner.classList.remove('hidden');
+      banner.onclick = dismissSabotageCamouflage;
+      setTimeout(() => {
+        if (banner) banner.classList.add('hidden');
+        const b = document.getElementById('sabotageCamouflageBadge');
+        if (b) b.remove();
+      }, 6000);
+    }
+  } else if (type === 'clue_scramble') {
+    const clueSec = document.getElementById('playerSectionClues') || document.getElementById('mobileCluesList');
+    if (clueSec) {
+      clueSec.classList.add('clue-scramble-jam');
+      setTimeout(() => {
+        if (clueSec) clueSec.classList.remove('clue-scramble-jam');
+        const b = document.getElementById('sabotageCamouflageBadge');
+        if (b) b.remove();
+      }, 6000);
+    }
+  } else if (type === 'fake_rumor') {
+    const rumor = document.getElementById('fakeRumorBanner');
+    if (rumor) {
+      rumor.classList.remove('hidden');
+      setTimeout(() => {
+        if (rumor) rumor.classList.add('hidden');
+        const b = document.getElementById('sabotageCamouflageBadge');
+        if (b) b.remove();
+      }, 6000);
+    }
+  }
+
+  document.body.classList.add('sabotage-screen-shake');
+  setTimeout(() => {
+    document.body.classList.remove('sabotage-screen-shake');
+  }, 900);
+}
+
+function dismissSabotageCamouflage() {
+  const badge = document.getElementById('sabotageCamouflageBadge');
+  if (badge) badge.remove();
+  const overlay = document.getElementById('screenGlitch');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    overlay.style.display = 'none';
+    overlay.onclick = null;
+  }
+  const smoke = document.getElementById('screenSmoke');
+  if (smoke) {
+    smoke.classList.add('hidden');
+    smoke.style.display = 'none';
+    smoke.onclick = null;
+  }
+  const banner = document.getElementById('audioJammerBanner');
+  if (banner) {
+    banner.classList.add('hidden');
+    banner.onclick = null;
+  }
+  const rumor = document.getElementById('fakeRumorBanner');
+  if (rumor) rumor.classList.add('hidden');
+  const clueSec = document.getElementById('playerSectionClues') || document.getElementById('mobileCluesList');
+  if (clueSec) clueSec.classList.remove('clue-scramble-jam');
+  document.body.classList.remove('sabotage-screen-shake');
+  showToast('🕶️ ปลดเอฟเฟกต์พรางตัวเรียบร้อย (เพื่อนโต๊ะข้างๆ ยังคิดว่าคุณโดนป่วน)');
 }
 
 // ==========================================================
@@ -8437,8 +9040,9 @@ function updatePlayerDisplays() {
       for (let i = 1; i <= 5; i++) {
         heartsHtml += `<span class="heart ${i <= cred ? 'active' : 'lost'}">♥</span>`;
       }
+      const avHtml = p.avatarConfig ? renderAvatarSvg(p.avatarConfig, 44) : `<div style="font-size:1.8rem; line-height:44px; text-align:center;">${p.avatar || '👤'}</div>`;
       seat.innerHTML = `
-        <div class="podium-avatar">👤</div>
+        <div class="podium-avatar" style="overflow:hidden; border-radius:50%; width:44px; height:44px; margin:0 auto 4px auto; background:#18182a; border:2px solid var(--mono-yellow); box-shadow:0 0 10px rgba(255,204,0,0.3);">${avHtml}</div>
         <div class="podium-plate">${escapeHtml(p.name)}</div>
         <div class="podium-cred-hearts" title="ความน่าเชื่อถือ: ${cred}/5">${heartsHtml}</div>
       `;
@@ -9354,6 +9958,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initRealtime();
   initGlobalKeyboardShortcuts();
   updateSaboteurPanelVisibility();
+  updateAvatarJoinPreview();
 });
 
 window.addEventListener('beforeunload', () => {
@@ -9426,11 +10031,11 @@ function initSimulationLab() {
 
   const courtUrl = baseUrl + pathPrefix + '?view=court&room=' + simRoomCode;
   const adminUrl = baseUrl + pathPrefix + '?view=admin&room=' + simRoomCode + '&pin=295437&muted=1';
-  const p1Url = baseUrl + pathPrefix + '?view=player&user=sim_naegi&room=' + simRoomCode + '&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('นักแต่งนิยาย') + '&pc=1&muted=1';
-  const p2Url = baseUrl + pathPrefix + '?view=player&user=sim_kyoko&room=' + simRoomCode + '&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('นักกีฬา') + '&pc=2&muted=1';
-  const p3Url = baseUrl + pathPrefix + '?view=player&user=sim_byakuya&room=' + simRoomCode + '&name=' + encodeURIComponent('เบียคุยะ') + '&role=' + encodeURIComponent('ทายาทตระกูลขุนนาง') + '&pc=3&muted=1';
-  const p4Url = baseUrl + pathPrefix + '?view=player&user=sim_aoi&room=' + simRoomCode + '&name=' + encodeURIComponent('อาโออิ') + '&role=' + encodeURIComponent('นักชิม') + '&pc=4&muted=1';
-  const p5Url = baseUrl + pathPrefix + '?view=player&user=sim_hifumi&room=' + simRoomCode + '&name=' + encodeURIComponent('ฮิฟุมิ') + '&role=' + encodeURIComponent('ช่างกล') + '&pc=5&muted=1';
+  const p1Url = baseUrl + pathPrefix + '?view=player&user=sim_naegi&room=' + simRoomCode + '&name=' + encodeURIComponent('นาเอกิ') + '&role=' + encodeURIComponent('สุดยอดนักเรียนโชคดี') + '&pc=1&muted=1';
+  const p2Url = baseUrl + pathPrefix + '?view=player&user=sim_kyoko&room=' + simRoomCode + '&name=' + encodeURIComponent('เคียวโกะ') + '&role=' + encodeURIComponent('สุดยอดนักสืบ') + '&pc=2&muted=1';
+  const p3Url = baseUrl + pathPrefix + '?view=player&user=sim_byakuya&room=' + simRoomCode + '&name=' + encodeURIComponent('เบียคุยะ') + '&role=' + encodeURIComponent('สุดยอดทายาทมหาเศรษฐี') + '&pc=3&muted=1';
+  const p4Url = baseUrl + pathPrefix + '?view=player&user=sim_aoi&room=' + simRoomCode + '&name=' + encodeURIComponent('อาโออิ') + '&role=' + encodeURIComponent('สุดยอดนักว่ายน้ำ') + '&pc=4&muted=1';
+  const p5Url = baseUrl + pathPrefix + '?view=player&user=sim_hifumi&room=' + simRoomCode + '&name=' + encodeURIComponent('ฮิฟุมิ') + '&role=' + encodeURIComponent('สุดยอดนักเขียนโดจิน (The Blackened)') + '&pc=5&muted=1';
 
   if (fCourt && (!fCourt.src || fCourt.src === 'about:blank' || !fCourt.src.includes(simRoomCode))) fCourt.src = courtUrl;
   if (fAdmin && (!fAdmin.src || fAdmin.src === 'about:blank' || !fAdmin.src.includes(simRoomCode))) fAdmin.src = adminUrl;
@@ -9673,42 +10278,47 @@ async function simJoinPlayersRaw() {
   logSimEvent({ type: 'sim_info', text: '👤 [ACTION]: จำลองส่งคำขอสวมบทบาท 5 คน: นาเอกิ (PC1), เคียวโกะ (PC2), เบียคุยะ (PC3), อาโออิ (PC4), ฮิฟุมิ (PC5 Blackened)...' });
   await simPost({
     type: 'request_claim_character',
-    role: 'นักแต่งนิยาย',
+    role: 'สุดยอดนักเรียนโชคดี',
     playerName: 'นาเอกิ',
     pcSlot: 1,
-    userHash: 'sim_naegi'
+    userHash: 'sim_naegi',
+    avatarConfig: { skin: 0, hairStyle: 0, hairColor: 1, eyes: 0, outfit: 2, acc: 0 }
   });
   await new Promise(r => setTimeout(r, 200));
   await simPost({
     type: 'request_claim_character',
-    role: 'นักกีฬา',
+    role: 'สุดยอดนักสืบ',
     playerName: 'เคียวโกะ',
     pcSlot: 2,
-    userHash: 'sim_kyoko'
+    userHash: 'sim_kyoko',
+    avatarConfig: { skin: 3, hairStyle: 2, hairColor: 3, eyes: 1, outfit: 0, acc: 4 }
   });
   await new Promise(r => setTimeout(r, 200));
   await simPost({
     type: 'request_claim_character',
-    role: 'ทายาทตระกูลขุนนาง',
+    role: 'สุดยอดทายาทมหาเศรษฐี',
     playerName: 'เบียคุยะ',
     pcSlot: 3,
-    userHash: 'sim_byakuya'
+    userHash: 'sim_byakuya',
+    avatarConfig: { skin: 0, hairStyle: 1, hairColor: 2, eyes: 1, outfit: 3, acc: 1 }
   });
   await new Promise(r => setTimeout(r, 200));
   await simPost({
     type: 'request_claim_character',
-    role: 'นักชิม',
+    role: 'สุดยอดนักว่ายน้ำ',
     playerName: 'อาโออิ',
     pcSlot: 4,
-    userHash: 'sim_aoi'
+    userHash: 'sim_aoi',
+    avatarConfig: { skin: 2, hairStyle: 4, hairColor: 1, eyes: 2, outfit: 4, acc: 3 }
   });
   await new Promise(r => setTimeout(r, 200));
   await simPost({
     type: 'request_claim_character',
-    role: 'ช่างกล',
+    role: 'สุดยอดนักเขียนโดจิน (The Blackened)',
     playerName: 'ฮิฟุมิ',
     pcSlot: 5,
-    userHash: 'sim_hifumi'
+    userHash: 'sim_hifumi',
+    avatarConfig: { skin: 1, hairStyle: 5, hairColor: 0, eyes: 3, outfit: 0, acc: 2 }
   });
 }
 

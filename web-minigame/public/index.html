@@ -1112,7 +1112,11 @@
       </div>
       <div class="mobile-input-group">
         <label>ชื่อตัวละคร / ชื่อของคุณ:</label>
-        <input type="text" id="mobileNameInput" placeholder="กรอกชื่อของคุณ..." maxlength="12">
+        <input type="text" id="mobileNameInput" placeholder="กรอกชื่อของคุณ..." maxlength="16">
+      </div>
+      <div class="mobile-input-group">
+        <label>ความสามารถพิเศษ / ฉายาสุดยอด (Ultimate Talent):</label>
+        <input type="text" id="mobileRoleInput" placeholder="เช่น สุดยอดนักสืบ, สุดยอดโปรแกรมเมอร์" maxlength="30">
       </div>
       <div class="mobile-input-group">
         <label>สล็อตตัวละครของคุณ (PC 1 - PC 5):</label>
@@ -1124,15 +1128,39 @@
           <option value="5">PC 5</option>
         </select>
       </div>
-      <button class="dangan-action-btn pink" onclick="playerJoin()">เข้าสู่ศาลชั้นเรียน</button>
+
+      <!-- Avatar Customization Card -->
+      <div class="avatar-join-preview-card">
+        <div class="avatar-join-preview-left">
+          <div id="joinAvatarSvgWrap" class="join-avatar-svg-wrap" onclick="openAvatarModal()" title="แตะเพื่อแต่งตัว">
+            <!-- Rendered Live SVG -->
+          </div>
+        </div>
+        <div class="avatar-join-preview-right">
+          <div style="font-size:0.85rem; font-weight:bold; color:var(--mono-yellow); margin-bottom:3px;">🎨 รูปลักษณ์ตัวละคร</div>
+          <div style="font-size:0.75rem; color:#aaa; margin-bottom:8px;">เลือกทรงผม สีหน้า เครื่องแบบ แว่นตา</div>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="small-btn pink" onclick="openAvatarModal()" style="font-size:0.8rem; padding:6px 12px; font-weight:bold;">🎨 แต่งตัว</button>
+            <button type="button" class="small-btn yellow" onclick="randomizeAvatarAndRender()" style="font-size:0.8rem; padding:6px 10px;">🎲 สุ่ม</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="dangan-action-btn pink" onclick="playerJoin()" style="margin-top:12px;">เข้าสู่ศาลชั้นเรียน</button>
     </div>
 
     <!-- Active Player Game Screen -->
     <div id="mobileGameScreen" class="mobile-game-container hidden">
       <!-- Player Status Top Bar -->
       <div class="player-top-strip">
-        <div class="p-identity">
-          <span id="pMyName" class="p-name">ชื่อผู้เล่น</span>
+        <div class="p-identity" style="display:flex; align-items:center; gap:8px;">
+          <div id="pMyAvatar" class="p-my-avatar" onclick="openAvatarModal()" title="แตะเพื่อเปลี่ยนชุด/สีหน้า">
+            <!-- Player Avatar SVG -->
+          </div>
+          <div>
+            <span id="pMyName" class="p-name">ชื่อผู้เล่น</span>
+            <div id="pMyRoleDisplay" class="p-role-sub" style="font-size:0.72rem; color:var(--mono-yellow); font-weight:700; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">สุดยอดนักเรียนมัธยมปลาย</div>
+          </div>
         </div>
         <div class="p-cred-display-wrap" title="Personal Credibility Gauge (เกจความน่าเชื่อถือของคุณ - DM เป็นผู้ปรับ)">
           <span class="p-cred-label">CRED:</span>
@@ -3321,13 +3349,82 @@
     </div>
   </div>
 
+  <!-- ============================================== -->
+  <!-- MODAL: DRESS-UP AVATAR CREATOR                 -->
+  <!-- ============================================== -->
+  <div id="avatarDressUpModal" class="dangan-modal hidden">
+    <div class="dangan-modal-box avatar-dressup-box">
+      <div class="dangan-modal-header" style="background:#1e1e32; border-bottom:2px solid var(--mono-pink);">
+        <h3 class="modal-title" style="color:var(--mono-pink); font-size:1.05rem;">🎨 แต่งตัวตัวละคร (DRESS-UP AVATAR)</h3>
+        <button class="modal-close-btn" onclick="closeAvatarModal()">✖</button>
+      </div>
+
+      <div class="avatar-dressup-content">
+        <!-- Live Large Preview Area -->
+        <div class="avatar-preview-section">
+          <div id="avatarModalPreviewWrap" class="avatar-big-preview-wrap">
+            <!-- Rendered SVG -->
+          </div>
+          <div class="avatar-preview-actions">
+            <button type="button" class="small-btn yellow" onclick="randomizeAvatarInModal()">🎲 สุ่มทั้งหมด</button>
+            <button type="button" class="small-btn" onclick="resetAvatarInModal()" style="background:#333; color:#ccc; border:1px solid #555;">🔄 รีเซ็ต</button>
+          </div>
+        </div>
+
+        <!-- Customization Controls Area -->
+        <div class="avatar-controls-section">
+          <!-- Category Tabs -->
+          <div class="avatar-cat-tabs">
+            <button type="button" class="avatar-cat-tab active" id="avTabHair" onclick="switchAvatarTab('hair')">💇 ทรงผม</button>
+            <button type="button" class="avatar-cat-tab" id="avTabFace" onclick="switchAvatarTab('face')">👀 ใบหน้า</button>
+            <button type="button" class="avatar-cat-tab" id="avTabOutfit" onclick="switchAvatarTab('outfit')">👔 เสื้อผ้า</button>
+            <button type="button" class="avatar-cat-tab" id="avTabAcc" onclick="switchAvatarTab('acc')">✨ ประดับ</button>
+          </div>
+
+          <!-- Tab Pane: Hair -->
+          <div id="avatarPaneHair" class="avatar-pane active">
+            <div class="avatar-opt-heading">ทรงผม (Hair Style):</div>
+            <div class="avatar-choice-grid" id="avatarHairChoices"></div>
+            <div class="avatar-opt-heading" style="margin-top:12px;">สีผม (Hair Color):</div>
+            <div class="avatar-color-swatches" id="avatarHairColorSwatches"></div>
+          </div>
+
+          <!-- Tab Pane: Face & Skin -->
+          <div id="avatarPaneFace" class="avatar-pane hidden">
+            <div class="avatar-opt-heading">สีผิว (Skin Tone):</div>
+            <div class="avatar-color-swatches" id="avatarSkinSwatches"></div>
+            <div class="avatar-opt-heading" style="margin-top:12px;">ดวงตา & อารมณ์ (Expression):</div>
+            <div class="avatar-choice-grid" id="avatarEyeChoices"></div>
+          </div>
+
+          <!-- Tab Pane: Outfit -->
+          <div id="avatarPaneOutfit" class="avatar-pane hidden">
+            <div class="avatar-opt-heading">เครื่องแบบ / ชุดนักเรียน (Outfit):</div>
+            <div class="avatar-choice-grid" id="avatarOutfitChoices"></div>
+          </div>
+
+          <!-- Tab Pane: Accessory -->
+          <div id="avatarPaneAcc" class="avatar-pane hidden">
+            <div class="avatar-opt-heading">เครื่องประดับ (Accessories):</div>
+            <div class="avatar-choice-grid" id="avatarAccChoices"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dangan-modal-footer" style="padding:12px 16px; background:#181828; display:flex; justify-content:flex-end; gap:10px; border-top:1px solid #333;">
+        <button type="button" class="small-btn" onclick="closeAvatarModal()" style="padding:8px 16px; background:#3a3a4c; color:#ddd;">ยกเลิก</button>
+        <button type="button" class="dangan-action-btn pink" onclick="saveAvatarFromModal()" style="width:auto; padding:8px 24px; font-weight:900; font-size:0.95rem;">💾 บันทึกตัวละคร (Save)</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Floating Desktop PC Hotkeys Help Button -->
   <button id="btnOpenHotkeys" class="floating-hotkeys-btn pc-only-btn" onclick="openHotkeysModal()" title="ดูรายการคีย์ลัดคอมพิวเตอร์ (Hotkey: ?)">
     ⌨️ Hotkeys
   </button>
 
   <script src="/js/jsQR.min.js"></script>
-  <script src="/js/client.js?v=4.4.0"></script>
+  <script src="/js/client.js?v=4.5.0"></script>
   <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>

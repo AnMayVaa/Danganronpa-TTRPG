@@ -157,11 +157,11 @@ async function runSimulation() {
   // -------------------------------------------------------------
   process.stdout.write('👤 Step 2: PC 1-5 claim characters (verifying PC 5 Saboteur)... ');
   const roster = [
-    { client: player1, name: 'นาเอกิ', role: 'นักแต่งนิยาย', slot: 1, user: 'u-naegi', killer: false },
-    { client: player2, name: 'เคียวโกะ', role: 'นักกีฬา', slot: 2, user: 'u-kyoko', killer: false },
-    { client: player3, name: 'เบียคุยะ', role: 'นักสืบ', slot: 3, user: 'u-byakuya', killer: false },
-    { client: player4, name: 'อาโออิ', role: 'นักชิม', slot: 4, user: 'u-aoi', killer: false },
-    { client: player5, name: 'ฮิฟุมิ', role: 'ช่างกล', slot: 5, user: 'u-hifumi', killer: true }
+    { client: player1, name: 'นาเอกิ', role: 'สุดยอดนักเรียนโชคดี', slot: 1, user: 'u-naegi', killer: false, avatarConfig: { skin: 0, hairStyle: 0, hairColor: 1, eyes: 0, outfit: 2, acc: 0 } },
+    { client: player2, name: 'เคียวโกะ', role: 'สุดยอดนักสืบ', slot: 2, user: 'u-kyoko', killer: false, avatarConfig: { skin: 3, hairStyle: 2, hairColor: 3, eyes: 1, outfit: 0, acc: 4 } },
+    { client: player3, name: 'เบียคุยะ', role: 'สุดยอดทายาทมหาเศรษฐี', slot: 3, user: 'u-byakuya', killer: false, avatarConfig: { skin: 0, hairStyle: 1, hairColor: 2, eyes: 1, outfit: 3, acc: 1 } },
+    { client: player4, name: 'อาโออิ', role: 'สุดยอดนักว่ายน้ำ', slot: 4, user: 'u-aoi', killer: false, avatarConfig: { skin: 2, hairStyle: 4, hairColor: 1, eyes: 2, outfit: 4, acc: 3 } },
+    { client: player5, name: 'ฮิฟุมิ', role: 'สุดยอดนักเขียนโดจิน (The Blackened)', slot: 5, user: 'u-hifumi', killer: true, avatarConfig: { skin: 1, hairStyle: 5, hairColor: 0, eyes: 3, outfit: 0, acc: 2 } }
   ];
 
   for (const p of roster) {
@@ -171,7 +171,8 @@ async function runSimulation() {
       role: p.role,
       playerName: p.name,
       pcSlot: p.slot,
-      userHash: p.user
+      userHash: p.user,
+      avatarConfig: p.avatarConfig
     });
     const cl = await claimWait;
     latencies.push(cl.latency);
@@ -185,7 +186,8 @@ async function runSimulation() {
         name: p.name,
         role: p.role,
         pcSlot: p.slot,
-        isKiller: p.killer
+        isKiller: p.killer,
+        avatarConfig: p.avatarConfig
       },
       state: { stage: 'lobby' }
     });
@@ -419,7 +421,7 @@ async function runSimulation() {
   for (const p of roster) {
     await p.client.send({
       type: 'submit_vote',
-      candidate: 'ช่างกล',
+      candidate: 'ฮิฟุมิ',
       voterId: p.user
     });
   }
