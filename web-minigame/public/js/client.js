@@ -3453,6 +3453,8 @@ function setStage(stage, config) {
       if (config.challenger !== undefined) gameState.stg3Challenger = config.challenger;
       if (config.opponent !== undefined) gameState.stg3Opponent = config.opponent;
       if (config.argument) gameState.stg3Argument = config.argument;
+      if (config.statement) gameState.stg3Argument = config.statement;
+      if (config.topic !== undefined) gameState.stg3Topic = config.topic;
     }
     if (!gameState.stg3Opponent) gameState.stg3Opponent = "";
     updateRebuttalDisplay();
@@ -4775,44 +4777,183 @@ function adminRebuttalVerdict(isWin) {
 }
 
 
-function populateArmamentTargetSelect() {
-  const sel1 = document.getElementById('adminArmamentTargetSelect');
-  const sel2 = document.getElementById('cfgStg6TargetSelect');
-  const players = Object.values(gameState.players || {});
+function populateAllConfigStageSelects() {
+  const connectedPlayers = Object.values(gameState.players || {});
+  
+  // Standard canonical courtroom characters for Danganronpa TTRPG
+  const standardCharacters = [
+    { name: 'ฮิฟุมิ ยามาดะ', role: 'PC 5 - สุดยอดนักเขียนโดจิน [Blackened/คนร้าย]' },
+    { name: 'นาเอกิ มาโคโตะ', role: 'PC 1 - สุดยอดนักเรียนดวงดี' },
+    { name: 'คิริกิริ เคียวโกะ', role: 'PC 2 - สุดยอดนักสืบ' },
+    { name: 'โทกามิ เบียคุยะ', role: 'PC 3 - สุดยอดทายาทตระกูลดัง' },
+    { name: 'อาซาฮินะ อาโออิ', role: 'PC 4 - สุดยอดนักว่ายน้ำ' },
+  ];
 
-  [sel1, sel2].forEach(sel => {
-    if (!sel) return;
-    const currentVal = sel.value;
-    sel.innerHTML = '';
-    players.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.name;
-      opt.textContent = p.name;
-      sel.appendChild(opt);
+  const npcCharacters = [
+    { name: 'โมโนคุมะ (Monokuma)', role: 'NPC ผู้อำนวยการโรงเรียน' },
+    { name: 'ผู้บงการปริศนา (Mastermind)', role: 'NPC ปริศนาเบื้องหลัง' }
+  ];
+
+  const buildOptionsHtml = (isAccused = false, allowBlank = false) => {
+    let html = '';
+    if (allowBlank) {
+      html += `<option value="">${isAccused ? '-- เลือกฝ่ายตรงข้าม / ผู้ถูกกล่าวหา --' : '(ทุกคนในห้อง / อิสระ)'}</option>`;
+    }
+    if (connectedPlayers.length > 0) {
+      html += '<optgroup label="🟢 ผู้เล่นที่เชื่อมต่ออยู่ (Online Players)">';
+      connectedPlayers.forEach(p => {
+        const charSuffix = p.characterName ? ` (${p.characterName})` : '';
+        html += `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}${escapeHtml(charSuffix)}</option>`;
+      });
+      html += '</optgroup>';
+    }
+    
+    html += '<optgroup label="👤 ตัวละครประจำห้องพิจารณาคดี (PC 1 - PC 5)">';
+    standardCharacters.forEach(c => {
+      const isDefault = isAccused && c.name.includes('ฮิฟุมิ');
+      html += `<option value="${escapeHtml(c.name)}"${isDefault ? ' selected' : ''}>${escapeHtml(c.name)} - ${escapeHtml(c.role)}</option>`;
     });
-    if (currentVal && sel.querySelector(`option[value="${CSS.escape(currentVal)}"]`)) {
-      sel.value = currentVal;
+    html += '</optgroup>';
+
+    html += '<optgroup label="🐻 ตัวละครพิเศษ / NPC">';
+    npcCharacters.forEach(n => {
+      html += `<option value="${escapeHtml(n.name)}">${escapeHtml(n.name)} - ${escapeHtml(n.role)}</option>`;
+    });
+    html += '</optgroup>';
+
+    html += '<option value="__custom__">✏️ [พิมพ์ชื่อกำหนดเอง...]</option>';
+    return html;
+  };
+
+  // 1. Stage 6 Accused Selects (Config modal & Admin panel)
+  const cfg6Sel = document.getElementById('cfgStg6TargetSelect');
+  const adm6Sel = document.getElementById('adminArmamentTargetSelect');
+  [cfg6Sel, adm6Sel].forEach(sel => {
+    if (!sel) return;
+    const curVal = sel.value;
+    sel.innerHTML = buildOptionsHtml(true, false);
+    if (curVal && curVal !== '__custom__') {
+      for (let opt of sel.options) {
+        if (opt.value === curVal || (curVal && opt.text.includes(curVal))) {
+          sel.value = opt.value;
+          break;
+        }
+      }
     }
   });
+
+  // 2. Stage 3 Rebuttal Selects (Challenger & Opponent)
+  const chalSel = document.getElementById('cfgStg3ChallengerSelect');
+  const oppSel = document.getElementById('cfgStg3OpponentSelect');
+  const admChalSel = document.getElementById('adminRebuttalChallengerSelect');
+  const admOppSel = document.getElementById('adminRebuttalOpponentSelect');
+
+  if (chalSel) {
+    const curVal = chalSel.value;
+    chalSel.innerHTML = buildOptionsHtml(false, false);
+    if (curVal && curVal !== '__custom__') {
+      for (let opt of chalSel.options) {
+        if (opt.value === curVal || (curVal && opt.text.includes(curVal))) {
+          chalSel.value = opt.value;
+          break;
+        }
+      }
+    } else if (!curVal) {
+      if (connectedPlayers.length > 0) chalSel.value = connectedPlayers[0].name;
+      else chalSel.value = 'นาเอกิ มาโคโตะ';
+    }
+  }
+
+  if (oppSel) {
+    const curVal = oppSel.value;
+    oppSel.innerHTML = buildOptionsHtml(true, false);
+    if (curVal && curVal !== '__custom__') {
+      for (let opt of oppSel.options) {
+        if (opt.value === curVal || (curVal && opt.text.includes(curVal))) {
+          oppSel.value = opt.value;
+          break;
+        }
+      }
+    } else if (!curVal) {
+      oppSel.value = 'ฮิฟุมิ ยามาดะ';
+    }
+  }
+
+  // Admin panel rebuttal selects
+  if (admChalSel) {
+    const curVal = admChalSel.value;
+    admChalSel.innerHTML = buildOptionsHtml(false, true);
+    if (curVal) {
+      for (let opt of admChalSel.options) {
+        if (opt.value === curVal || opt.text.includes(curVal)) {
+          admChalSel.value = opt.value;
+          break;
+        }
+      }
+    }
+  }
+  if (admOppSel) {
+    const curVal = admOppSel.value;
+    admOppSel.innerHTML = buildOptionsHtml(true, true);
+    if (curVal) {
+      for (let opt of admOppSel.options) {
+        if (opt.value === curVal || opt.text.includes(curVal)) {
+          admOppSel.value = opt.value;
+          break;
+        }
+      }
+    }
+  }
+}
+
+function handleStageConfigCustomSelectToggle(selectId, customWrapId) {
+  const sel = document.getElementById(selectId);
+  const wrap = document.getElementById(customWrapId);
+  if (!sel || !wrap) return;
+  if (sel.value === '__custom__') {
+    wrap.classList.remove('hidden');
+    const input = wrap.querySelector('input');
+    if (input) {
+      input.focus();
+    }
+  } else {
+    wrap.classList.add('hidden');
+  }
+}
+
+function setSelectOrCustom(selectEl, customWrapEl, customInputEl, value) {
+  if (!selectEl || !value) return;
+  let found = false;
+  for (let opt of selectEl.options) {
+    if (opt.value === value || (value && opt.text && (opt.text === value || opt.text.includes(value) || opt.value.includes(value)))) {
+      selectEl.value = opt.value;
+      found = true;
+      break;
+    }
+  }
+  if (found) {
+    if (customWrapEl) customWrapEl.classList.add('hidden');
+  } else {
+    selectEl.value = '__custom__';
+    if (customWrapEl) customWrapEl.classList.remove('hidden');
+    if (customInputEl) customInputEl.value = value;
+  }
+}
+
+function getSelectOrCustomValue(selectEl, customInputEl) {
+  if (!selectEl) return '';
+  if (selectEl.value === '__custom__') {
+    return customInputEl ? customInputEl.value.trim() : '';
+  }
+  return selectEl.value;
+}
+
+function populateArmamentTargetSelect() {
+  populateAllConfigStageSelects();
 }
 
 function populateRebuttalSelects() {
-  const chalSel = document.getElementById('adminRebuttalChallengerSelect');
-  const oppSel = document.getElementById('adminRebuttalOpponentSelect');
-  if (!chalSel && !oppSel) return;
-  const players = Object.values(gameState.players || {});
-  [chalSel, oppSel].forEach(sel => {
-    if (!sel) return;
-    const currentVal = sel.value;
-    sel.innerHTML = '<option value="">-- เลือกผู้เล่น --</option>';
-    players.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.name;
-      opt.textContent = p.name;
-      sel.appendChild(opt);
-    });
-    if (currentVal) sel.value = currentVal;
-  });
+  populateAllConfigStageSelects();
 }
 function adminSelectRebuttalChallenger() {
   const sel = document.getElementById('adminRebuttalChallengerSelect');
@@ -8673,6 +8814,15 @@ function updateRebuttalDisplay() {
   const oppEl = document.getElementById('rebuttalSuspect');
   if (accEl) accEl.innerText = gameState.stg3Challenger ? `ฝ่ายกล่าวหา: ${gameState.stg3Challenger}` : 'ฝ่ายกล่าวหา';
   if (oppEl) oppEl.innerText = gameState.stg3Opponent ? `ฝ่ายโต้แย้ง: ${gameState.stg3Opponent}` : 'ฝ่ายโต้แย้ง';
+  const topicEl = document.getElementById('courtRebuttalTopic');
+  if (topicEl) {
+    if (gameState.stg3Topic) {
+      topicEl.innerText = `📌 ประเด็น: ${gameState.stg3Topic}`;
+      topicEl.style.display = 'block';
+    } else {
+      topicEl.style.display = 'none';
+    }
+  }
   const leftClueEl = document.getElementById('rebuttalLeftClue');
   const rightClueEl = document.getElementById('rebuttalRightClue');
   if (leftClueEl) leftClueEl.innerText = gameState.stg3LeftClue ? `🗡️ หลักฐาน: ${gameState.stg3LeftClue}` : '🗡️ หลักฐาน: (รอเลือก...)';
@@ -9221,6 +9371,7 @@ function openAdminMinigameModal(defaultTab) {
   const modal = document.getElementById('adminMinigameModal');
   if (!modal) return;
   populateStg1CluesDropdown();
+  populateAllConfigStageSelects();
   modal.classList.remove('hidden');
   selectConfigTab(defaultTab || 'stage0');
 }
@@ -9246,6 +9397,28 @@ function selectConfigTab(stageKey) {
       else pane.classList.add('hidden');
     }
   });
+
+  // Update live stage title in bottom launch bar
+  const stageTitles = {
+    stage0: '🗣️ 0. Non-Stop Debate',
+    stage1: '🔍 1. Evidence Linker',
+    stage2: '🔤 2. Hangman\'s Gambit',
+    stage3: '⚔️ 3. Rebuttal Showdown',
+    stage4: '🛹 4. Logic Dive',
+    stage5: '⚖️ 5. Debate Scrum',
+    stage6: '🔨 6. Argument Armament',
+    stage7: '📖 7. Closing Argument',
+    quick_question: '⚡ Quick Question'
+  };
+  const launchTitleEl = document.getElementById('cfgLaunchStageName');
+  if (launchTitleEl && stageTitles[stageKey]) {
+    launchTitleEl.textContent = stageTitles[stageKey];
+  }
+
+  // Ensure dropdowns are fully populated if opening Stage 3 or Stage 6
+  if (stageKey === 'stage3' || stageKey === 'stage6') {
+    populateAllConfigStageSelects();
+  }
 }
 
 function applyPresetStage0(presetKey) {
@@ -9313,11 +9486,30 @@ function applyPresetStage2(word, prompt) {
   if (pInput) pInput.value = prompt;
 }
 
-function applyPresetStage3(opp, arg) {
-  const oppInput = document.getElementById('cfgStg3Opponent');
+function applyPresetStage3(chal, opp, topic, arg) {
+  populateAllConfigStageSelects();
+
+  // Set Challenger
+  const chalSel = document.getElementById('cfgStg3ChallengerSelect');
+  const chalWrap = document.getElementById('cfgStg3ChallengerCustomWrap');
+  const chalInput = document.getElementById('cfgStg3ChallengerCustom');
+  setSelectOrCustom(chalSel, chalWrap, chalInput, chal);
+
+  // Set Opponent
+  const oppSel = document.getElementById('cfgStg3OpponentSelect');
+  const oppWrap = document.getElementById('cfgStg3OpponentCustomWrap');
+  const oppInput = document.getElementById('cfgStg3OpponentCustom');
+  setSelectOrCustom(oppSel, oppWrap, oppInput, opp);
+
+  // Set Topic
+  const topInput = document.getElementById('cfgStg3Topic');
+  if (topInput && topic) topInput.value = topic;
+
+  // Set Argument Statement
   const argInput = document.getElementById('cfgStg3Arg');
-  if (oppInput) oppInput.value = opp;
-  if (argInput) argInput.value = arg;
+  if (argInput && arg) argInput.value = arg;
+
+  showToast(`⚔️ โหลดพรีเซ็ต Rebuttal: ${chal} VS ${opp}`);
 }
 
 function applyPresetStage4(key) {
@@ -9342,20 +9534,26 @@ function applyPresetStage5(topic, left, right) {
 }
 
 function applyPresetStage6(opp, scream) {
+  populateAllConfigStageSelects();
+
   const cfgSel = document.getElementById('cfgStg6TargetSelect');
+  const cfgWrap = document.getElementById('cfgStg6TargetCustomWrap');
+  const cfgInput = document.getElementById('cfgStg6CustomTarget');
+  setSelectOrCustom(cfgSel, cfgWrap, cfgInput, opp);
+
   const admSel = document.getElementById('adminArmamentTargetSelect');
-  [cfgSel, admSel].forEach(sel => {
-    if (sel && opp) {
-      for (let opt of sel.options) {
-        if (opt.value === opp || opt.text.includes(opp)) {
-          sel.value = opt.value;
-          break;
-        }
+  if (admSel && opp) {
+    for (let opt of admSel.options) {
+      if (opt.value === opp || opt.text.includes(opp)) {
+        admSel.value = opt.value;
+        break;
       }
     }
-  });
+  }
   const sInput = document.getElementById('cfgStg6Scream');
-  if (sInput) sInput.value = scream;
+  if (sInput && scream) sInput.value = scream;
+
+  showToast(`🔨 โหลดพรีเซ็ต Argument: เป้าหมาย ${opp}`);
 }
 
 function applyPresetStage7(mode) {
@@ -9391,9 +9589,41 @@ function adminLaunchSelectedConfigGame() {
     const word = document.getElementById('cfgStg2Word') ? document.getElementById('cfgStg2Word').value.trim().toUpperCase() : 'WATER CLOCK';
     config = { prompt: prompt, targetWord: word };
   } else if (stg === 'stage3') {
-    const opp = document.getElementById('cfgStg3Opponent') ? document.getElementById('cfgStg3Opponent').value : 'นักมายากล (A)';
-    const arg = document.getElementById('cfgStg3Arg') ? document.getElementById('cfgStg3Arg').value : '';
-    config = { opponent: opp, argument: arg };
+    const chalSel = document.getElementById('cfgStg3ChallengerSelect');
+    const chalInput = document.getElementById('cfgStg3ChallengerCustom');
+    const chal = getSelectOrCustomValue(chalSel, chalInput) || 'นาเอกิ มาโคโตะ';
+
+    const oppSel = document.getElementById('cfgStg3OpponentSelect');
+    const oppInput = document.getElementById('cfgStg3OpponentCustom');
+    const opp = getSelectOrCustomValue(oppSel, oppInput) || 'ฮิฟุมิ ยามาดะ';
+
+    const topic = document.getElementById('cfgStg3Topic') ? document.getElementById('cfgStg3Topic').value : 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi';
+    const arg = document.getElementById('cfgStg3Arg') ? document.getElementById('cfgStg3Arg').value : 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?';
+
+    if (chal && opp && chal === opp) {
+      showToast('⚠️ ฝ่ายกล่าวหาและฝ่ายตรงข้ามต้องไม่ใช่คนเดียวกัน!');
+      return;
+    }
+
+    config = { challenger: chal, opponent: opp, topic: topic, argument: arg, statement: arg };
+    gameState.stg3Challenger = chal;
+    gameState.stg3Opponent = opp;
+    gameState.stg3Topic = topic;
+    gameState.stg3Argument = arg;
+
+    // Sync admin panel dropdowns too
+    const admChal = document.getElementById('adminRebuttalChallengerSelect');
+    const admOpp = document.getElementById('adminRebuttalOpponentSelect');
+    if (admChal) {
+      for (let opt of admChal.options) {
+        if (opt.value === chal || opt.text.includes(chal)) { admChal.value = opt.value; break; }
+      }
+    }
+    if (admOpp) {
+      for (let opt of admOpp.options) {
+        if (opt.value === opp || opt.text.includes(opp)) { admOpp.value = opt.value; break; }
+      }
+    }
   } else if (stg === 'stage4') {
     const route = (gameState.stg4Route === 'timeline' || LOGIC_DIVE_DATA === LOGIC_DIVE_ROUTES.timeline) ? 'timeline' : 'pulley';
     config = { route: route };
@@ -9403,9 +9633,15 @@ function adminLaunchSelectedConfigGame() {
     const right = document.getElementById('cfgStg5Right') ? document.getElementById('cfgStg5Right').value : '';
     config = { topic: topic, leftTeam: left, rightTeam: right };
   } else if (stg === 'stage6') {
-    const target = (document.getElementById('cfgStg6TargetSelect')?.value) || (document.getElementById('adminArmamentTargetSelect')?.value) || '';
+    const tgtSel = document.getElementById('cfgStg6TargetSelect');
+    const tgtInput = document.getElementById('cfgStg6CustomTarget');
+    let target = getSelectOrCustomValue(tgtSel, tgtInput);
+    if (!target) {
+      target = document.getElementById('adminArmamentTargetSelect')?.value || 'ฮิฟุมิ ยามาดะ';
+    }
     const scream = document.getElementById('cfgStg6Scream') ? document.getElementById('cfgStg6Scream').value : '';
     config = { targetPlayer: target, opponent: target, scream: scream };
+    gameState.stg6TargetPlayer = target;
   } else if (stg === 'quick_question') {
     const q = document.getElementById('cfgQqQuestion')?.value || 'เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?';
     const cA = document.getElementById('cfgQqChoiceA')?.value || '17:30 น. (ช่วงเตรียมอาหารเย็น)';
