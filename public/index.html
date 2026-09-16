@@ -411,22 +411,29 @@
           </div>
         </div>
 
-        <!-- Giant Anime Slash Cut-In Objection Overlay -->
+        <!-- Giant Anime Slash Cut-In Objection Overlay (Authentic Danganronpa Style) -->
         <div id="stg0ObjectionOverlay" class="stg0-objection-overlay hidden">
+          <div class="stg0-manga-speedlines"></div>
           <div class="stg0-slash-backdrop"></div>
           <div class="stg0-cutin-box">
-            <div class="stg0-quote-banner" id="stg0ObjectionQuote">
-              ⚡ นั่นผิดแล้ว! (SORE WA CHIGAU YO!)
+            <div class="stg0-anime-title-wrap">
+              <div class="stg0-jp-kanji">それは違うよ！</div>
+              <div class="stg0-quote-banner" id="stg0ObjectionQuote">
+                ⚡ นั่นมันผิดแล้วล่ะ! (NO, THAT'S WRONG!)
+              </div>
             </div>
             <div class="stg0-cutin-profile">
-              <div class="stg0-giant-avatar" id="stg0GiantAvatar">👤</div>
+              <div class="stg0-avatar-halo-wrap">
+                <div class="stg0-giant-avatar" id="stg0GiantAvatar">👤</div>
+                <div class="stg0-eye-gleam">✨</div>
+              </div>
               <div class="stg0-cutin-details">
                 <div class="stg0-objector-name" id="stg0ObjectorName">ผู้เล่น</div>
-                <div class="stg0-objector-title" id="stg0ObjectorTitle">ประกาศคัดค้านความจริง!</div>
+                <div class="stg0-objector-title" id="stg0ObjectorTitle">OBJECTION // ดาบแห่งความจริงฟันตัดข้อโต้แย้ง!</div>
               </div>
             </div>
             <div class="stg0-bullet-showcase" id="stg0BulletShowcase">
-              <div class="stg0-bullet-tag">TRUTH BULLET (กระสุนความจริงที่ยิง):</div>
+              <div class="stg0-bullet-tag">🎯 TRUTH BULLET // กระสุนความจริงที่เล็งยิง:</div>
               <div class="stg0-bullet-display" id="stg0BulletDisplay">
                 <span class="bullet-code" id="stg0BulletCode">EVD-??</span>:
                 <span class="bullet-name" id="stg0BulletName">กำลังเลือกกระสุนใน Monopad...</span>
@@ -1168,10 +1175,6 @@
           <span id="pMyCredHearts" class="p-cred-hearts">♥♥♥♥♥</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <div id="pMyStatus" class="p-status normal">
-            <span class="status-full">🛡️ นักเรียนผู้บริสุทธิ์</span>
-            <span class="status-short">🛡️ บริสุทธิ์</span>
-          </div>
           <button class="player-exit-btn" onclick="playerLeaveGame()" title="ออกจากห้องศาลนี้">🚪 ออก</button>
         </div>
       </div>
@@ -1241,7 +1244,6 @@
           <input type="text" id="clueSearchInput" placeholder="🔎 ค้นหาหรือกรองกระสุนความจริง..." onkeyup="filterPlayerClues()">
           <div class="clue-filter-tags">
             <button class="clue-tag-btn active" onclick="filterUserClueTag('ALL')">ทั้งหมด</button>
-            <button class="clue-tag-btn gold" onclick="filterUserClueTag('CORE')" style="background:rgba(234,179,8,0.2); border:1px solid #eab308; color:#facc15; font-weight:900;">⭐ Core (คดี)</button>
             <button class="clue-tag-btn yellow" onclick="filterUserClueTag('IMPORTANT')">⭐ สำคัญ</button>
             <button class="clue-tag-btn blue" onclick="filterUserClueTag('DOUBT')">❓ สงสัย</button>
             <button class="clue-tag-btn red" onclick="filterUserClueTag('TRASH')">❌ หลอก/ขยะ</button>
@@ -1791,10 +1793,13 @@
         </div>
         <div class="sim-btn-ribbon">
           <button class="sim-btn auto-sim" onclick="runSimFullSequence()">
-            ▶️ รันการจำลองอัตโนมัติครบ 8 สเตจ (Full Auto Test)
+            ▶️ รันการจำลองอัตโนมัติครบทุกสเตจ (Stage 0 - 8 Full Auto)
           </button>
           <button class="sim-btn" onclick="simJoinPlayers()">
             👤 1. จำลองผู้เล่น 5 คนเข้าสู่ศาล (PC 1-5 รวม Blackened)
+          </button>
+          <button class="sim-btn" onclick="simStage0Debate()">
+            🗣️ 1.5 สเตจ 0: คัดค้าน & ยิงกระสุน (Non-Stop Debate)
           </button>
           <button class="sim-btn" onclick="simStage1Evidence()">
             🔍 2. สเตจ 1: ส่งหลักฐาน (Evidence Linker)
@@ -2894,6 +2899,7 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets:</span>
             <div class="preset-btn-row">
+              <button type="button" class="preset-chip" onclick="applyDynamicRoomBanterStage0()">🔄 ดึงชื่อตัวละครในห้องปัจจุบัน (Auto Banter Noise)</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage0('timeline')">⏱️ ข้อโต้แย้ง 1: ไทม์ไลน์เสียงกระแทก (21:00 น.)</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage0('weapon')">🍖 ข้อโต้แย้ง 2: การหมดสติ & อาวุธทุบหัวในครัว</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage0('pulley')">🪢 ข้อโต้แย้ง 3: รอยเชือก & กลไกยกร่างอัตโนมัติ</button>

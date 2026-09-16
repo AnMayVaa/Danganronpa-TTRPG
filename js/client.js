@@ -1724,7 +1724,7 @@ function handleIncomingMessage(msg, senderConn) {
     const pHash = document.getElementById('pMyHash');
     if (pHash) pHash.innerText = '#' + (currentUserHash || 'USER');
 
-    document.getElementById('pMyStatus').innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
+    // status badge removed (no spoiler)
     document.getElementById('pMyStatus').className = 'p-status normal';
 
     updateSaboteurPanelVisibility();
@@ -2516,8 +2516,7 @@ function initPlayerSession(hash) {
       const statusEl = document.getElementById('pMyStatus');
       const sabPanel = document.getElementById('mobileSaboteurPanel');
       if (statusEl) {
-        statusEl.innerText = '🛡️ นักเรียนผู้บริสุทธิ์';
-        statusEl.className = 'p-status normal';
+        statusEl.style.display = 'none';
       }
       updateSaboteurPanelVisibility();
       return;
@@ -3265,12 +3264,11 @@ function renderPlayerCluesList() {
     const userNote = notes[c.id] || '';
 
     // Filter by tag
-    if (currentUserClueTagFilter === 'CORE' && !(c.importance === 'MUST' || c.secretType === 'CORE')) return;
     if (currentUserClueTagFilter === 'IMPORTANT' && userTag !== 'star') return;
     if (currentUserClueTagFilter === 'DOUBT' && userTag !== 'doubt') return;
     if (currentUserClueTagFilter === 'TRASH' && userTag !== 'trash') return;
     if (currentUserClueTagFilter === 'LOCKED' && isUnlocked) return;
-    if (currentUserClueTagFilter !== 'LOCKED' && currentUserClueTagFilter !== 'ALL' && currentUserClueTagFilter !== 'CORE' && !isUnlocked) return;
+    if (currentUserClueTagFilter !== 'LOCKED' && currentUserClueTagFilter !== 'ALL' && !isUnlocked) return;
 
     // Search query
     if (q) {
@@ -3374,6 +3372,10 @@ function setStage(stage, config) {
     playSfx('gavel');
     logCourt(`🔍 [INVESTIGATION]: เริ่มต้นช่วงเวลาสืบสวนหาหลักฐาน (Turn-Based)! ออกค้นหาและสแกน QR Code`);
     grantInvestigationClues();
+    updateSaboteurPanelVisibility();
+    if (isCurrentPlayerSaboteur()) {
+      showToast('🩸 [BLACKENED]: ช่วงเวลาสืบสวนเริ่มต้นแล้ว! แผงควบคุม Saboteur พร้อมใช้งานตลอดเวลาเพื่ออำพรางความลับและก่อกวนศาล!');
+    }
   } else if (stage === 'trial') {
     autoUnlockTrialClues();
     playSfx('gavel');
@@ -4181,7 +4183,17 @@ function handleStg0Buzz(msg) {
   gameState.stg0.isPaused = true;
   gameState.stg0.selectedClueId = null;
 
-  playSfx('rebuttal');
+  try {
+    playSfx('counter');
+  } catch(e) {
+    playSfx('rebuttal');
+  }
+  const courtEl = document.getElementById('viewCourt');
+  if (courtEl) {
+    courtEl.classList.remove('court-objection-shake');
+    void courtEl.offsetWidth;
+    courtEl.classList.add('court-objection-shake');
+  }
   logCourt(`⚡ [OBJECTION]: [${msg.player}] กดแย่งจังหวะคัดค้าน! "${msg.quote}"`);
   updateStg0CourtDisplay();
   updateAdminStg0Display();
@@ -8065,15 +8077,26 @@ function updateSaboteurPanelVisibility() {
   const sheet = document.getElementById('mobileSaboteurPanel');
   const isSab = isCurrentPlayerSaboteur();
 
+  // Sabotage panel is available starting from investigation phase onwards (investigation, trial, and all minigames)
+  const currentStage = gameState ? gameState.stage : '';
+  const isStageActive = (
+    currentStage === 'investigation' ||
+    currentStage === 'trial' ||
+    (currentStage && currentStage.startsWith('stage')) ||
+    currentStage === 'closing' ||
+    currentStage === 'quick_question'
+  );
+
   if (fab) {
-    if (isSab) {
+    // Discreet stealth FAB: visible only to PC 5 starting from investigation onwards
+    if (isSab && isStageActive) {
       fab.classList.remove('hidden');
     } else {
       fab.classList.add('hidden');
     }
   }
 
-  if (!isSab && sheet) {
+  if ((!isSab || !isStageActive) && sheet) {
     sheet.classList.add('hidden');
   }
 }
@@ -10611,10 +10634,19 @@ async function simStage2Hangman() {
 }
 
 async function simStage3RebuttalRaw() {
-  logSimEvent({ type: 'sim_info', text: '🗡️ [ACTION]: เริ่ม Stage 3 (Rebuttal Showdown) ฟันดาบความจริง...' });
-  await simPost({ type: 'set_stage', stage: 'stage3' });
+  logSimEvent({ type: 'sim_info', text: '🗡️ [ACTION]: เริ่ม Stage 3 (Rebuttal Showdown) นาเอกิ VS ฮิฟุมิ...' });
+  await simPost({
+    type: 'set_stage',
+    stage: 'stage3',
+    config: {
+      challenger: 'นาเอกิ มาโคโตะ',
+      opponent: 'ฮิฟุมิ ยามาดะ',
+      topic: 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi',
+      argument: 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?'
+    }
+  });
   await new Promise(r => setTimeout(r, 450));
-  await simPost({ type: 'rebuttal_slash', bullet: 'EVD-01', playerName: 'นาเอกิ' });
+  await simPost({ type: 'rebuttal_slash', bullet: 'EVD-02', playerName: 'นาเอกิ' });
   await new Promise(r => setTimeout(r, 600));
   await simPost({ type: 'rebuttal_verdict', isWin: true });
 }
@@ -10695,17 +10727,19 @@ async function simClosingArgument() {
 }
 
 async function simStage7VoteRaw() {
-  logSimEvent({ type: 'sim_info', text: '🗳️ [ACTION]: เริ่ม Stage 7 (Voting Time) ผู้เล่นจำลอง 4 คนลงคะแนนโหวต...' });
+  logSimEvent({ type: 'sim_info', text: '🗳️ [ACTION]: เริ่ม Voting Time ผู้เล่น 5 คนลงคะแนนโหวตชี้ตัวฮิฟุมิ (Blackened)...' });
   await simPost({ type: 'set_stage', stage: 'stage7' });
   await new Promise(r => setTimeout(r, 450));
-  const targetSuspect = 'NPC B (พยานปากเอก / ผู้ต้องสงสัย)';
+  const targetSuspect = 'ฮิฟุมิ';
   await simPost({ type: 'submit_vote', candidate: targetSuspect, voterId: 'sim_naegi' });
-  await new Promise(r => setTimeout(r, 150));
+  await new Promise(r => setTimeout(r, 120));
   await simPost({ type: 'submit_vote', candidate: targetSuspect, voterId: 'sim_kyoko' });
-  await new Promise(r => setTimeout(r, 150));
+  await new Promise(r => setTimeout(r, 120));
   await simPost({ type: 'submit_vote', candidate: targetSuspect, voterId: 'sim_byakuya' });
-  await new Promise(r => setTimeout(r, 150));
+  await new Promise(r => setTimeout(r, 120));
   await simPost({ type: 'submit_vote', candidate: targetSuspect, voterId: 'sim_aoi' });
+  await new Promise(r => setTimeout(r, 120));
+  await simPost({ type: 'submit_vote', candidate: targetSuspect, voterId: 'sim_hifumi' });
   await new Promise(r => setTimeout(r, 600));
   await simPost({ type: 'reveal_votes' });
 }
@@ -10714,38 +10748,86 @@ async function simStage7Vote() {
   return runSimGuarded('สเตจ 7: Voting Time', simStage7VoteRaw);
 }
 
+async function simStage0DebateRaw() {
+  logSimEvent({ type: 'sim_info', text: '🗣️ [ACTION]: เริ่ม Stage 0 (Non-Stop Debate) พร้อมบทพูดสด...' });
+  const statements = generateDynamicDebateStatements();
+  await simPost({
+    type: 'set_stage',
+    stage: 'stage0',
+    config: {
+      topic: 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.',
+      statements: statements
+    }
+  });
+  await new Promise(r => setTimeout(r, 600));
+
+  logSimEvent({ type: 'sim_info', text: '⚡ [ACTION]: นาเอกิ กดแย่งจังหวะคัดค้าน (Buzzer Objection)...' });
+  await simPost({
+    type: 'stg0_buzz',
+    player: 'นาเอกิ',
+    avatar: '🧑‍🎓',
+    avatarConfig: { skin: 1, hairStyle: 1, hairColor: 2, eyes: 1, outfit: 1, acc: 0 },
+    role: 'สุดยอดนักเรียนโชคดี',
+    quote: '⚡ นั่นมันผิดแล้วล่ะ! (SORE WA CHIGAU YO!)'
+  });
+  await new Promise(r => setTimeout(r, 700));
+
+  logSimEvent({ type: 'sim_info', text: '🎯 [ACTION]: นาเอกิ ยิงกระสุนความจริง EVD-02 (ท่อนกระดูกหมู)...' });
+  await simPost({
+    type: 'stg0_shoot',
+    player: 'นาเอกิ',
+    clueId: 'EVD-02',
+    clueName: 'ท่อนกระดูกหมูในหม้อสตูว์'
+  });
+  await new Promise(r => setTimeout(r, 700));
+
+  logSimEvent({ type: 'sim_info', text: '💥 [ACTION]: DM ตัดสินอนุมัติข้อคัดค้าน (BREAK!)...' });
+  await simPost({
+    type: 'stg0_verdict',
+    approved: true,
+    objector: 'นาเอกิ'
+  });
+}
+
+async function simStage0Debate() {
+  return runSimGuarded('สเตจ 0: Non-Stop Debate', simStage0DebateRaw);
+}
+
 async function runSimFullSequence() {
-  return runSimGuarded('Full Auto (8 สเตจ)', async () => {
-    logSimEvent({ type: 'sim_info', text: '🚀 [FULL AUTO]: เริ่มการทดสอบอัตโนมัติครบ 8 สเตจแบบต่อเนื่อง...' });
+  return runSimGuarded('Full Auto (Stage 0 ถึง 8)', async () => {
+    logSimEvent({ type: 'sim_info', text: '🚀 [FULL AUTO]: เริ่มการทดสอบอัตโนมัติครบทุกสเตจ (Stage 0 ถึง 8) ต่อเนื่อง...' });
 
     await simJoinPlayersRaw();
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 1000));
+
+    await simStage0DebateRaw();
+    await new Promise(r => setTimeout(r, 1600));
 
     await simStage1EvidenceRaw();
-    await new Promise(r => setTimeout(r, 1800));
+    await new Promise(r => setTimeout(r, 1600));
 
     await simStage2HangmanRaw();
-    await new Promise(r => setTimeout(r, 1800));
+    await new Promise(r => setTimeout(r, 1600));
 
     await simStage3RebuttalRaw();
-    await new Promise(r => setTimeout(r, 1800));
+    await new Promise(r => setTimeout(r, 1600));
 
     await simStage4LogicDiveRaw();
-    await new Promise(r => setTimeout(r, 1800));
+    await new Promise(r => setTimeout(r, 1600));
 
     await simStage5ScrumRaw();
-    await new Promise(r => setTimeout(r, 1800));
+    await new Promise(r => setTimeout(r, 1600));
 
     await simStage6ArmamentRaw();
-    await new Promise(r => setTimeout(r, 1800));
+    await new Promise(r => setTimeout(r, 1600));
 
     await simClosingArgumentRaw();
-    await new Promise(r => setTimeout(r, 1800));
+    await new Promise(r => setTimeout(r, 1600));
 
     await simStage7VoteRaw();
     await new Promise(r => setTimeout(r, 1400));
 
-    logSimEvent({ type: 'sim_info', text: '🎉 [COMPLETE]: การจำลอง Full Sequence เสร็จสมบูรณ์ ทุกมินิเกมตอบสนอง Real-Time 100%!' });
+    logSimEvent({ type: 'sim_info', text: '🎉 [COMPLETE]: การจำลอง Full Sequence (Stage 0 ถึง 8) เสร็จสมบูรณ์ ทุกมินิเกมตอบสนอง 100%!' });
   });
 }
 
@@ -11243,4 +11325,63 @@ function playTrapSimulation() {
       setSimPhase(3);
     }, 2500);
   }, 2200);
+}
+
+// ==========================================================
+// DYNAMIC ROOM BANTER FOR NON-STOP DEBATE (STAGE 0)
+// ==========================================================
+function generateDynamicDebateStatements() {
+  let speakers = [];
+  if (gameState && gameState.players && Object.keys(gameState.players).length > 0) {
+    speakers = Object.values(gameState.players).map(p => ({
+      name: p.name,
+      avatar: p.avatarConfig || p.avatar || '👤'
+    }));
+  }
+  
+  if (speakers.length === 0) {
+    speakers = [
+      { name: 'นาเอกิ มาโคโตะ', avatar: { skin: 1, hairStyle: 1, hairColor: 2, eyes: 1, outfit: 1, acc: 0 } },
+      { name: 'คิริกิริ เคียวโกะ', avatar: { skin: 0, hairStyle: 4, hairColor: 4, eyes: 0, outfit: 3, acc: 0 } },
+      { name: 'โทกามิ เบียคุยะ', avatar: { skin: 1, hairStyle: 2, hairColor: 3, eyes: 2, outfit: 2, acc: 1 } },
+      { name: 'อาซาฮินะ อาโออิ', avatar: { skin: 2, hairStyle: 3, hairColor: 2, eyes: 0, outfit: 0, acc: 0 } },
+      { name: 'ฮิฟุมิ ยามาดะ', avatar: { skin: 1, hairStyle: 5, hairColor: 0, eyes: 3, outfit: 0, acc: 2 } }
+    ];
+  }
+
+  // Authentic courtroom noise deliberation pool (non-spoiling general courtroom banter)
+  const noisePool = [
+    "เดี๋ยวก่อนสิ ทุกคนอย่าเพิ่งด่วนสรุป ลองตั้งสติแล้วนึกดูใหม่อีกที!",
+    "ตอนนั้นฉันกำลังมัวแต่วุ่นวายอยู่ ไม่ทันสังเกตเห็นอะไรผิดปกติเลย...",
+    "จุดสำคัญคือความขัดแย้งระหว่างช่วงเวลากับร่องรอยในที่เกิดเหตุไม่ใช่เหรอ?",
+    "ถ้าคิดไม่ออกก็เงียบปาก แล้วลองดูหลักฐานที่พวกเราพบให้ละเอียดก่อน!",
+    "แต่ว่าตอนที่เกิดเรื่อง ทุกคนก็กำลังตกใจกันอยู่นี่นา ใครจะไปจำเวลาได้เป๊ะๆ ล่ะ!?",
+    "โธ่เอ๊ย! แผนการซับซ้อนขนาดนั้น ใครมันจะไปเตรียมการได้ในเวลาสั้นๆ กันเล่า!?",
+    "หรือว่า... สิ่งที่พวกเราเห็น อาจจะถูกใครบางคนจงใจจัดฉากขึ้นมาเพื่อเบี่ยงเบนสายตา!?",
+    "พยานหลักฐานที่มีตอนนี้ มันยังดูมีช่องโหว่ที่ปะติดปะต่อกันไม่ลงตัวเลยนะ!"
+  ];
+
+  const count = Math.max(speakers.length, 5);
+  const statements = [];
+  for (let i = 0; i < count; i++) {
+    const sp = speakers[i % speakers.length];
+    const text = noisePool[i % noisePool.length];
+    statements.push({
+      speaker: sp.name,
+      avatar: sp.avatar,
+      text: text
+    });
+  }
+  return statements;
+}
+
+function applyDynamicRoomBanterStage0() {
+  const topInput = document.getElementById('cfgStg0Topic');
+  const stmtInput = document.getElementById('cfgStg0Statements');
+  if (topInput) topInput.value = "ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.";
+  if (stmtInput) {
+    const stmts = generateDynamicDebateStatements();
+    stmtInput.value = stmts.map(s => `[${s.speaker}] ${s.text}`).join('\n');
+  }
+  showToast("🔄 ดึงรายชื่อตัวละครในห้องปัจจุบันเข้ามาเป็นบทพูดเรียบร้อย!");
 }

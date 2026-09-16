@@ -6619,12 +6619,13 @@ body.view-simulation .execution-cutscene-overlay {
   max-width: 100vw !important;
   max-height: 100vh !important;
   background: #000 !important;
-  padding: 12px 20px !important;
+  padding: 8px 16px !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
   align-items: center !important;
+  overflow: hidden !important;
 }
 
 #viewCourt:fullscreen .court-top-bar,
@@ -6633,6 +6634,7 @@ body.view-simulation .execution-cutscene-overlay {
   width: 100% !important;
   max-width: 177.78vh !important;
   flex-shrink: 0 !important;
+  padding: 4px 10px !important;
 }
 
 #viewCourt:fullscreen .court-stage-arena,
@@ -6642,6 +6644,66 @@ body.view-simulation .execution-cutscene-overlay {
   max-width: 177.78vh !important;
   aspect-ratio: 16 / 9 !important;
   flex: 1 1 auto !important;
+}
+
+/* Hide all debug/monitor logs and admin buttons in fullscreen mode */
+#viewCourt:fullscreen .court-footer,
+#viewCourt:-webkit-full-screen .court-footer,
+#viewCourt.court-fullscreen-mode .court-footer,
+#viewCourt:fullscreen .court-trial-log-box,
+#viewCourt:-webkit-full-screen .court-trial-log-box,
+#viewCourt.court-fullscreen-mode .court-trial-log-box,
+#viewCourt:fullscreen .court-lobby-actions,
+#viewCourt:-webkit-full-screen .court-lobby-actions,
+#viewCourt.court-fullscreen-mode .court-lobby-actions {
+  display: none !important;
+}
+
+/* Scale up text and minigame arena elements in fullscreen */
+#viewCourt:fullscreen .court-heading,
+#viewCourt:-webkit-full-screen .court-heading,
+#viewCourt.court-fullscreen-mode .court-heading {
+  font-size: 2rem !important;
+}
+
+#viewCourt:fullscreen .stg0-statement-text,
+#viewCourt:-webkit-full-screen .stg0-statement-text,
+#viewCourt.court-fullscreen-mode .stg0-statement-text {
+  font-size: 1.35rem !important;
+  line-height: 1.6 !important;
+}
+
+#viewCourt:fullscreen .rebuttal-quote,
+#viewCourt:-webkit-full-screen .rebuttal-quote,
+#viewCourt.court-fullscreen-mode .rebuttal-quote {
+  font-size: 1.35rem !important;
+  padding: 14px 22px !important;
+}
+
+#viewCourt:fullscreen .fighter-card h3,
+#viewCourt:-webkit-full-screen .fighter-card h3,
+#viewCourt.court-fullscreen-mode .fighter-card h3 {
+  font-size: 1.35rem !important;
+}
+
+#viewCourt:fullscreen .stg6-cell,
+#viewCourt:-webkit-full-screen .stg6-cell,
+#viewCourt.court-fullscreen-mode .stg6-cell {
+  width: 58px !important;
+  height: 58px !important;
+  font-size: 1.25rem !important;
+}
+
+#viewCourt:fullscreen .top-suspect-spotlight,
+#viewCourt:-webkit-full-screen .top-suspect-spotlight,
+#viewCourt.court-fullscreen-mode .top-suspect-spotlight {
+  padding: 20px !important;
+}
+
+#viewCourt:fullscreen .top-suspect-name,
+#viewCourt:-webkit-full-screen .top-suspect-name,
+#viewCourt.court-fullscreen-mode .top-suspect-name {
+  font-size: 2.2rem !important;
 }
 
 /* DM Admin 3-Column Command Dashboard on PC (>= 1180px) */
@@ -8724,4 +8786,79 @@ body.phase-investigation #playerSectionGuide,
 @keyframes pulseDisguise {
   0% { box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
   100% { box-shadow: 0 0 22px rgba(168, 85, 247, 0.85); transform: translateX(-50%) scale(1.03); }
+}
+
+/* ==========================================================
+   AUTHENTIC DANGANRONPA ANIME OBJECTION CUT-IN FX
+   ========================================================== */
+.stg0-manga-speedlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.08) 0deg 2deg,
+    transparent 2deg 6deg
+  );
+  animation: speedlinesPulse 0.15s infinite alternate;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes speedlinesPulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.08); opacity: 1; }
+}
+
+.stg0-anime-title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transform: skewX(-10deg);
+  animation: animeTitleSlam 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes animeTitleSlam {
+  0% { transform: scale(2) skewX(-20deg); opacity: 0; }
+  100% { transform: scale(1) skewX(-10deg); opacity: 1; }
+}
+
+.stg0-jp-kanji {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #ffe600;
+  letter-spacing: 4px;
+  text-shadow: 0 0 10px rgba(255, 230, 0, 0.8), 2px 2px 0 #000;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.stg0-avatar-halo-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.stg0-eye-gleam {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 1.2rem;
+  animation: eyeGleamFlash 0.4s ease-out infinite alternate;
+}
+
+@keyframes eyeGleamFlash {
+  0% { transform: scale(0.8) rotate(0deg); opacity: 0.7; }
+  100% { transform: scale(1.4) rotate(45deg); opacity: 1; filter: drop-shadow(0 0 8px #fff); }
+}
+
+.court-objection-shake {
+  animation: courtObjectionShake 0.35s ease-in-out;
+}
+
+@keyframes courtObjectionShake {
+  0% { transform: translate(0, 0) scale(1); }
+  20% { transform: translate(-8px, 6px) scale(1.02); }
+  40% { transform: translate(8px, -6px) scale(1.02); }
+  60% { transform: translate(-6px, 4px) scale(1.01); }
+  80% { transform: translate(4px, -4px) scale(1); }
+  100% { transform: translate(0, 0) scale(1); }
 }
