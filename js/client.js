@@ -2004,6 +2004,8 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'closing_hands_sync') {
     gameState.closingPlayerHands = msg.hands;
     renderMobileTask('closing');
+  } else if (msg.type === 'start_closing_climax') {
+    startClosingClimaxPlayback();
   } else if (msg.type === 'submit_vote') {
     handleVoteSubmitted(msg.candidate, msg.voterId);
   } else if (msg.type === 'minigame_result') {
@@ -6205,17 +6207,12 @@ function distributeClosingCards() {
   const correctCards = CLOSING_CARDS_DATA.filter(c => !c.decoy).map(c => JSON.parse(JSON.stringify(c)));
   const decoyCards = CLOSING_CARDS_DATA.filter(c => c.decoy).map(c => JSON.parse(JSON.stringify(c)));
 
-  // Starter card rule: ONLY Slot 1 card (CARD-P1-S1) starts UNLOCKED. All other cards start LOCKED!
-  const starterCardId = CLOSING_SLOT_TO_CARD[CLOSING_UNLOCK_ORDER[0]] || 'CARD-P1-S1';
-  correctCards.forEach(c => {
-    c.locked = (c.id !== starterCardId);
-  });
-  decoyCards.forEach(c => {
-    c.locked = true;
-  });
-
   const numPlayers = Math.max(1, playersList.length);
   const playerBuckets = Array.from({ length: numPlayers }, () => []);
+
+  // Scatter non-sequential starting unlocked correct slots across all pages (Slots: 1, 7, 9, 3, 5)
+  // Ensures cards are spread out across Page 1, 2, 3, 4, 5 so players CANNOT just place 1, 2, 3...
+  const startingUnlockedSlots = new Set([1, 7, 9, 3, 5]);
 
   if (numPlayers >= 5) {
     // Exact PC 1..5 distribution: 2 correct + 3 decoys = 5 cards each
@@ -6224,20 +6221,26 @@ function distributeClosingCards() {
       slots.forEach(slotNum => {
         const card = correctCards.find(c => c.slot === slotNum);
         if (card && playerBuckets[pIdx]) {
+          // Unlock 1 correct card per player from startingUnlockedSlots
+          card.locked = !startingUnlockedSlots.has(slotNum);
           playerBuckets[pIdx].push(card);
         }
       });
       const decoysForP = decoyCards.slice(pIdx * 3, (pIdx + 1) * 3);
-      decoysForP.forEach(d => {
+      decoysForP.forEach((d, dIdx) => {
+        // Unlock 1 decoy per player so ~50% of hand is unlocked
+        d.locked = (dIdx !== 0);
         if (playerBuckets[pIdx]) playerBuckets[pIdx].push(d);
       });
     });
   } else {
-    // Fallback for fewer than 5 players
+    // Fallback for fewer than 5 players: unlock ~50%
     correctCards.forEach((card, idx) => {
+      card.locked = !startingUnlockedSlots.has(card.slot);
       playerBuckets[idx % numPlayers].push(card);
     });
     decoyCards.forEach((card, idx) => {
+      card.locked = (idx % 2 !== 0);
       playerBuckets[idx % numPlayers].push(card);
     });
   }
@@ -6267,48 +6270,67 @@ function distributeClosingCards() {
 function unlockNextClosingCard() {
   if (!gameState.closingPlayerHands) return;
 
-  // Find first unsolved slot in non-linear unlock order [1, 5, 3, 7, 2, 6, 8, 4, 9, 10]
-  let nextSlot = 0;
-  for (const s of CLOSING_UNLOCK_ORDER) {
-    if (!gameState.closingSlots || !gameState.closingSlots[s]) {
-      nextSlot = s;
-      break;
-    }
-  }
-  if (!nextSlot) return; // All slots already solved
-
-  const targetCardId = CLOSING_SLOT_TO_CARD[nextSlot];
-  if (!targetCardId) return;
-
-  let unlockedCard = null;
-  let targetPlayerId = null;
-
+  // Non-linear remaining unlock order
+  const nonLinearOrder = [2, 6, 8, 4, 10, 1, 5, 3, 7, 9];
+  
+  // Find up to 2 locked cards across player hands to unlock simultaneously
+  let unlockedCards = [];
   const seenHands = new Set();
-  Object.keys(gameState.closingPlayerHands).forEach(pKey => {
-    const hand = gameState.closingPlayerHands[pKey];
-    if (Array.isArray(hand) && !seenHands.has(hand)) {
-      seenHands.add(hand);
-      hand.forEach(card => {
-        if (card.id === targetCardId && card.locked) {
-          card.locked = false;
-          unlockedCard = card;
-          targetPlayerId = pKey;
+
+  // 1. First search for locked correct cards for unsolved slots
+  for (const s of nonLinearOrder) {
+    if (unlockedCards.length >= 2) break;
+    if (!gameState.closingSlots || !gameState.closingSlots[s]) {
+      const targetCardId = CLOSING_SLOT_TO_CARD[s];
+      seenHands.clear();
+      Object.keys(gameState.closingPlayerHands).forEach(pKey => {
+        if (unlockedCards.length >= 2) return;
+        const hand = gameState.closingPlayerHands[pKey];
+        if (Array.isArray(hand) && !seenHands.has(hand)) {
+          seenHands.add(hand);
+          hand.forEach(card => {
+            if (card.id === targetCardId && card.locked && unlockedCards.length < 2) {
+              card.locked = false;
+              unlockedCards.push({ card, playerKey: pKey, slot: s });
+            }
+          });
         }
       });
     }
-  });
+  }
 
-  if (unlockedCard) {
-    logCourt(`🔓 [CARD UNLOCKED]: การ์ดสำหรับช่องที่ ${nextSlot} (หน้าที่ ${unlockedCard.page}: "${unlockedCard.title}") ถูกปลดล็อกแล้ว!`);
-    playSfx('correct');
-    broadcast({
-      type: 'closing_card_unlocked',
-      playerId: targetPlayerId,
-      cardId: unlockedCard.id,
-      cardTitle: unlockedCard.title,
-      hands: gameState.closingPlayerHands
+  // 2. If still fewer than 2 cards, unlock a decoy card to maintain mystery & deduction
+  if (unlockedCards.length < 2) {
+    seenHands.clear();
+    Object.keys(gameState.closingPlayerHands).forEach(pKey => {
+      if (unlockedCards.length >= 2) return;
+      const hand = gameState.closingPlayerHands[pKey];
+      if (Array.isArray(hand) && !seenHands.has(hand)) {
+        seenHands.add(hand);
+        hand.forEach(card => {
+          if (card.decoy && card.locked && unlockedCards.length < 2) {
+            card.locked = false;
+            unlockedCards.push({ card, playerKey: pKey, slot: null });
+          }
+        });
+      }
     });
-    showToast(`🔓 ปลดล็อกการ์ดสำหรับช่องที่ ${nextSlot} (หน้าที่ ${unlockedCard.page}) แล้ว!`);
+  }
+
+  if (unlockedCards.length > 0) {
+    playSfx('correct');
+    unlockedCards.forEach(item => {
+      const slotText = item.slot ? `ช่องที่ ${item.slot}` : 'ตัวเลือกเสริม';
+      logCourt(`🔓 [CARD UNLOCKED]: การ์ด (${slotText} หน้าที่ ${item.card.page}: "${item.card.title}") ถูกปลดล็อกแล้ว!`);
+      broadcast({
+        type: 'closing_card_unlocked',
+        playerId: item.playerKey,
+        cardId: item.card.id,
+        cardTitle: item.card.title,
+        hands: gameState.closingPlayerHands
+      });
+    });
+    showToast(`🔓 ปลดล็อกการ์ดใหม่ ${unlockedCards.length} ใบในมือผู้เล่นเรียบร้อย!`);
   }
 }
 
@@ -6434,13 +6456,12 @@ function handleClosingSubmit(slot, cardId, pName) {
       stopTimer();
       setTimeout(() => {
         playSfx('point_break');
-        showMinigameResult(
-          true,
-          "CLOSING ARGUMENT COMPLETE!",
-          "การปะติดปะต่อลำดับเหตุการณ์มังงะคดีความ 5 หน้าสมบูรณ์แบบ 100%!",
-          "เรื่องราวทั้งหมดของคดีถูกคลี่คลายอย่างสมบูรณ์แบบ! DM สามารถกดปุ่ม 'ฉายสรุปคดี (Climax)' บนจอศาลเพื่อรับชมบทสรุปคดีได้ทันที"
-        );
-      }, 500);
+        logCourt(`🎉 [CLIMAX COMPLETE]: วางการ์ดครบ 10 ช่องสมบูรณ์! เริ่มฉายมังงะบทสรุปคดี (Climax Inference Storyboard)...`);
+        startClosingClimaxPlayback();
+        if (typeof isHost !== 'undefined' && isHost) {
+          broadcast({ type: 'start_closing_climax' });
+        }
+      }, 400);
     }
 
     if (typeof isHost !== 'undefined' && isHost) {
@@ -6552,7 +6573,9 @@ function startClosingClimaxPlayback() {
   if (!modal || !container) return;
 
   modal.classList.remove('hidden');
-  playSfx('point_break');
+  try {
+    playSfx('point_break');
+  } catch(e) {}
 
   container.innerHTML = CLOSING_PAGES_DATA.map(p => {
     const panelsHtml = p.panels.map(pan => {
@@ -11385,3 +11408,65 @@ function applyDynamicRoomBanterStage0() {
   }
   showToast("🔄 ดึงรายชื่อตัวละครในห้องปัจจุบันเข้ามาเป็นบทพูดเรียบร้อย!");
 }
+
+// ==========================================================
+// SCENARIO MANAGER & EXTENSIBILITY ARCHITECTURE (FUTURE CASES)
+// ==========================================================
+const TrialEventBus = {
+  listeners: {},
+  on(event, callback) {
+    if (!this.listeners[event]) this.listeners[event] = [];
+    this.listeners[event].push(callback);
+  },
+  emit(event, data) {
+    if (this.listeners[event]) {
+      this.listeners[event].forEach(cb => {
+        try { cb(data); } catch(err) { console.error('[TrialEventBus Error]:', err); }
+      });
+    }
+  }
+};
+
+const ScenarioManager = {
+  cases: {},
+  activeCaseId: 'case1',
+
+  registerCase(caseId, caseData) {
+    this.cases[caseId] = caseData;
+  },
+
+  getActiveCase() {
+    return this.cases[this.activeCaseId] || this.cases['case1'];
+  },
+
+  loadCase(caseId) {
+    if (!this.cases[caseId]) {
+      console.warn(`[ScenarioManager] Case '${caseId}' not found. Defaulting to case1.`);
+      this.activeCaseId = 'case1';
+    } else {
+      this.activeCaseId = caseId;
+    }
+    const cData = this.getActiveCase();
+    if (cData) {
+      if (cData.clues) ALL_CLUES_DATA = cData.clues;
+      if (cData.logicDive) LOGIC_DIVE_ROUTES = cData.logicDive;
+      if (cData.closingPages) CLOSING_PAGES_DATA = cData.closingPages;
+      if (cData.closingCards) CLOSING_CARDS_DATA = cData.closingCards;
+      logCourt(`📂 [SCENARIO LOADED]: โหลดข้อมูลคดี "${cData.title || caseId}" เรียบร้อย`);
+      TrialEventBus.emit('case_loaded', { caseId, data: cData });
+    }
+  }
+};
+
+// Register Case 1 (The Staged Hanging in the Laundry Room)
+ScenarioManager.registerCase('case1', {
+  id: 'case1',
+  chapter: 1,
+  title: 'คดีห้องซักรีดและกับดักรอกเพดาน (The Staged Laundry Room Trap)',
+  victim: 'เรียวตะ เซ็นโงคุ (Ryota Sengoku - PC B)',
+  culprit: 'ฮิฟุมิ ยามาดะ (Hifumi Yamada - PC 5)',
+  clues: ALL_CLUES_DATA,
+  logicDive: LOGIC_DIVE_ROUTES,
+  closingPages: CLOSING_PAGES_DATA,
+  closingCards: CLOSING_CARDS_DATA
+});
