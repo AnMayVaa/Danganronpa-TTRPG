@@ -5582,6 +5582,10 @@ const QUICK_QUESTION_PRESETS = {
 };
 
 function applyPresetQuickQuestion(presetId, isSilent) {
+  if (presetId === '__custom__') return;
+  if (gameState.customStages && gameState.customStages['quick_question'] && !isSilent) {
+    delete gameState.customStages['quick_question'];
+  }
   const p = QUICK_QUESTION_PRESETS[presetId];
   if (!p) return;
   const qEl = document.getElementById('cfgQqQuestion');
@@ -5614,6 +5618,14 @@ function applyPresetQuickQuestion(presetId, isSilent) {
 }
 
 function adminStartQuickQuestion() {
+  if (gameState.customStages && gameState.customStages['quick_question']) {
+    const config = gameState.customStages['quick_question'];
+    setStage('quick_question', config);
+    broadcast({ type: 'set_stage', stage: 'quick_question', config: config });
+    closeAdminMinigameModal();
+    logCourt(`⚡ [FLASH DECISION]: DM เริ่มต้นช่วงตอบคำถามสั้น 1 ข้อ (Custom): "${config.question}"`);
+    return;
+  }
   const q = document.getElementById('cfgQqQuestion')?.value || 'เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?';
   const cA = document.getElementById('cfgQqChoiceA')?.value || '17:30 น. (ช่วงเตรียมอาหารเย็น)';
   const cB = document.getElementById('cfgQqChoiceB')?.value || '19:00 น. (ช่วงเริ่มรับประทานอาหาร)';
@@ -6231,6 +6243,10 @@ function handleStg6DmForcePass() {
 }
 
 function adminStartArmament() {
+  if (gameState.customStages && gameState.customStages['stage6']) {
+    adminSetGame('stage6', gameState.customStages['stage6']);
+    return;
+  }
   const sel = document.getElementById('adminArmamentTargetSelect');
   let target = sel ? sel.value : '';
   if (!target) {
@@ -9769,6 +9785,10 @@ function updateRebuttalDisplay() {
 }
 
 function adminStartRebuttal() {
+  if (gameState.customStages && gameState.customStages['stage3']) {
+    adminSetGame('stage3', gameState.customStages['stage3']);
+    return;
+  }
   const rebSel = document.getElementById('adminRebuttalChallengerSelect');
   const rebOppSel = document.getElementById('adminRebuttalOpponentSelect');
   const chal = rebSel ? rebSel.value : '';
@@ -10328,12 +10348,40 @@ function openAdminMinigameModal(defaultTab) {
   populateStg1CluesDropdown();
   populateAllConfigStageSelects();
   modal.classList.remove('hidden');
+  modal.style.display = 'flex';
   selectConfigTab(defaultTab || 'stage0');
+  try {
+    const dialog = modal.querySelector('.admin-config-modal-dialog');
+    if (dialog) dialog.scrollTop = 0;
+  } catch (e) {}
 }
 
 function closeAdminMinigameModal() {
   const modal = document.getElementById('adminMinigameModal');
-  if (modal) modal.classList.add('hidden');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+}
+
+function onAdminPresetChange(stage, selectEl) {
+  if (!selectEl) return;
+  const val = selectEl.value;
+  if (val === '__custom__') {
+    openAdminMinigameModal(stage);
+    return;
+  }
+  if (gameState.customStages && gameState.customStages[stage]) {
+    delete gameState.customStages[stage];
+  }
+  if (stage === 'stage0') applyPresetStage0(val);
+  else if (stage === 'stage1') applyPresetStage1(val);
+  else if (stage === 'stage2') applyHangmanPresetFromDropdown(val);
+  else if (stage === 'stage3') applyRebuttalPresetFromDropdown(val);
+  else if (stage === 'stage4') applyPresetStage4(val);
+  else if (stage === 'stage5') applyScrumPresetFromDropdown(val);
+  else if (stage === 'stage6') applyArmamentPresetFromDropdown(val);
+  else if (stage === 'quick_question') applyPresetQuickQuestion(val);
 }
 
 function selectConfigTab(stageKey) {
@@ -10414,6 +10462,10 @@ function initAdminPresetsDisplay() {
 }
 
 function applyPresetStage0(presetKey, isSilent) {
+  if (presetKey === '__custom__') return;
+  if (gameState.customStages && gameState.customStages['stage0'] && !isSilent) {
+    delete gameState.customStages['stage0'];
+  }
   const topInput = document.getElementById('cfgStg0Topic');
   const stmtInput = document.getElementById('cfgStg0Statements');
   const badge = document.getElementById('stg0CardDesc');
@@ -10471,6 +10523,10 @@ function applyPresetStage0(presetKey, isSilent) {
 }
 
 function applyPresetStage1(presetKey, isSilent) {
+  if (presetKey === '__custom__') return;
+  if (gameState.customStages && gameState.customStages['stage1'] && !isSilent) {
+    delete gameState.customStages['stage1'];
+  }
   populateStg1CluesDropdown();
   const pInput = document.getElementById('cfgStg1Prompt');
   const tSelect = document.getElementById('cfgStg1TargetClue');
@@ -10543,6 +10599,10 @@ function applyPresetStage2(word, prompt) {
 }
 
 function applyHangmanPresetFromDropdown(word, isSilent) {
+  if (word === '__custom__') return;
+  if (gameState.customStages && gameState.customStages['stage2'] && !isSilent) {
+    delete gameState.customStages['stage2'];
+  }
   const prompts = {
     'WATER CLOCK': { text: 'ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!', th: 'นาฬิกาน้ำ' },
     'COUNTERWEIGHT': { text: 'หลักการทางฟิสิกส์ที่ใช้ถ่วงน้ำหนักเพื่อยกร่างเหยื่อขึ้นสู่เพดานคืออะไร!?', th: 'ถ่วงน้ำหนัก' },
@@ -10642,6 +10702,10 @@ function applyPresetStage3(chal, opp, topic, arg) {
 }
 
 function applyRebuttalPresetFromDropdown(val, isSilent) {
+  if (val === '__custom__') return;
+  if (gameState.customStages && gameState.customStages['stage3'] && !isSilent) {
+    delete gameState.customStages['stage3'];
+  }
   const presets = {
     kitchen: {
       chal: 'นาเอกิ มาโคโตะ',
@@ -10707,6 +10771,10 @@ function applyRebuttalPresetFromDropdown(val, isSilent) {
 }
 
 function applyPresetStage4(key, isSilent) {
+  if (key === '__custom__') return;
+  if (gameState.customStages && gameState.customStages['stage4'] && !isSilent) {
+    delete gameState.customStages['stage4'];
+  }
   const sel = document.getElementById('adminStg4PresetSelect');
   if (sel && sel.value !== key) sel.value = key;
 
@@ -10747,6 +10815,10 @@ function applyPresetStage5(topic, left, right) {
 }
 
 function applyScrumPresetFromDropdown(val, isSilent) {
+  if (val === '__custom__') return;
+  if (gameState.customStages && gameState.customStages['stage5'] && !isSilent) {
+    delete gameState.customStages['stage5'];
+  }
   const presets = [
     {
       topic: 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?',
@@ -10836,6 +10908,10 @@ function applyPresetStage6(opp, scream) {
 }
 
 function applyArmamentPresetFromDropdown(val, isSilent) {
+  if (val === '__custom__') return;
+  if (gameState.customStages && gameState.customStages['stage6'] && !isSilent) {
+    delete gameState.customStages['stage6'];
+  }
   const presets = {
     rope: {
       text: 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!',
@@ -10887,9 +10963,12 @@ function applyPresetStage7(mode) {
 }
 
 function getStageConfigFromInputs(stage) {
+  if (gameState.customStages && gameState.customStages[stage]) {
+    return gameState.customStages[stage];
+  }
   if (stage === 'stage0') {
     const pSel = document.getElementById('adminStg0PresetSelect');
-    if (pSel && pSel.value) {
+    if (pSel && pSel.value && pSel.value !== '__custom__') {
       applyPresetStage0(pSel.value, true);
     }
     const topic = document.getElementById('cfgStg0Topic')?.value || 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.';
@@ -10902,7 +10981,7 @@ function getStageConfigFromInputs(stage) {
     return { topic, statements: statements.length > 0 ? statements : (DEFAULT_STG0_STATEMENTS || []) };
   } else if (stage === 'stage1') {
     const pSel = document.getElementById('adminStg1PresetSelect');
-    if (pSel && pSel.value) {
+    if (pSel && pSel.value && pSel.value !== '__custom__') {
       applyPresetStage1(pSel.value, true);
     }
     const prompt = document.getElementById('cfgStg1Prompt')?.value || '';
@@ -10910,7 +10989,7 @@ function getStageConfigFromInputs(stage) {
     return { prompt, correctClueId: target };
   } else if (stage === 'stage2') {
     const pSel = document.getElementById('adminStg2PresetSelect');
-    if (pSel && pSel.value) {
+    if (pSel && pSel.value && pSel.value !== '__custom__') {
       applyHangmanPresetFromDropdown(pSel.value, true);
     }
     const prompt = document.getElementById('cfgStg2Prompt')?.value || '';
@@ -10918,7 +10997,7 @@ function getStageConfigFromInputs(stage) {
     return { prompt, targetWord: word };
   } else if (stage === 'stage3') {
     const pSel = document.getElementById('adminStg3PresetSelect');
-    if (pSel && pSel.value) {
+    if (pSel && pSel.value && pSel.value !== '__custom__') {
       applyRebuttalPresetFromDropdown(pSel.value, true);
     }
     const chalSel = document.getElementById('cfgStg3ChallengerSelect');
@@ -10938,7 +11017,7 @@ function getStageConfigFromInputs(stage) {
     return { route };
   } else if (stage === 'stage5') {
     const pSel = document.getElementById('adminStg5PresetSelect');
-    if (pSel && pSel.value !== undefined) {
+    if (pSel && pSel.value !== undefined && pSel.value !== '__custom__') {
       applyScrumPresetFromDropdown(pSel.value, true);
     }
     const topic = document.getElementById('cfgStg5Topic')?.value || 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?';
@@ -10947,7 +11026,7 @@ function getStageConfigFromInputs(stage) {
     return { topic, leftTeam: left, rightTeam: right };
   } else if (stage === 'stage6') {
     const pSel = document.getElementById('adminStg6PresetSelect');
-    if (pSel && pSel.value) {
+    if (pSel && pSel.value && pSel.value !== '__custom__') {
       applyArmamentPresetFromDropdown(pSel.value, true);
     }
     let target = document.getElementById('adminArmamentTargetSelect')?.value || '';
@@ -10960,7 +11039,7 @@ function getStageConfigFromInputs(stage) {
     return { targetPlayer: target, opponent: target, scream };
   } else if (stage === 'quick_question') {
     const pSel = document.getElementById('adminQqPresetSelect');
-    if (pSel && pSel.value) {
+    if (pSel && pSel.value && pSel.value !== '__custom__') {
       applyPresetQuickQuestion(pSel.value);
     }
     const q = document.getElementById('cfgQqQuestion')?.value || 'เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?';
@@ -10978,112 +11057,186 @@ function getStageConfigFromInputs(stage) {
   return {};
 }
 
-function adminLaunchSelectedConfigGame() {
+function adminSaveSelectedConfigGame(launchImmediately) {
   const stg = currentSelectedConfigStage || 'stage0';
   let config = {};
+  let badgeText = '';
+
+  const stageTitles = {
+    stage0: '🗣️ 0. Non-Stop Debate',
+    stage1: '🔍 1. Evidence Linker',
+    stage2: '🔤 2. Hangman\'s Gambit',
+    stage3: '⚔️ 3. Rebuttal Showdown',
+    stage4: '🛹 4. Logic Dive',
+    stage5: '⚖️ 5. Debate Scrum',
+    stage6: '🔨 6. Argument Armament',
+    stage7: '📖 7. Closing Argument',
+    quick_question: '⚡ Quick Question'
+  };
+
+  const stageSelectMap = {
+    stage0: 'adminStg0PresetSelect',
+    stage1: 'adminStg1PresetSelect',
+    stage2: 'adminStg2PresetSelect',
+    stage3: 'adminStg3PresetSelect',
+    stage4: 'adminStg4PresetSelect',
+    quick_question: 'adminQqPresetSelect',
+    stage5: 'adminStg5PresetSelect',
+    stage6: 'adminStg6PresetSelect'
+  };
+
+  const stageBadgeMap = {
+    stage0: 'stg0CardDesc',
+    stage1: 'stg1CardDesc',
+    stage2: 'stg2CardDesc',
+    stage3: 'stg3CardDesc',
+    stage4: 'stg4CardDesc',
+    quick_question: 'qqCardDesc',
+    stage5: 'stg5CardDesc',
+    stage6: 'stg6CardDesc',
+    stage7: 'stg7CardDesc'
+  };
 
   if (stg === 'stage0') {
-    const topic = document.getElementById('cfgStg0Topic') ? document.getElementById('cfgStg0Topic').value : 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.';
-    const rawStmts = document.getElementById('cfgStg0Statements') ? document.getElementById('cfgStg0Statements').value : '';
+    const topic = document.getElementById('cfgStg0Topic')?.value?.trim() || 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.';
+    const rawStmts = document.getElementById('cfgStg0Statements')?.value || '';
     const statements = rawStmts.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
       const match = line.match(/^\[(.*?)\]\s*(.*)$/);
-      if (match) {
-        return { speaker: match[1], text: match[2] };
-      }
+      if (match) return { speaker: match[1], text: match[2] };
       return { speaker: 'ผู้ร่วมอภิปราย', text: line };
     });
-    config = { topic: topic, statements: statements.length > 0 ? statements : DEFAULT_STG0_STATEMENTS };
-    adminSetGame('stage0', config);
-    closeAdminMinigameModal();
-    logCourt(`🎮 [MINIGAME LAUNCH]: DM เริ่มต้น NON-STOP DEBATE ในประเด็น "${topic}"`);
-    return;
+    const finalStmts = statements.length > 0 ? statements : (DEFAULT_STG0_STATEMENTS || []);
+    config = { topic, statements: finalStmts, isCustom: true };
+    badgeText = `✏️ กำหนดเอง: ${topic.slice(0, 24)}...`;
+    gameState.stg0Topic = topic;
   } else if (stg === 'stage1') {
-    const prompt = document.getElementById('cfgStg1Prompt') ? document.getElementById('cfgStg1Prompt').value : '';
-    const target = document.getElementById('cfgStg1TargetClue') ? document.getElementById('cfgStg1TargetClue').value : 'EVD-02';
-    config = { prompt: prompt, correctClueId: target };
+    const prompt = document.getElementById('cfgStg1Prompt')?.value?.trim() || '';
+    const target = document.getElementById('cfgStg1TargetClue')?.value || 'EVD-02';
+    config = { prompt, correctClueId: target, isCustom: true };
+    badgeText = `✏️ กำหนดเอง: ${target} (${prompt.slice(0, 16)}...)`;
+    gameState.stg1Prompt = prompt;
+    gameState.stg1TargetClue = target;
   } else if (stg === 'stage2') {
-    const prompt = document.getElementById('cfgStg2Prompt') ? document.getElementById('cfgStg2Prompt').value : '';
-    const word = document.getElementById('cfgStg2Word') ? document.getElementById('cfgStg2Word').value.trim().toUpperCase() : 'WATER CLOCK';
-    config = { prompt: prompt, targetWord: word };
+    const prompt = document.getElementById('cfgStg2Prompt')?.value?.trim() || '';
+    const word = (document.getElementById('cfgStg2Word')?.value || 'WATER CLOCK').trim().toUpperCase();
+    config = { prompt, targetWord: word, isCustom: true };
+    badgeText = `✏️ กำหนดเอง: ${word}`;
+    gameState.stg2Word = word;
+    gameState.stg2Target = word.split('');
+    gameState.stg2Prompt = prompt;
   } else if (stg === 'stage3') {
     const chalSel = document.getElementById('cfgStg3ChallengerSelect');
     const chalInput = document.getElementById('cfgStg3ChallengerCustom');
-    const chal = getSelectOrCustomValue(chalSel, chalInput) || 'นาเอกิ มาโคโตะ';
-
+    const chal = (typeof getSelectOrCustomValue === 'function' ? getSelectOrCustomValue(chalSel, chalInput) : null) || document.getElementById('adminRebuttalChallengerSelect')?.value || 'นาเอกิ มาโคโตะ';
     const oppSel = document.getElementById('cfgStg3OpponentSelect');
     const oppInput = document.getElementById('cfgStg3OpponentCustom');
-    const opp = getSelectOrCustomValue(oppSel, oppInput) || 'ฮิฟุมิ ยามาดะ';
-
-    const topic = document.getElementById('cfgStg3Topic') ? document.getElementById('cfgStg3Topic').value : 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi';
-    const arg = document.getElementById('cfgStg3Arg') ? document.getElementById('cfgStg3Arg').value : 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?';
-
-    if (chal && opp && chal === opp) {
-      showToast('⚠️ ฝ่ายกล่าวหาและฝ่ายตรงข้ามต้องไม่ใช่คนเดียวกัน!');
-      return;
-    }
-
-    config = { challenger: chal, opponent: opp, topic: topic, argument: arg, statement: arg };
+    const opp = (typeof getSelectOrCustomValue === 'function' ? getSelectOrCustomValue(oppSel, oppInput) : null) || document.getElementById('adminRebuttalOpponentSelect')?.value || 'ฮิฟุมิ ยามาดะ';
+    const topic = document.getElementById('cfgStg3Topic')?.value?.trim() || 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi';
+    const arg = document.getElementById('cfgStg3Arg')?.value?.trim() || 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?';
+    config = { challenger: chal, opponent: opp, topic, argument: arg, statement: arg, isCustom: true };
+    badgeText = `✏️ กำหนดเอง: ${chal} VS ${opp}`;
     gameState.stg3Challenger = chal;
     gameState.stg3Opponent = opp;
     gameState.stg3Topic = topic;
     gameState.stg3Argument = arg;
-
-    // Sync admin panel dropdowns too
-    const admChal = document.getElementById('adminRebuttalChallengerSelect');
-    const admOpp = document.getElementById('adminRebuttalOpponentSelect');
-    if (admChal) {
-      for (let opt of admChal.options) {
-        if (opt.value === chal || opt.text.includes(chal)) { admChal.value = opt.value; break; }
-      }
-    }
-    if (admOpp) {
-      for (let opt of admOpp.options) {
-        if (opt.value === opp || opt.text.includes(opp)) { admOpp.value = opt.value; break; }
-      }
-    }
   } else if (stg === 'stage4') {
-    const route = (gameState.stg4Route === 'timeline' || LOGIC_DIVE_DATA === LOGIC_DIVE_ROUTES.timeline) ? 'timeline' : 'pulley';
-    config = { route: route };
+    const pSel = document.getElementById('adminStg4PresetSelect');
+    const route = (pSel && pSel.value === 'timeline') ? 'timeline' : 'pulley';
+    config = { route, isCustom: true };
+    badgeText = `✏️ กำหนดเอง: Route ${route}`;
+    gameState.stg4Route = route;
   } else if (stg === 'stage5') {
-    const topic = document.getElementById('cfgStg5Topic') ? document.getElementById('cfgStg5Topic').value : '';
-    const left = document.getElementById('cfgStg5Left') ? document.getElementById('cfgStg5Left').value : '';
-    const right = document.getElementById('cfgStg5Right') ? document.getElementById('cfgStg5Right').value : '';
-    config = { topic: topic, leftTeam: left, rightTeam: right };
+    const topic = document.getElementById('cfgStg5Topic')?.value?.trim() || 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?';
+    const left = document.getElementById('cfgStg5Left')?.value?.trim() || '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก';
+    const right = document.getElementById('cfgStg5Right')?.value?.trim() || '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง';
+    config = { topic, leftTeam: left, rightTeam: right, isCustom: true };
+    badgeText = `✏️ กำหนดเอง: ${topic.slice(0, 20)}...`;
+    gameState.stg5Topic = topic;
+    gameState.stg5LeftTeam = left;
+    gameState.stg5RightTeam = right;
   } else if (stg === 'stage6') {
     const tgtSel = document.getElementById('cfgStg6TargetSelect');
     const tgtInput = document.getElementById('cfgStg6CustomTarget');
-    let target = getSelectOrCustomValue(tgtSel, tgtInput);
-    if (!target) {
-      target = document.getElementById('adminArmamentTargetSelect')?.value || 'ฮิฟุมิ ยามาดะ';
-    }
-    const scream = document.getElementById('cfgStg6Scream') ? document.getElementById('cfgStg6Scream').value : '';
-    config = { targetPlayer: target, opponent: target, scream: scream };
+    let target = (typeof getSelectOrCustomValue === 'function' ? getSelectOrCustomValue(tgtSel, tgtInput) : null) || document.getElementById('adminArmamentTargetSelect')?.value || 'ฮิฟุมิ ยามาดะ';
+    const scream = document.getElementById('cfgStg6Scream')?.value?.trim() || 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!';
+    config = { targetPlayer: target, opponent: target, scream, isCustom: true };
+    badgeText = `✏️ กำหนดเอง: ${target}`;
     gameState.stg6TargetPlayer = target;
+    gameState.stg6Statement = scream;
+  } else if (stg === 'stage7') {
+    config = { closing: 'full', isCustom: true };
+    badgeText = '✏️ มังงะสรุปคดี (ฉบับสมบูรณ์)';
   } else if (stg === 'quick_question') {
-    const q = document.getElementById('cfgQqQuestion')?.value || 'เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?';
-    const cA = document.getElementById('cfgQqChoiceA')?.value || '17:30 น. (ช่วงเตรียมอาหารเย็น)';
-    const cB = document.getElementById('cfgQqChoiceB')?.value || '19:00 น. (ช่วงเริ่มรับประทานอาหาร)';
-    const cC = document.getElementById('cfgQqChoiceC')?.value || '20:30 น. (ช่วงก่อนไฟดับ)';
+    const q = document.getElementById('cfgQqQuestion')?.value?.trim() || 'เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?';
+    const cA = document.getElementById('cfgQqChoiceA')?.value?.trim() || '17:30 น. (ช่วงเตรียมอาหารเย็น)';
+    const cB = document.getElementById('cfgQqChoiceB')?.value?.trim() || '19:00 น. (ช่วงเริ่มรับประทานอาหาร)';
+    const cC = document.getElementById('cfgQqChoiceC')?.value?.trim() || '20:30 น. (ช่วงก่อนไฟดับ)';
     const corr = document.getElementById('cfgQqCorrect')?.value || 'A';
     config = {
       id: 'qq_' + Date.now(),
       question: q,
       choices: { A: cA, B: cB, C: cC },
-      correct: corr
+      correct: corr,
+      isCustom: true
     };
-  } else if (stg === 'stage7') {
-    config = { mode: 'full' };
-    setStage('closing', config);
-    broadcast({ type: 'set_stage', stage: 'closing', config: config });
-    closeAdminMinigameModal();
-    logCourt(`🎮 [MINIGAME LAUNCH]: DM เริ่มต้น CLOSING ARGUMENT พร้อมการตั้งค่าที่กำหนด`);
-    return;
+    badgeText = `✏️ กำหนดเอง: ${q.slice(0, 20)}...`;
   }
 
-  setStage(stg, config);
-  broadcast({ type: 'set_stage', stage: stg, config: config });
-  closeAdminMinigameModal();
-  logCourt(`🎮 [MINIGAME LAUNCH]: DM เริ่มต้น ${stg.toUpperCase()} พร้อมการตั้งค่าที่กำหนด`);
+  // Save into state
+  if (!gameState.customStages) gameState.customStages = {};
+  gameState.customStages[stg] = config;
+
+  // Sync dropdown on card to show __custom__
+  const selId = stageSelectMap[stg];
+  if (selId) {
+    const sel = document.getElementById(selId);
+    if (sel) {
+      let customOpt = sel.querySelector('option[value="__custom__"]');
+      if (!customOpt) {
+        customOpt = document.createElement('option');
+        customOpt.value = '__custom__';
+        customOpt.innerText = '✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...';
+        sel.prepend(customOpt);
+      }
+      sel.value = '__custom__';
+    }
+  }
+
+  // Update card badge
+  const badgeId = stageBadgeMap[stg];
+  if (badgeId && badgeText) {
+    const badge = document.getElementById(badgeId);
+    if (badge) {
+      badge.innerText = badgeText;
+      if (typeof flashPresetBadge === 'function') flashPresetBadge(badgeId);
+    }
+  }
+
+  if (launchImmediately) {
+    if (stg === 'quick_question') {
+      setStage('quick_question', config);
+      broadcast({ type: 'set_stage', stage: 'quick_question', config: config });
+    } else if (stg === 'stage3') {
+      adminSetGame('stage3', config);
+    } else if (stg === 'stage6') {
+      adminSetGame('stage6', config);
+    } else if (stg === 'stage7') {
+      adminSetGame('closing', config);
+    } else {
+      adminSetGame(stg, config);
+    }
+    closeAdminMinigameModal();
+    showToast(`🚀 เริ่ม ${stageTitles[stg] || stg} ด้วยข้อมูลที่กำหนดเองเรียบร้อย!`);
+    logCourt(`🎮 [CUSTOM MINIGAME LAUNCH]: DM เริ่ม ${stageTitles[stg] || stg} ด้วยข้อมูลที่กำหนดเอง`);
+  } else {
+    closeAdminMinigameModal();
+    showToast(`💾 บันทึกการแก้ไข [${stageTitles[stg] || stg}] เรียบร้อยแล้ว (กดเริ่มจากการ์ดได้ทันที)`);
+    logCourt(`💾 [CUSTOM MINIGAME SAVED]: DM บันทึกการแก้ไข ${stageTitles[stg] || stg} เรียบร้อย (พร้อมเริ่มจากการ์ด)`);
+  }
+}
+
+function adminLaunchSelectedConfigGame() {
+  adminSaveSelectedConfigGame(true);
 }
 
 // ==========================================================

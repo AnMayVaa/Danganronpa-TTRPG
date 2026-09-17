@@ -831,14 +831,15 @@
                   <strong>🗣️ 0. Non-Stop Debate (การถกเถียงต่อเนื่อง)</strong>
                   <span id="stg0CardDesc" class="dm-card-active-preset">⏱️ 1: ไทม์ไลน์เสียงกระแทก (21:00 น.)</span>
                 </button>
-                <button type="button" class="small-btn pink" onclick="openAdminMinigameModal('stage0');" style="padding:10px 14px; font-weight:900; font-size:1rem;" title="ตั้งค่าบทดีเบต" aria-label="ตั้งค่าบทดีเบต">
+                <button type="button" class="small-btn pink dm-gear-btn" onclick="openAdminMinigameModal('stage0');" style="padding:10px 14px; font-weight:900; font-size:1rem;" title="ตั้งค่าบทดีเบต (Custom Edit)" aria-label="ตั้งค่าบทดีเบต">
                   ⚙️
                 </button>
               </div>
               <div class="dm-select-row" style="margin-top:2px;">
                 <span class="dm-select-label">⚡ พรีเซ็ตดีเบต:</span>
-                <select id="adminStg0PresetSelect" class="dm-styled-select" onchange="applyPresetStage0(this.value)" style="max-width:240px; flex:1;">
-                  <option value="timeline">⏱️ 1: ไทม์ไลน์เสียงกระแทก (21:00 น.)</option>
+                <select id="adminStg0PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage0', this)" style="max-width:240px; flex:1;">
+                  <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
+                  <option value="timeline" selected>⏱️ 1: ไทม์ไลน์เสียงกระแทก (21:00 น.)</option>
                   <option value="weapon">🍖 2: การหมดสติ & อาวุธในครัว</option>
                   <option value="pulley">🪢 3: รอยเชือก & กลไกยกร่าง</option>
                 </select>
@@ -878,8 +879,9 @@
               </button>
               <div class="dm-select-row" style="margin-top:2px;">
                 <span class="dm-select-label">⚡ พรีเซ็ตโจทย์:</span>
-                <select id="adminStg1PresetSelect" class="dm-styled-select" onchange="applyPresetStage1(this.value)" style="max-width:210px; flex:1;">
-                  <option value="bone">🍖 อาวุธทุบสลบ (EVD-02)</option>
+                <select id="adminStg1PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage1', this)" style="max-width:210px; flex:1;">
+                  <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
+                  <option value="bone" selected>🍖 อาวุธทุบสลบ (EVD-02)</option>
                   <option value="rope">🪢 เชือกยกร่าง (EVD-09)</option>
                   <option value="window">🪟 ราวท่อเพดาน (EVD-14)</option>
                   <option value="barrel">🛢️ ซากถังน้ำ (EVD-19)</option>
@@ -891,7 +893,7 @@
                 <button class="small-btn yellow" onclick="adminEvaluateStage1()" style="flex:1; padding:6px; font-weight:900; font-size:0.82rem; background:rgba(255,230,0,0.15); border:1px solid #ffe600;">
                   🔍 เฉลยคำตอบ (Review)
                 </button>
-                <button type="button" class="small-btn pink" onclick="openAdminMinigameModal('stage1')" title="ปรับแต่งโจทย์ละเอียด" style="padding:6px 12px; font-weight:900;">
+                <button type="button" class="small-btn pink dm-gear-btn" onclick="openAdminMinigameModal('stage1')" title="ปรับแต่งโจทย์ละเอียด (Custom Edit)" style="padding:6px 12px; font-weight:900;">
                   ⚙️
                 </button>
               </div>
@@ -905,15 +907,16 @@
               </button>
               <div class="dm-select-row" style="margin-top:2px;">
                 <span class="dm-select-label">⚡ พรีเซ็ตคำศัพท์:</span>
-                <select id="adminStg2PresetSelect" class="dm-styled-select" onchange="applyHangmanPresetFromDropdown(this.value)" style="max-width:210px; flex:1;">
-                  <option value="WATER CLOCK">WATER CLOCK (นาฬิกาน้ำ)</option>
+                <select id="adminStg2PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage2', this)" style="max-width:210px; flex:1;">
+                  <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
+                  <option value="WATER CLOCK" selected>WATER CLOCK (นาฬิกาน้ำ)</option>
                   <option value="COUNTERWEIGHT">COUNTERWEIGHT (ถ่วงน้ำหนัก)</option>
                   <option value="PORK BONE">PORK BONE (กระดูกหมู)</option>
                   <option value="CEILING PIPE">CEILING PIPE (ท่อเพดาน)</option>
                   <option value="WATER HOSE">WATER HOSE (สายยางน้ำ)</option>
                   <option value="STAGING">STAGING (จัดฉากฆาตกรรม)</option>
                 </select>
-                <button type="button" class="small-btn cyan" onclick="openAdminMinigameModal('stage2')" title="ปรับแต่งคำศัพท์ละเอียด" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
+                <button type="button" class="small-btn cyan dm-gear-btn" onclick="openAdminMinigameModal('stage2')" title="ปรับแต่งคำศัพท์ละเอียด (Custom Edit)" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
               </div>
             </div>
 
@@ -925,13 +928,14 @@
               </button>
               <div class="dm-select-row" style="margin-top:2px; margin-bottom:4px;">
                 <span class="dm-select-label">⚡ พรีเซ็ตการดวล:</span>
-                <select id="adminStg3PresetSelect" class="dm-styled-select" onchange="applyRebuttalPresetFromDropdown(this.value)" style="max-width:210px; flex:1;">
-                  <option value="kitchen">🍳 ข้ออ้างครัว (นาเอกิ VS ฮิฟุมิ)</option>
+                <select id="adminStg3PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage3', this)" style="max-width:210px; flex:1;">
+                  <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
+                  <option value="kitchen" selected>🍳 ข้ออ้างครัว (นาเอกิ VS ฮิฟุมิ)</option>
                   <option value="blackout">💡 ข้ออ้างไฟดับ (เคียวโกะ VS ฮิฟุมิ)</option>
                   <option value="window">🪟 ข้ออ้างหน้าต่าง (เบียคุยะ VS ฮิฟุมิ)</option>
                   <option value="suicide">🔪 ข้ออ้างฆ่าตัวตาย (นาเอกิ VS ฮิฟุมิ)</option>
                 </select>
-                <button type="button" class="small-btn red" onclick="openAdminMinigameModal('stage3')" title="ปรับแต่งคำพูดดวลดาบละเอียด" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
+                <button type="button" class="small-btn red dm-gear-btn" onclick="openAdminMinigameModal('stage3')" title="ปรับแต่งคำพูดดวลดาบละเอียด (Custom Edit)" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
               </div>
               <div class="dm-select-group">
                 <div class="dm-select-row">
@@ -965,11 +969,11 @@
               </button>
               <div class="dm-select-row" style="margin-top:2px;">
                 <span class="dm-select-label">⚡ พรีเซ็ตเส้นทาง:</span>
-                <select id="adminStg4PresetSelect" class="dm-styled-select" onchange="applyPresetStage4(this.value)" style="max-width:210px; flex:1;">
-                  <option value="pulley">🎯 Route 1: กลไกรอกเพดาน</option>
+                <select id="adminStg4PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage4', this)" style="max-width:210px; flex:1;">
+                  <option value="pulley" selected>🎯 Route 1: กลไกรอกเพดาน</option>
                   <option value="timeline">⏱️ Route 2: เวลาตาย & แผนคนร้าย</option>
                 </select>
-                <button type="button" class="small-btn purple" onclick="openAdminMinigameModal('stage4')" title="ดูเส้นทางและตัวเลือกละเอียด" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
+                <button type="button" class="small-btn purple dm-gear-btn" onclick="openAdminMinigameModal('stage4')" title="ดูเส้นทางและตัวเลือกละเอียด (Custom Edit)" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
               </div>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
                 <button class="small-btn yellow" onclick="adminRetryLogicDive()" style="padding:6px; font-weight:900; font-size:0.8rem;">
@@ -989,15 +993,16 @@
               </button>
               <div class="dm-select-row" style="margin-top:2px;">
                 <span class="dm-select-label">⚡ พรีเซ็ตคำถาม:</span>
-                <select id="adminQqPresetSelect" class="dm-styled-select" onchange="applyPresetQuickQuestion(this.value)" style="max-width:210px; flex:1;">
-                  <option value="attack_time">⏱️ เวลาทำร้ายในครัว (17:30)</option>
+                <select id="adminQqPresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('quick_question', this)" style="max-width:210px; flex:1;">
+                  <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
+                  <option value="attack_time" selected>⏱️ เวลาทำร้ายในครัว (17:30)</option>
                   <option value="death_cause">💀 เหตุตายจริง (ขาดอากาศ)</option>
                   <option value="auto_pulley">🛢️ กลไกชักรอก (ถังน้ำหนัก)</option>
                   <option value="dryer_sound">👟 เสียง 21:00 น. (รองเท้าบูท)</option>
                 </select>
               </div>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
-                <button class="small-btn yellow" onclick="openAdminMinigameModal('quick_question')" style="padding:6px; font-weight:900; font-size:0.8rem;">
+                <button class="small-btn yellow dm-gear-btn" onclick="openAdminMinigameModal('quick_question')" style="padding:6px; font-weight:900; font-size:0.8rem;" title="ปรับแต่งคำถามด่วน (Custom Edit)">
                   ⚙️ พรีเซ็ต/คำถาม
                 </button>
                 <button class="small-btn green" onclick="adminRevealQuickQuestion()" style="padding:6px; font-weight:900; font-size:0.8rem;">
@@ -1014,13 +1019,14 @@
               </button>
               <div class="dm-select-row" style="margin-top:2px;">
                 <span class="dm-select-label">⚡ พรีเซ็ต 2 ขั้ว:</span>
-                <select id="adminStg5PresetSelect" class="dm-styled-select" onchange="applyScrumPresetFromDropdown(this.value)" style="max-width:210px; flex:1;">
-                  <option value="0">⚖️ ฆาตกรรม vs ฆ่าตัวตาย</option>
+                <select id="adminStg5PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage5', this)" style="max-width:210px; flex:1;">
+                  <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
+                  <option value="0" selected>⚖️ ฆาตกรรม vs ฆ่าตัวตาย</option>
                   <option value="1">⚖️ แรงคน vs ถังน้ำหนักอัตโนมัติ</option>
                   <option value="2">⚖️ ตายก่อน vs หลังไฟดับ</option>
                   <option value="3">⚖️ ตัดสิน Blackened</option>
                 </select>
-                <button type="button" class="small-btn green" onclick="openAdminMinigameModal('stage5')" title="ปรับแต่งหัวข้อและทีมละเอียด" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
+                <button type="button" class="small-btn green dm-gear-btn" onclick="openAdminMinigameModal('stage5')" title="ปรับแต่งหัวข้อและทีมละเอียด (Custom Edit)" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
               </div>
             </div>
 
@@ -1038,12 +1044,13 @@
               </div>
               <div class="dm-select-row" style="margin-top:4px;">
                 <span class="dm-select-label">⚡ คำพูดดิ้นรน:</span>
-                <select id="adminStg6PresetSelect" class="dm-styled-select" onchange="applyArmamentPresetFromDropdown(this.value)" style="max-width:210px; flex:1;">
-                  <option value="rope">🪢 ปฏิเสธกลไกเชือกและน้ำ</option>
+                <select id="adminStg6PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage6', this)" style="max-width:210px; flex:1;">
+                  <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
+                  <option value="rope" selected>🪢 ปฏิเสธกลไกเชือกและน้ำ</option>
                   <option value="bone">🍖 ข้ออ้างกระดูกหมู</option>
                   <option value="final">💥 คำดิ้นรนสุดท้าย</option>
                 </select>
-                <button type="button" class="small-btn orange" onclick="openAdminMinigameModal('stage6')" title="ปรับแต่งคำพูดคนร้ายละเอียด" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
+                <button type="button" class="small-btn orange dm-gear-btn" onclick="openAdminMinigameModal('stage6')" title="ปรับแต่งคำพูดคนร้ายละเอียด (Custom Edit)" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
               </div>
               <div style="display:flex; gap:6px; margin-top:4px;">
                 <button type="button" class="small-btn yellow" onclick="adminStg6Retry()" style="flex:1; padding:4px 6px; font-size:0.75rem; font-weight:800;">🔄 เริ่มใหม่ (Retry)</button>
@@ -1058,7 +1065,7 @@
                   <strong>7. Closing Argument</strong>
                   <span id="stg7CardDesc" class="dm-card-active-preset">📖 มังงะสรุปคดี (The Culprit B Timeline)</span>
                 </button>
-                <button type="button" class="small-btn pink" onclick="openAdminMinigameModal('stage7')" title="ดูรายละเอียดมังงะ" style="padding:10px 14px; font-weight:900; font-size:1rem;">
+                <button type="button" class="small-btn pink dm-gear-btn" onclick="openAdminMinigameModal('stage7')" title="ดูรายละเอียดมังงะ (Custom Edit)" style="padding:10px 14px; font-weight:900; font-size:1rem;">
                   ⚙️
                 </button>
               </div>
@@ -3286,13 +3293,16 @@
         <!-- Launch Bar -->
         <div class="admin-config-launch-bar">
           <div class="cfg-launch-info">
-            <span class="cfg-launch-label">มินิเกมที่จะเริ่ม:</span>
+            <span class="cfg-launch-label">มินิเกมที่จะตั้งค่า:</span>
             <span id="cfgLaunchStageName" class="cfg-launch-stagename">🗣️ 0. Non-Stop Debate</span>
           </div>
-          <div class="cfg-launch-actions">
-            <button type="button" class="small-btn grey" onclick="closeAdminMinigameModal()">✕ ยกเลิก</button>
-            <button type="button" class="small-btn pink pulse-btn" onclick="adminLaunchSelectedConfigGame()" style="padding:10px 22px; font-weight:900; font-size:0.95rem;">
-              🚀 ยืนยัน & เริ่มมินิเกมบนจอศาลทันที
+          <div class="cfg-launch-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <button type="button" class="small-btn grey" onclick="closeAdminMinigameModal()">✕ ปิด</button>
+            <button type="button" class="small-btn cyan" onclick="adminSaveSelectedConfigGame(false)" style="padding:10px 18px; font-weight:900; font-size:0.92rem;" title="บันทึกข้อมูลที่แก้ไขโดยยังไม่เริ่มเกมทันที">
+              💾 บันทึกการแก้ไข (Save)
+            </button>
+            <button type="button" class="small-btn pink pulse-btn" onclick="adminSaveSelectedConfigGame(true)" style="padding:10px 22px; font-weight:900; font-size:0.95rem;" title="บันทึกและส่งข้อมูลขึ้นจอศาลทันที">
+              🚀 บันทึก & เริ่มบนจอศาลทันที (Save & Launch)
             </button>
           </div>
         </div>

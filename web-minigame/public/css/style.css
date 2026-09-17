@@ -10265,3 +10265,21 @@ body.view-is-admin .court-objection-shake {
   transform: none !important;
 }
 
+/* DM GEAR BUTTON CUSTOMIZATION & INTERACTION */
+.dm-gear-btn {
+  cursor: pointer !important;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  user-select: none !important;
+}
+.dm-gear-btn:hover {
+  transform: rotate(45deg) scale(1.12) !important;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.45) !important;
+}
+.dm-gear-btn:active {
+  transform: rotate(90deg) scale(0.96) !important;
+}
+
+
