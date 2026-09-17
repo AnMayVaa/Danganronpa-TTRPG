@@ -2918,14 +2918,14 @@ const ALL_CLUES_DATA = [
   { id: "EVD-02", image: "assets/item_pork_bone.jpg?v=4.0.0", pin: "719304", aliases: ["BONE-02", "2", "E02"], name: "ท่อนกระดูกหมูในหม้อสตูว์", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องครัว (ก้นหม้อสตูว์)", desc: "ท่อนกระดูกหมูต้มสุก 2 ท่อนก้นหม้อสตูว์ บนผิวกระดูกท่อนหนึ่งมีรอยแตกร้าวและคราบสีคล้ำติดแน่นตามรอยแยก" },
   { id: "EVD-03", pin: "936154", aliases: ["PC2-03", "3", "E03"], name: "คำให้การของ PC 2", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 2 (1 AP)", desc: "คำให้การ: \"ตอน 17:30 ถึง 18:00 น. ฉันอยู่ในโรงยิม พอเดินออกมาที่โถงทางเดินเห็นหลอดไฟนีออนกะพริบ และไม่พบใครบริเวณนั้น\"" },
   { id: "EVD-04", image: "assets/room_blast_gate.jpg", pin: "873205", aliases: ["CLIP-04", "4", "E04"], name: "คลิปหนีบกระดาษเหล็ก", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "หน้าบอร์ดประชาสัมพันธ์โถงทางเข้าหลัก", desc: "คลิปหนีบกระดาษทำจากลวดเหล็ก 3 ตัว สภาพมีคราบสนิมเกาะ ตกอยู่ในร่องรอยต่อของพื้นปูนหน้าบอร์ดประชาสัมพันธ์" },
-  { id: "EVD-05", image: "assets/item_dryer_dry1.jpg?v=4.1.0", pin: "306795", aliases: ["DRY-05", "5", "E05"], name: "เครื่องอบผ้า DRY-1", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เครื่องอบผ้า)", desc: "เครื่องอบผ้าอุตสาหกรรม DRY-1 ทำงานเสร็จสิ้น ภายในมีรองเท้าบูทหนังหุ้มข้อของเหยื่อเรียวตะ ที่หน้าปัดมีฟังก์ชันตั้งเวลาเริ่มทำงานล่วงหน้า (Delay Timer)" },
+  { id: "EVD-05", image: "assets/item_dryer_dry1.jpg?v=4.1.0", pin: "306795", aliases: ["DRY-05", "5", "E05"], name: "เครื่องอบผ้า DRY-1", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เครื่องอบผ้า)", desc: "เครื่องอบผ้าอุตสาหกรรม DRY-1 ทำงานเสร็จสิ้น ภายในมีรองเท้าบูทหนังหุ้มข้อของเรียวตะ ที่หน้าปัดมีฟังก์ชันตั้งเวลาเริ่มทำงานล่วงหน้า (Delay Timer)" },
   { id: "EVD-06", image: "assets/item_vending_machine.jpg?v=4.1.0", pin: "684129", aliases: ["VEND-06", "6", "E06"], name: "ตู้กดน้ำอัตโนมัติโถงทางเดิน", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเดินกลาง (CORR-100)", desc: "ตู้กดเครื่องดื่มอัตโนมัติโถงทางเดินกลาง มีรอยบุบที่แผงด้านข้าง และมีเหรียญติดค้างในช่องหยอด" },
-  { id: "EVD-07", image: "assets/item_monokuma_file.png", pin: "482915", aliases: ["FILE-07", "7", "E07"], name: "Monokuma File #1", importance: "MUST", secretType: "CORE", typeLabel: "ผลชันสูตรทางการ (Core)", loc: "ห้องซักรีด (ร่างของเหยื่อเรียวตะ)", desc: "รายงานชันสูตรทางการ: เวลาเสียชีวิต ~21:00 น. กระดูกคอหักและขาดอากาศหายใจ แผลแตกท้ายทอยเกิดก่อนตาย 1-2 ชม. สวมถุงเท้าไม่สวมรองเท้า น้ำหนักตัว 65.0 กก." },
+  { id: "EVD-07", image: "assets/item_monokuma_file.png", pin: "482915", aliases: ["FILE-07", "7", "E07"], name: "Monokuma File #1", importance: "MUST", secretType: "CORE", typeLabel: "ผลชันสูตรทางการ (Core)", loc: "ห้องซักรีด (ร่างของเรียวตะ)", desc: "รายงานชันสูตรทางการ: เวลาเสียชีวิต ~21:00 น. กระดูกคอหักและขาดอากาศหายใจ แผลแตกท้ายทอยเกิดก่อนตาย 1-2 ชม. สวมถุงเท้าไม่สวมรองเท้า น้ำหนักตัว 65.0 กก." },
   { id: "EVD-08", image: "assets/room_dining_hall.jpg", pin: "659143", aliases: ["SNACK-08", "8", "E08"], name: "ซองขนมปังกรอบใต้เก้าอี้", importance: "OPTIONAL", secretType: "TRASH", typeLabel: "ขยะ (Trash)", loc: "ห้องอาหาร (ใต้เก้าอี้ทานข้าว)", desc: "ซองฟอยล์บรรจุขนมปังกรอบรสสาหร่ายถูกฉีกเปิดทิ้งไว้ใต้เก้าอี้ห้องอาหาร ภายในซองมีเศษขนมปังกรอบเหลืออยู่เล็กน้อย" },
   { id: "EVD-09", image: "assets/item_pink_rope.jpg", pin: "852179", aliases: ["ROPE-09", "9", "E09"], name: "เชือกไนลอนสีชมพูบนพื้น", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (พื้นข้างศพเรียวตะ)", desc: "เชือกไนลอนถักสีชมพู 8 มม. ขดอยู่บนพื้น ปลายด้านหนึ่งผูกเป็นบ่วง ส่วนปลายอีกด้านมีรอยตัดผิวเรียบ" },
   { id: "EVD-10", image: "assets/item_water_meter.jpg?v=4.1.0", pin: "815307", aliases: ["METER-10", "10", "E10"], name: "มาตรวัดน้ำประปาหลัก", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "โถงทางเข้าหลัก (ข้าง Blast Gate)", desc: "มาตรวัดน้ำประปาแสดงตัวเลขใช้น้ำสะสม 65.2 ลิตร และเข็มวัดยังหมุนด้วยอัตราประมาณ 0.4 ลิตร/นาที (24 ลิตร/ชม.)" },
   { id: "EVD-11", image: "assets/item_bleach_gallon.jpg", pin: "741953", aliases: ["BLEACH-11", "11", "E11"], name: "แกลลอนน้ำยาฟอกขาวในถังขยะ", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "ห้องซักรีด (ถังขยะข้างเครื่องซักผ้า)", desc: "แกลลอนพลาสติกบรรจุน้ำยาฟอกขาวถูกทิ้งอยู่ในถังขยะห้องซักรีด ภายในแกลลอนว่างเปล่าและส่งกลิ่นคลอรีนรุนแรง" },
-  { id: "EVD-12", image: "assets/item_pocket_knife.jpg?v=4.0.0", pin: "394820", aliases: ["KNIFE-12", "12", "E12"], name: "มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ร่างของเรียวตะ (กระเป๋าเสื้อ)", desc: "มีดพับอเนกประสงค์ใบมีด 7 ซม. กางค้างไว้ในกระเป๋าเสื้อเหยื่อเรียวตะ โคนใบมีดมีเศษเส้นใยสังเคราะห์สีชมพูติดอยู่" },
+  { id: "EVD-12", image: "assets/item_pocket_knife.jpg?v=4.0.0", pin: "394820", aliases: ["KNIFE-12", "12", "E12"], name: "มีดพับในกระเป๋าเสื้อเรียวตะ", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ร่างของเรียวตะ (กระเป๋าเสื้อ)", desc: "มีดพับอเนกประสงค์ใบมีด 7 ซม. กางค้างไว้ในกระเป๋าเสื้อเรียวตะ โคนใบมีดมีเศษเส้นใยสังเคราะห์สีชมพูติดอยู่" },
   { id: "EVD-13", image: "assets/room_kitchen.jpg", pin: "630841", aliases: ["FREEZE-13", "13", "E13"], name: "ช่องแช่แข็งในห้องครัว", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (ช่องฟรีซ)", desc: "ช่องแช่แข็งตู้เย็นในครัวมีเกล็ดน้ำแข็งละลายเป็นแอ่งน้ำ และพบถุงพลาสติกบรรจุเนื้อสัตว์แช่แข็งถูกฉีกเปิดทิ้งไว้" },
   { id: "EVD-14", image: "assets/item_ceiling_pipe.jpg", pin: "928413", aliases: ["RAIL-14", "14", "E14"], name: "ราวท่อสแตนเลสเพดานห้องซักรีด", importance: "MUST", secretType: "CORE", typeLabel: "อาวุธ/พยาน (Core)", loc: "ห้องซักรีด (เพดานสูง 4 ม.)", desc: "ท่อสแตนเลสขนานเพดานห้องซักรีดสูง 4 ม. เหนือแนวหน้าต่าง ผิวด้านบนของท่อมีรอยขูดถลอกเป็นแถบแนวยาว" },
   { id: "EVD-15", image: "assets/room_gymnasium.jpg", pin: "295418", aliases: ["CHAIN-15", "15", "E15"], name: "โซ่คล้องประตูหนีไฟโรงยิม", importance: "OPTIONAL", secretType: "HERR", typeLabel: "หลอก (Red Herring)", loc: "โรงยิม (ประตูด้านหลัง)", desc: "โซ่เหล็กคล้องล็อกประตูหนีไฟด้านหลังโรงยิม ข้อโซ่ข้อหนึ่งมีรอยบากลึกจากใบเลื่อย และมีเศษผงเหล็กตกอยู่บนพื้นใต้บานประตู" },
@@ -2944,7 +2944,7 @@ const ALL_CLUES_DATA = [
   { id: "EVD-28", pin: "328691", aliases: ["TASTE-28", "28", "E28"], name: "รสชาติของน้ำซุปสตูว์เนื้อ", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องครัว (หม้อสตูว์บนเตา)", desc: "น้ำซุปสตูว์เนื้อในหม้อมีกลิ่นหอมของเครื่องเทศและไวน์แดง แต่เมื่อชิมแล้วจะสัมผัสได้ถึงรสชาติฝาดเฝื่อนคล้ายสนิมเหล็กผสมอยู่จางๆ" },
   { id: "EVD-29", pin: "561479", aliases: ["THUD-29", "29", "E29"], name: "เสียงกระแทกจากห้องซักรีดตอน 21:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องอาหาร (จุดรวมตัวเวลาราตรี)", desc: "ขณะที่ทุกคนรวมตัวอยู่ในห้องอาหารเวลา 21:00 น. มีเสียงเครื่องจักรหมุนกระแทกและเสียงวัตถุหนักตกกระทบดังสนั่นมาจากทางปีกห้องซักรีด" },
   { id: "EVD-30", pin: "527391", aliases: ["PC4-30", "30", "E30"], name: "คำให้การของ PC 4", importance: "GOOD", secretType: "TESTIMONY", typeLabel: "คำให้การ (Supporting)", loc: "ได้จากการถาม PC 4 (1 AP)", desc: "คำให้การ: \"ช่วง 17:30 ถึง 18:15 น. ฉันเดินอยู่ที่ทางเดินกระจก มองเห็นเงาวัตถุทรงกระบอกห้อยอยู่นอกหน้าต่างห้องซักรีด\"" },
-  { id: "EVD-31", pin: "439268", aliases: ["DINNER-31", "31", "E31"], name: "การรวมตัวมื้อค่ำเวลา 19:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องอาหาร (โต๊ะมื้อค่ำ)", desc: "การรวมตัวรับประทานอาหารมื้อค่ำเวลา 19:00 น. มีสตูว์เนื้อปรุงเสร็จโดย PC 5 ตามตารางเวรบน Monopad โดยเหยื่อเรียวตะไม่ได้มาร่วมโต๊ะอาหาร" },
+  { id: "EVD-31", pin: "439268", aliases: ["DINNER-31", "31", "E31"], name: "การรวมตัวมื้อค่ำเวลา 19:00 น.", importance: "GOOD", secretType: "SUPP", typeLabel: "ร่องรอย/สิ่งของ (Supporting)", loc: "ห้องอาหาร (โต๊ะมื้อค่ำ)", desc: "การรวมตัวรับประทานอาหารมื้อค่ำเวลา 19:00 น. มีสตูว์เนื้อปรุงเสร็จโดย PC 5 ตามตารางเวรบน Monopad โดยเรียวตะไม่ได้มาร่วมโต๊ะอาหาร" },
 ];
 
 const PC_INVESTIGATION_CLUES = {
@@ -2956,14 +2956,22 @@ const PC_INVESTIGATION_CLUES = {
 };
 
 function getPlayerNameByPcSlot(slotNum) {
+  const slotInt = parseInt(slotNum, 10);
   if (gameState && gameState.players) {
-    const p = Object.values(gameState.players).find(x => parseInt(x.pcSlot, 10) === parseInt(slotNum, 10));
+    const p = Object.values(gameState.players).find(x => parseInt(x.pcSlot, 10) === slotInt);
     if (p && p.name) return p.name;
   }
-  if (myPlayer && parseInt(myPlayer.pcSlot, 10) === parseInt(slotNum, 10) && myPlayer.name) {
+  if (myPlayer && parseInt(myPlayer.pcSlot, 10) === slotInt && myPlayer.name) {
     return myPlayer.name;
   }
-  return null;
+  const defaultNames = {
+    1: 'นาเอกิ',
+    2: 'เคียวโกะ',
+    3: 'เบียคุยะ',
+    4: 'อาโออิ',
+    5: 'ฮิฟุมิ'
+  };
+  return defaultNames[slotInt] || `ผู้เล่น ${slotInt}`;
 }
 
 function getClueDisplayName(c) {
@@ -2973,34 +2981,48 @@ function getClueDisplayName(c) {
   if (!clueObj) return clueId;
 
   if (clueId === 'EVD-20') {
-    const pName = getPlayerNameByPcSlot(1);
-    return pName ? `คำให้การของ ${pName}` : 'คำให้การของ ผู้เล่น 1';
+    return `คำให้การของ ${getPlayerNameByPcSlot(1)}`;
   }
   if (clueId === 'EVD-03') {
-    const pName = getPlayerNameByPcSlot(2);
-    return pName ? `คำให้การของ ${pName}` : 'คำให้การของ ผู้เล่น 2';
+    return `คำให้การของ ${getPlayerNameByPcSlot(2)}`;
   }
   if (clueId === 'EVD-27') {
-    const pName = getPlayerNameByPcSlot(3);
-    return pName ? `คำให้การของ ${pName}` : 'คำให้การของ ผู้เล่น 3';
+    return `คำให้การของ ${getPlayerNameByPcSlot(3)}`;
   }
   if (clueId === 'EVD-30') {
-    const pName = getPlayerNameByPcSlot(4);
-    return pName ? `คำให้การของ ${pName}` : 'คำให้การของ ผู้เล่น 4';
+    return `คำให้การของ ${getPlayerNameByPcSlot(4)}`;
   }
   if (clueId === 'EVD-16') {
-    const pName = getPlayerNameByPcSlot(5);
-    return pName ? `คำให้การของ ${pName}` : 'คำให้การของ ผู้เล่น 5';
+    return `คำให้การของ ${getPlayerNameByPcSlot(5)}`;
   }
 
-  return clueObj.name.replace(/\[.*?\]/g, '').trim();
+  let raw = clueObj.rawName || clueObj.name || '';
+  raw = raw.replace(/PC\s*1/g, getPlayerNameByPcSlot(1));
+  raw = raw.replace(/PC\s*2/g, getPlayerNameByPcSlot(2));
+  raw = raw.replace(/PC\s*3/g, getPlayerNameByPcSlot(3));
+  raw = raw.replace(/PC\s*4/g, getPlayerNameByPcSlot(4));
+  raw = raw.replace(/PC\s*5/g, getPlayerNameByPcSlot(5));
+  return raw.replace(/\[.*?\]/g, '').trim();
+}
+
+function getClueDisplayLoc(c) {
+  if (!c) return '';
+  const clueObj = typeof c === 'object' ? c : ALL_CLUES_DATA.find(x => x.id === (typeof c === 'string' ? c : c.id));
+  if (!clueObj || (!clueObj.loc && !clueObj.rawLoc)) return '';
+  let loc = clueObj.rawLoc || clueObj.loc;
+  loc = loc.replace(/PC\s*1/g, getPlayerNameByPcSlot(1));
+  loc = loc.replace(/PC\s*2/g, getPlayerNameByPcSlot(2));
+  loc = loc.replace(/PC\s*3/g, getPlayerNameByPcSlot(3));
+  loc = loc.replace(/PC\s*4/g, getPlayerNameByPcSlot(4));
+  loc = loc.replace(/PC\s*5/g, getPlayerNameByPcSlot(5));
+  return loc;
 }
 
 function getClueDisplayDesc(c) {
   if (!c) return '';
   const clueObj = typeof c === 'object' ? c : ALL_CLUES_DATA.find(x => x.id === (typeof c === 'string' ? c : c.id));
-  if (!clueObj || !clueObj.desc) return '';
-  let desc = clueObj.desc;
+  if (!clueObj || (!clueObj.desc && !clueObj.rawDesc)) return '';
+  let desc = clueObj.rawDesc || clueObj.desc;
   const p1 = getPlayerNameByPcSlot(1);
   const p2 = getPlayerNameByPcSlot(2);
   const p3 = getPlayerNameByPcSlot(3);
@@ -3013,6 +3035,31 @@ function getClueDisplayDesc(c) {
   if (p5) desc = desc.replace(/PC\s*5/g, p5);
   return desc;
 }
+
+// Attach dynamic getters on ALL_CLUES_DATA so direct property reads (.name, .loc, .desc) automatically resolve PC names
+ALL_CLUES_DATA.forEach(c => {
+  c.rawName = c.name;
+  c.rawLoc = c.loc;
+  c.rawDesc = c.desc;
+  Object.defineProperty(c, 'name', {
+    get() { return getClueDisplayName(this); },
+    set(v) { this.rawName = v; },
+    configurable: true,
+    enumerable: true
+  });
+  Object.defineProperty(c, 'loc', {
+    get() { return getClueDisplayLoc(this); },
+    set(v) { this.rawLoc = v; },
+    configurable: true,
+    enumerable: true
+  });
+  Object.defineProperty(c, 'desc', {
+    get() { return getClueDisplayDesc(this); },
+    set(v) { this.rawDesc = v; },
+    configurable: true,
+    enumerable: true
+  });
+});
 
 function grantInvestigationClues(silent = false) {
   if (currentView === 'admin' || currentView === 'court') return;
@@ -4600,7 +4647,7 @@ function renderMobileStage0Task() {
     if (myClues.length === 0) {
       optionsHtml = '<option value="">(คุณยังไม่มีเบาะแสใน Monopad - ใช้การโต้แย้งปากเปล่า)</option>';
     } else {
-      optionsHtml = myClues.map(c => `<option value="${c.id}" ${gameState.stg0.selectedClueId === c.id ? 'selected' : ''}>[${c.id}] ${c.name} (${c.loc})</option>`).join('');
+      optionsHtml = myClues.map(c => `<option value="${c.id}" ${gameState.stg0.selectedClueId === c.id ? 'selected' : ''}>[${c.id}] ${getClueDisplayName(c)} (${getClueDisplayLoc(c)})</option>`).join('');
     }
 
     const myAvConfig = myPlayer?.avatarConfig || currentAvatarConfig;
@@ -6215,6 +6262,30 @@ function updateStage6Displays() {
 }
 
 // 7. Closing Argument (Mini-Game 7) - 5-Page Airtight Manga Overhaul
+function getTrapperName() {
+  if (gameState && gameState.trapperName) return gameState.trapperName;
+  if (gameState && gameState.players) {
+    const trapperPlayer = Object.values(gameState.players).find(p => p.isKiller || parseInt(p.pcSlot, 10) === 5);
+    if (trapperPlayer && trapperPlayer.name) return trapperPlayer.name;
+  }
+  if (myPlayer && (myPlayer.isKiller || parseInt(myPlayer.pcSlot, 10) === 5) && myPlayer.name) {
+    return myPlayer.name;
+  }
+  return getPlayerNameByPcSlot(5) || 'ฮิฟุมิ';
+}
+
+function formatClosingText(str) {
+  if (!str) return '';
+  const trapper = getTrapperName();
+  let res = str.replace(/\[TRAPPER\]/g, trapper);
+  res = res.replace(/PC\s*1/g, getPlayerNameByPcSlot(1));
+  res = res.replace(/PC\s*2/g, getPlayerNameByPcSlot(2));
+  res = res.replace(/PC\s*3/g, getPlayerNameByPcSlot(3));
+  res = res.replace(/PC\s*4/g, getPlayerNameByPcSlot(4));
+  res = res.replace(/PC\s*5/g, getPlayerNameByPcSlot(5));
+  return res;
+}
+
 const CLOSING_PAGES_DATA = [
   {
     page: 1,
@@ -6224,7 +6295,7 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🥩',
-        desc: 'คนร้ายใช้ความชำนาญในการทำอาหาร แอบนำท่อนกระดูกหมูแช่แข็งชิ้นใหญ่ออกจากช่องฟรีซมาเตรียมไว้'
+        desc: '[TRAPPER] ซึ่งมีหน้าที่เตรียมอาหารเย็น แอบนำท่อนกระดูกหมูแช่แข็งชิ้นใหญ่ออกจากช่องฟรีซในครัวมาเตรียมไว้'
       },
       {
         num: 2,
@@ -6234,7 +6305,7 @@ const CLOSING_PAGES_DATA = [
         acceptedIds: ['CARD-P1-S1', 'EVD-14', 'EVD-12', 'ACTION-CUT'],
         art: '🍖',
         title: 'ช่องว่างที่ 1: การลงมือจู่โจม',
-        desc: 'คนร้ายใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเหยื่อเรียวตะจนสลบในห้องซักรีดเวลา 17:30 น.'
+        desc: '[TRAPPER] ดักซุ่มในห้องซักรีด ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเรียวตะจนสลบแน่นิ่งเวลา 17:30 น.'
       },
       {
         num: 3,
@@ -6244,13 +6315,13 @@ const CLOSING_PAGES_DATA = [
         acceptedIds: ['CARD-P1-S2', 'EVD-11', 'EVD-09', 'ACTION-NOOSE'],
         art: '🍲',
         title: 'ช่องว่างที่ 2: การทำลายหลักฐานและอาวุธ',
-        desc: 'คนร้ายโยนท่อนกระดูกหมูเปื้อนเลือดลงก้นหม้อสตูว์เนื้อที่กำลังเดือดในครัวเพื่อต้มล้างคราบและซ่อนอาวุธ'
+        desc: '[TRAPPER] โยนท่อนกระดูกหมูเปื้อนเลือดลงก้นหม้อสตูว์เนื้อที่กำลังเดือดในครัวเพื่อต้มล้างคราบและซ่อนอาวุธ'
       },
       {
         num: 4,
         type: 'story',
         art: '🥘',
-        desc: 'ไขมันและกลิ่นเครื่องเทศของสตูว์เนื้อกลบคราบเลือดจนมิด และกลายเป็นอาหารเย็นที่ทุกคนทานร่วมกัน'
+        desc: 'ไขมันและกลิ่นเครื่องเทศของสตูว์เนื้อกลบคราบเลือดจนมิด กลายเป็นอาหารเย็นที่ทุกคนทานร่วมกัน'
       }
     ]
   },
@@ -6262,7 +6333,7 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🚪',
-        desc: 'เหยื่อเรียวตะสลบแน่นิ่งอยู่บนพื้นห้องซักรีด คนร้ายจึงเริ่มติดตั้งกลไกเชือกและรอกตามแผนการ'
+        desc: 'เรียวตะสลบแน่นิ่งอยู่บนพื้นห้องซักรีด [TRAPPER] จึงเริ่มติดตั้งกลไกเชือกและรอกตามแผนการวางกับดัก'
       },
       {
         num: 2,
@@ -6271,8 +6342,8 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P2-S1'],
         art: '🪢',
-        title: 'ช่องว่างที่ 1: การมัดร่างเหยื่อ',
-        desc: 'คนร้ายใช้เชือกตากผ้าไนลอนสีชมพูร้อยผูกมัดลำตัวและคล้องคอของเหยื่อเรียวตะ'
+        title: 'ช่องว่างที่ 1: การมัดร่างและคล้องเชือก',
+        desc: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูร้อยผูกมัดลำตัวและคล้องหลวมๆ รอบคอของเรียวตะ'
       },
       {
         num: 3,
@@ -6282,25 +6353,25 @@ const CLOSING_PAGES_DATA = [
         acceptedIds: ['CARD-P2-S2'],
         art: '⚙️',
         title: 'ช่องว่างที่ 2: การทำรอกชักร่างขึ้นเพดาน',
-        desc: 'พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดาน เพื่อทำหน้าที่เป็นรอกชักร่างขึ้นสู่ที่สูง'
+        desc: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีด เพื่อทำหน้าที่เป็นรอกชักน้ำหนัก'
       },
       {
         num: 4,
         type: 'story',
         art: '🪟',
-        desc: 'คนร้ายโยนปลายเชือกอีกด้านออกนอกหน้าต่างระบายอากาศสูง 3.5 เมตรที่ไร้ลูกกรง สู่ลานคอร์ทยาร์ดภายนอก'
+        desc: '[TRAPPER] โยนปลายเชือกอีกด้านออกนอกหน้าต่างระบายอากาศสูง 3.5 เมตร สู่ลานคอร์ทยาร์ดภายนอก'
       }
     ]
   },
   {
     page: 3,
-    title: 'กลไกสายยาง & ถังน้ำถ่วงน้ำหนักคอร์ทยาร์ด (18:30 – 20:00 น.)',
+    title: 'กลไกสายยาง & ถังน้ำถ่วงน้ำหนักคอร์ทยาร์ด (18:30 – 19:00 น.)',
     panels: [
       {
         num: 1,
         type: 'story',
         art: '🏢',
-        desc: 'ที่ลานคอร์ทยาร์ดนอกอาคาร คนร้ายวางถังน้ำพลาสติก 80 ลิตรไว้ตรงกับแนวหน้าต่างห้องซักรีด'
+        desc: 'ที่ลานคอร์ทยาร์ดนอกอาคาร [TRAPPER] วางถังน้ำพลาสติก 80 ลิตรไว้ตรงกับแนวหน้าต่างห้องซักรีด'
       },
       {
         num: 2,
@@ -6310,7 +6381,7 @@ const CLOSING_PAGES_DATA = [
         acceptedIds: ['CARD-P3-S1'],
         art: '🪣',
         title: 'ช่องว่างที่ 1: การผูกถังถ่วงน้ำหนัก',
-        desc: 'ผูกปลายเชือกไนลอนที่หย่อนลงมาเข้ากับหูหิ้วของถังน้ำ เพื่อทำหน้าที่เป็นน้ำหนักถ่วง (Counterweight)'
+        desc: '[TRAPPER] ผูกปลายเชือกไนลอนที่หย่อนลงมาเข้ากับหูหิ้วของถังน้ำ เพื่อทำหน้าที่เป็นน้ำหนักถ่วง (Counterweight)'
       },
       {
         num: 3,
@@ -6320,110 +6391,161 @@ const CLOSING_PAGES_DATA = [
         acceptedIds: ['CARD-P3-S2'],
         art: '🚰',
         title: 'ช่องว่างที่ 2: กลไกนาฬิกาน้ำตั้งเวลา',
-        desc: 'ต่อสายยางน้ำประปาเข้าก๊อก เปิดน้ำให้ไหลเติมลงถังอย่างช้าๆ 0.4 ลิตร/นาที (กลไกนาฬิกาน้ำ)'
+        desc: '[TRAPPER] ต่อสายยางน้ำประปาเข้าก๊อก เปิดน้ำให้ไหลเติมลงถังอย่างช้าๆ 0.4 ลิตร/นาที (กลไกนาฬิกาน้ำ)'
+      },
+      {
+        num: 4,
+        type: 'story',
+        art: '⏳',
+        desc: 'กลไกนาฬิกาน้ำเริ่มทำงาน ระดับน้ำจะค่อยๆ เพิ่มขึ้นจนมีน้ำหนักมากพอที่จะกระชากเชือกเมื่อครบกำหนดเวลา 21:00 น.'
       }
     ]
   },
   {
     page: 4,
-    title: 'กลลวงสร้าง Alibi & เสียงต่อสู้หลอก (20:00 – 21:00 น.)',
+    title: 'การตั้งเวลากลลวง & เรียวตะซ้อนแผนตัดเชือก (18:45 – 20:55 น.)',
     panels: [
       {
         num: 1,
-        type: 'story',
-        art: '🕯️',
-        desc: 'คนร้ายกลับไปร่วมโต๊ะอาหารค่ำและอยู่กับทุกคนตอนไฟดับเวลา 20:30 น. เพื่อสร้าง Alibi ที่สมบูรณ์แบบ'
-      },
-      {
-        num: 2,
         type: 'slot',
         slotId: 7,
         pageSlot: 1,
         acceptedIds: ['CARD-P4-S1'],
         art: '⏱️',
-        title: 'ช่องว่างที่ 1: การตั้งเวลาเครื่องอบผ้า',
-        desc: 'คนร้ายแอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้า ให้เริ่มทำงานตอน 21:00 น.'
+        title: 'ช่องว่างที่ 1: การตั้งเวลาเครื่องอบผ้าล่วงหน้า',
+        desc: 'ก่อนออกจากห้องซักรีด [TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้า (Delay Timer) ให้เริ่มทำงานตอน 21:00 น.'
       },
       {
-        num: 3,
+        num: 2,
         type: 'slot',
         slotId: 8,
         pageSlot: 2,
         acceptedIds: ['CARD-P4-S2'],
         art: '👢',
-        title: 'ช่องว่างที่ 2: วัตถุสร้างเสียงกระแทกหลอก',
-        desc: 'ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้า เพื่อให้เกิดเสียงกระแทกเลียนแบบการต่อสู้'
+        title: 'ช่องว่างที่ 2: วัตถุสร้างเสียงต่อสู้หลอก',
+        desc: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้า DRY-1 เพื่อให้เกิดเสียงกระแทกเลียนแบบการต่อสู้หลอกตอน 21:00 น.'
+      },
+      {
+        num: 3,
+        type: 'story',
+        art: '🕯️',
+        desc: '[TRAPPER] กลับไปร่วมโต๊ะอาหารค่ำเวลา 19:00 น. และอยู่กับทุกคนตอนไฟดับเวลา 20:30 น. เพื่อสร้าง Alibi ว่าตนไม่ได้อยู่ในที่เกิดเหตุ'
       },
       {
         num: 4,
         type: 'story',
-        art: '🔊',
-        desc: 'เวลา 21:00 น. เครื่องอบผ้าเริ่มหมุน เกิดเสียงโครมครามกระแทกผนัง หลอกให้ทุกคนเชื่อว่าเพิ่งเกิดการต่อสู้ขึ้น'
+        art: '🔪',
+        desc: 'แต่ก่อน 21:00 น. เรียวตะฟื้นสติขึ้นมา! เมื่อพบว่าตนถูกลอบทำร้ายใน Killing Game เรียวตะไม่ยอมหนี แต่ชักมีดพับออกมาตัดเชือกเพื่อ "ซ้อนแผน" วางกับดักย้อนกลับใส่ผู้ที่ทำร้ายตน!'
       }
     ]
   },
   {
     page: 5,
-    title: 'มวลน้ำกระชากร่างแขวนเพดาน & การค้นพบศพ (21:00 – 21:05 น.)',
+    title: 'ความผิดพลาดของคนร้ายเรียวตะ & มวลน้ำกระชากร่าง (21:00 – 21:05 น.)',
     panels: [
       {
         num: 1,
+        type: 'story',
+        art: '🪢',
+        desc: 'คนร้ายเรียวตะรีบผูกต่อเชือกใหม่และปีนขึ้นไปดัดแปลงบ่วงบนเพดานเพื่อจัดฉากฆาตกรรมย้อนกลับ แต่ในความมืดและความลนลาน เงื่อนบ่วงใหม่กลับคล้องรัดคอของคนร้ายเรียวตะเองจนแน่นหนาและปลดไม่ออก!'
+      },
+      {
+        num: 2,
         type: 'slot',
         slotId: 9,
         pageSlot: 1,
         acceptedIds: ['CARD-P5-S1'],
         art: '💥',
         title: 'ช่องว่างที่ 1: จังหวะถังน้ำร่วงกระแทกพื้น',
-        desc: 'มวลน้ำในถังหนักทะลุ 70 กก. จนชนะน้ำหนักตัวเหยื่อ ถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย'
+        desc: 'เวลา 21:00 น. น้ำในถังคอร์ทยาร์ดสะสมจนหนักทะลุ 70 กก. ดึงถังร่วงกระแทกพื้นแตกกระจายตามเวลา'
       },
       {
-        num: 2,
+        num: 3,
         type: 'slot',
         slotId: 10,
         pageSlot: 2,
         acceptedIds: ['CARD-P5-S2'],
         art: '⛓️',
-        title: 'ช่องว่างที่ 2: การแขวนร่างติดเพดาน',
-        desc: 'แรงกระชากดึงเชือกข้ามท่อเพดาน ยกร่างเหยื่อเรียวตะลอยขึ้นไปแขวนตรึงแน่นติดเพดานห้องซักรีดจนเสียชีวิต'
+        title: 'ช่องว่างที่ 2: บ่วงเชือกกระชากร่างคนร้ายเรียวตะ',
+        desc: 'แรงกระชากดึงเชือกเส้นใหม่ที่คนร้ายเรียวตะผูกพลาด ยกร่างเรียวตะลอยขึ้นไปแขวนตรึงติดราวท่อเพดานจนกระดูกคอหักเสียชีวิตทันที!'
       },
       {
-        num: 3,
+        num: 4,
         type: 'story',
-        art: '🩸',
-        desc: 'ทุกคนพังประตูห้องซักรีดเข้ามา พบศพเรียวตะแขวนติดเพดาน เลือดสีชมพูหยดลงสู่พื้น กลลวงมายากลจึงถูกเปิดโปง!'
+        art: '⚖️',
+        desc: 'เครื่องอบผ้าทำงานเกิดเสียงรองเท้าบูทกระแทกโครมครามตามที่ [TRAPPER] ตั้งเวลาไว้ หลอกให้ทุกคนพังประตูเข้ามาพบศพ! แต่แท้จริงแล้วผู้ที่ผูกเงื่อนเชือกเส้นตายที่สังหารตนเองก็คือ "คนร้ายเรียวตะ (The Blackened)" นั่นเอง!'
       }
     ]
   }
 ];
 
 const CLOSING_CARDS_DATA = [
-  { id: 'CARD-P1-S1', page: 1, slot: 1, title: 'ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเหยื่อสลบในห้องซักรีด (17:30 น.)', icon: '🍖' },
-  { id: 'CARD-P1-S2', page: 1, slot: 2, title: 'โยนท่อนกระดูกหมูเปื้อนเลือดลงไปต้มในหม้อสตูว์เนื้อเพื่อทำลายหลักฐาน', icon: '🍲' },
-  { id: 'CARD-P2-S1', page: 2, slot: 3, title: 'ใช้เชือกตากผ้าไนลอนสีชมพูร้อยผูกมัดลำตัวและรอบคอของเหยื่อเรียวตะ', icon: '🪢' },
-  { id: 'CARD-P2-S2', page: 2, slot: 4, title: 'พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️' },
-  { id: 'CARD-P3-S1', page: 3, slot: 5, title: 'ผูกปลายเชือกไนลอนเข้ากับหูหิ้วถังน้ำพลาสติก 80 ลิตรที่ลานคอร์ทยาร์ด', icon: '🪣' },
-  { id: 'CARD-P3-S2', page: 3, slot: 6, title: 'ต่อสายยางน้ำประปาเปิดน้ำไหลเติมลงถังทีละน้อย 0.4 ลิตร/นาที (นาฬิกาน้ำ)', icon: '🚰' },
-  { id: 'CARD-P4-S1', page: 4, slot: 7, title: 'แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้าให้เริ่มทำงานตอน 21:00 น.', icon: '⏱️' },
-  { id: 'CARD-P4-S2', page: 4, slot: 8, title: 'ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอก', icon: '👢' },
-  { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย', icon: '💥' },
-  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงร่างเหยื่อลอยขึ้นไปแขวนตรึงแน่นติดท่อเพดานห้องซักรีด', icon: '⛓️' },
+  { id: 'CARD-P1-S1', page: 1, slot: 1, title: '[TRAPPER] ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเรียวตะจนสลบในห้องซักรีด (17:30 น.)', icon: '🍖' },
+  { id: 'CARD-P1-S2', page: 1, slot: 2, title: '[TRAPPER] โยนท่อนกระดูกหมูเปื้อนเลือดลงไปต้มในหม้อสตูว์เนื้อเพื่อทำลายหลักฐาน', icon: '🍲' },
+  { id: 'CARD-P2-S1', page: 2, slot: 3, title: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูผูกมัดลำตัวและคล้องคอเรียวตะ', icon: '🪢' },
+  { id: 'CARD-P2-S2', page: 2, slot: 4, title: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️' },
+  { id: 'CARD-P3-S1', page: 3, slot: 5, title: '[TRAPPER] ผูกปลายเชือกไนลอนเข้ากับหูหิ้วถังน้ำพลาสติก 80 ลิตรที่ลานคอร์ทยาร์ด', icon: '🪣' },
+  { id: 'CARD-P3-S2', page: 3, slot: 6, title: '[TRAPPER] ต่อสายยางเปิดน้ำประปาไหลเติมลงถังทีละน้อย 0.4 ลิตร/นาที (นาฬิกาน้ำ)', icon: '🚰' },
+  { id: 'CARD-P4-S1', page: 4, slot: 7, title: '[TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้าให้เริ่มทำงานตอน 21:00 น. ก่อนไปทานอาหาร', icon: '⏱️' },
+  { id: 'CARD-P4-S2', page: 4, slot: 8, title: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น.', icon: '👢' },
+  { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย (21:00 น.)', icon: '💥' },
+  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงบ่วงเชือกที่คนร้ายเรียวตะผูกพลาด ยกร่างเรียวตะขึ้นแขวนติดท่อเพดานจนเสียชีวิต', icon: '⛓️' },
   // 15 unique decoy cards
-  { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'เหยื่อเรียวตะฟื้นสติและชักมีดพับออกมาตัดเชือกเพื่อหลบหนี', icon: '🔪', decoy: true },
-  { id: 'DECOY-LADDER', page: 0, slot: 0, title: 'คนร้ายปีนบันไดออกไปทางหน้าต่างสูงเพื่อผูกเชือกภายนอกอาคาร', icon: '🪜', decoy: true },
-  { id: 'DECOY-BREAKER', page: 0, slot: 0, title: 'คนร้ายแอบไปสับคัตเอาต์ตัดสะพานไฟหลักในห้องควบคุมเพื่อดับไฟทั้งตึก', icon: '⚡', decoy: true },
-  { id: 'DECOY-WASH', page: 0, slot: 0, title: 'คนร้ายนำเสื้อผ้าเปื้อนเลือดของตนเองใส่ลงไปปั่นซักในเครื่องซักผ้า', icon: '🫧', decoy: true },
-  { id: 'DECOY-DOOR', page: 0, slot: 0, title: 'คนร้ายใช้โซ่เหล็กคล้องล็อกประตูด้านนอกของห้องซักรีดไว้', icon: '🔒', decoy: true },
-  { id: 'DECOY-POISON', page: 0, slot: 0, title: 'คนร้ายแอบหยอดยาพิษร้ายแรงลงในแก้วน้ำชาของเหยื่อก่อนลงมือ', icon: '🧪', decoy: true },
-  { id: 'DECOY-VENT', page: 0, slot: 0, title: 'คนร้ายมุดท่อระบายอากาศจากห้องครัวตรงไปยังห้องซักรีดโดยไม่ผ่านโถงทางเดิน', icon: '🕳️', decoy: true },
-  { id: 'DECOY-FREEZER', page: 0, slot: 0, title: 'คนร้ายซ่อนร่างของเหยื่อไว้ในตู้แช่แข็งขนาดใหญ่จนตัวแข็งก่อนนำไปแขวน', icon: '🧊', decoy: true },
-  { id: 'DECOY-WEIGHTS', page: 0, slot: 0, title: 'คนร้ายใช้ดัมเบลและแผ่นเหล็กยกน้ำหนักจากยิมมาถ่วงน้ำหนักแทนถังน้ำ', icon: '🏋️', decoy: true },
-  { id: 'DECOY-GLOVES', page: 0, slot: 0, title: 'คนร้ายสวมถุงมือยางและโยนทิ้งลงในเตาเผาขยะเพื่อไม่ให้ทิ้งรอยนิ้วมือ', icon: '🧤', decoy: true },
-  { id: 'DECOY-CLOCK', page: 0, slot: 0, title: 'คนร้ายหมุนเข็มนาฬิกาแขวนผนังในห้องซักรีดให้เร็วขึ้น 30 นาทีเพื่อลวงเวลา', icon: '⏰', decoy: true },
-  { id: 'DECOY-WINDOW', page: 0, slot: 0, title: 'คนร้ายใช้ค้อนทุบกระจกหน้าต่างห้องซักรีดให้แตกเพื่อแกล้งทำเป็นทางหลบหนี', icon: '🪟', decoy: true },
-  { id: 'DECOY-CURTAIN', page: 0, slot: 0, title: 'คนร้ายใช้ผ้าม่านห้องอาบน้ำห่อหุ้มร่างเหยื่อเพื่อป้องกันเลือดเปรอะเปื้อนพื้น', icon: '🚿', decoy: true },
-  { id: 'DECOY-CLEANER', page: 0, slot: 0, title: 'คนร้ายใช้น้ำยาฟอกขาวเข้มข้นราดขัดพื้นห้องซักรีดเพื่อกำจัดรอยรองเท้า', icon: '🧴', decoy: true },
-  { id: 'DECOY-FIRE', page: 0, slot: 0, title: 'คนร้ายจุดไฟเผากองเศษผ้าเพื่อเปิดระบบสปริงเกลอร์ฉีดน้ำล้างห้อง', icon: '🔥', decoy: true }
+  { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'คนร้ายเรียวตะแกล้งสลบแล้วชักมีดพับออกมาแทงสวน [TRAPPER] ในห้องครัว', icon: '🔪', decoy: true },
+  { id: 'DECOY-LADDER', page: 0, slot: 0, title: '[TRAPPER] ปีนบันไดออกไปทางหน้าต่างสูงเพื่อผูกเชือกภายนอกอาคาร', icon: '🪜', decoy: true },
+  { id: 'DECOY-BREAKER', page: 0, slot: 0, title: '[TRAPPER] แอบไปสับคัตเอาต์ตัดสะพานไฟหลักในห้องควบคุมเพื่อดับไฟทั้งตึก', icon: '⚡', decoy: true },
+  { id: 'DECOY-WASH', page: 0, slot: 0, title: '[TRAPPER] นำเสื้อผ้าเปื้อนเลือดของตนเองใส่ลงไปปั่นซักในเครื่องซักผ้า', icon: '🫧', decoy: true },
+  { id: 'DECOY-DOOR', page: 0, slot: 0, title: '[TRAPPER] ใช้โซ่เหล็กคล้องล็อกประตูด้านนอกของห้องซักรีดไว้', icon: '🔒', decoy: true },
+  { id: 'DECOY-POISON', page: 0, slot: 0, title: '[TRAPPER] แอบหยอดยาพิษร้ายแรงลงในแก้วน้ำชาของเรียวตะก่อนลงมือ', icon: '🧪', decoy: true },
+  { id: 'DECOY-VENT', page: 0, slot: 0, title: '[TRAPPER] มุดท่อระบายอากาศจากห้องครัวตรงไปยังห้องซักรีดโดยไม่ผ่านโถงทางเดิน', icon: '🕳️', decoy: true },
+  { id: 'DECOY-FREEZER', page: 0, slot: 0, title: '[TRAPPER] ซ่อนร่างของเรียวตะไว้ในตู้แช่แข็งขนาดใหญ่จนตัวแข็งก่อนนำไปแขวน', icon: '🧊', decoy: true },
+  { id: 'DECOY-WEIGHTS', page: 0, slot: 0, title: '[TRAPPER] ใช้ดัมเบลและแผ่นเหล็กยกน้ำหนักจากยิมมาถ่วงน้ำหนักแทนถังน้ำ', icon: '🏋️', decoy: true },
+  { id: 'DECOY-GLOVES', page: 0, slot: 0, title: '[TRAPPER] สวมถุงมือยางและโยนทิ้งลงในเตาเผาขยะเพื่อไม่ให้ทิ้งรอยนิ้วมือ', icon: '🧤', decoy: true },
+  { id: 'DECOY-CLOCK', page: 0, slot: 0, title: '[TRAPPER] หมุนเข็มนาฬิกาแขวนผนังในห้องซักรีดให้เร็วขึ้น 30 นาทีเพื่อลวงเวลา', icon: '⏰', decoy: true },
+  { id: 'DECOY-WINDOW', page: 0, slot: 0, title: '[TRAPPER] ใช้ค้อนทุบกระจกหน้าต่างห้องซักรีดให้แตกเพื่อแกล้งทำเป็นทางหลบหนี', icon: '🪟', decoy: true },
+  { id: 'DECOY-CURTAIN', page: 0, slot: 0, title: '[TRAPPER] ใช้ผ้าม่านห้องอาบน้ำห่อหุ้มร่างเรียวตะเพื่อป้องกันเลือดเปรอะเปื้อนพื้น', icon: '🚿', decoy: true },
+  { id: 'DECOY-CLEANER', page: 0, slot: 0, title: '[TRAPPER] ใช้น้ำยาฟอกขาวเข้มข้นราดขัดพื้นห้องซักรีดเพื่อกำจัดรอยรองเท้า', icon: '🧴', decoy: true },
+  { id: 'DECOY-FIRE', page: 0, slot: 0, title: '[TRAPPER] จุดไฟเผากองเศษผ้าเพื่อเปิดระบบสปริงเกลอร์ฉีดน้ำล้างห้อง', icon: '🔥', decoy: true }
 ];
+
+// Dynamic getters for CLOSING_PAGES_DATA and CLOSING_CARDS_DATA
+CLOSING_PAGES_DATA.forEach(p => {
+  p.rawTitle = p.title;
+  Object.defineProperty(p, 'title', {
+    get() { return formatClosingText(this.rawTitle); },
+    set(v) { this.rawTitle = v; },
+    configurable: true,
+    enumerable: true
+  });
+  p.panels.forEach(pan => {
+    pan.rawDesc = pan.desc;
+    Object.defineProperty(pan, 'desc', {
+      get() { return formatClosingText(this.rawDesc); },
+      set(v) { this.rawDesc = v; },
+      configurable: true,
+      enumerable: true
+    });
+    if (pan.title) {
+      pan.rawTitle = pan.title;
+      Object.defineProperty(pan, 'title', {
+        get() { return formatClosingText(this.rawTitle); },
+        set(v) { this.rawTitle = v; },
+        configurable: true,
+        enumerable: true
+      });
+    }
+  });
+});
+
+CLOSING_CARDS_DATA.forEach(c => {
+  c.rawTitle = c.title;
+  Object.defineProperty(c, 'title', {
+    get() { return formatClosingText(this.rawTitle); },
+    set(v) { this.rawTitle = v; },
+    configurable: true,
+    enumerable: true
+  });
+});
 
 const CLOSING_UNLOCK_ORDER = [1, 5, 3, 7, 2, 6, 8, 4, 9, 10];
 const PC_CLOSING_SLOTS = {
@@ -6479,8 +6601,16 @@ function distributeClosingCards() {
   const hands = {};
 
   // Separate correct cards and decoy cards
-  const correctCards = CLOSING_CARDS_DATA.filter(c => !c.decoy).map(c => JSON.parse(JSON.stringify(c)));
-  const decoyCards = CLOSING_CARDS_DATA.filter(c => c.decoy).map(c => JSON.parse(JSON.stringify(c)));
+  const correctCards = CLOSING_CARDS_DATA.filter(c => !c.decoy).map(c => {
+    const copy = JSON.parse(JSON.stringify(c));
+    copy.title = formatClosingText(copy.title || c.title);
+    return copy;
+  });
+  const decoyCards = CLOSING_CARDS_DATA.filter(c => c.decoy).map(c => {
+    const copy = JSON.parse(JSON.stringify(c));
+    copy.title = formatClosingText(copy.title || c.title);
+    return copy;
+  });
 
   const numPlayers = Math.max(1, playersList.length);
   const playerBuckets = Array.from({ length: numPlayers }, () => []);
@@ -6527,6 +6657,15 @@ function distributeClosingCards() {
       const temp = bucket[i];
       bucket[i] = bucket[j];
       bucket[j] = temp;
+    }
+    // Ensure the top card is not always a correct card (addressing user request)
+    if (bucket.length > 2 && !bucket[0].decoy) {
+      const decoyIdx = bucket.findIndex(c => c.decoy);
+      if (decoyIdx > 0) {
+        const temp = bucket[0];
+        bucket[0] = bucket[decoyIdx];
+        bucket[decoyIdx] = temp;
+      }
     }
   });
 
@@ -6923,15 +7062,16 @@ function startClosingClimaxPlayback() {
   }).join('');
 
   // Dramatic Finale Card
+  const trapperName = getTrapperName();
   const finaleHtml = `
     <div id="climaxPageCard_6" class="climax-page-card" style="background:linear-gradient(135deg, #1c0512, #29081a); border:2px solid var(--mono-pink); box-shadow:0 0 35px rgba(255,0,85,0.4); border-radius:12px; padding:24px 20px; text-align:center; margin-top:8px;">
-      <div style="font-size:3.5rem; margin-bottom:8px; animation:pulse 1.2s infinite alternate;">👉</div>
+      <div style="font-size:3.5rem; margin-bottom:8px; animation:pulse 1.2s infinite alternate;">💀</div>
       <div class="slanted-banner pink" style="display:inline-block; font-size:0.9rem; padding:4px 18px; margin-bottom:10px;">THIS IS THE TRUTH OF THE CASE!</div>
       <h3 style="color:#ff2a8d; font-size:clamp(1.25rem, 3.2vw, 1.85rem); font-weight:900; margin:6px 0 12px 0; text-shadow:0 0 20px rgba(255,42,141,0.8);">
-        "และคนร้ายตัวจริงที่จัดฉากฆาตกรรมทั้งหมดนี้... ก็คือแกนั่นแหละ!"
+        "คนร้าย (The Blackened) ตัวจริงของคดีนี้... ก็คือ เรียวตะ!"
       </h3>
       <p style="color:#f1f5f9; font-size:0.95rem; line-height:1.65; max-width:720px; margin:0 auto 20px auto;">
-        หลักฐานทุกชิ้นเชื่อมโยงกันอย่างสมบูรณ์แบบ แผนการแยบยลของคนร้ายถูกเปิดโปงจนหมดสิ้นแล้ว! ถึงเวลาที่นักเรียนทุกคนจะต้องร่วมกันลงคะแนนตัดสินชะตากรรมของศาลชั้นเรียนนี้!
+        แม้ว่า <strong style="color:var(--court-gold);">${trapperName}</strong> จะเป็นผู้วางแผนและจัดวางกลไกกับดักน้ำหนักถ่วงและตั้งเวลาเครื่องอบผ้าไว้ก่อนมื้ออาหาร แต่ <strong>เรียวตะ</strong> ที่ฟื้นคืนสติขึ้นมาก่อนกลับใช้มีดพับตัดเชือกแล้วพยายามผูกเงื่อนเชือกเส้นใหม่เพื่อดักสังหารย้อนศร ทว่าความผิดพลาดในความมืดและความลนลานทำให้บ่วงเชือกเส้นนั้นรัดคอตนเองจนเสียชีวิต!
       </p>
       <button class="small-btn yellow" onclick="closeClosingClimaxModal(); adminSetGame('stage7');" style="font-size:1.05rem; font-weight:900; padding:12px 30px; box-shadow:0 0 25px var(--court-gold); cursor:pointer;">
         🗳️ เข้าสู่ช่วงเวลาโหวตตัดสิน (Voting Time) ▶
@@ -7442,7 +7582,7 @@ function renderMobileTask(stage) {
 
     let bulletOptions = activeBullets.map(cid => {
       const c = ALL_CLUES_DATA.find(x => x.id === cid) || { id: cid, name: cid };
-      return `<option value="${c.id}">[${c.id}] ${c.name}</option>`;
+      return `<option value="${c.id}">[${c.id}] ${getClueDisplayName(c)}</option>`;
     }).join('');
 
     if (isChallenger) {
@@ -8004,13 +8144,14 @@ function renderMobileTask(stage) {
     // Cards HTML in player hand
     const cardsHtml = myCards.map(c => {
       const isPlaced = Boolean(c.slot && gameState.closingSlots && gameState.closingSlots[c.slot]);
+      const cardTitle = formatClosingText(c.title);
       if (isPlaced) {
         return `
           <div class="p-closing-card placed" style="background:#0d1d16; border:1px solid #1e5238; border-radius:8px; padding:10px; margin-bottom:8px; opacity:0.65; cursor:default; display:flex; align-items:center; gap:10px;">
             <span style="font-size:1.5rem; filter:grayscale(0.5);">✅</span>
             <div style="flex:1;">
               <div style="font-size:0.85rem; color:#86efac; font-weight:700; text-decoration:line-through;">
-                <span style="background:#166534; color:#dcfce7; font-size:0.7rem; font-weight:900; padding:1px 6px; border-radius:3px; margin-right:6px;">✓ วางในมังงะแล้ว</span>${c.title}
+                <span style="background:#166534; color:#dcfce7; font-size:0.7rem; font-weight:900; padding:1px 6px; border-radius:3px; margin-right:6px;">✓ วางในมังงะแล้ว</span>${cardTitle}
               </div>
               <div style="font-size:0.75rem; color:#4ade80; margin-top:2px;">(บรรจุลงในหน้ามังงะเรียบร้อยแล้ว)</div>
             </div>
@@ -8036,7 +8177,7 @@ function renderMobileTask(stage) {
           <div class="p-closing-card ${isSelected ? 'selected' : ''}" onclick="selectClosingCard('${c.id}')" style="background:${bgStyle}; border:${borderStyle}; border-radius:8px; padding:12px; margin-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:10px; ${shadowStyle} transition:all 0.2s ease;">
             <span style="font-size:1.6rem;">${c.icon || '📄'}</span>
             <div style="flex:1;">
-              <div style="font-size:0.88rem; color:#fff; font-weight:${isSelected ? '900' : 'bold'}; line-height:1.35;">${c.title}</div>
+              <div style="font-size:0.88rem; color:#fff; font-weight:${isSelected ? '900' : 'bold'}; line-height:1.35;">${cardTitle}</div>
               <div style="font-size:0.78rem; color:${isSelected ? 'var(--court-gold)' : 'var(--mono-cyan)'}; margin-top:4px; font-weight:${isSelected ? '800' : 'normal'};">
                 ${isSelected ? '👉 [เลือกการ์ดใบนี้แล้ว!] แตะปุ่มช่องว่างด้านบนเพื่อวาง' : '👆 แตะเพื่อเลือกการ์ดใบนี้'}
               </div>
@@ -9922,7 +10063,7 @@ function populateStg1CluesDropdown() {
   const sel = document.getElementById('cfgStg1TargetClue');
   if (!sel || !ALL_CLUES_DATA) return;
   const currentVal = sel.value;
-  sel.innerHTML = ALL_CLUES_DATA.map(c => `<option value="${c.id}">[${c.id}] ${c.name} (${c.loc})</option>`).join('');
+  sel.innerHTML = ALL_CLUES_DATA.map(c => `<option value="${c.id}">[${c.id}] ${getClueDisplayName(c)} (${getClueDisplayLoc(c)})</option>`).join('');
   if (currentVal) sel.value = currentVal;
 }
 
@@ -11780,17 +11921,19 @@ function setSimPhase(phase) {
   const barrelWeight = document.getElementById('simBarrelWeight');
   const pulleyWheel = document.getElementById('simPulleyWheel');
 
+  const trapper = getTrapperName();
+
   if (phase === 1) {
     if (badge) badge.innerText = 'เฟส 1: การเซ็ตกลไกเชือกและถังน้ำถ่วงน้ำหนัก (18:10 น.)';
-    if (title) title.innerText = 'คนร้ายลอบวางกับดักน้ำถ่วงเวลาในห้องซักรีด';
-    if (desc) desc.innerText = 'A (ผู้เล่น INT สูง) คล้องเชือกตากผ้าไนลอนที่คอ B พาดผ่านราวท่อสแตนเลสเพดาน หย่อนถังเปล่า (2 กก.) ออกนอกหน้าต่างสูง 3.5 ม. และสอดสายยางผ่านรูมือจับของถังซักผ้าและมัดประคองด้วยเชือกไนลอน (ทางน้ำเปิดโล่ง 100%) หรี่น้ำ 0.5 ลิตร/นาที โดยร่าง B (68 กก.) ถ่วงเชือกไว้ ทำให้ถังลอยนิ่งอยู่ที่เดิมไม่ขยับลงเลยจนกว่าน้ำจะเต็มตอน 21:00 น.!';
+    if (title) title.innerText = `${trapper} ลอบวางกับดักน้ำถ่วงเวลาในห้องซักรีด`;
+    if (desc) desc.innerText = `${trapper} คล้องเชือกตากผ้าไนลอนที่คอเรียวตะ พาดผ่านราวท่อสแตนเลสเพดาน หย่อนถังเปล่า (2 กก.) ออกนอกหน้าต่างสูง 3.5 ม. ต่อสายยางเปิดน้ำ 0.4 ลิตร/นาที และตั้งเวลาเครื่องอบผ้าล่วงหน้าก่อนไปกินอาหารค่ำ!`;
     
     if (victimAvatar) {
       victimAvatar.style.bottom = '25px';
       victimAvatar.style.top = 'auto';
     }
     if (victimIcon) victimIcon.innerText = '😴';
-    if (victimTag) victimTag.innerText = 'B (หมดสติที่พื้น)';
+    if (victimTag) victimTag.innerText = 'เรียวตะ (หมดสติที่พื้น)';
     if (victimStatus) {
       victimStatus.innerText = 'คล้องบ่วงที่คอ';
       victimStatus.style.borderColor = '#f43f5e';
@@ -11804,18 +11947,18 @@ function setSimPhase(phase) {
     if (barrelWeight) barrelWeight.innerText = '10 L (~10 kg) [น้ำเริ่มไหล]';
     if (pulleyWheel) pulleyWheel.style.transform = 'rotate(0deg)';
   } else if (phase === 2) {
-    if (badge) badge.innerText = 'เฟส 2: แผนดัดหลังของเหยื่อที่ผิดพลาด (20:45 น.)';
-    if (title) title.innerText = 'B ฟื้นขึ้นมาตัดเชือก แต่ผูกเงื่อนฮาร์เนสตบตาพลาด!';
-    if (desc) desc.innerText = 'B ฟื้นสติขึ้นมา รู้ตัวว่าโดนลอบฆ่า จึงควักมีดพกตัดเชือกขาดสะบั้น! B รอดตายแล้ว 100%! แต่ด้วยความหยิ่ง B ต้องการดัดหลังคนร้ายในศาล จึงนำเศษเชือกมาผูกเซฟตี้ฮาร์เนสกับลำตัวใต้เสื้อเพื่อรับน้ำหนักแทนคอ แล้วเอาบ่วงหลวมๆ คล้องคอตบตา แต่ B มึนหัวจากแผลฟาดทำให้ผูกเงื่อนหลุดตำแหน่ง!';
+    if (badge) badge.innerText = 'เฟส 2: แผนดัดหลังของเรียวตะที่ผิดพลาด (20:45 น.)';
+    if (title) title.innerText = 'เรียวตะ ฟื้นขึ้นมาตัดเชือก แต่ผูกเงื่อนย้อนศรพลาด!';
+    if (desc) desc.innerText = 'เรียวตะ ฟื้นสติขึ้นมา รู้ตัวว่าโดนลอบวางกับดัก จึงควักมีดพกตัดเชือกขาดสะบั้น! เรียวตะ รอดตายแล้ว 100%! แต่ด้วยความโลภอยากชนะเกมฆาตกรรม เรียวตะจึงนำเศษเชือกมาผูกกับดักย้อนศรหมายสังหารคนวางกับดัก ทว่าในความมืดและความลนลาน ทำให้ผูกเงื่อนเชือกพลาดกลายเป็นรัดคอตนเอง!';
     
     if (victimAvatar) {
       victimAvatar.style.bottom = '25px';
       victimAvatar.style.top = 'auto';
     }
     if (victimIcon) victimIcon.innerText = '😏';
-    if (victimTag) victimTag.innerText = 'B (ตัดเชือกสำเร็จ!)';
+    if (victimTag) victimTag.innerText = 'เรียวตะ (ตัดเชือกสำเร็จ!)';
     if (victimStatus) {
-      victimStatus.innerText = '✂️ ผูกฮาร์เนสดัดหลัง';
+      victimStatus.innerText = '✂️ ผูกเชือกย้อนศร';
       victimStatus.style.borderColor = '#10b981';
       victimStatus.style.color = '#10b981';
     }
@@ -11828,15 +11971,15 @@ function setSimPhase(phase) {
     if (pulleyWheel) pulleyWheel.style.transform = 'rotate(0deg)';
   } else if (phase === 3) {
     if (badge) badge.innerText = 'เฟส 3: วินาทีสังหาร & การตายที่แท้จริง (21:00 น.)';
-    if (title) title.innerText = 'ถังน้ำ 100 กก. ร่วงกระแทกพื้น กระชากร่าง B คอหักตายคาที่!';
-    if (desc) desc.innerText = '21:00 น. เครื่องอบผ้าหมุนเสียงดังตึงตัง ถังน้ำหนัก 65.2 กก. ชนะน้ำหนัก B จึงร่วงวูบ 3.5 ม. กระแทกพื้นลานปูนดัง "โครม!!" แรงกระชากกระตุกสายยางหลุดกระเด็นออกจากก๊อก และดึงร่างเรียวตะลอยหวือขึ้นเพดาน เงื่อนฮาร์เนสหลุด บ่วงรูดขึ้นรัดคอกระแทกราวสแตนเลสจนคอหักเสียชีวิตทันที! เรียวตะ จึงกลายเป็น Blackened ปลิดชีพตนเอง!';
+    if (title) title.innerText = 'ถังน้ำ 70 กก. ร่วงกระแทกพื้น กระชากร่างเรียวตะคอหักตายคาที่!';
+    if (desc) desc.innerText = `21:00 น. เครื่องอบผ้าหมุนเสียงดังตึงตังตามที่ ${trapper} ตั้งเวลาไว้ ถังน้ำหนักสะสมเกิน 70 กก. จึงร่วงวูบ 3.5 ม. กระแทกพื้นลานปูนดัง "โครม!!" แรงกระชากดึงร่างเรียวตะลอยหวือขึ้นเพดาน บ่วงเชือกที่ผูกพลาดรูดขึ้นรัดคอกระแทกราวสแตนเลสจนคอหักเสียชีวิตทันที! เรียวตะ จึงกลายเป็น Blackened ปลิดชีพตนเอง!`;
     
     if (victimAvatar) {
       victimAvatar.style.bottom = 'auto';
       victimAvatar.style.top = '70px'; // Pulled up to ceiling!
     }
     if (victimIcon) victimIcon.innerText = '💀';
-    if (victimTag) victimTag.innerText = 'B (เสียชีวิตคาที่!)';
+    if (victimTag) victimTag.innerText = 'เรียวตะ (The Blackened)';
     if (victimStatus) {
       victimStatus.innerText = '⚡ กระชากคอหักบนเพดาน';
       victimStatus.style.borderColor = '#ef4444';
