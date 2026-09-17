@@ -2129,10 +2129,13 @@ function handleIncomingMessage(msg, senderConn) {
       renderMobileTask('quick_question');
     }
     if (isHost) broadcast({ type: 'sync_state', state: gameState });
+    checkQuickQuestionAutoReveal();
   } else if (msg.type === 'qq_reveal') {
     if (gameState.qqData) {
       gameState.qqData.revealed = true;
+      gameState.qqData.revealing = false;
     }
+    playSfx(msg.isMajorityCorrect ? 'correct' : 'wrong');
     updateQuickQuestionDisplay();
     if (currentView === 'player' && gameState.stage === 'quick_question') {
       renderMobileTask('quick_question');
@@ -5460,13 +5463,41 @@ function adminStartQuickQuestion() {
 function adminRevealQuickQuestion() {
   if (!gameState.qqData) return;
   gameState.qqData.revealed = true;
+  gameState.qqData.revealing = false;
+
+  const qq = gameState.qqData;
+  const votes = qq.votes || {};
+  const counts = { A: 0, B: 0, C: 0 };
+  Object.values(votes).forEach(v => {
+    if (counts[v] !== undefined) counts[v]++;
+  });
+
+  // Calculate majority choice
+  let majorityChoice = 'A';
+  let maxVotes = -1;
+  ['A', 'B', 'C'].forEach(ch => {
+    if (counts[ch] > maxVotes) {
+      maxVotes = counts[ch];
+      majorityChoice = ch;
+    }
+  });
+
+  const isMajorityCorrect = (majorityChoice === qq.correct);
+
   updateQuickQuestionDisplay();
   if (currentView === 'player' && gameState.stage === 'quick_question') {
     renderMobileTask('quick_question');
   }
-  broadcast({ type: 'qq_reveal' });
-  playSfx('correct');
-  logCourt(`🏁 [FLASH DECISION REVEAL]: เฉลยคำตอบข้อ [${gameState.qqData.correct}] ${gameState.qqData.choices[gameState.qqData.correct] || ''}`);
+
+  broadcast({
+    type: 'qq_reveal',
+    majorityChoice: majorityChoice,
+    isMajorityCorrect: isMajorityCorrect
+  });
+
+  playSfx(isMajorityCorrect ? 'correct' : 'wrong');
+  const correctTxt = qq.choices && qq.choices[qq.correct] ? qq.choices[qq.correct] : '';
+  logCourt(`🏁 [FLASH DECISION REVEAL]: เฉลยคำตอบข้อ [${qq.correct}] ${correctTxt} | มติเสียงข้างมากเลือกข้อ [${majorityChoice}] (${isMajorityCorrect ? 'ถูกต้อง ✅' : 'ขัดแย้ง ❌'})`);
 }
 
 function sendQuickQuestionVote(choice) {
@@ -5486,6 +5517,29 @@ function sendQuickQuestionVote(choice) {
   if (currentView === 'player' && gameState.stage === 'quick_question') {
     renderMobileTask('quick_question');
   }
+  checkQuickQuestionAutoReveal();
+}
+
+function checkQuickQuestionAutoReveal() {
+  if (!gameState.qqData || gameState.qqData.revealed || gameState.qqData.revealing) return;
+  if (!isHost && currentView !== 'admin') return;
+
+  const votes = gameState.qqData.votes || {};
+  const votedCount = Object.keys(votes).length;
+  const eligiblePlayers = Object.values(gameState.players || {}).filter(p => {
+    const cred = p.credibility !== undefined ? p.credibility : 100;
+    return cred > 0;
+  });
+  const activePlayers = eligiblePlayers.length || Object.keys(gameState.players || {}).length;
+
+  if (activePlayers > 0 && votedCount >= activePlayers) {
+    gameState.qqData.revealing = true;
+    setTimeout(() => {
+      if (gameState.qqData && !gameState.qqData.revealed) {
+        adminRevealQuickQuestion();
+      }
+    }, 500);
+  }
 }
 
 function updateQuickQuestionDisplay() {
@@ -5496,7 +5550,11 @@ function updateQuickQuestionDisplay() {
 
   const votes = qq.votes || {};
   const isRevealed = Boolean(qq.revealed);
-  const activePlayers = Object.keys(gameState.players || {}).length || 4;
+  const eligiblePlayers = Object.values(gameState.players || {}).filter(p => {
+    const cred = p.credibility !== undefined ? p.credibility : 100;
+    return cred > 0;
+  });
+  const activePlayers = eligiblePlayers.length || Object.keys(gameState.players || {}).length || 4;
   const votedCount = Object.keys(votes).length;
 
   const countEl = document.getElementById('qqVotedCount');
@@ -5510,6 +5568,16 @@ function updateQuickQuestionDisplay() {
     if (counts[v] !== undefined) counts[v]++;
   });
 
+  // Determine majority choice
+  let majorityChoice = 'A';
+  let maxVotes = -1;
+  ['A', 'B', 'C'].forEach(ch => {
+    if (counts[ch] > maxVotes) {
+      maxVotes = counts[ch];
+      majorityChoice = ch;
+    }
+  });
+
   ['A', 'B', 'C'].forEach(ch => {
     const lane = document.getElementById('qqLane' + ch);
     if (!lane) return;
@@ -5519,28 +5587,63 @@ function updateQuickQuestionDisplay() {
     lane.style.background = '';
 
     if (isRevealed) {
-      if (ch === qq.correct) {
+      const isCorrect = (ch === qq.correct);
+      if (isCorrect) {
         lane.classList.add('active-match');
-        lane.innerHTML = `<strong>${ch}:</strong> <span class="choice-text">${escapeHtml(txt)}</span> <span style="margin-left:auto; font-weight:900; color:#00ff88;">✅ คำตอบที่ถูก (${counts[ch]} โหวต)</span>`;
+        lane.innerHTML = `
+          <div class="qq-badge-circle correct">✓</div>
+          <div class="qq-choice-label"><strong>ข้อ ${ch}:</strong> ${escapeHtml(txt)}</div>
+          <div class="qq-vote-pill correct">✅ คำตอบที่ถูกต้อง (${counts[ch]} โหวต)</div>
+        `;
       } else {
         lane.classList.add('mismatch');
-        lane.innerHTML = `<strong>${ch}:</strong> <span class="choice-text">${escapeHtml(txt)}</span> <span style="margin-left:auto; font-size:0.85rem; color:#94a3b8;">(${counts[ch]} โหวต)</span>`;
+        lane.innerHTML = `
+          <div class="qq-badge-circle" style="background:#334155; opacity:0.6;">${ch}</div>
+          <div class="qq-choice-label" style="opacity:0.6;"><strong>ข้อ ${ch}:</strong> ${escapeHtml(txt)}</div>
+          <div class="qq-vote-pill" style="opacity:0.6; border-color:#475569; color:#94a3b8;">${counts[ch]} โหวต</div>
+        `;
       }
     } else {
-      lane.innerHTML = `<strong>${ch}:</strong> <span class="choice-text">${escapeHtml(txt)}</span> <span style="margin-left:auto; font-size:0.85rem; color:#00f0ff;">(${counts[ch]} โหวต)</span>`;
+      lane.innerHTML = `
+        <div class="qq-badge-circle">${ch}</div>
+        <div class="qq-choice-label"><strong>ข้อ ${ch}:</strong> ${escapeHtml(txt)}</div>
+        <div class="qq-vote-pill">🗳️ ${counts[ch]} โหวต</div>
+      `;
     }
   });
+
+  const tallyBox = document.getElementById('qqVoteTally');
+  if (tallyBox) {
+    if (isRevealed) {
+      tallyBox.innerHTML = `🏁 สรุปผลการลงมติเรียบร้อยแล้ว (${votedCount} จาก ${activePlayers} คนลงคะแนน)`;
+      tallyBox.style.color = '#34d399';
+    } else {
+      tallyBox.innerHTML = `⏳ รอผลการลงมติจากนักเรียนทุกคน... (<span id="qqVotedCount">${votedCount}</span> / <span id="qqTotalVoters">${activePlayers}</span> คนตอบแล้ว)`;
+      tallyBox.style.color = '#94a3b8';
+    }
+  }
 
   const resNotice = document.getElementById('qqResultNotice');
   if (resNotice) {
     if (isRevealed) {
       resNotice.classList.remove('hidden');
       resNotice.style.display = 'block';
-      resNotice.style.background = 'rgba(16,185,129,0.2)';
-      resNotice.style.border = '2px solid #10b981';
-      resNotice.style.color = '#6ee7b7';
       const correctTxt = qq.choices && qq.choices[qq.correct] ? qq.choices[qq.correct] : '';
-      resNotice.innerHTML = `🏁 เฉลยคำตอบ: <strong>ข้อ [${qq.correct}] ${escapeHtml(correctTxt)}</strong>`;
+      const isMajorityCorrect = (majorityChoice === qq.correct);
+      resNotice.className = 'qq-verdict-card';
+      resNotice.style.borderColor = isMajorityCorrect ? '#10b981' : '#ef4444';
+      resNotice.style.boxShadow = isMajorityCorrect ? '0 0 25px rgba(16, 185, 129, 0.4)' : '0 0 25px rgba(239, 68, 68, 0.4)';
+      resNotice.innerHTML = `
+        <div style="font-size:1.3rem; font-weight:900; margin-bottom:6px; color:${isMajorityCorrect ? '#34d399' : '#f87171'};">
+          ${isMajorityCorrect ? '✨ มติที่ประชุมสรุปได้อย่างถูกต้อง!' : '💥 มติที่ประชุมขัดแย้งกับความเป็นจริง!'}
+        </div>
+        <div style="font-size:1.05rem; color:#f1f5f9;">
+          เฉลยคำตอบที่ถูกต้องคือ: <strong style="color:#00ffff; font-size:1.15rem;">ข้อ [${qq.correct}] ${escapeHtml(correctTxt)}</strong>
+        </div>
+        <div style="font-size:0.85rem; color:#94a3b8; margin-top:6px;">
+          (เสียงข้างมากเลือกข้อ [${majorityChoice}] ทั้งหมด ${counts[majorityChoice]} จาก ${votedCount} เสียง)
+        </div>
+      `;
     } else {
       resNotice.classList.add('hidden');
       resNotice.style.display = 'none';
@@ -6416,6 +6519,16 @@ function distributeClosingCards() {
       playerBuckets[idx % numPlayers].push(card);
     });
   }
+
+  // Shuffle cards within each player's bucket so correct cards and decoys are thoroughly randomized!
+  playerBuckets.forEach(bucket => {
+    for (let i = bucket.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = bucket[i];
+      bucket[i] = bucket[j];
+      bucket[j] = temp;
+    }
+  });
 
   // Map buckets to player hands with multi-key indexing (id, userHash, name, pcSlot)
   playersList.forEach((p, idx) => {
@@ -7734,33 +7847,86 @@ function renderMobileTask(stage) {
     const hasVoted = Boolean(myVote);
     const isRevealed = Boolean(qq.revealed);
     const choices = qq.choices || { A: '', B: '', C: '' };
+    const votes = qq.votes || {};
+    const totalVotes = Object.keys(votes).length;
+
+    const counts = { A: 0, B: 0, C: 0 };
+    Object.values(votes).forEach(v => {
+      if (counts[v] !== undefined) counts[v]++;
+    });
 
     const choicesHtml = ['A', 'B', 'C'].map(ch => {
       const isSelected = (myVote === ch);
       const isCorrect = isRevealed && (qq.correct === ch);
-      let btnStyle = 'padding:12px; font-size:0.92rem; text-align:left; border-radius:8px; display:flex; justify-content:space-between; align-items:center; transition:all 0.15s; margin-bottom:8px;';
+      const isWrongSelection = isRevealed && isSelected && !isCorrect;
+      const count = counts[ch] || 0;
+      const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+
+      let cardClass = 'qq-mob-card';
       if (isRevealed) {
         if (isCorrect) {
-          btnStyle += ' background:rgba(0,255,136,0.25); border:2px solid #00ff88; color:#a7f3d0; font-weight:900;';
-        } else if (isSelected) {
-          btnStyle += ' background:rgba(239,68,68,0.2); border:2px solid #ef4444; color:#fca5a5;';
+          cardClass += ' correct';
+        } else if (isWrongSelection) {
+          cardClass += ' wrong';
         } else {
-          btnStyle += ' background:#1e293b; border:1px solid #334155; color:#64748b; opacity:0.6;';
+          cardClass += ' dimmed';
         }
       } else if (isSelected) {
-        btnStyle += ' background:rgba(0,240,255,0.25); border:2px solid #00f0ff; color:#fff; font-weight:bold; box-shadow:0 0 12px rgba(0,240,255,0.4);';
-      } else {
-        btnStyle += ' background:#1e293b; border:1px solid #475569; color:#f8fafc; cursor:pointer;';
+        cardClass += ' selected';
       }
 
+      let badgeContent = ch;
+      if (isRevealed && isCorrect) badgeContent = '✓';
+
+      let statusBadge = '';
+      if (isRevealed) {
+        if (isCorrect) {
+          statusBadge = `<span class="qq-mob-status" style="color:#34d399;">✅ คำตอบที่ถูก (${count})</span>`;
+        } else if (isSelected) {
+          statusBadge = `<span class="qq-mob-status" style="color:#f87171;">❌ ตัวเลือกของคุณ (${count})</span>`;
+        } else {
+          statusBadge = `<span class="qq-mob-status" style="color:#64748b;">${count} โหวต (${pct}%)</span>`;
+        }
+      } else if (isSelected) {
+        statusBadge = `<span class="qq-mob-status" style="color:#00f0ff;">✓ ที่คุณเลือก</span>`;
+      }
+
+      const clickAction = (!hasVoted && !isRevealed) ? `sendQuickQuestionVote('${ch}')` : '';
+
       return `
-        <button type="button" class="p-task-btn" style="${btnStyle}" onclick="${(!hasVoted && !isRevealed) ? `sendQuickQuestionVote('${ch}')` : ''}" ${isRevealed ? 'disabled' : ''}>
-          <span><strong>${ch}:</strong> ${escapeHtml(choices[ch] || '')}</span>
-          ${isSelected ? '<span style="color:#00ff88; font-weight:900; margin-left:8px;">✓ ที่คุณเลือก</span>' : ''}
-          ${isCorrect ? '<span style="color:#00ff88; font-weight:900; margin-left:8px;">✅ ถูกต้อง</span>' : ''}
-        </button>
+        <div class="${cardClass}" onclick="${clickAction}">
+          <div class="qq-mob-badge">${badgeContent}</div>
+          <div class="qq-mob-text">
+            <div style="font-weight:700; color:#fff;">ข้อ ${ch}</div>
+            <div style="font-size:0.88rem; color:#cbd5e1; margin-top:2px;">${escapeHtml(choices[ch] || '')}</div>
+          </div>
+          ${statusBadge}
+        </div>
       `;
     }).join('');
+
+    let summaryCard = '';
+    if (isRevealed) {
+      const isMyChoiceCorrect = (myVote === qq.correct);
+      summaryCard = `
+        <div class="qq-mob-summary" style="margin-top:12px; padding:10px 14px; border-radius:8px; background:${isMyChoiceCorrect ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; border:1.5px solid ${isMyChoiceCorrect ? '#10b981' : '#ef4444'}; text-align:center;">
+          <div style="font-weight:900; font-size:0.95rem; color:${isMyChoiceCorrect ? '#34d399' : '#f87171'};">
+            ${isMyChoiceCorrect ? '🎉 คุณตอบคำถามถูกต้อง!' : '⚠️ คำตอบของคุณยังไม่ถูกต้อง'}
+          </div>
+          <div style="font-size:0.82rem; color:#cbd5e1; margin-top:4px;">
+            เฉลยคำตอบคือข้อ <strong>[${qq.correct}] ${escapeHtml(choices[qq.correct] || '')}</strong>
+          </div>
+        </div>
+      `;
+    } else {
+      summaryCard = `
+        <div style="font-size:0.8rem; color:${hasVoted ? '#00ff88' : '#94a3b8'}; text-align:center; padding:8px; background:rgba(0,0,0,0.3); border-radius:6px; margin-top:10px;">
+          ${hasVoted
+            ? `✅ คุณลงมติข้อ [${myVote}] แล้ว (รอผู้เล่นคนอื่นโหวตครบเพื่อสรุปผล)`
+            : 'แตะเลือกคำตอบที่คุณคิดว่าถูกต้อง 1 ข้อ'}
+        </div>
+      `;
+    }
 
     area.innerHTML = `
       <div style="background:rgba(15,23,42,0.95); border:2px solid #00f0ff; border-radius:10px; padding:14px;">
@@ -7771,14 +7937,10 @@ function renderMobileTask(stage) {
         <h3 style="color:#00f0ff; font-size:1.02rem; font-weight:900; margin-bottom:12px; line-height:1.4;">
           ${escapeHtml(qq.question)}
         </h3>
-        <div style="display:flex; flex-direction:column; margin-bottom:8px;">
+        <div style="display:flex; flex-direction:column;">
           ${choicesHtml}
         </div>
-        <div style="font-size:0.8rem; color:${hasVoted ? '#00ff88' : '#94a3b8'}; text-align:center; padding:6px; background:rgba(0,0,0,0.3); border-radius:4px;">
-          ${isRevealed
-            ? `เฉลยคำตอบ: <strong>ข้อ [${qq.correct}]</strong>`
-            : (hasVoted ? `✅ คุณเลือกข้อ [${myVote}] เรียบร้อยแล้ว (รอ DM เฉลยคำตอบ)` : 'แตะเลือกคำตอบที่คุณคิดว่าถูกต้อง 1 ข้อ')}
-        </div>
+        ${summaryCard}
       </div>
     `;
   } else if (stage === 'closing') {

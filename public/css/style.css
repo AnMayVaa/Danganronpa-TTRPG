@@ -7520,6 +7520,174 @@ body.phase-investigation #playerSectionGuide,
   max-width: 860px;
   margin: 0 auto;
 }
+#courtQuickQuestion .tube-choices {
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: none !important;
+  gap: 14px;
+  max-width: 800px;
+  margin: 20px auto 0 auto;
+}
+#courtQuickQuestion .choice-lane {
+  display: flex;
+  align-items: center;
+  padding: 16px 22px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 2px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+#courtQuickQuestion .choice-lane:hover {
+  border-color: rgba(56, 189, 248, 0.8);
+  transform: translateX(4px);
+}
+#courtQuickQuestion .choice-lane.active-match {
+  background: rgba(16, 185, 129, 0.18) !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 22px rgba(16, 185, 129, 0.45) !important;
+}
+#courtQuickQuestion .choice-lane.mismatch {
+  background: rgba(30, 41, 59, 0.45) !important;
+  border-color: rgba(100, 116, 139, 0.35) !important;
+  opacity: 0.55;
+}
+.qq-badge-circle {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);
+}
+.qq-badge-circle.correct {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.7);
+}
+.qq-choice-label {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  flex: 1;
+  text-align: left;
+}
+.qq-vote-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  background: rgba(2, 132, 199, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.qq-vote-pill.correct {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: #10b981;
+  color: #34d399;
+}
+.qq-verdict-card {
+  margin-top: 18px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+  border: 2px solid #10b981;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+  animation: qqPopIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes qqPopIn {
+  from { opacity: 0; transform: scale(0.92) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Mobile Quick Question Styles */
+.qq-mob-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1.5px solid rgba(71, 85, 105, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+  box-sizing: border-box;
+}
+.qq-mob-card:active {
+  transform: scale(0.98);
+}
+.qq-mob-card.selected {
+  background: rgba(2, 132, 199, 0.25);
+  border-color: #00f0ff;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
+}
+.qq-mob-card.correct {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: #10b981;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+}
+.qq-mob-card.wrong {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  opacity: 0.85;
+}
+.qq-mob-card.dimmed {
+  opacity: 0.45;
+  border-color: rgba(51, 65, 85, 0.4);
+  cursor: default;
+}
+.qq-mob-badge {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: #334155;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qq-mob-card.selected .qq-mob-badge {
+  background: #0284c7;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(2, 132, 199, 0.6);
+}
+.qq-mob-card.correct .qq-mob-badge {
+  background: #10b981;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+}
+.qq-mob-text {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.35;
+}
+.qq-mob-status {
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .qq-choice-btn {
   background: #151528;
   border: 2px solid #38bdf8;
