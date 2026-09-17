@@ -4128,10 +4128,22 @@ function updateStg0CourtDisplay() {
       const charWrap = document.getElementById('stg0CutinCharacterWrap');
 
       // Apply dynamic entrance angle class and trigger CSS animation
+      const CUTIN_ANGLES = ['cutin-angle-br', 'cutin-angle-bl', 'cutin-angle-sr', 'cutin-angle-sl', 'cutin-angle-bc'];
+      const angle = gameState.stg0.cutinAngle || 'cutin-angle-br';
+      const mangaPanel = document.getElementById('stg0CounterMangaPanel');
+
+      CUTIN_ANGLES.forEach(cls => {
+        overlay.classList.remove(cls);
+        if (mangaPanel) mangaPanel.classList.remove(cls);
+        if (charWrap) charWrap.classList.remove(cls);
+      });
+      void overlay.offsetWidth;
+      overlay.classList.add(angle);
+      if (mangaPanel) {
+        void mangaPanel.offsetWidth;
+        mangaPanel.classList.add(angle);
+      }
       if (charWrap) {
-        const CUTIN_ANGLES = ['cutin-angle-br', 'cutin-angle-bl', 'cutin-angle-sr', 'cutin-angle-sl', 'cutin-angle-bc'];
-        const angle = gameState.stg0.cutinAngle || 'cutin-angle-br';
-        CUTIN_ANGLES.forEach(cls => charWrap.classList.remove(cls));
         void charWrap.offsetWidth;
         charWrap.classList.add(angle);
       }
@@ -4158,6 +4170,14 @@ function updateStg0CourtDisplay() {
       }
     } else {
       overlay.classList.add('hidden');
+      const CUTIN_ANGLES = ['cutin-angle-br', 'cutin-angle-bl', 'cutin-angle-sr', 'cutin-angle-sl', 'cutin-angle-bc'];
+      CUTIN_ANGLES.forEach(cls => {
+        overlay.classList.remove(cls);
+        const mangaPanel = document.getElementById('stg0CounterMangaPanel');
+        if (mangaPanel) mangaPanel.classList.remove(cls);
+        const charWrap = document.getElementById('stg0CutinCharacterWrap');
+        if (charWrap) charWrap.classList.remove(cls);
+      });
     }
   }
 }
@@ -10036,7 +10056,11 @@ function toggleCourtFullscreen() {
 }
 
 function openCourtPopout() {
-  const url = window.location.origin + '/?view=court';
+  const currentRoom = (typeof roomCode !== 'undefined' && roomCode)
+    ? roomCode
+    : (new URLSearchParams(window.location.search).get('room') || localStorage.getItem('dangan_current_room') || '');
+  const roomParam = currentRoom ? `&room=${encodeURIComponent(currentRoom)}` : '';
+  const url = window.location.origin + '/?view=court' + roomParam;
   const popout = window.open(url, 'DanganronpaCourtScreen', 'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no,resizable=yes');
   if (popout) {
     popout.focus();

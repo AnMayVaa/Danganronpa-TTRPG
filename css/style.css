@@ -6826,9 +6826,9 @@ body.view-simulation .execution-cutscene-overlay {
   flex-direction: column !important;
 }
 
-#viewCourt:fullscreen .court-box,
-#viewCourt:-webkit-full-screen .court-box,
-#viewCourt.court-fullscreen-mode .court-box {
+#viewCourt:fullscreen .court-box:not(.hidden),
+#viewCourt:-webkit-full-screen .court-box:not(.hidden),
+#viewCourt.court-fullscreen-mode .court-box:not(.hidden) {
   flex: 1 1 auto !important;
   width: 100% !important;
   max-width: 1680px !important;
@@ -6836,6 +6836,13 @@ body.view-simulation .execution-cutscene-overlay {
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-evenly !important;
+}
+
+#viewCourt:fullscreen .court-box.hidden,
+#viewCourt:-webkit-full-screen .court-box.hidden,
+#viewCourt.court-fullscreen-mode .court-box.hidden {
+  display: none !important;
+  visibility: hidden !important;
 }
 
 /* Hide all debug/monitor logs and admin buttons in fullscreen mode */
@@ -8285,42 +8292,131 @@ body.phase-investigation #playerSectionGuide,
   100% { opacity: 1; filter: brightness(1); }
 }
 
-/* Outer Radial Conic Speedlines */
-.stg0-outer-speedlines {
+/* Directional Speedlines Stream Backdrop */
+.stg0-directional-speedlines {
   position: absolute;
-  inset: -60%;
-  background: repeating-conic-gradient(
-    from 0deg,
-    rgba(255, 64, 129, 0.26) 0deg 2.5deg,
-    transparent 2.5deg 6.5deg,
-    rgba(255, 255, 255, 0.18) 6.5deg 8.5deg,
-    transparent 8.5deg 13deg,
-    rgba(0, 240, 255, 0.22) 13deg 15.5deg,
-    transparent 15.5deg 19deg
-  );
+  inset: -30%;
   pointer-events: none;
   z-index: 1;
-  animation: speedLinesRotate 1.6s linear infinite;
+  opacity: 0.85;
 }
 
-@keyframes speedLinesRotate {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.04); }
-  100% { transform: rotate(360deg) scale(1); }
+.stg0-objection-overlay.cutin-angle-br .stg0-directional-speedlines {
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.35) 0px 2px,
+    transparent 2px 14px,
+    rgba(255, 64, 129, 0.45) 14px 17px,
+    transparent 17px 32px
+  );
+  animation: dirSpeedBR 0.12s linear infinite;
 }
 
-/* Border Edge Action Speedlines */
+.stg0-objection-overlay.cutin-angle-bl .stg0-directional-speedlines {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.35) 0px 2px,
+    transparent 2px 14px,
+    rgba(0, 240, 255, 0.45) 14px 17px,
+    transparent 17px 32px
+  );
+  animation: dirSpeedBL 0.12s linear infinite;
+}
+
+.stg0-objection-overlay.cutin-angle-sr .stg0-directional-speedlines {
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.35) 0px 2px,
+    transparent 2px 14px,
+    rgba(255, 230, 0, 0.45) 14px 17px,
+    transparent 17px 32px
+  );
+  animation: dirSpeedSR 0.12s linear infinite;
+}
+
+.stg0-objection-overlay.cutin-angle-sl .stg0-directional-speedlines {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.35) 0px 2px,
+    transparent 2px 14px,
+    rgba(255, 64, 129, 0.45) 14px 17px,
+    transparent 17px 32px
+  );
+  animation: dirSpeedSL 0.12s linear infinite;
+}
+
+.stg0-objection-overlay.cutin-angle-bc .stg0-directional-speedlines {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.35) 0px 2px,
+    transparent 2px 14px,
+    rgba(0, 255, 136, 0.45) 14px 17px,
+    transparent 17px 32px
+  );
+  animation: dirSpeedBC 0.12s linear infinite;
+}
+
+@keyframes dirSpeedBR {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-45px, -45px); }
+}
+
+@keyframes dirSpeedBL {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(45px, -45px); }
+}
+
+@keyframes dirSpeedSR {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-55px); }
+}
+
+@keyframes dirSpeedSL {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(55px); }
+}
+
+@keyframes dirSpeedBC {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-55px); }
+}
+
+/* Border Edge Action Speedlines: HIDE ALL BY DEFAULT */
 .stg0-edge-speedlines {
   position: absolute;
   pointer-events: none;
   z-index: 2;
+  display: none !important;
+}
+
+/* ONLY display edge speedlines matching the thrust direction! */
+.stg0-objection-overlay.cutin-angle-br .stg0-edge-speedlines.bottom,
+.stg0-objection-overlay.cutin-angle-br .stg0-edge-speedlines.right {
+  display: block !important;
+}
+
+.stg0-objection-overlay.cutin-angle-bl .stg0-edge-speedlines.bottom,
+.stg0-objection-overlay.cutin-angle-bl .stg0-edge-speedlines.left {
+  display: block !important;
+}
+
+.stg0-objection-overlay.cutin-angle-sr .stg0-edge-speedlines.right {
+  display: block !important;
+}
+
+.stg0-objection-overlay.cutin-angle-sl .stg0-edge-speedlines.left {
+  display: block !important;
+}
+
+.stg0-objection-overlay.cutin-angle-bc .stg0-edge-speedlines.bottom {
+  display: block !important;
 }
 
 .stg0-edge-speedlines.top {
   top: 0;
   left: 0;
   right: 0;
-  height: 75px;
+  height: 85px;
   background: repeating-linear-gradient(90deg, #ffffff 0px 3px, transparent 3px 12px, #ff0055 12px 15px, transparent 15px 24px);
   mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
   -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
@@ -8331,7 +8427,7 @@ body.phase-investigation #playerSectionGuide,
   bottom: 0;
   left: 0;
   right: 0;
-  height: 75px;
+  height: 95px;
   background: repeating-linear-gradient(90deg, #ffffff 0px 3px, transparent 3px 12px, #00f0ff 12px 15px, transparent 15px 24px);
   mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
   -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
@@ -8342,7 +8438,7 @@ body.phase-investigation #playerSectionGuide,
   top: 0;
   bottom: 0;
   left: 0;
-  width: 85px;
+  width: 95px;
   background: repeating-linear-gradient(0deg, #ffffff 0px 3px, transparent 3px 12px, #ff4081 12px 15px, transparent 15px 24px);
   mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
   -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
@@ -8353,7 +8449,7 @@ body.phase-investigation #playerSectionGuide,
   top: 0;
   bottom: 0;
   right: 0;
-  width: 85px;
+  width: 95px;
   background: repeating-linear-gradient(0deg, #ffffff 0px 3px, transparent 3px 12px, #ffe600 12px 15px, transparent 15px 24px);
   mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
   -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
@@ -8385,14 +8481,94 @@ body.phase-investigation #playerSectionGuide,
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  overflow: hidden;
+  overflow: visible;
   padding: 16px 28px 12px 28px;
-  animation: stg0PanelSlam 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 
-@keyframes stg0PanelSlam {
-  0% { transform: skewX(-8deg) scale(1.18); opacity: 0; filter: brightness(2.5); }
-  100% { transform: skewX(-8deg) scale(1); opacity: 1; filter: brightness(1); }
+/* 1. Bottom-Right Slash */
+.stg0-counter-manga-panel.cutin-angle-br {
+  animation: panelThrustBR 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             panelBreatheBR 2.2s ease-in-out 0.35s infinite alternate;
+}
+@keyframes panelThrustBR {
+  0% { transform: translate(70vw, 55vh) skewX(-8deg) scale(0.6); opacity: 0; filter: brightness(3); }
+  70% { transform: translate(-20px, -15px) skewX(-8deg) scale(1.04); opacity: 1; filter: brightness(1.2); }
+  85% { transform: translate(5px, 4px) skewX(-8deg) scale(0.99); opacity: 1; }
+  100% { transform: translate(0, 0) skewX(-8deg) scale(1); opacity: 1; filter: brightness(1); }
+}
+@keyframes panelBreatheBR {
+  0% { transform: translate(0, 0) skewX(-8deg) scale(1); }
+  50% { transform: translate(-3px, -4px) skewX(-8deg) scale(1.01); }
+  100% { transform: translate(2px, 1px) skewX(-8deg) scale(0.99); }
+}
+
+/* 2. Bottom-Left Slash */
+.stg0-counter-manga-panel.cutin-angle-bl {
+  animation: panelThrustBL 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             panelBreatheBL 2.2s ease-in-out 0.35s infinite alternate;
+}
+@keyframes panelThrustBL {
+  0% { transform: translate(-70vw, 55vh) skewX(-8deg) scale(0.6); opacity: 0; filter: brightness(3); }
+  70% { transform: translate(20px, -15px) skewX(-8deg) scale(1.04); opacity: 1; filter: brightness(1.2); }
+  85% { transform: translate(-5px, 4px) skewX(-8deg) scale(0.99); opacity: 1; }
+  100% { transform: translate(0, 0) skewX(-8deg) scale(1); opacity: 1; filter: brightness(1); }
+}
+@keyframes panelBreatheBL {
+  0% { transform: translate(0, 0) skewX(-8deg) scale(1); }
+  50% { transform: translate(3px, -4px) skewX(-8deg) scale(1.01); }
+  100% { transform: translate(-2px, 1px) skewX(-8deg) scale(0.99); }
+}
+
+/* 3. Side-Right Horizontal Slash */
+.stg0-counter-manga-panel.cutin-angle-sr {
+  animation: panelThrustSR 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             panelBreatheSR 2.0s ease-in-out 0.32s infinite alternate;
+}
+@keyframes panelThrustSR {
+  0% { transform: translate(85vw, 0) skewX(-8deg) scale(0.7); opacity: 0; filter: brightness(3); }
+  70% { transform: translate(-25px, 0) skewX(-8deg) scale(1.04); opacity: 1; filter: brightness(1.2); }
+  85% { transform: translate(6px, 0) skewX(-8deg) scale(0.99); opacity: 1; }
+  100% { transform: translate(0, 0) skewX(-8deg) scale(1); opacity: 1; filter: brightness(1); }
+}
+@keyframes panelBreatheSR {
+  0% { transform: translate(0, 0) skewX(-8deg) scale(1); }
+  50% { transform: translate(-4px, -2px) skewX(-8deg) scale(1.01); }
+  100% { transform: translate(2px, 2px) skewX(-8deg) scale(0.99); }
+}
+
+/* 4. Side-Left Horizontal Slash */
+.stg0-counter-manga-panel.cutin-angle-sl {
+  animation: panelThrustSL 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             panelBreatheSL 2.0s ease-in-out 0.32s infinite alternate;
+}
+@keyframes panelThrustSL {
+  0% { transform: translate(-85vw, 0) skewX(-8deg) scale(0.7); opacity: 0; filter: brightness(3); }
+  70% { transform: translate(25px, 0) skewX(-8deg) scale(1.04); opacity: 1; filter: brightness(1.2); }
+  85% { transform: translate(-6px, 0) skewX(-8deg) scale(0.99); opacity: 1; }
+  100% { transform: translate(0, 0) skewX(-8deg) scale(1); opacity: 1; filter: brightness(1); }
+}
+@keyframes panelBreatheSL {
+  0% { transform: translate(0, 0) skewX(-8deg) scale(1); }
+  50% { transform: translate(4px, -2px) skewX(-8deg) scale(1.01); }
+  100% { transform: translate(-2px, 2px) skewX(-8deg) scale(0.99); }
+}
+
+/* 5. Bottom-Center Vertical Surge */
+.stg0-counter-manga-panel.cutin-angle-bc {
+  animation: panelThrustBC 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             panelBreatheBC 1.9s ease-in-out 0.34s infinite alternate;
+}
+@keyframes panelThrustBC {
+  0% { transform: translate(0, 75vh) skewX(-8deg) scale(0.65); opacity: 0; filter: brightness(3); }
+  70% { transform: translate(0, -22px) skewX(-8deg) scale(1.05); opacity: 1; filter: brightness(1.2); }
+  85% { transform: translate(0, 5px) skewX(-8deg) scale(0.99); opacity: 1; }
+  100% { transform: translate(0, 0) skewX(-8deg) scale(1); opacity: 1; filter: brightness(1); }
+}
+@keyframes panelBreatheBC {
+  0% { transform: translate(0, 0) skewX(-8deg) scale(1); }
+  50% { transform: translate(0, -5px) skewX(-8deg) scale(1.02); }
+  100% { transform: translate(0, 2px) skewX(-8deg) scale(0.99); }
 }
 
 .stg0-panel-border {
@@ -8435,53 +8611,6 @@ body.phase-investigation #playerSectionGuide,
 @keyframes panelSpeedlinesRush {
   0% { transform: translateX(0); }
   100% { transform: translateX(-80px); }
-}
-
-/* Top-Right Danganronpa Trial HUD Gauge */
-.stg0-panel-hud {
-  position: absolute;
-  top: 14px;
-  right: 24px;
-  z-index: 15;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 5px;
-  transform: skewX(8deg);
-}
-
-.hud-time-display {
-  font-family: 'Courier New', monospace;
-  font-size: 1.1rem;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: #00f0ff;
-  text-shadow: 0 0 10px #00f0ff, 0 0 20px rgba(0, 240, 255, 0.6);
-  background: rgba(0, 0, 0, 0.72);
-  padding: 2px 10px;
-  border-radius: 4px;
-  border: 1px solid rgba(0, 240, 255, 0.4);
-}
-
-.hud-meter-wrap {
-  display: flex;
-  gap: 6px;
-}
-
-.hud-meter-bar {
-  height: 7px;
-  width: 75px;
-  border-radius: 4px;
-}
-
-.hud-meter-bar.pink {
-  background: #ff4081;
-  box-shadow: 0 0 10px #ff4081;
-}
-
-.hud-meter-bar.cyan {
-  background: #00f0ff;
-  box-shadow: 0 0 10px #00f0ff;
 }
 
 /* Slanted Panel Content */
