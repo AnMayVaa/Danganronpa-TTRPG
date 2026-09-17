@@ -3494,7 +3494,55 @@ function splitGraphemes(str) {
   return Array.from(str);
 }
 
+function dismissAllPreviousPhasePopups() {
+  try {
+    // 1. Minigame Result & Execution Cutscene Modals
+    if (typeof closeCourtResultModal === 'function') closeCourtResultModal(true);
+    if (typeof closeExecutionModal === 'function') closeExecutionModal(true);
+    if (typeof closeClosingClimaxModal === 'function') closeClosingClimaxModal();
+
+    // 2. Blueprint / Investigation Modals
+    if (typeof closeNormalRoomModal === 'function') closeNormalRoomModal();
+    if (typeof closeInvestigationClueModal === 'function') closeInvestigationClueModal();
+    if (typeof closeClueScannerModal === 'function') closeClueScannerModal();
+    if (typeof closeEmergencyEscapeModal === 'function') closeEmergencyEscapeModal();
+    if (typeof closeAvatarModal === 'function') closeAvatarModal();
+    if (typeof closeHotkeysModal === 'function') closeHotkeysModal();
+
+    // 3. Clue Details & Pulley simulation
+    const pulleyModal = document.getElementById('pulleySimulationModal');
+    if (pulleyModal) pulleyModal.classList.add('hidden');
+
+    const clueModal = document.getElementById('clueDetailsModal');
+    if (clueModal) clueModal.classList.add('hidden');
+
+    // 4. Overlays & Banners
+    const overlaysToHide = [
+      'objectionOverlay', 'nonstopBreakOverlay', 'rebuttalSlashOverlay',
+      'saboteurSmokeOverlay', 'saboteurBannerOverlay', 'saboteurDistortOverlay',
+      'logicDiveCrashNotice', 'stg4CrashNotice', 'armamentFinalBlowBanner',
+      'closingBonusTimePopup', 'truthBulletFlyOverlay', 'perjuryConfirmModal'
+    ];
+    overlaysToHide.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+
+    // 5. Hide any visible generic modal-backdrops except PIN and Admin Config
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(modal => {
+        if (modal.id !== 'pinModal' && modal.id !== 'adminMinigameModal') {
+          modal.classList.add('hidden');
+        }
+      });
+    }
+  } catch (err) {
+    console.warn('[dismissAllPreviousPhasePopups] Error cleaning up modals:', err);
+  }
+}
+
 function setStage(stage, config) {
+  dismissAllPreviousPhasePopups();
   gameState.stage = stage;
   updateMonopadPhaseTabs(stage);
   updateAdminActiveStageButtons(stage);
@@ -3657,13 +3705,27 @@ function setStage(stage, config) {
     playSfx('gavel');
   } else if (stage === 'stage6') {
     autoUnlockTrialClues();
+    const allPlayers = Object.values(gameState.players || {});
     let target = config?.targetPlayer || (document.getElementById('adminArmamentTargetSelect')?.value) || (document.getElementById('cfgStg6TargetSelect')?.value) || '';
-    if (!target) {
-      const pList = Object.values(gameState.players || {});
-      const hifumi = pList.find(p => p.name && (p.name.includes('ฮิฟุมิ') || p.name.includes('Hifumi')));
-      if (hifumi) target = hifumi.name;
-      else if (pList.length > 0) target = pList[pList.length - 1].name;
-      else target = 'ฮิฟุมิ';
+
+    // Match and normalize target with connected online player
+    let matchedPlayer = null;
+    if (target) {
+      matchedPlayer = allPlayers.find(p => p.name === target) ||
+        allPlayers.find(p => p.name && (p.name.includes(target) || target.includes(p.name))) ||
+        allPlayers.find(p => (p.isKiller || parseInt(p.pcSlot, 10) === 5) && (target.includes('ฮิฟุมิ') || target.includes('Hifumi') || target.includes('Blackened') || target.includes('คนร้าย')));
+    }
+    if (!matchedPlayer && !target) {
+      matchedPlayer = allPlayers.find(p => p.name && (p.name.includes('ฮิฟุมิ') || p.name.includes('Hifumi'))) ||
+        allPlayers.find(p => p.isKiller || parseInt(p.pcSlot, 10) === 5);
+      if (!matchedPlayer && allPlayers.length > 0) {
+        matchedPlayer = allPlayers[allPlayers.length - 1];
+      }
+    }
+    if (matchedPlayer) {
+      target = matchedPlayer.name;
+    } else if (!target) {
+      target = 'ฮิฟุมิ';
     }
     gameState.stg6TargetPlayer = target;
     gameState.stg6Phase = 'placement';
@@ -3683,11 +3745,17 @@ function setStage(stage, config) {
     gameState.stg6TrapPenaltyActive = false;
     gameState.stg6PoolAmmo = 8;
 
-    // Accusers (all other players)
-    const allPlayers = Object.values(gameState.players || {});
-    let accusers = allPlayers.filter(p => p.name !== target).map(p => p.name);
+    // Accusers (all other players - strictly exclude defendant!)
+    let accusers = allPlayers.filter(p => {
+      if (matchedPlayer && (p.id === matchedPlayer.id || p.name === matchedPlayer.name)) return false;
+      if (p.name === target) return false;
+      if (p.name && target && (p.name.includes(target) || target.includes(p.name))) return false;
+      if ((p.isKiller || parseInt(p.pcSlot, 10) === 5) && (target.includes('ฮิฟุมิ') || target.includes('Hifumi'))) return false;
+      return true;
+    }).map(p => p.name);
+
     if (accusers.length === 0) {
-      accusers = ['นาเอกิ', 'เคียวโกะ', 'เบียคุยะ', 'อาโออิ'];
+      accusers = ['นาเอกิ', 'เคียวโกะ', 'เบียคุยะ', 'อาโออิ'].filter(n => n !== target && !target.includes(n));
     }
     gameState.stg6Accusers = accusers;
     gameState.stg6CurrentTurnIndex = 0;
@@ -5035,18 +5103,21 @@ function populateAllConfigStageSelects() {
     if (allowBlank) {
       html += `<option value="">${isAccused ? '-- เลือกฝ่ายตรงข้าม / ผู้ถูกกล่าวหา --' : '(ทุกคนในห้อง / อิสระ)'}</option>`;
     }
+    const onlineAccused = isAccused ? connectedPlayers.find(p => p.isKiller || parseInt(p.pcSlot, 10) === 5 || (p.name && (p.name.includes('ฮิฟุมิ') || p.name.includes('Hifumi')))) : null;
+
     if (connectedPlayers.length > 0) {
       html += '<optgroup label="🟢 ผู้เล่นที่เชื่อมต่ออยู่ (Online Players)">';
       connectedPlayers.forEach(p => {
         const charSuffix = p.characterName ? ` (${p.characterName})` : '';
-        html += `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}${escapeHtml(charSuffix)}</option>`;
+        const isSelected = Boolean(onlineAccused && p.id === onlineAccused.id);
+        html += `<option value="${escapeHtml(p.name)}"${isSelected ? ' selected' : ''}>${escapeHtml(p.name)}${escapeHtml(charSuffix)}</option>`;
       });
       html += '</optgroup>';
     }
     
     html += '<optgroup label="👤 ตัวละครประจำห้องพิจารณาคดี (PC 1 - PC 5)">';
     standardCharacters.forEach(c => {
-      const isDefault = isAccused && c.name.includes('ฮิฟุมิ');
+      const isDefault = isAccused && !onlineAccused && c.name.includes('ฮิฟุมิ');
       html += `<option value="${escapeHtml(c.name)}"${isDefault ? ' selected' : ''}>${escapeHtml(c.name)} - ${escapeHtml(c.role)}</option>`;
     });
     html += '</optgroup>';
@@ -5984,6 +6055,18 @@ function handleStg6Shot(shooter, cellIndex, timing) {
   if (accusers.length > 0) {
     let curIdx = typeof gameState.stg6CurrentTurnIndex === 'number' ? gameState.stg6CurrentTurnIndex : 0;
     gameState.stg6CurrentTurnIndex = (curIdx + 1) % accusers.length;
+    // Safety guard: ensure turn never lands on defendant!
+    let skipCount = 0;
+    while (skipCount < accusers.length) {
+      const nextShooter = accusers[gameState.stg6CurrentTurnIndex] || '';
+      const tgt = gameState.stg6TargetPlayer || '';
+      if (nextShooter && tgt && (nextShooter === tgt || tgt.includes(nextShooter) || nextShooter.includes(tgt))) {
+        gameState.stg6CurrentTurnIndex = (gameState.stg6CurrentTurnIndex + 1) % accusers.length;
+        skipCount++;
+      } else {
+        break;
+      }
+    }
   }
   stg6AccuserSelectedCoord = null;
 
@@ -6089,7 +6172,7 @@ function handleStg6DmForcePass() {
   const banner = document.getElementById('armamentFinalBlowBanner');
   if (banner) banner.classList.remove('hidden');
   playSfx('break');
-  logCourt(`⏩ [DM FORCE PASS]: ผู้ดูแลศาลทลายเกราะคนร้ายโดยตรง! ปลดล็อกกระสุนความจริงนัดสุดท้าย!`);
+  logCourt(`⏩ [DM FORCE PASS]: ผู้ดูแลศาลทลายเกราะคนร้ายโดยตรง! ปปลดล็อกกระสุนความจริงนัดสุดท้าย!`);
   updateStage6Displays();
   renderMobileTask('stage6');
 }
@@ -6101,12 +6184,23 @@ function adminStartArmament() {
     const cfgSel = document.getElementById('cfgStg6TargetSelect');
     target = cfgSel ? cfgSel.value : '';
   }
-  if (!target) {
-    showToast('⚠️ กรุณาเลือกผู้ถูกกล่าวหาก่อนเริ่ม Argument Armament');
-    playSfx('wrong');
-    return;
+  const allPlayers = Object.values(gameState.players || {});
+  const matchedPlayer = allPlayers.find(p => p.name === target) ||
+    allPlayers.find(p => p.name && target && (p.name.includes(target) || target.includes(p.name))) ||
+    allPlayers.find(p => (p.isKiller || parseInt(p.pcSlot, 10) === 5) && (target.includes('ฮิฟุมิ') || target.includes('Hifumi')));
+  if (matchedPlayer) {
+    target = matchedPlayer.name;
   }
-  adminSetGame('stage6', { targetPlayer: target });
+  if (!target) {
+    if (allPlayers.length > 0) {
+      const killerP = allPlayers.find(p => p.isKiller || parseInt(p.pcSlot, 10) === 5);
+      target = killerP ? killerP.name : allPlayers[allPlayers.length - 1].name;
+    } else {
+      target = 'ฮิฟุมิ ยามาดะ';
+    }
+  }
+  const scream = document.getElementById('cfgStg6Scream')?.value || 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!';
+  adminSetGame('stage6', { targetPlayer: target, opponent: target, scream: scream });
 }
 
 function updateStage6Displays() {
@@ -6143,7 +6237,22 @@ function updateStage6Displays() {
     } else if (gameState.stg6Defeat) {
       turnEl.innerText = '💀 กระสุนฝ่ายศาลหมดเกลี้ยง! รอคำสั่งจาก DM...';
     } else if (gameState.stg6Phase === 'shooting') {
-      const curShooter = (gameState.stg6Accusers && gameState.stg6Accusers[gameState.stg6CurrentTurnIndex]) || 'ผู้เล่น';
+      // Auto-skip if shooter matches target
+      const accs = gameState.stg6Accusers || [];
+      let curIdx = typeof gameState.stg6CurrentTurnIndex === 'number' ? gameState.stg6CurrentTurnIndex : 0;
+      let checkCount = 0;
+      while (accs.length > 0 && checkCount < accs.length) {
+        const testShooter = accs[curIdx] || '';
+        const tgt = gameState.stg6TargetPlayer || '';
+        if (testShooter && tgt && (testShooter === tgt || tgt.includes(testShooter) || testShooter.includes(tgt))) {
+          curIdx = (curIdx + 1) % accs.length;
+          gameState.stg6CurrentTurnIndex = curIdx;
+          checkCount++;
+        } else {
+          break;
+        }
+      }
+      const curShooter = (accs && accs[curIdx]) || 'ผู้เล่น';
       const poolAmmo = (typeof gameState.stg6PoolAmmo === 'number') ? gameState.stg6PoolAmmo : 8;
       turnEl.innerHTML = `🎯 ตาของ: <strong style="color:#38bdf8;">${escapeHtml(curShooter)}</strong> (กระสุนกองกลางเหลือ ${poolAmmo}/8 นัด)`;
     } else {
@@ -7668,7 +7777,9 @@ function renderMobileTask(stage) {
     const targetName = gameState.stg6TargetPlayer || 'ผู้ถูกกล่าวหา';
     const isTarget = Boolean(myPlayer && (
       myPlayer.name === targetName ||
-      targetName.includes(myPlayer.name)
+      targetName.includes(myPlayer.name) ||
+      myPlayer.name.includes(targetName) ||
+      ((myPlayer.isKiller || parseInt(myPlayer.pcSlot, 10) === 5) && (targetName.includes('ฮิฟุมิ') || targetName.includes('Hifumi') || targetName.includes('คนร้าย') || targetName.includes('Blackened')))
     ));
 
     const isShootingPhase = gameState.stg6Phase === 'shooting';
@@ -7906,6 +8017,10 @@ function renderMobileTask(stage) {
           : 'stg6-reticle-needle stationary';
 
         if (isMyTurn) {
+          if (stg6ShotPending) {
+            // Keep needle frozen and feedback visible during pause
+            return;
+          }
           area.innerHTML = `
             <div style="background:rgba(10,20,35,0.95); border:2px solid #38bdf8; border-radius:10px; padding:12px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -7949,11 +8064,11 @@ function renderMobileTask(stage) {
               </div>
 
               ${hasSelectedCoord ? `
-                <button type="button" class="p-task-btn big-action-btn" style="background:linear-gradient(135deg, #0369a1, #0284c7); border:3px solid #38bdf8; box-shadow:0 0 16px rgba(56,189,248,0.7); font-size:1.15rem; font-weight:900; color:#fff; cursor:pointer;" onclick="stg6FireShot()">
+                <button id="stg6FireBtn" type="button" class="p-task-btn big-action-btn" style="background:linear-gradient(135deg, #0369a1, #0284c7); border:3px solid #38bdf8; box-shadow:0 0 16px rgba(56,189,248,0.7); font-size:1.15rem; font-weight:900; color:#fff; cursor:pointer;" onclick="stg6FireShot()">
                   🎯 FIRE! ลั่นไกพิกัด [${selectedCoordStr}]
                 </button>
               ` : `
-                <button type="button" class="p-task-btn big-action-btn" style="background:#1e293b; border:2px solid #475569; color:#94a3b8; font-size:1.02rem; font-weight:bold; cursor:not-allowed; opacity:0.8;" onclick="stg6FireShot()">
+                <button id="stg6FireBtn" type="button" class="p-task-btn big-action-btn" style="background:#1e293b; border:2px solid #475569; color:#94a3b8; font-size:1.02rem; font-weight:bold; cursor:not-allowed; opacity:0.8;" onclick="stg6FireShot()">
                   👆 กรุณาเลือกตำแหน่งในตารางก่อนจึงจะยิงได้
                 </button>
               `}
@@ -8481,6 +8596,7 @@ function sendClosingCard(slot, cardId) {
 let stg6AccusedPlacingType = 'shoulder';
 let stg6AccusedPlacement = { shoulder: [], arm: [], core: [], traps: [] };
 let stg6AccuserSelectedCoord = null;
+let stg6ShotPending = false;
 
 function stg6SelectPlaceType(type) {
   stg6AccusedPlacingType = type;
@@ -8602,6 +8718,7 @@ function getStg6NeedlePosition(needleEl, trackEl) {
 }
 
 function stg6FireShot() {
+  if (stg6ShotPending) return;
   if (getMyCredibility() <= 0) {
     showToast('❌ คุณไม่มีสิทธิยิงกระสุนเนื่องจากค่าความน่าเชื่อถือเหลือ 0 (Panic State)');
     playSfx('wrong');
@@ -8639,17 +8756,68 @@ function stg6FireShot() {
     else timing = 'miss';
   }
 
-  stg6AccuserSelectedCoord = null;
-
-  broadcast({
-    type: 'stg6_shot_fired',
-    shooter: pName,
-    cellIndex: targetIdx,
-    timing: timing
-  });
-  if (typeof isHost !== 'undefined' && isHost) {
-    handleStg6Shot(pName, targetIdx, timing);
+  // Freeze needle in place immediately to show player where they fired!
+  stg6ShotPending = true;
+  if (needle) {
+    needle.classList.remove('oscillating', 'penalty');
+    needle.style.animation = 'none';
+    needle.style.left = `${pos}%`;
+    needle.style.transition = 'none';
+    if (timing === 'perfect') {
+      needle.style.background = '#facc15';
+      needle.style.boxShadow = '0 0 16px #facc15';
+    } else if (timing === 'good') {
+      needle.style.background = '#00ff88';
+      needle.style.boxShadow = '0 0 16px #00ff88';
+    } else {
+      needle.style.background = '#ef4444';
+      needle.style.boxShadow = '0 0 16px #ef4444';
+    }
   }
+
+  // Visual feedback on the fire button
+  const fireBtn = document.getElementById('stg6FireBtn');
+  const missDist = Math.abs(Math.round(pos - 50));
+  if (fireBtn) {
+    fireBtn.disabled = true;
+    if (timing === 'perfect') {
+      fireBtn.innerHTML = `⭐ PERFECT! (แม่นยำ 100% กึ่งกลาง)`;
+      fireBtn.style.background = 'linear-gradient(135deg, #ca8a04, #eab308)';
+      fireBtn.style.borderColor = '#fde047';
+      playSfx('counter');
+    } else if (timing === 'good') {
+      fireBtn.innerHTML = `✅ GOOD! (ห่างศูนย์กลาง ${missDist}%)`;
+      fireBtn.style.background = 'linear-gradient(135deg, #15803d, #22c55e)';
+      fireBtn.style.borderColor = '#86efac';
+      playSfx('blade');
+    } else {
+      fireBtn.innerHTML = `❌ MISS! (ห่างศูนย์กลาง ${missDist}%)`;
+      fireBtn.style.background = 'linear-gradient(135deg, #b91c1c, #dc2626)';
+      fireBtn.style.borderColor = '#fca5a5';
+      playSfx('wrong');
+    }
+  } else {
+    if (timing === 'miss') playSfx('wrong');
+    else if (timing === 'perfect') playSfx('counter');
+    else playSfx('blade');
+  }
+
+  // Hold frozen state for 900ms so player clearly perceives the needle stop position
+  setTimeout(() => {
+    stg6ShotPending = false;
+    stg6AccuserSelectedCoord = null;
+
+    broadcast({
+      type: 'stg6_shot_fired',
+      shooter: pName,
+      cellIndex: targetIdx,
+      timing: timing
+    });
+    if (typeof isHost !== 'undefined' && isHost) {
+      handleStg6Shot(pName, targetIdx, timing);
+    }
+    renderMobileTask('stage6');
+  }, 900);
 }
 
 function sendStg6FinalBlow() {
@@ -9421,6 +9589,10 @@ function adminPreviewFakeEscape() {
 // DM / ADMIN CONTROLS
 // ==========================================================
 function adminSetGame(stage, config) {
+  dismissAllPreviousPhasePopups();
+  if (!config && typeof getStageConfigFromInputs === 'function') {
+    config = getStageConfigFromInputs(stage);
+  }
   setStage(stage, config);
   broadcast({ type: 'set_stage', stage: stage, config: config });
   updateAdminActiveStageButtons(stage);
@@ -10144,9 +10316,10 @@ function applyPresetStage0(presetKey) {
     stmtInput.value = `[ซากุระ] คนร้ายต้องเป็นคนที่มีพละกำลังมหาศาลแน่ ถึงยกร่างผู้ชายขึ้นไปแขวนบนเพดานสูงได้!
 [ฮิคาริ] แต่คนร้ายจะปีนขึ้นไปมัดเชือกบนท่อเพดานสูง 3.5 เมตรในความมืดได้ยังไง?
 [ไคโตะ] แปลว่าคนร้ายต้องเตรียมบันไดลิงหรือใช้โต๊ะซ้อนกันหลายตัวในห้องซักผ้าสิ!
-[เรนะ] แต่รอบๆ จุดพบศพไม่มีเฟอร์นิเจอร์ตัวไหนถูกขยับเลยสักชิ้นเดียว!
+    [เรนะ] แต่รอบๆ จุดพบศพไม่มีเฟอร์นิเจอร์ตัวไหนถูกขยับเลยสักชิ้นเดียว!
 [ยูโตะ] หรือว่าร่างของเรียวตะไม่ได้ถูกคนดึงขึ้นไป แต่เป็นกลไกถ่วงน้ำหนักอัตโนมัติ!?`;
   }
+  showToast('🗣️ โหลดพรีเซ็ตดีเบต: ' + topInput.value);
 }
 
 function applyPresetStage1(presetKey) {
@@ -10177,6 +10350,7 @@ function applyPresetStage1(presetKey) {
     pInput.value = "สิ่งใดอยู่ในกระเป๋าเสื้อเหยื่อเรียวตะ (B) ที่ยืนยันว่าไม่มีการต่อสู้ระยะประชิดในห้องซักรีด!?";
     tSelect.value = "EVD-12";
   }
+  showToast('🔍 โหลดพรีเซ็ตโจทย์หลักฐาน: ' + (tSelect.value || ''));
 }
 
 function applyPresetStage2(word, prompt) {
@@ -10259,6 +10433,159 @@ function applyPresetStage6(opp, scream) {
 function applyPresetStage7(mode) {
   showToast("📖 โหลดพรีเซ็ตคดีห้องซักผ้าฉบับสมบูรณ์เรียบร้อย");
   logCourt("📖 [CLOSING PRESET]: DM โหลดพรีเซ็ตมังงะสรุปคดีห้องซักผ้าฉบับสมบูรณ์ (The Culprit B Timeline)");
+}
+
+function applyHangmanPresetFromDropdown(word) {
+  const prompts = {
+    'WATER CLOCK': 'ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!',
+    'COUNTERWEIGHT': 'หลักการทางฟิสิกส์ที่ใช้ถ่วงน้ำหนักเพื่อยกร่างเหยื่อขึ้นสู่เพดานคืออะไร!?',
+    'PORK BONE': 'อาวุธที่แท้จริงซึ่งใช้ฟาดหัวเหยื่อในครัวก่อนนำไปต้มคืออะไร!?',
+    'CEILING PIPE': 'จุดพาดเชือกบนเพดานสูงที่ทำหน้าที่เสมือนรอกคืออะไร!?',
+    'WATER HOSE': 'อุปกรณ์ส่งน้ำจากก๊อกไปยังถังน้ำภายนอกคืออะไร!?',
+    'STAGING': 'การจัดฉากสร้างหลักฐานเท็จและเวลาตายปลอมเรียกว่าอะไร!?'
+  };
+  const p = prompts[word] || `ถอดรหัสคำศัพท์ "${word}"`;
+  applyPresetStage2(word, p);
+  gameState.stg2Word = word;
+  gameState.stg2Target = word.split('');
+  gameState.stg2Prompt = p;
+  showToast(`🔤 เลือกพรีเซ็ต Hangman: ${word}`);
+}
+
+function applyRebuttalPresetFromDropdown(val) {
+  const presets = {
+    kitchen: {
+      chal: 'นาเอกิ มาโคโตะ',
+      opp: 'ฮิฟุมิ ยามาดะ',
+      topic: 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi',
+      arg: 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?'
+    },
+    blackout: {
+      chal: 'คิริกิริ เคียวโกะ',
+      opp: 'ฮิฟุมิ ยามาดะ',
+      topic: 'ช่วงเวลาไฟดับ & กลไกยกร่าง',
+      arg: 'ตอนไฟดับ 20:30 น. ฉันก็อยู่กับคนอื่น จะเอาเวลาที่ไหนไปดึงเชือกยกร่าง B ขึ้นไปบนเพดานได้!?'
+    },
+    window: {
+      chal: 'โทกามิ เบียคุยะ',
+      opp: 'ฮิฟุมิ ยามาดะ',
+      topic: 'ความสูงหน้าต่าง 3.5 เมตร',
+      arg: 'หน้าต่างห้องซักผ้าสูงตั้ง 3.5 เมตร แถมไม่มีบันได ใครจะปีนออกไปผูกเชือกข้างนอกได้กันล่ะ!?'
+    },
+    suicide: {
+      chal: 'นาเอกิ มาโคโตะ',
+      opp: 'ฮิฟุมิ ยามาดะ',
+      topic: 'ข้อสันนิษฐานการฆ่าตัวตาย',
+      arg: 'เรียวตะเป็นคนถือมีดและผูกเงื่อนบ่วงเชือกเอง นี่มันการฆ่าตัวตายชัดๆ ไม่เกี่ยวกับฉันสักหน่อย!'
+    }
+  };
+  const p = presets[val] || presets.kitchen;
+  applyPresetStage3(p.chal, p.opp, p.topic, p.arg);
+}
+
+function applyScrumPresetFromDropdown(val) {
+  const presets = [
+    {
+      topic: 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?',
+      left: '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก',
+      right: '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง'
+    },
+    {
+      topic: 'การยกร่างเหยื่อขึ้นเพดาน เกิดจากแรงคนดึงสดๆ หรือกลไกถ่วงน้ำหนัก!?',
+      left: '🔵 ข้อสันนิษฐานคนร้ายดึงเชือก',
+      right: '🟣 ข้อสันนิษฐานถังน้ำหนักกลไกอัตโนมัติ'
+    },
+    {
+      topic: 'เวลาที่เรียวตะ (B) ถูกแขวนคอเสียชีวิต เกิดขึ้นก่อนหรือตอนที่ไฟดับ!?',
+      left: '🔵 ข้อสันนิษฐานตายก่อนไฟดับ (20:15)',
+      right: '🟣 ข้อสันนิษฐานตายตอนไฟดับ (20:30)'
+    },
+    {
+      topic: 'ใครคือ Blackened ผู้บงการกลไกมรณะในครั้งนี้!?',
+      left: '🔵 ฝั่งน้ำเงิน: มีผู้วางแผนจัดฉาก',
+      right: '🟣 ฝั่งชมพูม่วง: เหตุการณ์พลิกผันเกินควบคุม'
+    }
+  ];
+  const idx = parseInt(val, 10) || 0;
+  const p = presets[idx] || presets[0];
+  applyPresetStage5(p.topic, p.left, p.right);
+  showToast(`⚖️ เลือกพรีเซ็ต Scrum: ${p.topic.slice(0, 24)}...`);
+}
+
+function applyArmamentPresetFromDropdown(val) {
+  const presets = {
+    rope: 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!',
+    bone: 'กระดูกหมูในหม้อสตูว์ก็แค่ของทำอาหาร! จะมาปรักปรำว่าเป็นอาวุธฟาดหัวได้ยังไงกัน!?',
+    final: 'พวกแกไม่มีหลักฐานมัดตัวฉันหรอก! แผนการอันสมบูรณ์แบบของฉัน... ไม่มีวันพังทลายเด็ดขาด!!'
+  };
+  const scream = presets[val] || presets.rope;
+  let opp = document.getElementById('adminArmamentTargetSelect')?.value || document.getElementById('cfgStg6TargetSelect')?.value || 'ฮิฟุมิ ยามาดะ';
+  applyPresetStage6(opp, scream);
+  gameState.stg6Statement = scream;
+  showToast(`💥 โหลดคำพูดดิ้นรนของคนร้ายสำเร็จ`);
+}
+
+function getStageConfigFromInputs(stage) {
+  if (stage === 'stage0') {
+    const topic = document.getElementById('cfgStg0Topic')?.value || 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.';
+    const rawStmts = document.getElementById('cfgStg0Statements')?.value || '';
+    const statements = rawStmts.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+      const match = line.match(/^\[(.*?)\]\s*(.*)$/);
+      if (match) return { speaker: match[1], text: match[2] };
+      return { speaker: 'ผู้ร่วมอภิปราย', text: line };
+    });
+    return { topic, statements: statements.length > 0 ? statements : (DEFAULT_STG0_STATEMENTS || []) };
+  } else if (stage === 'stage1') {
+    const prompt = document.getElementById('cfgStg1Prompt')?.value || '';
+    const target = document.getElementById('cfgStg1TargetClue')?.value || 'EVD-02';
+    return { prompt, correctClueId: target };
+  } else if (stage === 'stage2') {
+    const prompt = document.getElementById('cfgStg2Prompt')?.value || '';
+    const word = document.getElementById('cfgStg2Word')?.value.trim().toUpperCase() || 'WATER CLOCK';
+    return { prompt, targetWord: word };
+  } else if (stage === 'stage3') {
+    const chalSel = document.getElementById('cfgStg3ChallengerSelect');
+    const chalInput = document.getElementById('cfgStg3ChallengerCustom');
+    const chal = (typeof getSelectOrCustomValue === 'function' ? getSelectOrCustomValue(chalSel, chalInput) : null) || document.getElementById('adminRebuttalChallengerSelect')?.value || 'นาเอกิ มาโคโตะ';
+
+    const oppSel = document.getElementById('cfgStg3OpponentSelect');
+    const oppInput = document.getElementById('cfgStg3OpponentCustom');
+    const opp = (typeof getSelectOrCustomValue === 'function' ? getSelectOrCustomValue(oppSel, oppInput) : null) || document.getElementById('adminRebuttalOpponentSelect')?.value || 'ฮิฟุมิ ยามาดะ';
+
+    const topic = document.getElementById('cfgStg3Topic')?.value || 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi';
+    const arg = document.getElementById('cfgStg3Arg')?.value || 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?';
+    return { challenger: chal, opponent: opp, topic, argument: arg, statement: arg };
+  } else if (stage === 'stage4') {
+    const route = (gameState.stg4Route === 'timeline' || (typeof LOGIC_DIVE_DATA !== 'undefined' && typeof LOGIC_DIVE_ROUTES !== 'undefined' && LOGIC_DIVE_DATA === LOGIC_DIVE_ROUTES.timeline)) ? 'timeline' : 'pulley';
+    return { route };
+  } else if (stage === 'stage5') {
+    const topic = document.getElementById('cfgStg5Topic')?.value || 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?';
+    const left = document.getElementById('cfgStg5Left')?.value || '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก';
+    const right = document.getElementById('cfgStg5Right')?.value || '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง';
+    return { topic, leftTeam: left, rightTeam: right };
+  } else if (stage === 'stage6') {
+    let target = document.getElementById('adminArmamentTargetSelect')?.value || '';
+    if (!target) {
+      const tgtSel = document.getElementById('cfgStg6TargetSelect');
+      const tgtInput = document.getElementById('cfgStg6CustomTarget');
+      target = (typeof getSelectOrCustomValue === 'function' ? getSelectOrCustomValue(tgtSel, tgtInput) : null) || 'ฮิฟุมิ ยามาดะ';
+    }
+    const scream = document.getElementById('cfgStg6Scream')?.value || 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!';
+    return { targetPlayer: target, opponent: target, scream };
+  } else if (stage === 'quick_question') {
+    const q = document.getElementById('cfgQqQuestion')?.value || 'เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?';
+    const cA = document.getElementById('cfgQqChoiceA')?.value || '17:30 น. (ช่วงเตรียมอาหารเย็น)';
+    const cB = document.getElementById('cfgQqChoiceB')?.value || '19:00 น. (ช่วงเริ่มรับประทานอาหาร)';
+    const cC = document.getElementById('cfgQqChoiceC')?.value || '20:30 น. (ช่วงก่อนไฟดับ)';
+    const corr = document.getElementById('cfgQqCorrect')?.value || 'A';
+    return {
+      id: 'qq_' + Date.now(),
+      question: q,
+      choices: { A: cA, B: cB, C: cC },
+      correct: corr
+    };
+  }
+  return {};
 }
 
 function adminLaunchSelectedConfigGame() {

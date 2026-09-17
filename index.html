@@ -794,8 +794,8 @@
         <div class="admin-card">
           <div class="admin-card-header-row">
             <h2 class="admin-card-title" style="margin-bottom:0;">🎛️ เลือกเปิดมินิเกม (Mini-Game Selector)</h2>
-            <button class="small-btn yellow admin-preset-btn" onclick="openAdminMinigameModal('stage1')">
-              ⚙️ พรีเซ็ตคำถาม
+            <button class="small-btn yellow admin-preset-btn" onclick="openAdminMinigameModal()" title="เปิดหน้าต่างรวมพรีเซ็ตและตั้งค่าทุกมินิเกม">
+              ⚙️ รวมพรีเซ็ตทั้งหมด
             </button>
           </div>
           <div class="minigame-btn-grid">
@@ -822,9 +822,17 @@
                   <strong>🗣️ 0. Non-Stop Debate (การถกเถียงต่อเนื่อง)</strong>
                   <span>เริ่มลูปบทพูดลอยในศาล & เปิดระบบแย่งจังหวะคัดค้าน</span>
                 </button>
-                <button type="button" class="small-btn pink" onclick="openAdminMinigameModal(); selectConfigTab('stage0');" style="padding:10px 14px; font-weight:900; font-size:1rem;" title="ตั้งค่าบทดีเบต" aria-label="ตั้งค่าบทดีเบต">
+                <button type="button" class="small-btn pink" onclick="openAdminMinigameModal('stage0');" style="padding:10px 14px; font-weight:900; font-size:1rem;" title="ตั้งค่าบทดีเบต" aria-label="ตั้งค่าบทดีเบต">
                   ⚙️
                 </button>
+              </div>
+              <div class="dm-select-row" style="margin-top:2px;">
+                <span class="dm-select-label">⚡ พรีเซ็ตดีเบต:</span>
+                <select class="dm-styled-select" onchange="applyPresetStage0(this.value)" style="max-width:240px; flex:1;">
+                  <option value="timeline">⏱️ 1: ไทม์ไลน์เสียงกระแทก (21:00 น.)</option>
+                  <option value="weapon">🍖 2: การหมดสติ & อาวุธในครัว</option>
+                  <option value="pulley">🪢 3: รอยเชือก & กลไกยกร่าง</option>
+                </select>
               </div>
 
               <!-- Live Objection Verdict Box in Admin Panel -->
@@ -853,24 +861,69 @@
               </div>
             </div>
 
+            <!-- STAGE 1: EVIDENCE LINKER -->
             <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
               <button class="dm-act-btn pink" onclick="adminSetGame('stage1')" style="width:100%;">
                 <strong>1. Evidence Linker</strong>
                 <span>ทลายข้ออ้างอาวุธสตูว์</span>
               </button>
-              <button class="small-btn yellow" onclick="adminEvaluateStage1()" style="padding:6px; font-weight:900; font-size:0.82rem; background:rgba(255,230,0,0.15); border:1px solid #ffe600;">
-                🔍 ตรวจสอบและเฉลยคำตอบ (Batch Review)
-              </button>
+              <div class="dm-select-row" style="margin-top:2px;">
+                <span class="dm-select-label">⚡ พรีเซ็ตโจทย์:</span>
+                <select class="dm-styled-select" onchange="applyPresetStage1(this.value)" style="max-width:210px; flex:1;">
+                  <option value="bone">🍖 อาวุธทุบสลบ (EVD-02)</option>
+                  <option value="rope">🪢 เชือกยกร่าง (EVD-09)</option>
+                  <option value="window">🪟 ราวท่อเพดาน (EVD-14)</option>
+                  <option value="barrel">🛢️ ซากถังน้ำ (EVD-19)</option>
+                  <option value="meter">💧 มาตรวัดน้ำ (EVD-10)</option>
+                  <option value="dryer">⏱️ เครื่องอบผ้า (EVD-05)</option>
+                </select>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="small-btn yellow" onclick="adminEvaluateStage1()" style="flex:1; padding:6px; font-weight:900; font-size:0.82rem; background:rgba(255,230,0,0.15); border:1px solid #ffe600;">
+                  🔍 เฉลยคำตอบ (Review)
+                </button>
+                <button type="button" class="small-btn pink" onclick="openAdminMinigameModal('stage1')" title="ปรับแต่งโจทย์ละเอียด" style="padding:6px 12px; font-weight:900;">
+                  ⚙️
+                </button>
+              </div>
             </div>
-            <button class="dm-act-btn cyan" onclick="adminSetGame('stage2')">
-              <strong>2. Hangman's Gambit</strong>
-              <span>ถอดรหัสคำ "WATER CLOCK"</span>
-            </button>
+
+            <!-- STAGE 2: HANGMAN'S GAMBIT -->
+            <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
+              <button class="dm-act-btn cyan" onclick="adminSetGame('stage2')" style="width:100%;">
+                <strong>2. Hangman's Gambit</strong>
+                <span>ถอดรหัสคำ "WATER CLOCK"</span>
+              </button>
+              <div class="dm-select-row" style="margin-top:2px;">
+                <span class="dm-select-label">⚡ พรีเซ็ตคำศัพท์:</span>
+                <select class="dm-styled-select" onchange="applyHangmanPresetFromDropdown(this.value)" style="max-width:210px; flex:1;">
+                  <option value="WATER CLOCK">WATER CLOCK (นาฬิกาน้ำ)</option>
+                  <option value="COUNTERWEIGHT">COUNTERWEIGHT (ถ่วงน้ำหนัก)</option>
+                  <option value="PORK BONE">PORK BONE (กระดูกหมู)</option>
+                  <option value="CEILING PIPE">CEILING PIPE (ท่อเพดาน)</option>
+                  <option value="WATER HOSE">WATER HOSE (สายยางน้ำ)</option>
+                  <option value="STAGING">STAGING (จัดฉากฆาตกรรม)</option>
+                </select>
+                <button type="button" class="small-btn cyan" onclick="openAdminMinigameModal('stage2')" title="ปรับแต่งคำศัพท์ละเอียด" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
+              </div>
+            </div>
+
+            <!-- STAGE 3: REBUTTAL SHOWDOWN -->
             <div class="dm-combo-block rebuttal-block" style="grid-column: 1 / -1;">
               <button class="dm-act-btn red" onclick="adminStartRebuttal()" style="width:100%;">
                 <strong>3. Rebuttal Showdown</strong>
                 <span>ดวลดาบคำพูด 1 ต่อ 1 กับฝ่ายตรงข้าม</span>
               </button>
+              <div class="dm-select-row" style="margin-top:2px; margin-bottom:4px;">
+                <span class="dm-select-label">⚡ พรีเซ็ตการดวล:</span>
+                <select class="dm-styled-select" onchange="applyRebuttalPresetFromDropdown(this.value)" style="max-width:210px; flex:1;">
+                  <option value="kitchen">🍳 ข้ออ้างครัว (นาเอกิ VS ฮิฟุมิ)</option>
+                  <option value="blackout">💡 ข้ออ้างไฟดับ (เคียวโกะ VS ฮิฟุมิ)</option>
+                  <option value="window">🪟 ข้ออ้างหน้าต่าง (เบียคุยะ VS ฮิฟุมิ)</option>
+                  <option value="suicide">🔪 ข้ออ้างฆ่าตัวตาย (นาเอกิ VS ฮิฟุมิ)</option>
+                </select>
+                <button type="button" class="small-btn red" onclick="openAdminMinigameModal('stage3')" title="ปรับแต่งคำพูดดวลดาบละเอียด" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
+              </div>
               <div class="dm-select-group">
                 <div class="dm-select-row">
                   <span class="dm-select-label">ฝ่ายโจมตี:</span>
@@ -894,11 +947,21 @@
                 </button>
               </div>
             </div>
+
+            <!-- STAGE 4: LOGIC DIVE -->
             <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
               <button class="dm-act-btn purple" onclick="adminSetGame('stage4')" style="width:100%;">
                 <strong>4. Logic Dive</strong>
                 <span>สเก็ตบอร์ดดำดิ่งตรรกะ 3 ด่าน (Blind Vote)</span>
               </button>
+              <div class="dm-select-row" style="margin-top:2px;">
+                <span class="dm-select-label">⚡ พรีเซ็ตเส้นทาง:</span>
+                <select class="dm-styled-select" onchange="applyPresetStage4(this.value)" style="max-width:210px; flex:1;">
+                  <option value="pulley">🎯 Route 1: กลไกรอกเพดาน</option>
+                  <option value="timeline">⏱️ Route 2: เวลาตาย & แผนคนร้าย</option>
+                </select>
+                <button type="button" class="small-btn purple" onclick="openAdminMinigameModal('stage4')" title="ดูเส้นทางและตัวเลือกละเอียด" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
+              </div>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
                 <button class="small-btn yellow" onclick="adminRetryLogicDive()" style="padding:6px; font-weight:900; font-size:0.8rem;">
                   🔄 ให้โอกาสคิดใหม่ (Retry)
@@ -908,12 +971,22 @@
                 </button>
               </div>
             </div>
+
             <!-- Quick Question Minigame (คำถามตรรกะสั้น 1 ข้อ) -->
             <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
               <button class="dm-act-btn cyan" onclick="adminStartQuickQuestion()" style="width:100%;">
                 <strong>⚡ Quick Question (คำถามตรรกะสั้น 1 ข้อ)</strong>
                 <span>เปิดโพลตอบคำถามเร่งด่วน 1 ข้อ เพื่อหาข้อยุติประเด็นสั้นๆ</span>
               </button>
+              <div class="dm-select-row" style="margin-top:2px;">
+                <span class="dm-select-label">⚡ พรีเซ็ตคำถาม:</span>
+                <select class="dm-styled-select" onchange="applyPresetQuickQuestion(this.value)" style="max-width:210px; flex:1;">
+                  <option value="attack_time">⏱️ เวลาทำร้ายในครัว (17:30)</option>
+                  <option value="death_cause">💀 เหตุตายจริง (ขาดอากาศ)</option>
+                  <option value="auto_pulley">🛢️ กลไกชักรอก (ถังน้ำหนัก)</option>
+                  <option value="dryer_sound">👟 เสียง 21:00 น. (รองเท้าบูท)</option>
+                </select>
+              </div>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
                 <button class="small-btn yellow" onclick="openAdminMinigameModal('quick_question')" style="padding:6px; font-weight:900; font-size:0.8rem;">
                   ⚙️ พรีเซ็ต/คำถาม
@@ -923,10 +996,26 @@
                 </button>
               </div>
             </div>
-            <button class="dm-act-btn green" onclick="adminSetGame('stage5')">
-              <strong>5. Debate Scrum</strong>
-              <span>ศึก 2 ขั้ว: โหวต A vs B (Auto-Conclude)</span>
-            </button>
+
+            <!-- STAGE 5: DEBATE SCRUM -->
+            <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
+              <button class="dm-act-btn green" onclick="adminSetGame('stage5')" style="width:100%;">
+                <strong>5. Debate Scrum</strong>
+                <span>ศึก 2 ขั้ว: โหวต A vs B (Auto-Conclude)</span>
+              </button>
+              <div class="dm-select-row" style="margin-top:2px;">
+                <span class="dm-select-label">⚡ พรีเซ็ต 2 ขั้ว:</span>
+                <select class="dm-styled-select" onchange="applyScrumPresetFromDropdown(this.value)" style="max-width:210px; flex:1;">
+                  <option value="0">ฆาตกรรม vs ฆ่าตัวตาย</option>
+                  <option value="1">แรงคน vs ถังน้ำหนักอัตโนมัติ</option>
+                  <option value="2">ตายก่อน vs หลังไฟดับ</option>
+                  <option value="3">ตัดสิน Blackened</option>
+                </select>
+                <button type="button" class="small-btn green" onclick="openAdminMinigameModal('stage5')" title="ปรับแต่งหัวข้อและทีมละเอียด" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
+              </div>
+            </div>
+
+            <!-- STAGE 6: ARGUMENT ARMAMENT -->
             <div class="dm-combo-block armament-block">
               <button class="dm-act-btn orange" onclick="adminStartArmament()" style="width:100%;">
                 <strong>6. Argument Armament</strong>
@@ -938,16 +1027,32 @@
                   <!-- Options populated dynamically by JS from gameState.players -->
                 </select>
               </div>
+              <div class="dm-select-row" style="margin-top:4px;">
+                <span class="dm-select-label">⚡ คำพูดดิ้นรน:</span>
+                <select class="dm-styled-select" onchange="applyArmamentPresetFromDropdown(this.value)" style="max-width:210px; flex:1;">
+                  <option value="rope">🪢 ปฏิเสธกลไกเชือกและน้ำ</option>
+                  <option value="bone">🍖 ข้ออ้างกระดูกหมู</option>
+                  <option value="final">💥 คำดิ้นรนสุดท้าย</option>
+                </select>
+                <button type="button" class="small-btn orange" onclick="openAdminMinigameModal('stage6')" title="ปรับแต่งคำพูดคนร้ายละเอียด" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
+              </div>
               <div style="display:flex; gap:6px; margin-top:4px;">
                 <button type="button" class="small-btn yellow" onclick="adminStg6Retry()" style="flex:1; padding:4px 6px; font-size:0.75rem; font-weight:800;">🔄 เริ่มใหม่ (Retry)</button>
                 <button type="button" class="small-btn cyan" onclick="adminStg6ForcePass()" style="flex:1; padding:4px 6px; font-size:0.75rem; font-weight:800;">⏩ ทลายเกราะ (OK)</button>
               </div>
             </div>
+
+            <!-- STAGE 7: CLOSING ARGUMENT -->
             <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
-              <button class="dm-act-btn cyan" onclick="adminSetGame('closing')" style="width:100%;">
-                <strong>7. Closing Argument</strong>
-                <span>มังงะสรุปคดี (Culprit B Timeline)</span>
-              </button>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button class="dm-act-btn cyan" onclick="adminSetGame('closing')" style="flex:1; margin:0;">
+                  <strong>7. Closing Argument</strong>
+                  <span>มังงะสรุปคดี (Culprit B Timeline)</span>
+                </button>
+                <button type="button" class="small-btn pink" onclick="openAdminMinigameModal('stage7')" title="ดูรายละเอียดมังงะ" style="padding:10px 14px; font-weight:900; font-size:1rem;">
+                  ⚙️
+                </button>
+              </div>
               <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; background:#141424; padding:6px 10px; border-radius:6px; border:1px solid #333348;">
                 <button type="button" class="small-btn grey" onclick="adminPrevClosingPage()" style="padding:4px 8px; font-size:0.75rem; font-weight:800;">◀ หน้าก่อน</button>
                 <div style="display:flex; gap:4px;" title="เปลี่ยนหน้ามังงะ (มีผลพร้อมกันทุกจอ)">
