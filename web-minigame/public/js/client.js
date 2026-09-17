@@ -1374,6 +1374,18 @@ function setupPeerJS() {
       console.log('[WEBRTC] Client connected to Host:', conn.peer);
       
       conn.on('data', (data) => {
+        if (!data || typeof data !== 'object') return;
+        // Anti-Echo: Ignore messages originating from ourselves
+        if (data._sender === myClientId) return;
+        // Deduplication: Drop duplicate packet if already received via BroadcastChannel or SSE
+        if (data._id) {
+          if (processedMessageIds.has(data._id)) return;
+          processedMessageIds.add(data._id);
+          if (processedMessageIds.size > 500) {
+            const oldest = processedMessageIds.values().next().value;
+            processedMessageIds.delete(oldest);
+          }
+        }
         handleIncomingMessage(data, conn);
         // STAR-RELAY: Forward message to all other connected peers immediately!
         if (isHost && data.type !== 'request_claim_character' && data.type !== 'request_sync_state') {
@@ -1476,6 +1488,18 @@ function connectToHostPeer(hostId, onConnected) {
       });
 
       hostPeer.on('data', (data) => {
+        if (!data || typeof data !== 'object') return;
+        // Anti-Echo: Ignore messages originating from ourselves
+        if (data._sender === myClientId) return;
+        // Deduplication: Drop duplicate packet if already received via BroadcastChannel or SSE
+        if (data._id) {
+          if (processedMessageIds.has(data._id)) return;
+          processedMessageIds.add(data._id);
+          if (processedMessageIds.size > 500) {
+            const oldest = processedMessageIds.values().next().value;
+            processedMessageIds.delete(oldest);
+          }
+        }
         handleIncomingMessage(data, hostPeer);
       });
 
@@ -3767,18 +3791,31 @@ function updateInfluenceDisplay() {
   /* influence gauge removed */
 }
 
+let lastCourtLogText = '';
+let lastCourtLogTime = 0;
+
 function logCourt(text) {
+  if (!text) return;
+  const now = Date.now();
+  const trimmed = String(text).trim();
+  // Anti-Duplicate filter: Drop identical log message arriving within 1500ms
+  if (trimmed === lastCourtLogText && (now - lastCourtLogTime) < 1500) {
+    return;
+  }
+  lastCourtLogText = trimmed;
+  lastCourtLogTime = now;
+
   const box = document.getElementById('courtLog');
   if (box) {
     const d = document.createElement('div');
-    d.innerText = `> ${text}`;
+    d.innerText = `> ${trimmed}`;
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
   }
   const trialBox = document.getElementById('courtLogTrial');
   if (trialBox) {
     const d = document.createElement('div');
-    d.innerText = `> ${text}`;
+    d.innerText = `> ${trimmed}`;
     trialBox.appendChild(d);
     trialBox.scrollTop = trialBox.scrollHeight;
   }

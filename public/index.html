@@ -1653,16 +1653,16 @@
           <!-- Secret Emergency Exit Protocol Card (Hidden in Monopad Rules) -->
           <div id="pSecretEscapeCard" class="dr1-secret-terminal-card locked">
             <div class="secret-terminal-header">
-              <div style="display:flex; align-items:center; gap:8px;">
+              <div style="display:flex; align-items:center; gap:8px; min-width:0;">
                 <span class="blink-dot red"></span>
-                <span style="font-family:monospace; font-weight:900; letter-spacing:1px; color:#ff4466;">EMERGENCY_OVERRIDE_PORT_v1.04</span>
+                <span class="secret-terminal-port-name">EMERGENCY_OVERRIDE_PORT_v1.04</span>
               </div>
               <span id="pEscapeProximityBadge" class="proximity-badge locked">🔒 พิกัดถูกล็อก</span>
             </div>
             <p class="secret-terminal-desc">
               ⚠️ ตรวจพบโปรโตคอลฉุกเฉินซ่อนอยู่ในเฟิร์มแวร์ Monopad... ระบบจะทำงานได้เมื่อเซนเซอร์ตรวจพบว่าคุณยืนอยู่หน้าประตูทางออกลับ (ต้องให้ DM ยืนยันพิกัด)
             </p>
-            <button id="btnStartEscapeBypass" class="dangan-action-btn grey" onclick="attemptStartEmergencyEscape()">
+            <button id="btnStartEscapeBypass" class="dangan-action-btn grey escape-bypass-start-btn" onclick="attemptStartEmergencyEscape()">
               🔒 เซนเซอร์ล็อก: ยังไม่ได้รับการยืนยันพิกัดหน้าประตูจาก DM
             </button>
           </div>
@@ -3341,9 +3341,9 @@
     <div class="modal-dialog emergency-escape-dialog">
       <!-- Top Title Bar -->
       <div class="escape-terminal-titlebar">
-        <div style="display:flex; align-items:center; gap:8px;">
+        <div class="escape-topbar-left">
           <span class="escape-siren-dot"></span>
-          <span style="font-family:monospace; font-weight:900; letter-spacing:1px; color:#ff4466;">MONOPAD EMERGENCY BYPASS v1.04</span>
+          <span class="escape-topbar-title">MONOPAD EMERGENCY BYPASS v1.04</span>
         </div>
         <button class="escape-modal-close-btn" onclick="closeEmergencyEscapeModal()" aria-label="ปิดหน้าต่างทางออกฉุกเฉิน">✕</button>
       </div>
@@ -3358,39 +3358,39 @@
 
         <div class="escape-sensor-status-card">
           <div class="sensor-row">
-            <span>📍 พิกัดทางกายภาพ:</span>
-            <strong style="color:#10b981;">✅ ยืนยันหน้าประตูกลไกฉุกเฉิน (DM Verified)</strong>
+            <span class="sensor-label">📍 พิกัดทางกายภาพ:</span>
+            <strong class="sensor-value-ok">✅ ยืนยันหน้าประตูกลไกฉุกเฉิน (DM Verified)</strong>
           </div>
           <div class="sensor-row">
-            <span>📡 สถานะลิงก์ดาวเทียม:</span>
-            <strong style="color:#38bdf8;">เชื่อมต่อเซิร์ฟเวอร์ควบคุมระบบหลัก</strong>
+            <span class="sensor-label">📡 สถานะลิงก์ดาวเทียม:</span>
+            <strong class="sensor-value-info">เชื่อมต่อเซิร์ฟเวอร์ควบคุมระบบหลัก</strong>
           </div>
         </div>
 
         <div class="escape-pin-container">
-          <label style="font-size:0.85rem; color:#aaa;">กรอกรหัสผ่านฉุกเฉิน 6 หลัก:</label>
+          <label class="escape-pin-label">กรอกรหัสผ่านฉุกเฉิน 6 หลัก:</label>
           <div id="escapePinDisplay" class="escape-pin-display">------</div>
           <div class="escape-keypad-grid">
-            <button class="escape-key-btn" onclick="pressEscapeKey('1')">1</button>
-            <button class="escape-key-btn" onclick="pressEscapeKey('2')">2</button>
-            <button class="escape-key-btn" onclick="pressEscapeKey('3')">3</button>
-            <button class="escape-key-btn" onclick="pressEscapeKey('4')">4</button>
-            <button class="escape-key-btn" onclick="pressEscapeKey('5')">5</button>
-            <button class="escape-key-btn" onclick="pressEscapeKey('6')">6</button>
-            <button class="escape-key-btn" onclick="pressEscapeKey('7')">7</button>
-            <button class="escape-key-btn" onclick="pressEscapeKey('8')">8</button>
-            <button class="escape-key-btn" onclick="pressEscapeKey('9')">9</button>
-            <button class="escape-key-btn clear" onclick="pressEscapeKey('CLR')">CLR</button>
-            <button class="escape-key-btn" onclick="pressEscapeKey('0')">0</button>
-            <button class="escape-key-btn del" onclick="pressEscapeKey('DEL')">⌫</button>
+            <button type="button" class="escape-key-btn" onclick="pressEscapeKey('1')">1</button>
+            <button type="button" class="escape-key-btn" onclick="pressEscapeKey('2')">2</button>
+            <button type="button" class="escape-key-btn" onclick="pressEscapeKey('3')">3</button>
+            <button type="button" class="escape-key-btn" onclick="pressEscapeKey('4')">4</button>
+            <button type="button" class="escape-key-btn" onclick="pressEscapeKey('5')">5</button>
+            <button type="button" class="escape-key-btn" onclick="pressEscapeKey('6')">6</button>
+            <button type="button" class="escape-key-btn" onclick="pressEscapeKey('7')">7</button>
+            <button type="button" class="escape-key-btn" onclick="pressEscapeKey('8')">8</button>
+            <button type="button" class="escape-key-btn" onclick="pressEscapeKey('9')">9</button>
+            <button type="button" class="escape-key-btn clear" onclick="pressEscapeKey('CLR')">CLR</button>
+            <button type="button" class="escape-key-btn" onclick="pressEscapeKey('0')">0</button>
+            <button type="button" class="escape-key-btn del" onclick="pressEscapeKey('DEL')">⌫</button>
           </div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px;">
-          <button class="dangan-action-btn green pulse-anim" onclick="submitEscapeKeypad()">
+        <div class="escape-action-buttons">
+          <button class="dangan-action-btn green pulse-anim escape-btn-main" onclick="submitEscapeKeypad()">
             🔓 ยืนยันรหัสปลดล็อกประตู (UNLOCK)
           </button>
-          <button class="dangan-action-btn red" onclick="forceHackOverride()" style="font-size:0.85rem;">
+          <button class="dangan-action-btn red escape-btn-sub" onclick="forceHackOverride()">
             ⚡ บังคับเจาะระบบอัตโนมัติ (FORCE BYPASS OVERRIDE)
           </button>
         </div>
@@ -3410,7 +3410,7 @@
         <div class="escape-progress-bar-wrap">
           <div id="escapeProgressBar" class="escape-progress-bar-fill"></div>
         </div>
-        <div style="font-size:0.8rem; color:#f87171; font-family:monospace; margin-top:10px;">
+        <div class="escape-warning-text">
           DO NOT DISCONNECT / ห้ามปิดหน้าจอระหว่างดำเนินการ
         </div>
       </div>
@@ -3423,13 +3423,13 @@
         <div class="troll-burst-banner">💥 U P U P U P U ! ! 💥</div>
         
         <div class="troll-speech-bubble">
-          <h3 style="color:#ef4444; font-size:1.15rem; margin:0 0 8px 0; font-weight:900;">
+          <h3>
             "อุพุพุพุ! ยินดีด้วยนะเจ้าเด็กดื้อที่อุตส่าห์แอบเปิดประตูบานนี้ได้!!"
           </h3>
-          <p style="color:#f1f5f9; font-size:0.95rem; line-height:1.6; margin:0 0 10px 0;">
+          <p>
             แต่เสียใจด้วยนะ... ประตูบานนี้มันไม่ใช่ทางออกหรอก! <strong>นี่มันคือท่อส่งขยะลงเตาเผาศพใต้ดินต่างหากล่ะ!!</strong> อยากโดนย่างสดหรือไง!?
           </p>
-          <p style="color:#facc15; font-size:0.9rem; line-height:1.5; margin:0; font-weight:bold;">
+          <p style="color:#facc15; font-weight:bold; margin-bottom:0;">
             หนทางเดียวที่จะได้ออกไปสู่โลกภายนอก... คือต้องฆ่าเพื่อนแล้วเอาชนะในศาลชั้นเรียนให้ได้เท่านั้นแหละ! วะฮ่าฮ่าฮ่า!!
           </p>
         </div>
@@ -3438,7 +3438,7 @@
           <code>[CRITICAL ERROR 403: ESCAPE_PROTOCOL_VOID - INCINERATOR_ONLINE]</code>
         </div>
 
-        <button class="dangan-action-btn red" onclick="closeEmergencyEscapeModal()" style="margin-top:14px; width:100%;">
+        <button class="dangan-action-btn red escape-btn-main" onclick="closeEmergencyEscapeModal()" style="margin-top:12px;">
           🚪 ปิดหน้าต่าง (ยอมรับความจริงอันสิ้นหวัง)
         </button>
       </div>
