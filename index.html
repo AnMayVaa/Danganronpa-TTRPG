@@ -411,27 +411,58 @@
           </div>
         </div>
 
-        <!-- Giant Anime Slash Cut-In Objection Overlay (Authentic Danganronpa Style) -->
+        <!-- Giant Anime Slash Cut-In Objection Overlay (Authentic Danganronpa 2/V3 Style) -->
         <div id="stg0ObjectionOverlay" class="stg0-objection-overlay hidden">
-          <div class="stg0-manga-speedlines"></div>
-          <div class="stg0-slash-backdrop"></div>
-          <div class="stg0-cutin-box">
-            <div class="stg0-anime-title-wrap">
-              <div class="stg0-jp-kanji">それは違うよ！</div>
-              <div class="stg0-quote-banner" id="stg0ObjectionQuote">
-                ⚡ นั่นมันผิดแล้วล่ะ! (NO, THAT'S WRONG!)
+          <!-- Screen Edge Speedlines -->
+          <div class="stg0-edge-speedlines top"></div>
+          <div class="stg0-edge-speedlines bottom"></div>
+          <div class="stg0-edge-speedlines left"></div>
+          <div class="stg0-edge-speedlines right"></div>
+          <div class="stg0-outer-speedlines"></div>
+
+          <!-- Slanted Manga Panel Frame -->
+          <div id="stg0CounterMangaPanel" class="stg0-counter-manga-panel">
+            <div class="stg0-panel-border top"></div>
+            <div class="stg0-panel-border bottom"></div>
+            <div class="stg0-panel-speedlines-bg"></div>
+
+            <!-- Top-Right Danganronpa Trial HUD Gauge -->
+            <div class="stg0-panel-hud">
+              <div class="hud-time-display">0 5 : 2 5 : 2 4 5 ▶</div>
+              <div class="hud-meter-wrap">
+                <div class="hud-meter-bar pink"></div>
+                <div class="hud-meter-bar cyan"></div>
               </div>
             </div>
-            <div class="stg0-cutin-profile">
-              <div class="stg0-avatar-halo-wrap">
-                <div class="stg0-giant-avatar" id="stg0GiantAvatar">👤</div>
-                <div class="stg0-eye-gleam">✨</div>
+
+            <!-- Slanted Panel Content Container -->
+            <div class="stg0-panel-content">
+              <!-- Left: Giant Brush Calligraphy COUNTER & Splatter & Quote -->
+              <div class="stg0-brush-counter-col">
+                <div class="stg0-counter-kanji">それは違うよ！</div>
+                <div class="stg0-brush-counter">
+                  <span class="stg0-counter-text">COUNTER</span>
+                  <div class="stg0-brush-splatter"></div>
+                </div>
+                <div class="stg0-quote-banner" id="stg0ObjectionQuote">
+                  ⚡ นั่นมันผิดแล้วล่ะ! (NO, THAT'S WRONG!)
+                </div>
               </div>
-              <div class="stg0-cutin-details">
-                <div class="stg0-objector-name" id="stg0ObjectorName">ผู้เล่น</div>
-                <div class="stg0-objector-title" id="stg0ObjectorTitle">OBJECTION // ดาบแห่งความจริงฟันตัดข้อโต้แย้ง!</div>
+
+              <!-- Right: Dynamic Multi-Angle Character Cut-In with Breathing Idle -->
+              <div id="stg0CutinCharacterWrap" class="stg0-cutin-character-wrap">
+                <div class="stg0-avatar-halo-wrap">
+                  <div class="stg0-giant-avatar" id="stg0GiantAvatar">👤</div>
+                  <div class="stg0-eye-gleam">✨</div>
+                </div>
+                <div class="stg0-cutin-nametag">
+                  <div class="stg0-objector-name" id="stg0ObjectorName">ผู้เล่น</div>
+                  <div class="stg0-objector-title" id="stg0ObjectorTitle">OBJECTION // ดาบแห่งความจริงฟันตัดข้อโต้แย้ง!</div>
+                </div>
               </div>
             </div>
+
+            <!-- Truth Bullet Showcase Strip at bottom of panel -->
             <div class="stg0-bullet-showcase" id="stg0BulletShowcase">
               <div class="stg0-bullet-tag">🎯 TRUTH BULLET // กระสุนความจริงที่เล็งยิง:</div>
               <div class="stg0-bullet-display" id="stg0BulletDisplay">
@@ -439,9 +470,10 @@
                 <span class="bullet-name" id="stg0BulletName">กำลังเลือกกระสุนใน Monopad...</span>
               </div>
             </div>
-            <div class="stg0-verbal-hint">
-              📢 กำลังให้เหตุผลหักล้างต่อที่ประชุมศาล... (รอ DM ตัดสินผล)
-            </div>
+          </div>
+
+          <div class="stg0-verbal-hint">
+            📢 กำลังให้เหตุผลหักล้างต่อที่ประชุมศาล... (รอ DM ตัดสินผล)
           </div>
         </div>
 

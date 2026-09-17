@@ -67,7 +67,7 @@ function saveAvatarConfigToLocal(cfg) {
   } catch(e) {}
 }
 
-function renderAvatarSvg(cfg, size = 100) {
+function renderAvatarSvg(cfg, size = 100, isShouting = false) {
   const conf = Object.assign({ skin: 0, hairStyle: 0, hairColor: 0, eyes: 0, outfit: 0, acc: 0 }, cfg || {});
   const skin = AVATAR_OPTIONS.skins[conf.skin % AVATAR_OPTIONS.skins.length] || AVATAR_OPTIONS.skins[0];
   const hairCol = AVATAR_OPTIONS.hairColors[conf.hairColor % AVATAR_OPTIONS.hairColors.length] || AVATAR_OPTIONS.hairColors[0];
@@ -137,7 +137,28 @@ function renderAvatarSvg(cfg, size = 100) {
   `;
 
   let eyesSvg = '';
-  if (eyesStyle === 0) {
+  if (isShouting) {
+    eyesSvg = `
+      <!-- Fierce Slanted Eyebrows -->
+      <path d="M 32 33 L 48 37" stroke="#111" stroke-width="3.2" stroke-linecap="round" />
+      <path d="M 68 33 L 52 37" stroke="#111" stroke-width="3.2" stroke-linecap="round" />
+      <!-- Intense Eyes with Focused Pupils -->
+      <path d="M 33 40 Q 41 36 47 41" stroke="#111" stroke-width="2.8" fill="none" />
+      <circle cx="41" cy="42.5" r="3.6" fill="${hairCol.color === '#ff4081' ? '#ff0055' : '#1d3557'}" />
+      <circle cx="42.5" cy="41.5" r="1.5" fill="#ffffff" />
+      <circle cx="39.5" cy="43.5" r="0.8" fill="#ffffff" />
+      <path d="M 67 40 Q 59 36 53 41" stroke="#111" stroke-width="2.8" fill="none" />
+      <circle cx="59" cy="42.5" r="3.6" fill="${hairCol.color === '#ff4081' ? '#ff0055' : '#1d3557'}" />
+      <circle cx="60.5" cy="41.5" r="1.5" fill="#ffffff" />
+      <circle cx="57.5" cy="43.5" r="0.8" fill="#ffffff" />
+      <!-- Nose -->
+      <path d="M 50 48 L 48 52 L 51 52" stroke="${skin.shadow}" stroke-width="1.8" fill="none" />
+      <!-- Open Shouting Mouth with teeth and tongue -->
+      <path d="M 40 54 Q 50 50 60 54 Q 59 68 50 69.5 Q 41 68 40 54 Z" fill="#4a151b" stroke="#111" stroke-width="2" />
+      <path d="M 42 54.5 Q 50 52 58 54.5 L 57 57 Q 50 55 43 57 Z" fill="#ffffff" />
+      <path d="M 44 63 Q 50 60.5 56 63 Q 55 68.5 50 69 Q 45 68.5 44 63 Z" fill="#f43f5e" />
+    `;
+  } else if (eyesStyle === 0) {
     eyesSvg = `
       <path d="M 35 37 Q 40 34 46 36" stroke="#222" stroke-width="2" stroke-linecap="round" fill="none" />
       <path d="M 65 37 Q 60 34 54 36" stroke="#222" stroke-width="2" stroke-linecap="round" fill="none" />
@@ -945,6 +966,32 @@ const DEFAULT_STG0_STATEMENTS = [
   { speaker: "เรนะ", avatar: "👱‍♀️", text: "ถ้าอย่างนั้น เสียงเหล็กกระแทกที่ดังสนั่น 2 ครั้งติดกันตอนนั้น มันมาจากไหนล่ะ!?" },
   { speaker: "ชิน", avatar: "🕵️", text: "มีคนแอบลอบเข้าไปในห้องซักผ้าเพื่ออำพรางหลักฐานหลังจากไฟดับหรือเปล่า!?" }
 ];
+
+function getDynamicStg0Statements() {
+  const players = Object.values(gameState?.players || {});
+  if (players.length === 0) return [...DEFAULT_STG0_STATEMENTS];
+  
+  const noiseQuotes = [
+    "ตอน 21:00 น. ทุกคนก็ได้ยินเสียงการต่อสู้ในห้องซักผ้าพร้อมกันไม่ใช่เหรอ!?",
+    "ใช่แล้ว! เสียงทุบกระแทกดังตึงตังขนาดนั้น ต้องเป็นการดิ้นรนก่อนตายของเรียวตะแน่นอน!",
+    "แต่ว่าสภาพห้องซักรีดมันไม่เห็นมีรอยการดิ้นรนหรือเลือดเปรอะเลยนะ...",
+    "จะไม่มีได้ยังไง ก็เรียวตะพกมีดพกไปด้วย เขาก็ต้องชักออกมาป้องกันตัวสิ!",
+    "ถ้าอย่างนั้น เสียงเหล็กกระแทกที่ดังสนั่น 2 ครั้งติดกันตอนนั้น มันมาจากไหนล่ะ!?",
+    "มีคนแอบลอบเข้าไปในห้องซักผ้าเพื่ออำพรางหลักฐานหลังจากไฟดับหรือเปล่า!?",
+    "เดี๋ยวก่อนสิ... ถ้าจำไม่ผิดตอนนั้นไฟทางเดินก็กะพริบแปลกๆ ด้วยนะ!",
+    "ฉันว่าพวกเราอาจจะมองข้ามอะไรบางอย่างที่สำคัญมากๆ ในที่เกิดเหตุไปรึเปล่า?"
+  ];
+
+  return players.map((p, idx) => {
+    return {
+      speaker: p.name || `นักเรียนคนที่ ${idx + 1}`,
+      avatar: p.avatar || '👤',
+      avatarConfig: p.avatarConfig || null,
+      role: p.role || 'สุดยอดนักเรียน',
+      text: noiseQuotes[idx % noiseQuotes.length]
+    };
+  });
+}
 
 // ==========================================================
 // AUTHENTIC DANGANRONPA AUDIO & SFX ENGINE
@@ -3394,7 +3441,7 @@ function setStage(stage, config) {
       }
     }
     if (!gameState.stg0.statements || gameState.stg0.statements.length === 0) {
-      gameState.stg0.statements = [...DEFAULT_STG0_STATEMENTS];
+      gameState.stg0.statements = getDynamicStg0Statements();
     }
     if (!gameState.stg0.topic) {
       gameState.stg0.topic = 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.';
@@ -4038,7 +4085,13 @@ function updateStg0CourtDisplay() {
     const avEl = document.getElementById('stg0SpeakerAvatar');
     const nameEl = document.getElementById('stg0SpeakerName');
     const txtEl = document.getElementById('stg0StatementText');
-    if (avEl) avEl.innerText = s.avatar || '👤';
+    if (avEl) {
+      if (s.avatarConfig) {
+        avEl.innerHTML = renderAvatarSvg(s.avatarConfig, 50);
+      } else {
+        avEl.innerText = s.avatar || '👤';
+      }
+    }
     if (nameEl) nameEl.innerText = s.speaker || 'ผู้ร่วมอภิปราย';
     if (txtEl) txtEl.innerText = `"${s.text}"`;
   }
@@ -4054,17 +4107,28 @@ function updateStg0CourtDisplay() {
       const objTitle = document.getElementById('stg0ObjectorTitle');
       const bCode = document.getElementById('stg0BulletCode');
       const bName = document.getElementById('stg0BulletName');
+      const charWrap = document.getElementById('stg0CutinCharacterWrap');
 
-      if (quoteEl) quoteEl.innerText = gameState.stg0.objectionQuote || '⚡ นั่นผิดแล้ว! (SORE WA CHIGAU YO!)';
+      // Apply dynamic entrance angle class and trigger CSS animation
+      if (charWrap) {
+        const CUTIN_ANGLES = ['cutin-angle-br', 'cutin-angle-bl', 'cutin-angle-sr', 'cutin-angle-sl', 'cutin-angle-bc'];
+        const angle = gameState.stg0.cutinAngle || 'cutin-angle-br';
+        CUTIN_ANGLES.forEach(cls => charWrap.classList.remove(cls));
+        void charWrap.offsetWidth;
+        charWrap.classList.add(angle);
+      }
+
+      if (quoteEl) quoteEl.innerText = gameState.stg0.objectionQuote || '⚡ นั่นมันผิดแล้วล่ะ! (NO, THAT\'S WRONG!)';
       if (giantAv) {
         if (gameState.stg0.buzzedAvatarConfig) {
-          giantAv.innerHTML = renderAvatarSvg(gameState.stg0.buzzedAvatarConfig, 140);
+          // Render 290px avatar with isShouting = true for open mouth, teeth/tongue & fierce brows
+          giantAv.innerHTML = renderAvatarSvg(gameState.stg0.buzzedAvatarConfig, 290, true);
         } else {
-          giantAv.innerHTML = `<div style="font-size:3.5rem; line-height:140px; text-align:center;">${gameState.stg0.buzzedAvatar || '👤'}</div>`;
+          giantAv.innerHTML = `<div style="font-size:7rem; line-height:290px; text-align:center;">${gameState.stg0.buzzedAvatar || '👤'}</div>`;
         }
       }
       if (objName) objName.innerText = gameState.stg0.buzzedBy;
-      if (objTitle) objTitle.innerText = gameState.stg0.buzzedRole || 'ประกาศคัดค้านความจริง!';
+      if (objTitle) objTitle.innerText = gameState.stg0.buzzedRole || 'OBJECTION // ดาบแห่งความจริงฟันตัดข้อโต้แย้ง!';
 
       if (gameState.stg0.selectedClueId) {
         const clue = ALL_CLUES_DATA.find(c => c.id === gameState.stg0.selectedClueId);
@@ -4121,6 +4185,8 @@ function stg0PressBuzzer() {
   const myAvatarConfig = myPlayer?.avatarConfig || currentAvatarConfig;
   const myRole = myPlayer?.role || 'สุดยอดนักเรียนมัธยมปลาย';
   const quote = OBJECTION_CATCHPHRASES[Math.floor(Math.random() * OBJECTION_CATCHPHRASES.length)];
+  const CUTIN_ANGLES = ['cutin-angle-br', 'cutin-angle-bl', 'cutin-angle-sr', 'cutin-angle-sl', 'cutin-angle-bc'];
+  const chosenAngle = CUTIN_ANGLES[Math.floor(Math.random() * CUTIN_ANGLES.length)];
 
   if (!gameState.stg0) gameState.stg0 = {};
   gameState.stg0.buzzedBy = myName;
@@ -4128,10 +4194,15 @@ function stg0PressBuzzer() {
   gameState.stg0.buzzedAvatarConfig = myAvatarConfig;
   gameState.stg0.buzzedRole = myRole;
   gameState.stg0.objectionQuote = quote;
+  gameState.stg0.cutinAngle = chosenAngle;
   gameState.stg0.isPaused = true;
   gameState.stg0.selectedClueId = null;
 
-  playSfx('rebuttal');
+  try {
+    playSfx('counter');
+  } catch(e) {
+    playSfx('rebuttal');
+  }
   showToast(`⚡ คุณกดคัดค้านสำเร็จ! ${quote}`);
   logCourt(`⚡ [OBJECTION]: [${myName}] กดแย่งจังหวะคัดค้าน! "${quote}"`);
 
@@ -4141,7 +4212,8 @@ function stg0PressBuzzer() {
     avatar: myAvatar,
     avatarConfig: myAvatarConfig,
     role: myRole,
-    quote: quote
+    quote: quote,
+    cutinAngle: chosenAngle
   });
 
   updateStg0CourtDisplay();
@@ -4184,6 +4256,7 @@ function handleStg0Buzz(msg) {
   gameState.stg0.buzzedAvatarConfig = msg.avatarConfig || null;
   gameState.stg0.buzzedRole = msg.role || 'สุดยอดนักเรียนมัธยมปลาย';
   gameState.stg0.objectionQuote = msg.quote || '⚡ นั่นผิดแล้ว!';
+  gameState.stg0.cutinAngle = msg.cutinAngle || 'cutin-angle-br';
   gameState.stg0.isPaused = true;
   gameState.stg0.selectedClueId = null;
 
@@ -4431,7 +4504,7 @@ function renderMobileStage0Task() {
     }
 
     const myAvConfig = myPlayer?.avatarConfig || currentAvatarConfig;
-    const myAvHtml = renderAvatarSvg(myAvConfig, 88);
+    const myAvHtml = renderAvatarSvg(myAvConfig, 88, true);
 
     html += `
       <!-- Character Avatar Objection Rising Cut-In -->

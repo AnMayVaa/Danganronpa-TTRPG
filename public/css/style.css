@@ -8265,115 +8265,534 @@ body.phase-investigation #playerSectionGuide,
   100% { transform: translateX(-120%); opacity: 0; }
 }
 
-/* Giant Anime Slash Cut-In Objection Overlay */
+/* Giant Anime Slash Cut-In Objection Overlay (Authentic Danganronpa 2/V3 Style) */
 .stg0-objection-overlay {
   position: absolute;
   inset: 0;
   z-index: 100;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: stg0CutinZoom 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes stg0CutinZoom {
-  0% { opacity: 0; transform: scale(1.3); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-.stg0-slash-backdrop {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(224, 36, 117, 0.95) 0%, rgba(18, 6, 26, 0.98) 55%, rgba(0, 240, 255, 0.9) 100%);
-  clip-path: polygon(0 4%, 100% 0%, 100% 96%, 0 100%);
-  animation: stg0SlashFlash 0.3s ease-out;
-}
-
-@keyframes stg0SlashFlash {
-  0% { filter: brightness(3); opacity: 0.5; }
-  100% { filter: brightness(1); opacity: 1; }
-}
-
-.stg0-cutin-box {
-  position: relative;
-  z-index: 10;
-  width: 90%;
-  max-width: 820px;
-  display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: 12px;
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(16, 5, 22, 0.88) 0%, rgba(3, 1, 6, 0.97) 100%);
+  overflow: hidden;
+  animation: stg0OverlayFlash 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes stg0OverlayFlash {
+  0% { opacity: 0; filter: brightness(3); }
+  50% { filter: brightness(2); }
+  100% { opacity: 1; filter: brightness(1); }
+}
+
+/* Outer Radial Conic Speedlines */
+.stg0-outer-speedlines {
+  position: absolute;
+  inset: -60%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 64, 129, 0.26) 0deg 2.5deg,
+    transparent 2.5deg 6.5deg,
+    rgba(255, 255, 255, 0.18) 6.5deg 8.5deg,
+    transparent 8.5deg 13deg,
+    rgba(0, 240, 255, 0.22) 13deg 15.5deg,
+    transparent 15.5deg 19deg
+  );
+  pointer-events: none;
+  z-index: 1;
+  animation: speedLinesRotate 1.6s linear infinite;
+}
+
+@keyframes speedLinesRotate {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.04); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* Border Edge Action Speedlines */
+.stg0-edge-speedlines {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.stg0-edge-speedlines.top {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 75px;
+  background: repeating-linear-gradient(90deg, #ffffff 0px 3px, transparent 3px 12px, #ff0055 12px 15px, transparent 15px 24px);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+  animation: speedLinesH 0.14s steps(2) infinite alternate;
+}
+
+.stg0-edge-speedlines.bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 75px;
+  background: repeating-linear-gradient(90deg, #ffffff 0px 3px, transparent 3px 12px, #00f0ff 12px 15px, transparent 15px 24px);
+  mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+  animation: speedLinesH 0.18s steps(2) infinite alternate-reverse;
+}
+
+.stg0-edge-speedlines.left {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 85px;
+  background: repeating-linear-gradient(0deg, #ffffff 0px 3px, transparent 3px 12px, #ff4081 12px 15px, transparent 15px 24px);
+  mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+  animation: speedLinesV 0.13s steps(2) infinite alternate;
+}
+
+.stg0-edge-speedlines.right {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 85px;
+  background: repeating-linear-gradient(0deg, #ffffff 0px 3px, transparent 3px 12px, #ffe600 12px 15px, transparent 15px 24px);
+  mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+  -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+  animation: speedLinesV 0.16s steps(2) infinite alternate-reverse;
+}
+
+@keyframes speedLinesH {
+  0% { transform: translateX(0); opacity: 0.8; }
+  100% { transform: translateX(8px); opacity: 1; }
+}
+
+@keyframes speedLinesV {
+  0% { transform: translateY(0); opacity: 0.8; }
+  100% { transform: translateY(8px); opacity: 1; }
+}
+
+/* Slanted Manga Panel Frame */
+.stg0-counter-manga-panel {
+  position: relative;
+  z-index: 10;
+  width: 95%;
+  max-width: 1040px;
+  min-height: 480px;
+  background: linear-gradient(108deg, #0d0107 0%, #2e0412 22%, #6b0a21 48%, #b21430 74%, #e02444 92%, #ff4b2b 100%);
+  transform: skewX(-8deg);
+  box-shadow: 0 0 50px rgba(224, 36, 68, 0.75), 0 0 100px rgba(0, 0, 0, 0.95);
+  border: 4px solid #ffffff;
+  outline: 5px solid #000000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 16px 28px 12px 28px;
+  animation: stg0PanelSlam 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes stg0PanelSlam {
+  0% { transform: skewX(-8deg) scale(1.18); opacity: 0; filter: brightness(2.5); }
+  100% { transform: skewX(-8deg) scale(1); opacity: 1; filter: brightness(1); }
+}
+
+.stg0-panel-border {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  height: 7px;
+  background: #ffffff;
+  z-index: 8;
+}
+
+.stg0-panel-border.top {
+  top: 0;
+  box-shadow: 0 0 16px #ff0055, 0 3px 0 #000000;
+}
+
+.stg0-panel-border.bottom {
+  bottom: 0;
+  box-shadow: 0 0 16px #00f0ff, 0 -3px 0 #000000;
+}
+
+.stg0-panel-speedlines-bg {
+  position: absolute;
+  inset: -20px;
+  background: repeating-linear-gradient(
+    100deg,
+    transparent 0px 20px,
+    rgba(255, 255, 255, 0.16) 20px 23px,
+    transparent 23px 48px,
+    rgba(255, 230, 80, 0.26) 48px 51px,
+    transparent 51px 75px,
+    rgba(255, 64, 129, 0.32) 75px 80px,
+    transparent 80px 105px
+  );
+  pointer-events: none;
+  z-index: 1;
+  animation: panelSpeedlinesRush 0.22s linear infinite;
+}
+
+@keyframes panelSpeedlinesRush {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-80px); }
+}
+
+/* Top-Right Danganronpa Trial HUD Gauge */
+.stg0-panel-hud {
+  position: absolute;
+  top: 14px;
+  right: 24px;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  transform: skewX(8deg);
+}
+
+.hud-time-display {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #00f0ff;
+  text-shadow: 0 0 10px #00f0ff, 0 0 20px rgba(0, 240, 255, 0.6);
+  background: rgba(0, 0, 0, 0.72);
+  padding: 2px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+}
+
+.hud-meter-wrap {
+  display: flex;
+  gap: 6px;
+}
+
+.hud-meter-bar {
+  height: 7px;
+  width: 75px;
+  border-radius: 4px;
+}
+
+.hud-meter-bar.pink {
+  background: #ff4081;
+  box-shadow: 0 0 10px #ff4081;
+}
+
+.hud-meter-bar.cyan {
+  background: #00f0ff;
+  box-shadow: 0 0 10px #00f0ff;
+}
+
+/* Slanted Panel Content */
+.stg0-panel-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex: 1;
+  transform: skewX(8deg);
+  margin: 18px 0 10px 0;
+}
+
+/* Left Column: Brush Calligraphy COUNTER & Splatter & Quote */
+.stg0-brush-counter-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 8px;
+  max-width: 58%;
+  z-index: 12;
+}
+
+.stg0-counter-kanji {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffe600;
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px rgba(255, 230, 0, 0.8), 2px 2px 0 #000000;
+  transform: rotate(-3deg);
+}
+
+.stg0-brush-counter {
+  position: relative;
+  display: inline-block;
+  margin: 4px 0;
+}
+
+.stg0-counter-text {
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 4.8rem;
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 4px;
+  color: #0b0b0f;
+  text-transform: uppercase;
+  display: inline-block;
+  text-shadow:
+    -3px -3px 0 #ffffff,
+     3px -3px 0 #ffffff,
+    -3px  3px 0 #ffffff,
+     3px  3px 0 #ffffff,
+     5px  5px 0 #000000,
+     0 0 25px rgba(255, 0, 85, 0.85);
+  transform: rotate(-5deg) skewX(-6deg);
+  filter: drop-shadow(0 0 14px rgba(255, 64, 129, 0.9));
+  animation: counterTextPulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes counterTextPulse {
+  0% { transform: rotate(-5deg) skewX(-6deg) scale(1); }
+  100% { transform: rotate(-4deg) skewX(-5deg) scale(1.03); }
+}
+
+.stg0-brush-splatter {
+  position: absolute;
+  inset: -20px -30px;
+  background: radial-gradient(ellipse at 30% 50%, rgba(0, 0, 0, 0.8) 0%, transparent 60%),
+              radial-gradient(ellipse at 75% 30%, rgba(224, 36, 68, 0.5) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .stg0-quote-banner {
-  background: #000;
-  border: 4px solid #ff4081;
-  padding: 14px 28px;
-  font-size: 2.1rem;
+  background: #000000;
+  border: 3.5px solid #ff4081;
+  padding: 10px 22px;
+  font-size: 1.55rem;
   font-weight: 900;
-  color: #fff;
-  letter-spacing: 2px;
-  text-shadow: 0 0 15px #ff4081, 0 0 30px #e02475;
-  box-shadow: 0 0 35px rgba(255, 64, 129, 0.8);
-  transform: skewX(-8deg);
+  color: #ffffff;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 12px #ff4081, 0 0 24px #e02475;
+  box-shadow: 0 0 25px rgba(255, 64, 129, 0.7);
+  transform: skewX(-6deg);
   display: inline-block;
+  border-radius: 4px;
 }
 
-.stg0-cutin-profile {
+/* Right Column: Character Wrap & Multi-Angle Dynamic Cut-In */
+.stg0-cutin-character-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  flex-shrink: 0;
+  will-change: transform;
+}
+
+.stg0-avatar-halo-wrap {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  background: rgba(0, 0, 0, 0.78);
-  border: 2px solid #00f0ff;
-  border-radius: 80px;
-  padding: 10px 36px 10px 14px;
-  box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
-  animation: stg0ProfileSlide 0.3s ease-out;
-}
-
-@keyframes stg0ProfileSlide {
-  0% { transform: translateY(40px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
 }
 
 .stg0-giant-avatar {
-  width: 140px;
-  height: 140px;
-  background: #0d0d1a;
-  border: 3px solid #00f0ff;
-  border-radius: 50%;
+  width: 290px;
+  height: 290px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 25px rgba(0, 240, 255, 0.7);
-  overflow: hidden;
-  flex-shrink: 0;
-  animation: stg0AvatarRise 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  filter: drop-shadow(0 0 25px rgba(0, 240, 255, 0.8)) drop-shadow(0 15px 35px rgba(0, 0, 0, 0.95));
 }
 
-@keyframes stg0AvatarRise {
-  0% { transform: translateY(70px) scale(0.6); opacity: 0; }
-  70% { transform: translateY(-8px) scale(1.08); opacity: 1; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
+.stg0-giant-avatar svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-.stg0-cutin-details {
-  text-align: left;
+.stg0-eye-gleam {
+  position: absolute;
+  top: 15%;
+  right: 28%;
+  font-size: 2.5rem;
+  color: #00f0ff;
+  text-shadow: 0 0 15px #00f0ff, 0 0 30px #ffffff;
+  pointer-events: none;
+  animation: eyeGleamFlash 0.55s ease-in-out infinite alternate;
+  z-index: 20;
+}
+
+@keyframes eyeGleamFlash {
+  0% { transform: scale(0.6) rotate(0deg); opacity: 0.4; }
+  100% { transform: scale(1.35) rotate(45deg); opacity: 1; filter: brightness(1.6); }
+}
+
+.stg0-cutin-nametag {
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #00f0ff;
+  border-radius: 20px;
+  padding: 6px 22px;
+  margin-top: -15px;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+  text-align: center;
+  z-index: 18;
 }
 
 .stg0-objector-name {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 900;
   color: #00f0ff;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.9);
+  line-height: 1.2;
 }
 
 .stg0-objector-title {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #ffe600;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   5 DYNAMIC ENTRANCE ANGLES + IDLE BREATHING TENSION ANIMATIONS
+   ========================================================================== */
+
+/* Angle 1: Bottom-Right Upward Slash */
+.stg0-cutin-character-wrap.cutin-angle-br {
+  animation: entryBottomRight 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             cutinIdleBreatheBR 2.2s ease-in-out 0.32s infinite alternate;
+}
+
+@keyframes entryBottomRight {
+  0% { transform: translate(140%, 120%) rotate(22deg) scale(0.6); opacity: 0; }
+  75% { transform: translate(-10px, -8px) rotate(-3deg) scale(1.06); opacity: 1; }
+  100% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes cutinIdleBreatheBR {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate(-4px, -6px) rotate(-1.5deg) scale(1.02); }
+  100% { transform: translate(2px, -2px) rotate(0.8deg) scale(0.99); }
+}
+
+/* Angle 2: Bottom-Left Upward Slash */
+.stg0-cutin-character-wrap.cutin-angle-bl {
+  animation: entryBottomLeft 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             cutinIdleBreatheBL 2.2s ease-in-out 0.32s infinite alternate;
+}
+
+@keyframes entryBottomLeft {
+  0% { transform: translate(-140%, 120%) rotate(-22deg) scale(0.6); opacity: 0; }
+  75% { transform: translate(10px, -8px) rotate(3deg) scale(1.06); opacity: 1; }
+  100% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes cutinIdleBreatheBL {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate(4px, -6px) rotate(1.5deg) scale(1.02); }
+  100% { transform: translate(-2px, -2px) rotate(-0.8deg) scale(0.99); }
+}
+
+/* Angle 3: Side-Right Horizontal Spear */
+.stg0-cutin-character-wrap.cutin-angle-sr {
+  animation: entrySideRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             cutinIdleBreatheSR 2.0s ease-in-out 0.28s infinite alternate;
+}
+
+@keyframes entrySideRight {
+  0% { transform: translate(160%, 0) rotate(10deg) scale(0.7); opacity: 0; }
+  75% { transform: translate(-15px, 0) rotate(-2deg) scale(1.05); opacity: 1; }
+  100% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes cutinIdleBreatheSR {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate(-6px, -4px) rotate(-1deg) scale(1.02); }
+  100% { transform: translate(0, 2px) rotate(0.5deg) scale(1); }
+}
+
+/* Angle 4: Side-Left Horizontal Spear */
+.stg0-cutin-character-wrap.cutin-angle-sl {
+  animation: entrySideLeft 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             cutinIdleBreatheSL 2.0s ease-in-out 0.28s infinite alternate;
+}
+
+@keyframes entrySideLeft {
+  0% { transform: translate(-160%, 0) rotate(-10deg) scale(0.7); opacity: 0; }
+  75% { transform: translate(15px, 0) rotate(2deg) scale(1.05); opacity: 1; }
+  100% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes cutinIdleBreatheSL {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate(6px, -4px) rotate(1deg) scale(1.02); }
+  100% { transform: translate(0, 2px) rotate(-0.5deg) scale(1); }
+}
+
+/* Angle 5: Bottom-Center Vertical Uppercut */
+.stg0-cutin-character-wrap.cutin-angle-bc {
+  animation: entryBottomCenter 0.30s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             cutinIdleBreatheBC 1.9s ease-in-out 0.30s infinite alternate;
+}
+
+@keyframes entryBottomCenter {
+  0% { transform: translate(0, 160%) scale(0.5); opacity: 0; }
+  75% { transform: translate(0, -14px) scale(1.08); opacity: 1; }
+  100% { transform: translate(0, 0) scale(1); opacity: 1; }
+}
+
+@keyframes cutinIdleBreatheBC {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(0, -8px) scale(1.03); }
+  100% { transform: translate(0, 2px) scale(0.99); }
+}
+
+/* Truth Bullet Showcase Strip at bottom of panel */
+.stg0-bullet-showcase {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #ffe600;
+  border-radius: 8px;
+  padding: 8px 18px;
+  transform: skewX(8deg);
+  box-shadow: 0 0 15px rgba(255, 230, 0, 0.4);
+}
+
+.stg0-bullet-tag {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #ffe600;
+  letter-spacing: 1px;
+}
+
+.stg0-bullet-display {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.bullet-code {
+  color: #00f0ff;
+  font-weight: 900;
+  margin-right: 6px;
+}
+
+.bullet-name {
+  color: #ffffff;
+}
+
+.stg0-verbal-hint {
+  position: relative;
+  z-index: 15;
+  margin-top: 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 0 5px #00f0ff;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 6px 18px;
+  border-radius: 20px;
 }
 
 /* Mobile Objection Cut-In Card (Avatar Rising on Monopad) */
