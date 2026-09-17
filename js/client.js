@@ -2366,6 +2366,7 @@ function switchView(v) {
     if (tab) tab.classList.add('active');
     initRealtime();
     updateAdminDisplay();
+    initAdminPresetsDisplay();
   } else if (v === 'player') {
     const el = document.getElementById('viewPlayer');
     if (el) el.classList.remove('hidden');
@@ -5544,7 +5545,7 @@ const QUICK_QUESTION_PRESETS = {
   }
 };
 
-function applyPresetQuickQuestion(presetId) {
+function applyPresetQuickQuestion(presetId, isSilent) {
   const p = QUICK_QUESTION_PRESETS[presetId];
   if (!p) return;
   const qEl = document.getElementById('cfgQqQuestion');
@@ -5557,7 +5558,23 @@ function applyPresetQuickQuestion(presetId) {
   if (bEl) bEl.value = p.choices.B;
   if (cEl) cEl.value = p.choices.C;
   if (corrEl) corrEl.value = p.correct;
-  showToast(`⚡ โหลดพรีเซ็ต Quick Question สำเร็จ`);
+
+  const sel = document.getElementById('adminQqPresetSelect');
+  if (sel && sel.value !== presetId) sel.value = presetId;
+
+  const badge = document.getElementById('qqCardDesc');
+  const labels = {
+    attack_time: '⏱️ เวลาทำร้ายในครัว (17:30)',
+    death_cause: '💀 เหตุตายจริง (ขาดอากาศ)',
+    auto_pulley: '🛢️ กลไกชักรอก (ถังน้ำหนัก)',
+    dryer_sound: '👟 เสียง 21:00 น. (รองเท้าบูท)'
+  };
+  const badgeText = labels[presetId] || `⚡ ${p.question.slice(0, 30)}...`;
+  if (badge) {
+    badge.innerText = badgeText;
+    if (!isSilent && typeof flashPresetBadge === 'function') flashPresetBadge('qqCardDesc');
+  }
+  if (!isSilent) showToast(`⚡ Quick Question: ${badgeText}`);
 }
 
 function adminStartQuickQuestion() {
@@ -9720,7 +9737,9 @@ function adminStartRebuttal() {
   const rebOppSel = document.getElementById('adminRebuttalOpponentSelect');
   const chal = rebSel ? rebSel.value : '';
   const opp = rebOppSel ? rebOppSel.value : '';
-  adminSetGame('stage3', { challenger: chal, opponent: opp });
+  const topic = document.getElementById('cfgStg3Topic')?.value || gameState.stg3Topic || 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi';
+  const arg = document.getElementById('cfgStg3Arg')?.value || gameState.stg3Argument || 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?';
+  adminSetGame('stage3', { challenger: chal, opponent: opp, topic: topic, argument: arg, statement: arg });
 }
 
 function adminSelectRebuttalChallengers() {
@@ -9752,7 +9771,7 @@ function updateAdminDisplay() {
   cnt.innerText = players.length;
 
   if (rebSel) {
-    const curVal = rebSel.value;
+    const curVal = rebSel.value || gameState.stg3Challenger || '';
     rebSel.innerHTML = '<option value="">(ทุกคนในห้อง / อิสระ)</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
@@ -9761,6 +9780,13 @@ function updateAdminDisplay() {
       if (opt.value === curVal || p.name === curVal) opt.selected = true;
       rebSel.appendChild(opt);
     });
+    if (curVal && !players.some(p => p.name === curVal)) {
+      const opt = document.createElement('option');
+      opt.value = curVal;
+      opt.innerText = curVal;
+      opt.selected = true;
+      rebSel.appendChild(opt);
+    }
   }
 
   if (rebOppSel) {
@@ -9773,11 +9799,18 @@ function updateAdminDisplay() {
       if (opt.value === curOpp || p.name === curOpp) opt.selected = true;
       rebOppSel.appendChild(opt);
     });
+    if (curOpp && !players.some(p => p.name === curOpp)) {
+      const opt = document.createElement('option');
+      opt.value = curOpp;
+      opt.innerText = curOpp;
+      opt.selected = true;
+      rebOppSel.appendChild(opt);
+    }
   }
 
   const armTargetSel = document.getElementById('adminArmamentTargetSelect');
   if (armTargetSel) {
-    const curVal = armTargetSel.value;
+    const curVal = armTargetSel.value || gameState.stg6TargetPlayer || '';
     armTargetSel.innerHTML = '<option value="">-- เลือกผู้ถูกกล่าวหา --</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
@@ -9786,6 +9819,13 @@ function updateAdminDisplay() {
       if (opt.value === curVal || p.name === curVal) opt.selected = true;
       armTargetSel.appendChild(opt);
     });
+    if (curVal && !players.some(p => p.name === curVal)) {
+      const opt = document.createElement('option');
+      opt.value = curVal;
+      opt.innerText = curVal;
+      opt.selected = true;
+      armTargetSel.appendChild(opt);
+    }
   }
 
   players.forEach(p => {
@@ -10293,64 +10333,163 @@ function selectConfigTab(stageKey) {
   }
 }
 
-function applyPresetStage0(presetKey) {
-  const topInput = document.getElementById('cfgStg0Topic');
-  const stmtInput = document.getElementById('cfgStg0Statements');
-  if (!topInput || !stmtInput) return;
-
-  if (presetKey === 'timeline') {
-    topInput.value = "ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.";
-    stmtInput.value = `[ยูโตะ] ตอน 21:00 น. ทุกคนก็ได้ยินเสียงการต่อสู้ในห้องซักผ้าพร้อมกันไม่ใช่เหรอ!?
-[ซากุระ] ใช่แล้ว! เสียงทุบกระแทกดังตึงตังขนาดนั้น ต้องเป็นการดิ้นรนก่อนตายของเรียวตะแน่นอน!
-[ฮิคาริ] แต่ว่าสภาพห้องซักรีดมันไม่เห็นมีรอยการดิ้นรนหรือเลือดเปรอะเลยนะ...
-[ไคโตะ] จะไม่มีได้ยังไง ก็เรียวตะพกมีดพกไปด้วย เขาก็ต้องชักออกมาป้องกันตัวสิ!
-[เรนะ] ถ้าอย่างนั้น เสียงเหล็กกระแทกที่ดังสนั่น 2 ครั้งติดกันตอนนั้น มันมาจากไหนล่ะ!?`;
-  } else if (presetKey === 'weapon') {
-    topInput.value = "การหมดสติของเหยื่อเรียวตะ & อาวุธในห้องครัว";
-    stmtInput.value = `[ไคโตะ] เรียวตะต้องถูกคนร้ายใช้มีดปลายแหลมในครัวแทงก่อนแน่นอน!
-[เรนะ] แต่ผลชันสูตรบอกว่ากะโหลกศีรษะด้านหลังมีรอยแตกร้าวจากของแข็งไม่มีคมนะ!
-[ยูโตะ] ในครัวมีกระทะและหม้อต้มสตูว์วางอยู่ อาจจะเป็นท่อนกระดูกขนาดใหญ่ก็ได้!
-[ซากุระ] อาวุธชิ้นนั้นต้องถูกคนร้ายโยนทิ้งไปนอกหน้าต่างหลังก่อเหตุแน่ๆ!`;
-  } else if (presetKey === 'pulley') {
-    topInput.value = "รอยเชือกไนลอน & กลไกยกร่างขึ้นเพดาน";
-    stmtInput.value = `[ซากุระ] คนร้ายต้องเป็นคนที่มีพละกำลังมหาศาลแน่ ถึงยกร่างผู้ชายขึ้นไปแขวนบนเพดานสูงได้!
-[ฮิคาริ] แต่คนร้ายจะปีนขึ้นไปมัดเชือกบนท่อเพดานสูง 3.5 เมตรในความมืดได้ยังไง?
-[ไคโตะ] แปลว่าคนร้ายต้องเตรียมบันไดลิงหรือใช้โต๊ะซ้อนกันหลายตัวในห้องซักผ้าสิ!
-    [เรนะ] แต่รอบๆ จุดพบศพไม่มีเฟอร์นิเจอร์ตัวไหนถูกขยับเลยสักชิ้นเดียว!
-[ยูโตะ] หรือว่าร่างของเรียวตะไม่ได้ถูกคนดึงขึ้นไป แต่เป็นกลไกถ่วงน้ำหนักอัตโนมัติ!?`;
+function flashPresetBadge(badgeId) {
+  if (typeof document === 'undefined') return;
+  const el = document.getElementById(badgeId);
+  if (el) {
+    el.classList.remove('preset-updated-flash');
+    void el.offsetWidth;
+    el.classList.add('preset-updated-flash');
   }
-  showToast('🗣️ โหลดพรีเซ็ตดีเบต: ' + topInput.value);
 }
 
-function applyPresetStage1(presetKey) {
+function initAdminPresetsDisplay() {
+  if (typeof document === 'undefined') return;
+  const stg0Sel = document.getElementById('adminStg0PresetSelect');
+  if (stg0Sel && stg0Sel.value) applyPresetStage0(stg0Sel.value, true);
+
+  const stg1Sel = document.getElementById('adminStg1PresetSelect');
+  if (stg1Sel && stg1Sel.value) applyPresetStage1(stg1Sel.value, true);
+
+  const stg2Sel = document.getElementById('adminStg2PresetSelect');
+  if (stg2Sel && stg2Sel.value) applyHangmanPresetFromDropdown(stg2Sel.value, true);
+
+  const stg3Sel = document.getElementById('adminStg3PresetSelect');
+  if (stg3Sel && stg3Sel.value) applyRebuttalPresetFromDropdown(stg3Sel.value, true);
+
+  const stg4Sel = document.getElementById('adminStg4PresetSelect');
+  if (stg4Sel && stg4Sel.value) applyPresetStage4(stg4Sel.value, true);
+
+  const qqSel = document.getElementById('adminQqPresetSelect');
+  if (qqSel && qqSel.value) applyPresetQuickQuestion(qqSel.value, true);
+
+  const stg5Sel = document.getElementById('adminStg5PresetSelect');
+  if (stg5Sel && stg5Sel.value !== undefined) applyScrumPresetFromDropdown(stg5Sel.value, true);
+
+  const stg6Sel = document.getElementById('adminStg6PresetSelect');
+  if (stg6Sel && stg6Sel.value) applyArmamentPresetFromDropdown(stg6Sel.value, true);
+}
+
+function applyPresetStage0(presetKey, isSilent) {
+  const topInput = document.getElementById('cfgStg0Topic');
+  const stmtInput = document.getElementById('cfgStg0Statements');
+  const badge = document.getElementById('stg0CardDesc');
+  const sel = document.getElementById('adminStg0PresetSelect');
+  if (sel && sel.value !== presetKey) sel.value = presetKey;
+
+  let topic = "ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.";
+  let badgeText = "⏱️ 1: ไทม์ไลน์เสียงกระแทก (21:00 น.)";
+  let statements = [
+    { speaker: 'ยูโตะ', text: 'ตอน 21:00 น. ทุกคนก็ได้ยินเสียงการต่อสู้ในห้องซักผ้าพร้อมกันไม่ใช่เหรอ!?' },
+    { speaker: 'ซากุระ', text: 'ใช่แล้ว! เสียงทุบกระแทกดังตึงตังขนาดนั้น ต้องเป็นการดิ้นรนก่อนตายของเรียวตะแน่นอน!' },
+    { speaker: 'ฮิคาริ', text: 'แต่ว่าสภาพห้องซักรีดมันไม่เห็นมีรอยการดิ้นรนหรือเลือดเปรอะเลยนะ...' },
+    { speaker: 'ไคโตะ', text: 'จะไม่มีได้ยังไง ก็เรียวตะพกมีดพกไปด้วย เขาก็ต้องชักออกมาป้องกันตัวสิ!' },
+    { speaker: 'เรนะ', text: 'ถ้าอย่างนั้น เสียงเหล็กกระแทกที่ดังสนั่น 2 ครั้งติดกันตอนนั้น มันมาจากไหนล่ะ!?' }
+  ];
+
+  if (presetKey === 'weapon') {
+    topic = "การหมดสติของเหยื่อเรียวตะ & อาวุธในห้องครัว";
+    badgeText = "🍖 2: การหมดสติ & อาวุธในครัว";
+    statements = [
+      { speaker: 'ไคโตะ', text: 'เรียวตะต้องถูกคนร้ายใช้มีดปลายแหลมในครัวแทงก่อนแน่นอน!' },
+      { speaker: 'เรนะ', text: 'แต่ผลชันสูตรบอกว่ากะโหลกศีรษะด้านหลังมีรอยแตกร้าวจากของแข็งไม่มีคมนะ!' },
+      { speaker: 'ยูโตะ', text: 'ในครัวมีกระทะและหม้อต้มสตูว์วางอยู่ อาจจะเป็นท่อนกระดูกขนาดใหญ่ก็ได้!' },
+      { speaker: 'ซากุระ', text: 'อาวุธชิ้นนั้นต้องถูกคนร้ายโยนทิ้งไปนอกหน้าต่างหลังก่อเหตุแน่ๆ!' }
+    ];
+  } else if (presetKey === 'pulley') {
+    topic = "รอยเชือกไนลอน & กลไกยกร่างขึ้นเพดาน";
+    badgeText = "🪢 3: รอยเชือก & กลไกยกร่าง";
+    statements = [
+      { speaker: 'ซากุระ', text: 'คนร้ายต้องเป็นคนที่มีพละกำลังมหาศาลแน่ ถึงยกร่างผู้ชายขึ้นไปแขวนบนเพดานสูงได้!' },
+      { speaker: 'ฮิคาริ', text: 'แต่คนร้ายจะปีนขึ้นไปมัดเชือกบนท่อเพดานสูง 3.5 เมตรในความมืดได้ยังไง?' },
+      { speaker: 'ไคโตะ', text: 'แปลว่าคนร้ายต้องเตรียมบันไดลิงหรือใช้โต๊ะซ้อนกันหลายตัวในห้องซักผ้าสิ!' },
+      { speaker: 'เรนะ', text: 'แต่รอบๆ จุดพบศพไม่มีเฟอร์นิเจอร์ตัวไหนถูกขยับเลยสักชิ้นเดียว!' },
+      { speaker: 'ยูโตะ', text: 'หรือว่าร่างของเรียวตะไม่ได้ถูกคนดึงขึ้นไป แต่เป็นกลไกถ่วงน้ำหนักอัตโนมัติ!?' }
+    ];
+  }
+
+  if (topInput) topInput.value = topic;
+  if (stmtInput) stmtInput.value = statements.map(s => `[${s.speaker}] ${s.text}`).join('\n');
+  if (badge) {
+    badge.innerText = badgeText;
+    if (!isSilent) flashPresetBadge('stg0CardDesc');
+  }
+
+  if (gameState.stage === 'stage0') {
+    if (!gameState.stg0) gameState.stg0 = {};
+    gameState.stg0.topic = topic;
+    gameState.stg0.statements = statements;
+    gameState.stg0.currentIndex = 0;
+    updateStg0CourtDisplay();
+    updateAdminStg0Display();
+    broadcast({ type: 'set_stage', stage: 'stage0', config: { topic, statements } });
+  }
+  if (!isSilent) showToast('🗣️ โหลดพรีเซ็ตดีเบต: ' + badgeText);
+}
+
+function applyPresetStage1(presetKey, isSilent) {
   populateStg1CluesDropdown();
   const pInput = document.getElementById('cfgStg1Prompt');
   const tSelect = document.getElementById('cfgStg1TargetClue');
-  if (!pInput || !tSelect) return;
+  const badge = document.getElementById('stg1CardDesc');
+  const sel = document.getElementById('adminStg1PresetSelect');
+  if (sel && sel.value !== presetKey) sel.value = presetKey;
+
+  let prompt = "อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบในครัวตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?";
+  let targetClue = "EVD-02";
+  let badgeText = "🍖 อาวุธทุบสลบ (EVD-02)";
 
   if (presetKey === 'bone') {
-    pInput.value = "อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบในครัวตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?";
-    tSelect.value = "EVD-02";
+    prompt = "อุปุ๊ปุ๊! อาวุธที่ใช้ฟาดหัว B จนสลบในครัวตอน 17:30 น. คืออะไร และถูกนำไปซ่อนที่ไหนกันแน่นะ!?";
+    targetClue = "EVD-02";
+    badgeText = "🍖 อาวุธทุบสลบ (EVD-02)";
   } else if (presetKey === 'rope') {
-    pInput.value = "หลักฐานชิ้นใดที่เชื่อมโยงร่างของเหยื่อเรียวตะจากท่อเพดานออกไปนอกหน้าต่างสูง 3.5 เมตร!?";
-    tSelect.value = tSelect.querySelector('option[value="EVD-09"]') ? "EVD-09" : (tSelect.querySelector('option[value="EVD-04"]') ? "EVD-04" : tSelect.value);
+    prompt = "หลักฐานชิ้นใดที่เชื่อมโยงร่างของเหยื่อเรียวตะจากท่อเพดานออกไปนอกหน้าต่างสูง 3.5 เมตร!?";
+    targetClue = "EVD-09";
+    badgeText = "🪢 เชือกยกร่าง (EVD-09)";
   } else if (presetKey === 'window' || presetKey === 'pipe') {
-    pInput.value = "จุดใดในห้องซักรีดที่คนร้ายใช้พาดเชือกไนลอนเพื่อทำหน้าที่แทนรอกชักร่างขึ้นสู่ที่สูง!?";
-    tSelect.value = tSelect.querySelector('option[value="EVD-14"]') ? "EVD-14" : (tSelect.querySelector('option[value="EVD-04"]') ? "EVD-04" : tSelect.value);
+    prompt = "จุดใดในห้องซักรีดที่คนร้ายใช้พาดเชือกไนลอนเพื่อทำหน้าที่แทนรอกชักร่างขึ้นสู่ที่สูง!?";
+    targetClue = "EVD-14";
+    badgeText = "🪟 ราวท่อเพดาน (EVD-14)";
   } else if (presetKey === 'barrel') {
-    pInput.value = "วัตถุชิ้นใดภายนอกอาคารที่ทำหน้าที่เป็นน้ำหนักถ่วง (Counterweight) ดึงร่างเหยื่อขึ้นแขวนเพดาน!?";
-    tSelect.value = tSelect.querySelector('option[value="EVD-19"]') ? "EVD-19" : (tSelect.querySelector('option[value="EVD-06"]') ? "EVD-06" : tSelect.value);
+    prompt = "วัตถุชิ้นใดภายนอกอาคารที่ทำหน้าที่เป็นน้ำหนักถ่วง (Counterweight) ดึงร่างเหยื่อขึ้นแขวนเพดาน!?";
+    targetClue = "EVD-19";
+    badgeText = "🛢️ ซากถังน้ำ (EVD-19)";
   } else if (presetKey === 'meter' || presetKey === 'hose') {
-    pInput.value = "อุปกรณ์ใดถูกปล่อยให้ทำงานอย่างต่อเนื่อง เพื่อค่อยๆ เติมน้ำหนักลงในถังถ่วงน้ำหนักจนถึงเวลาตาย!?";
-    tSelect.value = tSelect.querySelector('option[value="EVD-10"]') ? "EVD-10" : (tSelect.querySelector('option[value="EVD-12"]') ? "EVD-12" : tSelect.value);
+    prompt = "อุปกรณ์ใดถูกปล่อยให้ทำงานอย่างต่อเนื่อง เพื่อค่อยๆ เติมน้ำหนักลงในถังถ่วงน้ำหนักจนถึงเวลาตาย!?";
+    targetClue = "EVD-10";
+    badgeText = "💧 มาตรวัดน้ำ (EVD-10)";
   } else if (presetKey === 'dryer' || presetKey === 'timer') {
-    pInput.value = "อุปกรณ์ใดถูกตั้งเวลาล่วงหน้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น. ในห้องซักรีด!?";
-    tSelect.value = "EVD-05";
+    prompt = "อุปกรณ์ใดถูกตั้งเวลาล่วงหน้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น. ในห้องซักรีด!?";
+    targetClue = "EVD-05";
+    badgeText = "⏱️ เครื่องอบผ้า (EVD-05)";
   } else if (presetKey === 'knife') {
-    pInput.value = "สิ่งใดอยู่ในกระเป๋าเสื้อเหยื่อเรียวตะ (B) ที่ยืนยันว่าไม่มีการต่อสู้ระยะประชิดในห้องซักรีด!?";
-    tSelect.value = "EVD-12";
+    prompt = "สิ่งใดอยู่ในกระเป๋าเสื้อเหยื่อเรียวตะ (B) ที่ยืนยันว่าไม่มีการต่อสู้ระยะประชิดในห้องซักรีด!?";
+    targetClue = "EVD-12";
+    badgeText = "🔪 มีดพับในกระเป๋า (EVD-12)";
   }
-  showToast('🔍 โหลดพรีเซ็ตโจทย์หลักฐาน: ' + (tSelect.value || ''));
+
+  if (pInput) pInput.value = prompt;
+  if (tSelect) {
+    tSelect.value = targetClue;
+    if (tSelect.value !== targetClue && tSelect.querySelector(`option[value="${targetClue}"]`)) {
+      tSelect.value = targetClue;
+    }
+  }
+  if (badge) {
+    badge.innerText = badgeText;
+    if (!isSilent) flashPresetBadge('stg1CardDesc');
+  }
+
+  gameState.stg1Prompt = prompt;
+  gameState.stg1TargetClue = targetClue;
+
+  if (gameState.stage === 'stage1') {
+    const pBox = document.getElementById('courtStage1Prompt');
+    if (pBox) pBox.innerText = `"${prompt}"`;
+    broadcast({ type: 'set_stage', stage: 'stage1', config: { prompt, correctClueId: targetClue } });
+  }
+  if (!isSilent) showToast('🔍 โหลดพรีเซ็ตโจทย์: ' + badgeText);
 }
 
 function applyPresetStage2(word, prompt) {
@@ -10358,6 +10497,43 @@ function applyPresetStage2(word, prompt) {
   const pInput = document.getElementById('cfgStg2Prompt');
   if (wInput) wInput.value = word;
   if (pInput) pInput.value = prompt;
+}
+
+function applyHangmanPresetFromDropdown(word, isSilent) {
+  const prompts = {
+    'WATER CLOCK': { text: 'ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!', th: 'นาฬิกาน้ำ' },
+    'COUNTERWEIGHT': { text: 'หลักการทางฟิสิกส์ที่ใช้ถ่วงน้ำหนักเพื่อยกร่างเหยื่อขึ้นสู่เพดานคืออะไร!?', th: 'ถ่วงน้ำหนัก' },
+    'PORK BONE': { text: 'อาวุธที่แท้จริงซึ่งใช้ฟาดหัวเหยื่อในครัวก่อนนำไปต้มคืออะไร!?', th: 'กระดูกหมู' },
+    'CEILING PIPE': { text: 'จุดพาดเชือกบนเพดานสูงที่ทำหน้าที่เสมือนรอกคืออะไร!?', th: 'ท่อเพดาน' },
+    'WATER HOSE': { text: 'อุปกรณ์ส่งน้ำจากก๊อกไปยังถังน้ำภายนอกคืออะไร!?', th: 'สายยางน้ำ' },
+    'STAGING': { text: 'การจัดฉากสร้างหลักฐานเท็จและเวลาตายปลอมเรียกว่าอะไร!?', th: 'จัดฉากฆาตกรรม' }
+  };
+  const item = prompts[word] || { text: `ถอดรหัสคำศัพท์ "${word}"`, th: '' };
+  const p = item.text;
+  applyPresetStage2(word, p);
+
+  const sel = document.getElementById('adminStg2PresetSelect');
+  if (sel && sel.value !== word) sel.value = word;
+
+  const badge = document.getElementById('stg2CardDesc');
+  const badgeText = `🔤 ${word}${item.th ? ` (${item.th})` : ''}`;
+  if (badge) {
+    badge.innerText = badgeText;
+    if (!isSilent) flashPresetBadge('stg2CardDesc');
+  }
+
+  gameState.stg2Word = word;
+  gameState.stg2Target = word.split('');
+  gameState.stg2Prompt = p;
+
+  if (gameState.stage === 'stage2') {
+    gameState.stg2Board = gameState.stg2Target.map(c => c === ' ' ? ' ' : '_');
+    gameState.stg2Mistakes = 0;
+    updateHangmanHealthDisplay();
+    updateHangmanDisplay();
+    broadcast({ type: 'set_stage', stage: 'stage2', config: { targetWord: word, prompt: p } });
+  }
+  if (!isSilent) showToast(`🔤 เลือกคำศัพท์: ${badgeText}`);
 }
 
 function applyPresetStage3(chal, opp, topic, arg) {
@@ -10375,26 +10551,146 @@ function applyPresetStage3(chal, opp, topic, arg) {
   const oppInput = document.getElementById('cfgStg3OpponentCustom');
   setSelectOrCustom(oppSel, oppWrap, oppInput, opp);
 
-  // Set Topic
+  // Set Topic & Statement
   const topInput = document.getElementById('cfgStg3Topic');
   if (topInput && topic) topInput.value = topic;
-
-  // Set Argument Statement
   const argInput = document.getElementById('cfgStg3Arg');
   if (argInput && arg) argInput.value = arg;
 
-  showToast(`⚔️ โหลดพรีเซ็ต Rebuttal: ${chal} VS ${opp}`);
+  // Sync admin card selects directly
+  const admChalSel = document.getElementById('adminRebuttalChallengerSelect');
+  const admOppSel = document.getElementById('adminRebuttalOpponentSelect');
+
+  if (admChalSel && chal) {
+    let found = false;
+    for (let opt of admChalSel.options) {
+      if (opt.value === chal || opt.text.includes(chal)) {
+        admChalSel.value = opt.value;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      const opt = document.createElement('option');
+      opt.value = chal;
+      opt.innerText = chal;
+      admChalSel.appendChild(opt);
+      admChalSel.value = chal;
+    }
+  }
+
+  if (admOppSel && opp) {
+    let found = false;
+    for (let opt of admOppSel.options) {
+      if (opt.value === opp || opt.text.includes(opp)) {
+        admOppSel.value = opt.value;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      const opt = document.createElement('option');
+      opt.value = opp;
+      opt.innerText = opp;
+      admOppSel.appendChild(opt);
+      admOppSel.value = opp;
+    }
+  }
 }
 
-function applyPresetStage4(key) {
+function applyRebuttalPresetFromDropdown(val, isSilent) {
+  const presets = {
+    kitchen: {
+      chal: 'นาเอกิ มาโคโตะ',
+      opp: 'ฮิฟุมิ ยามาดะ',
+      topic: 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi',
+      arg: 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?',
+      badge: '🍳 นาเอกิ VS ฮิฟุมิ (ข้ออ้างครัว)'
+    },
+    blackout: {
+      chal: 'คิริกิริ เคียวโกะ',
+      opp: 'ฮิฟุมิ ยามาดะ',
+      topic: 'ช่วงเวลาไฟดับ & กลไกยกร่าง',
+      arg: 'ตอนไฟดับ 20:30 น. ฉันก็อยู่กับคนอื่น จะเอาเวลาที่ไหนไปดึงเชือกยกร่าง B ขึ้นไปบนเพดานได้!?',
+      badge: '💡 เคียวโกะ VS ฮิฟุมิ (ข้ออ้างไฟดับ)'
+    },
+    window: {
+      chal: 'โทกามิ เบียคุยะ',
+      opp: 'ฮิฟุมิ ยามาดะ',
+      topic: 'ความสูงหน้าต่าง 3.5 เมตร',
+      arg: 'หน้าต่างห้องซักผ้าสูงตั้ง 3.5 เมตร แถมไม่มีบันได ใครจะปีนออกไปผูกเชือกข้างนอกได้กันล่ะ!?',
+      badge: '🪟 เบียคุยะ VS ฮิฟุมิ (ข้ออ้างหน้าต่าง)'
+    },
+    suicide: {
+      chal: 'นาเอกิ มาโคโตะ',
+      opp: 'ฮิฟุมิ ยามาดะ',
+      topic: 'ข้อสันนิษฐานการฆ่าตัวตาย',
+      arg: 'เรียวตะเป็นคนถือมีดและผูกเงื่อนบ่วงเชือกเอง นี่มันการฆ่าตัวตายชัดๆ ไม่เกี่ยวกับฉันสักหน่อย!',
+      badge: '🔪 นาเอกิ VS ฮิฟุมิ (ข้ออ้างฆ่าตัวตาย)'
+    }
+  };
+  const p = presets[val] || presets.kitchen;
+  applyPresetStage3(p.chal, p.opp, p.topic, p.arg);
+
+  const sel = document.getElementById('adminStg3PresetSelect');
+  if (sel && sel.value !== val) sel.value = val;
+
+  const badge = document.getElementById('stg3CardDesc');
+  if (badge) {
+    badge.innerText = p.badge;
+    if (!isSilent) flashPresetBadge('stg3CardDesc');
+  }
+
+  gameState.stg3Challenger = p.chal;
+  gameState.stg3Opponent = p.opp;
+  gameState.stg3Topic = p.topic;
+  gameState.stg3Argument = p.arg;
+
+  if (gameState.stage === 'stage3') {
+    updateRebuttalDisplay();
+    broadcast({
+      type: 'set_stage',
+      stage: 'stage3',
+      config: {
+        challenger: p.chal,
+        opponent: p.opp,
+        topic: p.topic,
+        argument: p.arg,
+        statement: p.arg
+      }
+    });
+  }
+  if (!isSilent) showToast(`⚔️ Rebuttal: ${p.badge}`);
+}
+
+function applyPresetStage4(key, isSilent) {
+  const sel = document.getElementById('adminStg4PresetSelect');
+  if (sel && sel.value !== key) sel.value = key;
+
+  const badge = document.getElementById('stg4CardDesc');
   if (key === 'timeline') {
     LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES.timeline;
     gameState.stg4Route = 'timeline';
-    showToast("🛹 สลับ Logic Dive: Route 2 (The Blackened Timeline)");
+    if (badge) {
+      badge.innerText = "⏱️ Route 2: เวลาตาย & แผนคนร้าย";
+      if (!isSilent) flashPresetBadge('stg4CardDesc');
+    }
+    if (!isSilent) showToast("🛹 สลับ Logic Dive: Route 2 (The Blackened Timeline)");
   } else {
     LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES.pulley;
     gameState.stg4Route = 'pulley';
-    showToast("🛹 สลับ Logic Dive: Route 1 (The Ceiling Pulley Trap)");
+    if (badge) {
+      badge.innerText = "🎯 Route 1: กลไกรอกเพดาน";
+      if (!isSilent) flashPresetBadge('stg4CardDesc');
+    }
+    if (!isSilent) showToast("🛹 สลับ Logic Dive: Route 1 (The Ceiling Pulley Trap)");
+  }
+
+  if (gameState.stage === 'stage4') {
+    gameState.stg4Step = 1;
+    gameState.stg4Votes = {};
+    updateLogicDiveDisplay();
+    broadcast({ type: 'set_stage', stage: 'stage4', config: { route: gameState.stg4Route } });
   }
 }
 
@@ -10407,6 +10703,65 @@ function applyPresetStage5(topic, left, right) {
   if (rInput) rInput.value = right;
 }
 
+function applyScrumPresetFromDropdown(val, isSilent) {
+  const presets = [
+    {
+      topic: 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?',
+      left: '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก',
+      right: '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง',
+      badge: '⚖️ ฆาตกรรม vs ฆ่าตัวตาย'
+    },
+    {
+      topic: 'การยกร่างเหยื่อขึ้นเพดาน เกิดจากแรงคนดึงสดๆ หรือกลไกถ่วงน้ำหนัก!?',
+      left: '🔵 ข้อสันนิษฐานคนร้ายดึงเชือก',
+      right: '🟣 ข้อสันนิษฐานถังน้ำหนักกลไกอัตโนมัติ',
+      badge: '⚖️ แรงคน vs ถังน้ำหนักอัตโนมัติ'
+    },
+    {
+      topic: 'เวลาที่เรียวตะ (B) ถูกแขวนคอเสียชีวิต เกิดขึ้นก่อนหรือตอนที่ไฟดับ!?',
+      left: '🔵 ข้อสันนิษฐานตายก่อนไฟดับ (20:15)',
+      right: '🟣 ข้อสันนิษฐานตายตอนไฟดับ (20:30)',
+      badge: '⚖️ ตายก่อน vs หลังไฟดับ'
+    },
+    {
+      topic: 'ใครคือ Blackened ผู้บงการกลไกมรณะในครั้งนี้!?',
+      left: '🔵 ฝั่งน้ำเงิน: มีผู้วางแผนจัดฉาก',
+      right: '🟣 ฝั่งชมพูม่วง: เหตุการณ์พลิกผันเกินควบคุม',
+      badge: '⚖️ ตัดสิน Blackened'
+    }
+  ];
+  const idx = parseInt(val, 10) || 0;
+  const p = presets[idx] || presets[0];
+  applyPresetStage5(p.topic, p.left, p.right);
+
+  const sel = document.getElementById('adminStg5PresetSelect');
+  if (sel && sel.value !== String(val)) sel.value = String(val);
+
+  const badge = document.getElementById('stg5CardDesc');
+  if (badge) {
+    badge.innerText = p.badge;
+    if (!isSilent) flashPresetBadge('stg5CardDesc');
+  }
+
+  gameState.stg5Topic = p.topic;
+  gameState.stg5LeftTeam = p.left;
+  gameState.stg5RightTeam = p.right;
+
+  if (gameState.stage === 'stage5') {
+    updateScrumDisplay();
+    broadcast({
+      type: 'set_stage',
+      stage: 'stage5',
+      config: {
+        topic: p.topic,
+        leftTeam: p.left,
+        rightTeam: p.right
+      }
+    });
+  }
+  if (!isSilent) showToast(`⚖️ Scrum: ${p.badge}`);
+}
+
 function applyPresetStage6(opp, scream) {
   populateAllConfigStageSelects();
 
@@ -10417,116 +10772,83 @@ function applyPresetStage6(opp, scream) {
 
   const admSel = document.getElementById('adminArmamentTargetSelect');
   if (admSel && opp) {
+    let found = false;
     for (let opt of admSel.options) {
       if (opt.value === opp || opt.text.includes(opp)) {
         admSel.value = opt.value;
+        found = true;
         break;
       }
+    }
+    if (!found) {
+      const opt = document.createElement('option');
+      opt.value = opp;
+      opt.innerText = opp;
+      admSel.appendChild(opt);
+      admSel.value = opp;
     }
   }
   const sInput = document.getElementById('cfgStg6Scream');
   if (sInput && scream) sInput.value = scream;
+}
 
-  showToast(`🔨 โหลดพรีเซ็ต Argument: เป้าหมาย ${opp}`);
+function applyArmamentPresetFromDropdown(val, isSilent) {
+  const presets = {
+    rope: {
+      text: 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!',
+      badge: '🪢 ปฏิเสธกลไกเชือกและน้ำ'
+    },
+    bone: {
+      text: 'กระดูกหมูในหม้อสตูว์ก็แค่ของทำอาหาร! จะมาปรักปรำว่าเป็นอาวุธฟาดหัวได้ยังไงกัน!?',
+      badge: '🍖 ข้ออ้างกระดูกหมู'
+    },
+    final: {
+      text: 'พวกแกไม่มีหลักฐานมัดตัวฉันหรอก! แผนการอันสมบูรณ์แบบของฉัน... ไม่มีวันพังทลายเด็ดขาด!!',
+      badge: '💥 คำดิ้นรนสุดท้าย'
+    }
+  };
+  const p = presets[val] || presets.rope;
+  let opp = document.getElementById('adminArmamentTargetSelect')?.value || document.getElementById('cfgStg6TargetSelect')?.value || 'ฮิฟุมิ ยามาดะ';
+  applyPresetStage6(opp, p.text);
+
+  const sel = document.getElementById('adminStg6PresetSelect');
+  if (sel && sel.value !== val) sel.value = val;
+
+  const badge = document.getElementById('stg6CardDesc');
+  if (badge) {
+    badge.innerText = p.badge;
+    if (!isSilent) flashPresetBadge('stg6CardDesc');
+  }
+
+  gameState.stg6Statement = p.text;
+
+  if (gameState.stage === 'stage6') {
+    updateStage6Displays();
+    broadcast({
+      type: 'stg6_state',
+      targetPlayer: gameState.stg6TargetPlayer || opp,
+      statement: p.text
+    });
+  }
+  if (!isSilent) showToast(`💥 Argument: ${p.badge}`);
 }
 
 function applyPresetStage7(mode) {
+  const badge = document.getElementById('stg7CardDesc');
+  if (badge) {
+    badge.innerText = "📖 มังงะสรุปคดี (The Culprit B Timeline)";
+    flashPresetBadge('stg7CardDesc');
+  }
   showToast("📖 โหลดพรีเซ็ตคดีห้องซักผ้าฉบับสมบูรณ์เรียบร้อย");
   logCourt("📖 [CLOSING PRESET]: DM โหลดพรีเซ็ตมังงะสรุปคดีห้องซักผ้าฉบับสมบูรณ์ (The Culprit B Timeline)");
 }
 
-function applyHangmanPresetFromDropdown(word) {
-  const prompts = {
-    'WATER CLOCK': 'ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!',
-    'COUNTERWEIGHT': 'หลักการทางฟิสิกส์ที่ใช้ถ่วงน้ำหนักเพื่อยกร่างเหยื่อขึ้นสู่เพดานคืออะไร!?',
-    'PORK BONE': 'อาวุธที่แท้จริงซึ่งใช้ฟาดหัวเหยื่อในครัวก่อนนำไปต้มคืออะไร!?',
-    'CEILING PIPE': 'จุดพาดเชือกบนเพดานสูงที่ทำหน้าที่เสมือนรอกคืออะไร!?',
-    'WATER HOSE': 'อุปกรณ์ส่งน้ำจากก๊อกไปยังถังน้ำภายนอกคืออะไร!?',
-    'STAGING': 'การจัดฉากสร้างหลักฐานเท็จและเวลาตายปลอมเรียกว่าอะไร!?'
-  };
-  const p = prompts[word] || `ถอดรหัสคำศัพท์ "${word}"`;
-  applyPresetStage2(word, p);
-  gameState.stg2Word = word;
-  gameState.stg2Target = word.split('');
-  gameState.stg2Prompt = p;
-  showToast(`🔤 เลือกพรีเซ็ต Hangman: ${word}`);
-}
-
-function applyRebuttalPresetFromDropdown(val) {
-  const presets = {
-    kitchen: {
-      chal: 'นาเอกิ มาโคโตะ',
-      opp: 'ฮิฟุมิ ยามาดะ',
-      topic: 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi',
-      arg: 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?'
-    },
-    blackout: {
-      chal: 'คิริกิริ เคียวโกะ',
-      opp: 'ฮิฟุมิ ยามาดะ',
-      topic: 'ช่วงเวลาไฟดับ & กลไกยกร่าง',
-      arg: 'ตอนไฟดับ 20:30 น. ฉันก็อยู่กับคนอื่น จะเอาเวลาที่ไหนไปดึงเชือกยกร่าง B ขึ้นไปบนเพดานได้!?'
-    },
-    window: {
-      chal: 'โทกามิ เบียคุยะ',
-      opp: 'ฮิฟุมิ ยามาดะ',
-      topic: 'ความสูงหน้าต่าง 3.5 เมตร',
-      arg: 'หน้าต่างห้องซักผ้าสูงตั้ง 3.5 เมตร แถมไม่มีบันได ใครจะปีนออกไปผูกเชือกข้างนอกได้กันล่ะ!?'
-    },
-    suicide: {
-      chal: 'นาเอกิ มาโคโตะ',
-      opp: 'ฮิฟุมิ ยามาดะ',
-      topic: 'ข้อสันนิษฐานการฆ่าตัวตาย',
-      arg: 'เรียวตะเป็นคนถือมีดและผูกเงื่อนบ่วงเชือกเอง นี่มันการฆ่าตัวตายชัดๆ ไม่เกี่ยวกับฉันสักหน่อย!'
-    }
-  };
-  const p = presets[val] || presets.kitchen;
-  applyPresetStage3(p.chal, p.opp, p.topic, p.arg);
-}
-
-function applyScrumPresetFromDropdown(val) {
-  const presets = [
-    {
-      topic: 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?',
-      left: '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก',
-      right: '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง'
-    },
-    {
-      topic: 'การยกร่างเหยื่อขึ้นเพดาน เกิดจากแรงคนดึงสดๆ หรือกลไกถ่วงน้ำหนัก!?',
-      left: '🔵 ข้อสันนิษฐานคนร้ายดึงเชือก',
-      right: '🟣 ข้อสันนิษฐานถังน้ำหนักกลไกอัตโนมัติ'
-    },
-    {
-      topic: 'เวลาที่เรียวตะ (B) ถูกแขวนคอเสียชีวิต เกิดขึ้นก่อนหรือตอนที่ไฟดับ!?',
-      left: '🔵 ข้อสันนิษฐานตายก่อนไฟดับ (20:15)',
-      right: '🟣 ข้อสันนิษฐานตายตอนไฟดับ (20:30)'
-    },
-    {
-      topic: 'ใครคือ Blackened ผู้บงการกลไกมรณะในครั้งนี้!?',
-      left: '🔵 ฝั่งน้ำเงิน: มีผู้วางแผนจัดฉาก',
-      right: '🟣 ฝั่งชมพูม่วง: เหตุการณ์พลิกผันเกินควบคุม'
-    }
-  ];
-  const idx = parseInt(val, 10) || 0;
-  const p = presets[idx] || presets[0];
-  applyPresetStage5(p.topic, p.left, p.right);
-  showToast(`⚖️ เลือกพรีเซ็ต Scrum: ${p.topic.slice(0, 24)}...`);
-}
-
-function applyArmamentPresetFromDropdown(val) {
-  const presets = {
-    rope: 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!',
-    bone: 'กระดูกหมูในหม้อสตูว์ก็แค่ของทำอาหาร! จะมาปรักปรำว่าเป็นอาวุธฟาดหัวได้ยังไงกัน!?',
-    final: 'พวกแกไม่มีหลักฐานมัดตัวฉันหรอก! แผนการอันสมบูรณ์แบบของฉัน... ไม่มีวันพังทลายเด็ดขาด!!'
-  };
-  const scream = presets[val] || presets.rope;
-  let opp = document.getElementById('adminArmamentTargetSelect')?.value || document.getElementById('cfgStg6TargetSelect')?.value || 'ฮิฟุมิ ยามาดะ';
-  applyPresetStage6(opp, scream);
-  gameState.stg6Statement = scream;
-  showToast(`💥 โหลดคำพูดดิ้นรนของคนร้ายสำเร็จ`);
-}
-
 function getStageConfigFromInputs(stage) {
   if (stage === 'stage0') {
+    const pSel = document.getElementById('adminStg0PresetSelect');
+    if (pSel && pSel.value) {
+      applyPresetStage0(pSel.value, true);
+    }
     const topic = document.getElementById('cfgStg0Topic')?.value || 'ช่วงเวลาเกิดเหตุ & เสียงกระแทกปริศนาตอน 21:00 น.';
     const rawStmts = document.getElementById('cfgStg0Statements')?.value || '';
     const statements = rawStmts.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
@@ -10536,14 +10858,26 @@ function getStageConfigFromInputs(stage) {
     });
     return { topic, statements: statements.length > 0 ? statements : (DEFAULT_STG0_STATEMENTS || []) };
   } else if (stage === 'stage1') {
+    const pSel = document.getElementById('adminStg1PresetSelect');
+    if (pSel && pSel.value) {
+      applyPresetStage1(pSel.value, true);
+    }
     const prompt = document.getElementById('cfgStg1Prompt')?.value || '';
     const target = document.getElementById('cfgStg1TargetClue')?.value || 'EVD-02';
     return { prompt, correctClueId: target };
   } else if (stage === 'stage2') {
+    const pSel = document.getElementById('adminStg2PresetSelect');
+    if (pSel && pSel.value) {
+      applyHangmanPresetFromDropdown(pSel.value, true);
+    }
     const prompt = document.getElementById('cfgStg2Prompt')?.value || '';
     const word = document.getElementById('cfgStg2Word')?.value.trim().toUpperCase() || 'WATER CLOCK';
     return { prompt, targetWord: word };
   } else if (stage === 'stage3') {
+    const pSel = document.getElementById('adminStg3PresetSelect');
+    if (pSel && pSel.value) {
+      applyRebuttalPresetFromDropdown(pSel.value, true);
+    }
     const chalSel = document.getElementById('cfgStg3ChallengerSelect');
     const chalInput = document.getElementById('cfgStg3ChallengerCustom');
     const chal = (typeof getSelectOrCustomValue === 'function' ? getSelectOrCustomValue(chalSel, chalInput) : null) || document.getElementById('adminRebuttalChallengerSelect')?.value || 'นาเอกิ มาโคโตะ';
@@ -10556,14 +10890,23 @@ function getStageConfigFromInputs(stage) {
     const arg = document.getElementById('cfgStg3Arg')?.value || 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?';
     return { challenger: chal, opponent: opp, topic, argument: arg, statement: arg };
   } else if (stage === 'stage4') {
-    const route = (gameState.stg4Route === 'timeline' || (typeof LOGIC_DIVE_DATA !== 'undefined' && typeof LOGIC_DIVE_ROUTES !== 'undefined' && LOGIC_DIVE_DATA === LOGIC_DIVE_ROUTES.timeline)) ? 'timeline' : 'pulley';
+    const pSel = document.getElementById('adminStg4PresetSelect');
+    const route = (pSel && pSel.value === 'timeline') ? 'timeline' : ((gameState.stg4Route === 'timeline') ? 'timeline' : 'pulley');
     return { route };
   } else if (stage === 'stage5') {
+    const pSel = document.getElementById('adminStg5PresetSelect');
+    if (pSel && pSel.value !== undefined) {
+      applyScrumPresetFromDropdown(pSel.value, true);
+    }
     const topic = document.getElementById('cfgStg5Topic')?.value || 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?';
     const left = document.getElementById('cfgStg5Left')?.value || '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก';
     const right = document.getElementById('cfgStg5Right')?.value || '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง';
     return { topic, leftTeam: left, rightTeam: right };
   } else if (stage === 'stage6') {
+    const pSel = document.getElementById('adminStg6PresetSelect');
+    if (pSel && pSel.value) {
+      applyArmamentPresetFromDropdown(pSel.value, true);
+    }
     let target = document.getElementById('adminArmamentTargetSelect')?.value || '';
     if (!target) {
       const tgtSel = document.getElementById('cfgStg6TargetSelect');
@@ -10573,6 +10916,10 @@ function getStageConfigFromInputs(stage) {
     const scream = document.getElementById('cfgStg6Scream')?.value || 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!';
     return { targetPlayer: target, opponent: target, scream };
   } else if (stage === 'quick_question') {
+    const pSel = document.getElementById('adminQqPresetSelect');
+    if (pSel && pSel.value) {
+      applyPresetQuickQuestion(pSel.value);
+    }
     const q = document.getElementById('cfgQqQuestion')?.value || 'เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?';
     const cA = document.getElementById('cfgQqChoiceA')?.value || '17:30 น. (ช่วงเตรียมอาหารเย็น)';
     const cB = document.getElementById('cfgQqChoiceB')?.value || '19:00 น. (ช่วงเริ่มรับประทานอาหาร)';
@@ -11245,6 +11592,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initGlobalKeyboardShortcuts();
   updateSaboteurPanelVisibility();
   updateAvatarJoinPreview();
+  initAdminPresetsDisplay();
 });
 
 window.addEventListener('beforeunload', () => {
