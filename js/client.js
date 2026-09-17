@@ -3357,6 +3357,7 @@ function splitGraphemes(str) {
 function setStage(stage, config) {
   gameState.stage = stage;
   updateMonopadPhaseTabs(stage);
+  updateAdminActiveStageButtons(stage);
   stopTimer();
   closeCourtResultModal(true);
   closeExecutionModal(true);
@@ -8795,6 +8796,30 @@ function adminPreviewFakeEscape() {
 function adminSetGame(stage, config) {
   setStage(stage, config);
   broadcast({ type: 'set_stage', stage: stage, config: config });
+  updateAdminActiveStageButtons(stage);
+}
+
+function updateAdminActiveStageButtons(stage) {
+  if (typeof document === 'undefined') return;
+  try {
+    const btns = document.querySelectorAll('.minigame-btn-grid .dm-act-btn');
+    if (!btns || btns.length === 0) return;
+    const normalizedStage = (stage === 'daily') ? 'dailylife' : stage;
+    btns.forEach(btn => {
+      const onclickAttr = btn.getAttribute('onclick') || '';
+      if (
+        onclickAttr.includes(`adminSetGame('${normalizedStage}')`) ||
+        onclickAttr.includes(`adminSetGame("${normalizedStage}")`) ||
+        (normalizedStage === 'dailylife' && onclickAttr.includes("adminSetGame('dailylife')"))
+      ) {
+        btn.classList.add('active-running-stage');
+      } else {
+        btn.classList.remove('active-running-stage');
+      }
+    });
+  } catch (e) {
+    // Non-blocking in headless/test environments
+  }
 }
 
 function adminAdjustTimer(secs) {

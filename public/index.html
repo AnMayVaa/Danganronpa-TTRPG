@@ -49,7 +49,7 @@
       <div class="room-badge" onclick="copyRoomLink()" title="คลิกเพื่อคัดลอกรหัสห้อง">
         <span class="room-lbl">ROOM:</span>
         <span id="displayRoomCode" class="room-code-val">DESPAIR</span>
-        <button class="icon-btn" onclick="event.stopPropagation(); copyRoomLink()" title="คัดลอกลิงก์ให้เพื่อน">📋</button>
+        <button class="icon-btn" onclick="event.stopPropagation(); copyRoomLink()" title="คัดลอกลิงก์ให้เพื่อน" aria-label="คัดลอกลิงก์ห้อง">📋</button>
       </div>
 
       <nav class="view-tabs" id="mainViewTabs">
@@ -101,7 +101,7 @@
             <span class="room-pulse-dot"></span>
             <span>ห้องศาลชั้นเรียนที่เปิดอยู่ขณะนี้ (Active Sessions):</span>
           </div>
-          <button class="active-rooms-close-btn" onclick="dismissActiveRooms()" title="ปิดการแสดงผลนี้" style="background:transparent; border:none; color:#ff0055; font-weight:900; font-size:1.1rem; cursor:pointer; padding:2px 6px;">✕</button>
+          <button class="active-rooms-close-btn" onclick="dismissActiveRooms()" title="ปิดการแสดงผลนี้" aria-label="ปิดรายชื่อห้อง" style="background:transparent; border:none; color:#ff0055; font-weight:900; font-size:1.1rem; cursor:pointer; padding:2px 6px;">✕</button>
         </div>
         <div id="activeRoomsList" class="active-rooms-grid">
           <!-- Populated dynamically -->
@@ -797,7 +797,7 @@
                   <strong>🗣️ 0. Non-Stop Debate (การถกเถียงต่อเนื่อง)</strong>
                   <span>เริ่มลูปบทพูดลอยในศาล & เปิดระบบแย่งจังหวะคัดค้าน</span>
                 </button>
-                <button type="button" class="small-btn pink" onclick="openAdminMinigameModal(); selectConfigTab('stage0');" style="padding:10px 14px; font-weight:900; font-size:1rem;" title="ตั้งค่าบทดีเบต">
+                <button type="button" class="small-btn pink" onclick="openAdminMinigameModal(); selectConfigTab('stage0');" style="padding:10px 14px; font-weight:900; font-size:1rem;" title="ตั้งค่าบทดีเบต" aria-label="ตั้งค่าบทดีเบต">
                   ⚙️
                 </button>
               </div>
@@ -1116,7 +1116,7 @@
       
       <div class="mobile-input-group">
         <label>Room Code (เลข 6 หลัก):</label>
-        <input type="text" id="mobileRoomInput" placeholder="เช่น 849201" maxlength="10">
+        <input type="text" id="mobileRoomInput" placeholder="เช่น 849201" maxlength="10" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" aria-label="Room Code เลข 6 หลัก">
       </div>
       <div class="mobile-input-group">
         <label>ชื่อตัวละคร / ชื่อของคุณ:</label>
@@ -1192,25 +1192,25 @@
       </div>
 
       <!-- Player Page Sub-Navigation -->
-      <nav class="player-nav-tabs">
-        <button id="pTabGame" class="p-nav-btn active" onclick="switchPlayerTab('game')" title="ช่วงกิจกรรม">
+      <nav class="player-nav-tabs" aria-label="แท็บเมนู Monopad ผู้เล่น">
+        <button id="pTabGame" class="p-nav-btn active" onclick="switchPlayerTab('game')" title="ช่วงกิจกรรม" aria-label="ช่วงกิจกรรม">
           <span class="p-nav-icon">🎮</span>
           <span class="p-nav-text">ช่วงกิจกรรม</span>
         </button>
 
-        <button id="pTabClues" class="p-nav-btn" onclick="switchPlayerTab('clues')" title="การ์ดหลักฐานการสืบสวน">
+        <button id="pTabClues" class="p-nav-btn" onclick="switchPlayerTab('clues')" title="การ์ดหลักฐานการสืบสวน" aria-label="การ์ดหลักฐานการสืบสวน">
           <span class="p-nav-icon">🔍</span>
           <span class="p-nav-text">หลักฐาน</span>
         </button>
-        <button id="pTabMap" class="p-nav-btn" onclick="switchPlayerTab('map')" title="ผังอาคารเรียน 1F">
+        <button id="pTabMap" class="p-nav-btn" onclick="switchPlayerTab('map')" title="ผังอาคารเรียน 1F" aria-label="ผังอาคารเรียน 1F">
           <span class="p-nav-icon">📐</span>
           <span class="p-nav-text">ผังโรงเรียน</span>
         </button>
-        <button id="pTabGuide" class="p-nav-btn" onclick="switchPlayerTab('guide')" title="กฎศาลชั้นเรียน">
+        <button id="pTabGuide" class="p-nav-btn" onclick="switchPlayerTab('guide')" title="กฎศาลชั้นเรียน" aria-label="กฎศาลชั้นเรียน">
           <span class="p-nav-icon">⚖️</span>
           <span class="p-nav-text">กฎศาล</span>
         </button>
-        <button id="pTabRules" class="p-nav-btn" onclick="switchPlayerTab('rules')" title="กฎเหล็กของโรงเรียน">
+        <button id="pTabRules" class="p-nav-btn" onclick="switchPlayerTab('rules')" title="กฎเหล็กของโรงเรียน" aria-label="กฎเหล็กของโรงเรียน">
           <span class="p-nav-icon">📜</span>
           <span class="p-nav-text">กฎโรงเรียน</span>
         </button>
@@ -1662,7 +1662,7 @@
               <span id="sabHeaderTitle" class="sab-stealth-title">SYS_OVERRIDE // TACTICAL</span>
               <span id="sabCamoBtn" class="sab-camo-btn" title="คลิกเพื่อพรางตาทันที">🕶️ พรางตา</span>
             </div>
-            <button class="sab-stealth-close" onclick="toggleSaboteurDock()" title="ปิดทันที">✕</button>
+            <button class="sab-stealth-close" onclick="toggleSaboteurDock()" title="ปิดทันที" aria-label="ปิดหน้าต่างซาโบตาจ">✕</button>
           </div>
 
           <div id="saboteurOptions" class="sab-stealth-content">
@@ -2834,7 +2834,7 @@
     <div class="modal-dialog">
       <div class="modal-title-bar">
         <h3 class="modal-title">📷 สแกน QR / กรอกรหัสหลักฐาน</h3>
-        <button class="modal-close-btn" onclick="closeClueScannerModal()">✕</button>
+        <button class="modal-close-btn" onclick="closeClueScannerModal()" aria-label="ปิดหน้าต่างสแกนหลักฐาน">✕</button>
       </div>
       <div class="qr-scanner-body">
         <p style="font-size:0.88rem; color:#bbb; line-height:1.4;">
@@ -2843,7 +2843,7 @@
 
         <!-- Manual Code Entry -->
         <div class="manual-code-form">
-          <input type="text" id="manualClueInput" class="manual-code-input" placeholder="เช่น EVD-01 หรือ C01" maxlength="15">
+          <input type="text" id="manualClueInput" class="manual-code-input" placeholder="เช่น EVD-01 หรือ C01" maxlength="15" aria-label="รหัสหลักฐาน" autocapitalize="characters" autocomplete="off" spellcheck="false">
           <button class="small-btn pink" onclick="submitManualClue()" style="padding:10px 18px; font-weight:900;">ปลดล็อก</button>
         </div>
 
@@ -2878,7 +2878,7 @@
           <h3 class="modal-title">⚙️ ปรับแต่งมินิเกมก่อนเริ่ม & พรีเซ็ต</h3>
           <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">เลือกพรีเซ็ตสำเร็จรูป หรือระบุตัวละคร/หัวข้อ/ประเด็นก่อนเริ่มขึ้นจอศาล</div>
         </div>
-        <button class="modal-close-btn" onclick="closeAdminMinigameModal()">✕</button>
+        <button class="modal-close-btn" onclick="closeAdminMinigameModal()" aria-label="ปิดหน้าต่างปรับแต่งมินิเกม">✕</button>
       </div>
       <div style="display:flex; flex-direction:column; gap:12px; overflow-y:auto; padding-right:2px;">
         <!-- Game Selector Tabs -->
@@ -3168,7 +3168,7 @@
     <div class="modal-dialog" style="max-width:960px;">
       <div class="modal-title-bar">
         <h3 class="modal-title">🖨️ บัตรหลักฐาน & คำให้การ QR (Print Clue Cards)</h3>
-        <button class="modal-close-btn" onclick="closeAdminPrintCluesModal()">✕</button>
+        <button class="modal-close-btn" onclick="closeAdminPrintCluesModal()" aria-label="ปิดหน้าต่างพิมพ์การ์ดหลักฐาน">✕</button>
       </div>
       <div class="print-hide" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; background:#141420; padding:12px; border-radius:8px; border:1px solid #333348;">
         <span style="font-size:0.88rem; color:#bbb;">
@@ -3192,7 +3192,7 @@
     <div class="modal-dialog" style="max-width:680px;">
       <div class="modal-title-bar">
         <h3 class="modal-title">⌨️ PC KEYBOARD SHORTCUTS // คีย์ลัดคอมพิวเตอร์</h3>
-        <button class="modal-close-btn" onclick="closeHotkeysModal()">✕</button>
+        <button class="modal-close-btn" onclick="closeHotkeysModal()" aria-label="ปิดหน้าต่างคีย์ลัด">✕</button>
       </div>
       <div class="hotkeys-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px;">
         <!-- DM Section -->
@@ -3235,7 +3235,7 @@
         <h3 class="modal-title" style="color:var(--court-gold); margin:0; font-size:1.1rem; display:flex; align-items:center; gap:8px;">
           🎬 THE COMPLETE CLOSING ARGUMENT // บทสรุปคดีความฉบับสมบูรณ์
         </h3>
-        <button class="modal-close-btn" onclick="closeClosingClimaxModal()">✕</button>
+        <button class="modal-close-btn" onclick="closeClosingClimaxModal()" aria-label="ปิดหน้าต่างสรุปคดี Climax">✕</button>
       </div>
       <div id="climaxStoryboardContent" class="climax-storyboard-stream" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px; background:#080812;">
         <!-- All 17 panels rendered sequentially with glowing highlights -->
@@ -3262,7 +3262,7 @@
           <span id="normRoomTag" style="font-size: 0.8rem; background: rgba(56,189,248,0.2); color: #38bdf8; padding: 2px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #38bdf8;">🏷️ ข้อมูลห้อง</span>
           <h3 id="normRoomTitle" class="modal-title" style="color: #fff; margin: 0; font-size: 1.05rem; font-weight: 900;">ชื่อห้อง</h3>
         </div>
-        <button class="modal-close-btn" onclick="closeNormalRoomModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer; line-height: 1;">✕</button>
+        <button class="modal-close-btn" onclick="closeNormalRoomModal()" aria-label="ปิดหน้าต่างตรวจสอบห้อง" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer; line-height: 1;">✕</button>
       </div>
       <div style="padding: 16px; max-height: 75vh; overflow-y: auto;">
         <div style="width: 100%; height: 260px; border-radius: 6px; overflow: hidden; background: #000; margin-bottom: 12px; border: 1px solid rgba(56,189,248,0.3);">
@@ -3294,7 +3294,7 @@
           <span class="escape-siren-dot"></span>
           <span style="font-family:monospace; font-weight:900; letter-spacing:1px; color:#ff4466;">MONOPAD EMERGENCY BYPASS v1.04</span>
         </div>
-        <button class="escape-modal-close-btn" onclick="closeEmergencyEscapeModal()">✕</button>
+        <button class="escape-modal-close-btn" onclick="closeEmergencyEscapeModal()" aria-label="ปิดหน้าต่างทางออกฉุกเฉิน">✕</button>
       </div>
 
       <!-- Phase 1: Keypad & Hack Input Screen -->
@@ -3401,7 +3401,7 @@
     <div class="dangan-modal-box avatar-dressup-box">
       <div class="dangan-modal-header" style="background:#1e1e32; border-bottom:2px solid var(--mono-pink);">
         <h3 class="modal-title" style="color:var(--mono-pink); font-size:1.05rem;">🎨 แต่งตัวตัวละคร (DRESS-UP AVATAR)</h3>
-        <button class="modal-close-btn" onclick="closeAvatarModal()">✖</button>
+        <button class="modal-close-btn" onclick="closeAvatarModal()" aria-label="ปิดหน้าต่างแต่งตัวละคร">✖</button>
       </div>
 
       <div class="avatar-dressup-content">

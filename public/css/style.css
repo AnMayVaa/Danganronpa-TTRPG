@@ -68,6 +68,25 @@ button, input, select, textarea {
   touch-action: manipulation;
 }
 
+/* WCAG 2.2 AAA Visible Focus Indicator */
+*:focus-visible {
+  outline: 2px solid var(--court-gold) !important;
+  outline-offset: 2px !important;
+}
+
+/* Tactile Micro-Interactions on Interactive Controls */
+button:active:not(:disabled),
+.small-btn:active:not(:disabled),
+.dm-act-btn:active:not(:disabled),
+.p-nav-btn:active:not(:disabled),
+.preset-chip:active:not(:disabled),
+.tag-pill:active:not(:disabled),
+.clue-tag-btn:active:not(:disabled),
+.hub-card:active {
+  transform: scale(0.97);
+  transition: transform 0.08s ease;
+}
+
 body.dangan-body {
   background-color: var(--bg-core);
   background-image: 
@@ -861,7 +880,7 @@ body.dangan-body {
   border: 2px dashed #505075;
   border-radius: 8px;
   padding: 35px 20px;
-  color: #777;
+  color: #94a3b8;
   font-size: 1rem;
 }
 
@@ -1386,6 +1405,30 @@ body.dangan-body {
   filter: brightness(1.2);
 }
 
+.dm-act-btn.active-running-stage {
+  box-shadow: 0 0 16px rgba(230, 0, 103, 0.7), inset 0 0 12px rgba(230, 0, 103, 0.35) !important;
+  border-color: var(--mono-pink) !important;
+  border-width: 2px !important;
+  transform: scale(1.02);
+  position: relative;
+}
+
+.dm-act-btn.active-running-stage::after {
+  content: '● กำลังเล่น';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #00ff88;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #00ff88;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
+  letter-spacing: 0.5px;
+}
+
 .ctrl-row {
   display: flex;
   align-items: center;
@@ -1565,7 +1608,7 @@ body.dangan-body {
   max-width: 480px;
   margin: 0 auto;
   width: 100%;
-  padding-bottom: 55px;
+  padding-bottom: calc(55px + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
 }
 
@@ -2090,7 +2133,7 @@ body.dangan-body {
 .p-nav-btn {
   background: #181824;
   border: 2px solid #333348;
-  color: #bbb;
+  color: #cbd5e1;
   padding: 6px 2px;
   font-size: clamp(0.60rem, 1.8vw, 0.76rem);
   font-weight: 700;
@@ -2307,13 +2350,19 @@ body.dangan-body {
 .clue-tag-btn {
   background: #202030;
   border: 1px solid #444460;
-  color: #ccc;
-  padding: 6px 12px;
-  font-size: 0.78rem;
+  color: #cbd5e1;
+  padding: 8px 14px;
+  font-size: 0.82rem;
   font-weight: 700;
   border-radius: 20px;
   cursor: pointer;
   white-space: nowrap;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
 }
 
 .clue-tag-btn.active {
@@ -2326,7 +2375,7 @@ body.dangan-body {
 .clue-tag-btn.red.active { background: var(--mono-red); color: #fff; }
 .clue-tag-btn.blue.active { background: #2980b9; color: #fff; }
 .clue-tag-btn.yellow.active { background: var(--mono-yellow); color: #000; }
-.clue-tag-btn.grey.active { background: #555; color: #fff; }
+.clue-tag-btn.grey.active { background: #475569; border-color: #94a3b8; color: #fff; }
 
 .p-clues-grid {
   display: flex;
@@ -3410,16 +3459,19 @@ body.dangan-body {
 .tag-pill {
   border: 2px solid #333348;
   background: #141420;
-  color: #999;
+  color: #cbd5e1;
   border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 0.78rem;
+  padding: 6px 12px;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  min-height: 38px;
   transition: all 0.15s ease;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .tag-pill:hover {
@@ -3725,13 +3777,18 @@ body.dangan-body {
 
 .preset-chip {
   background: #222232;
-  border: 1px solid #444;
+  border: 1px solid #444460;
   border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 0.82rem;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #e2e8f0;
   cursor: pointer;
-  transition: all 0.15s;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
 }
 
 .preset-chip:hover {
