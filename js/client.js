@@ -968,7 +968,7 @@ const DEFAULT_STG0_STATEMENTS = [
 ];
 
 function getDynamicStg0Statements() {
-  const players = Object.values(gameState?.players || {});
+  const players = Object.values(gameState?.players || {}).filter(p => !p.isAdmin && p.role !== 'DM' && p.name !== 'DM');
   if (players.length === 0) return [...DEFAULT_STG0_STATEMENTS];
   
   const noiseQuotes = [
@@ -1039,6 +1039,8 @@ function toggleCourtAudioMute() {
 }
 
 function playSfx(type) {
+  // CRITICAL: DM Admin screen must NEVER play audio or sound effects
+  if (currentView === 'admin' || (typeof document !== 'undefined' && document.body && document.body.classList.contains('view-is-admin'))) return;
   if (isAudioMuted) return;
   // 1. Check if muted via URL query parameter (?muted=1)
   try {
@@ -1083,6 +1085,8 @@ function playSfx(type) {
 }
 
 function playSynthSfx(type) {
+  // CRITICAL: DM Admin screen must NEVER play synthesized audio
+  if (currentView === 'admin' || (typeof document !== 'undefined' && document.body && document.body.classList.contains('view-is-admin'))) return;
   if (isAudioMuted) return;
   try {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1738,6 +1742,7 @@ function handleIncomingMessage(msg, senderConn) {
 
     logCourt(`👤 [PODIUM]: ${reqName} ยืนประจำแท่น`);
   } else if (msg.type === 'claim_approved') {
+    if (currentView === 'admin' || currentView === 'court') return;
     if (msg.targetHash && currentUserHash && msg.targetHash !== currentUserHash) return;
     if (typeof joinClaimTimeout !== 'undefined' && joinClaimTimeout) {
       clearTimeout(joinClaimTimeout);
@@ -1781,6 +1786,7 @@ function handleIncomingMessage(msg, senderConn) {
     updateMonopadPhaseTabs(gameState.stage);
     playSfx('correct');
   } else if (msg.type === 'claim_rejected') {
+    if (currentView === 'admin' || currentView === 'court') return;
     if (msg.targetHash && currentUserHash && msg.targetHash !== currentUserHash) return;
     if (typeof joinClaimTimeout !== 'undefined' && joinClaimTimeout) {
       clearTimeout(joinClaimTimeout);
@@ -1885,6 +1891,7 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'clue_discovered') {
     handleClueDiscovered(msg.clueId, msg.clueName, msg.playerName, msg.userHash);
   } else if (msg.type === 'admin_grant_clue') {
+    if (currentView === 'admin' || currentView === 'court') return;
     const isTarget = (currentUserHash && msg.targetKey === currentUserHash) ||
                      (myPlayer && (myPlayer.id === msg.targetKey || myPlayer.name === msg.targetKey || (myPlayer.userHash && myPlayer.userHash === msg.targetKey)));
     if (isTarget) {
@@ -1899,6 +1906,7 @@ function handleIncomingMessage(msg, senderConn) {
       });
     }
   } else if (msg.type === 'court_clue_revealed') {
+    if (currentView === 'admin') return;
     unlockClueDirect(msg.clueId);
     playSfx('clue_get');
     showToast(`📢 [ศาลชั้นเรียน]: หลักฐาน [${msg.clueName || msg.clueId}] ถูกเปิดเผยต่อทุกคน! บันทึกลงใน Monopad แล้ว`);
@@ -2037,11 +2045,13 @@ function handleIncomingMessage(msg, senderConn) {
       renderMobileTask('closing');
     }
   } else if (msg.type === 'closing_bonus_time') {
+    if (currentView === 'admin') return;
     if (gameState && gameState.stage === 'closing') {
       showBonusTimePopup(msg.seconds);
     }
   } else if (msg.type === 'closing_card_unlocked') {
     if (msg.hands) gameState.closingPlayerHands = msg.hands;
+    if (currentView === 'admin') return;
     const isMe = (typeof myPlayer !== 'undefined' && myPlayer && (myPlayer.id === msg.playerId || myPlayer.userHash === msg.playerId || myPlayer.name === msg.playerId)) ||
                  (typeof currentUserHash !== 'undefined' && currentUserHash === msg.playerId);
     if (isMe) {
@@ -2051,8 +2061,10 @@ function handleIncomingMessage(msg, senderConn) {
     renderMobileTask('closing');
   } else if (msg.type === 'closing_hands_sync') {
     gameState.closingPlayerHands = msg.hands;
+    if (currentView === 'admin') return;
     renderMobileTask('closing');
   } else if (msg.type === 'start_closing_climax') {
+    if (currentView === 'admin') return;
     startClosingClimaxPlayback();
   } else if (msg.type === 'submit_vote') {
     handleVoteSubmitted(msg.candidate, msg.voterId);
@@ -2112,10 +2124,13 @@ function handleIncomingMessage(msg, senderConn) {
       renderMobileTask('stage3');
     }
   } else if (msg.type === 'execution_cutscene') {
+    if (currentView === 'admin') return;
     triggerMonokumaExecutionCutscene(msg.isVictory, true);
   } else if (msg.type === 'close_execution_cutscene') {
+    if (currentView === 'admin') return;
     closeExecutionModal(true);
   } else if (msg.type === 'verdict') {
+    if (currentView === 'admin') return;
     showVerdict(msg.isVictory);
   } else if (msg.type === 'trigger_fx') {
     if (isHost || currentView === 'court') {
@@ -2317,6 +2332,7 @@ function switchView(v) {
     updatePlayerDisplays();
     renderStage(gameState.stage || 'lobby');
   } else if (v === 'admin') {
+    myPlayer = null; // DM must NEVER hold a player slot or adopt player identity
     const el = document.getElementById('viewAdmin');
     if (el) el.classList.remove('hidden');
     const tab = document.getElementById('tabAdmin');
@@ -2592,6 +2608,7 @@ function initPlayerSession(hash) {
 let currentClueFilter = 'ALL';
 
 function switchPlayerTab(tab) {
+  if (currentView === 'admin' || currentView === 'court') return;
   const curStage = (gameState && gameState.stage) || 'idle';
   const isDailyLife = (curStage === 'dailylife' || curStage === 'daily' || curStage === 'lobby');
   const isInvestigation = (curStage === 'investigation');
@@ -2971,6 +2988,7 @@ function getClueDisplayDesc(c) {
 }
 
 function grantInvestigationClues(silent = false) {
+  if (currentView === 'admin' || currentView === 'court') return;
   let slot = 0;
   if (myPlayer && myPlayer.pcSlot) {
     slot = parseInt(myPlayer.pcSlot, 10);
@@ -4260,6 +4278,11 @@ function handleStg0Buzz(msg) {
   gameState.stg0.isPaused = true;
   gameState.stg0.selectedClueId = null;
 
+  if (currentView === 'admin') {
+    updateAdminStg0Display();
+    return;
+  }
+
   try {
     playSfx('counter');
   } catch(e) {
@@ -4282,6 +4305,12 @@ function handleStg0Buzz(msg) {
 function handleStg0Shoot(msg) {
   if (!gameState.stg0) gameState.stg0 = {};
   gameState.stg0.selectedClueId = msg.clueId;
+
+  if (currentView === 'admin') {
+    updateAdminStg0Display();
+    return;
+  }
+
   playSfx('shoot');
   logCourt(`🎯 [TRUTH BULLET]: [${msg.player}] ยิงกระสุนความจริง [${msg.clueId || '-'}] ${msg.clueName || ''} ขึ้นจอศาล!`);
   updateStg0CourtDisplay();
@@ -4294,6 +4323,11 @@ function handleStg0Shoot(msg) {
 function handleStg0Verdict(msg) {
   if (!gameState.stg0) gameState.stg0 = {};
   gameState.stg0.approved = msg.approved;
+
+  if (currentView === 'admin') {
+    updateAdminStg0Display();
+    return;
+  }
 
   if (msg.approved) {
     playSfx('break');
@@ -4345,6 +4379,12 @@ function handleStg0Resume() {
   gameState.stg0.buzzedBy = null;
   gameState.stg0.selectedClueId = null;
   gameState.stg0.isPaused = false;
+
+  if (currentView === 'admin') {
+    updateAdminStg0Display();
+    return;
+  }
+
   const overlay = document.getElementById('stg0ObjectionOverlay');
   if (overlay) overlay.classList.add('hidden');
   const breakLayer = document.getElementById('stg0BreakLayer');
@@ -4665,7 +4705,7 @@ function adminEvaluateStage1() {
 
 // 2. Hangman's Gambit (Round-robin Turn-based & Word Spacing Fix)
 function getActivePlayersList() {
-  return Object.values(gameState.players || {});
+  return Object.values(gameState.players || {}).filter(p => !p.isAdmin && p.role !== 'DM' && p.name !== 'DM');
 }
 
 function getActiveHangmanPlayer() {
@@ -6649,6 +6689,7 @@ let climaxAutoPlayTimer = null;
 let currentClimaxViewPage = 1;
 
 function startClosingClimaxPlayback() {
+  if (currentView === 'admin' || currentView === 'simulation') return;
   const modal = document.getElementById('closingClimaxModal');
   const container = document.getElementById('climaxStoryboardContent');
   const navRow = document.getElementById('climaxPageNavRow');
@@ -7044,6 +7085,7 @@ function submitStg1FromDropdown() {
 }
 
 function renderMobileTask(stage) {
+  if (currentView === 'admin' || currentView === 'court') return;
   if (stage !== 'stage7') {
     myPlayerVoted = false;
   }
@@ -7960,6 +8002,7 @@ function sendLogicDiveChoice(ch) {
 let selectedClosingCardId = null;
 
 function getMyClosingCards() {
+  if (currentView === 'admin' || currentView === 'court') return [];
   if (!gameState.closingPlayerHands) return [];
 
   // 1. Try myPlayer object
@@ -8520,13 +8563,6 @@ function handleSabotage(type, pName, senderHash) {
 
   // CRITICAL: Sabotage Isolation for DM/Admin View
   if (currentView === 'admin') {
-    if (type === 'drain_time') {
-      gameState.timeRemaining = Math.max(5, (gameState.timeRemaining || 0) - 10);
-      updateTimerDisplay();
-    } else if (type === 'corrupt_data') {
-      gameState.influence = Math.max(0, (gameState.influence || 100) - 10);
-      updateInfluenceDisplay();
-    }
     logCourt(`[DM LOG] ⚡ ตรวจพบการแทรกแซงจากคนร้าย: ${type} (${pName || 'Saboteur'})`);
     return;
   }
@@ -9082,13 +9118,15 @@ function adminTriggerVerdict(isVictory) {
 }
 
 function triggerFx(fx) {
+  if (currentView === 'admin') {
+    // Admin DM clicks: route to host/court screen (classroom speakers); NEVER play locally on DM device
+    broadcast({ type: 'trigger_fx', fx: fx });
+    showToast(`🔊 ส่งเสียง [${fx}] ขึ้นจอใหญ่ศาลเรียบร้อย`);
+    return;
+  }
   if (isHost || currentView === 'court') {
     playSfx(fx);
     broadcast({ type: 'trigger_fx', fx: fx });
-  } else if (currentView === 'admin') {
-    // Admin DM clicks: route to host screen (classroom speakers); NEVER play locally on DM device
-    broadcast({ type: 'trigger_fx', fx: fx });
-    showToast(`🔊 ส่งเสียง [${fx}] ขึ้นจอใหญ่ศาลเรียบร้อย`);
   } else if (hostPeer && hostPeer.open) {
     broadcast({ type: 'trigger_fx', fx: fx });
     showToast(`🔊 ส่งเสียง [${fx}] ขึ้นจอศาลเรียบร้อย`);

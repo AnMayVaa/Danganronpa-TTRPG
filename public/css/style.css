@@ -9473,3 +9473,33 @@ body.phase-investigation #playerSectionGuide,
   80% { transform: translate(4px, -4px) scale(1); }
   100% { transform: translate(0, 0) scale(1); }
 }
+
+/* ========================================================== */
+/* TOTAL ISOLATION & IMMUNITY SHIELD FOR DM ADMIN CONSOLE      */
+/* ========================================================== */
+body.view-is-admin #screenGlitch,
+body.view-is-admin #screenSmoke,
+body.view-is-admin #audioJammerBanner,
+body.view-is-admin #fakeRumorBanner,
+body.view-is-admin #pcInvestigationModal,
+body.view-is-admin #monokumaExecutionModal,
+body.view-is-admin #courtResultModal,
+body.view-is-admin #stg0ObjectionOverlay,
+body.view-is-admin #stg0BreakLayer,
+body.view-is-admin #closingClimaxModal,
+body.view-is-admin .bonus-time-toast,
+body.view-is-admin .sabotage-camouflaged-badge {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.view-is-admin.sabotage-screen-shake,
+body.view-is-admin .sabotage-screen-shake,
+body.view-is-admin.court-objection-shake,
+body.view-is-admin .court-objection-shake {
+  animation: none !important;
+  transform: none !important;
+}
+
