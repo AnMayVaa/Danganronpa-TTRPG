@@ -10265,21 +10265,58 @@ body.view-is-admin .court-objection-shake {
   transform: none !important;
 }
 
-/* DM GEAR BUTTON CUSTOMIZATION & INTERACTION */
+/* DM GEAR BUTTON CUSTOMIZATION & INTERACTION (NO BUTTON ROTATION) */
 .dm-gear-btn {
   cursor: pointer !important;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease !important;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, transform 0.15s ease !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   user-select: none !important;
+  transform: none !important;
 }
 .dm-gear-btn:hover {
-  transform: rotate(45deg) scale(1.12) !important;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.45) !important;
+  transform: none !important;
+  filter: brightness(1.3) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.45) !important;
 }
 .dm-gear-btn:active {
-  transform: rotate(90deg) scale(0.96) !important;
+  transform: scale(0.95) !important;
+  filter: brightness(0.9) !important;
 }
+
+/* ADMIN CONFIG MODAL RESPONSIVENESS IN SIMULATION LAB (9:16 IFRAME & MOBILE) */
+body.in-iframe #adminMinigameModal,
+html.in-iframe #adminMinigameModal {
+  padding: 4px !important;
+}
+
+body.in-iframe .admin-config-modal-dialog,
+html.in-iframe .admin-config-modal-dialog {
+  width: 98% !important;
+  max-width: 100% !important;
+  max-height: 96vh !important;
+  padding: 10px 8px !important;
+  gap: 8px !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 600px) {
+  #adminMinigameModal {
+    padding: 6px !important;
+  }
+  .admin-config-modal-dialog {
+    width: 98% !important;
+    max-width: 100% !important;
+    max-height: 96vh !important;
+    padding: 12px 10px !important;
+    gap: 10px !important;
+  }
+  .stage-tab-btn {
+    padding: 5px 8px !important;
+    font-size: 0.75rem !important;
+  }
+}
+
 
 

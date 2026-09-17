@@ -2978,8 +2978,8 @@ function getPlayerNameByPcSlot(slotNum) {
 function getClueDisplayName(c) {
   if (!c) return '';
   const clueId = typeof c === 'string' ? c : c.id;
-  const clueObj = typeof c === 'object' ? c : ALL_CLUES_DATA.find(x => x.id === clueId);
-  if (!clueObj) return clueId;
+  const clueObj = typeof c === 'object' ? c : (typeof ALL_CLUES_DATA !== 'undefined' ? ALL_CLUES_DATA.find(x => x.id === clueId) : null);
+  if (!clueObj) return clueId || '';
 
   if (clueId === 'EVD-20') {
     return `คำให้การของ ${getPlayerNameByPcSlot(1)}`;
@@ -2997,38 +2997,44 @@ function getClueDisplayName(c) {
     return `คำให้การของ ${getPlayerNameByPcSlot(5)}`;
   }
 
-  let raw = clueObj.rawName || clueObj.name || '';
-  raw = raw.replace(/PC\s*1/g, getPlayerNameByPcSlot(1));
-  raw = raw.replace(/PC\s*2/g, getPlayerNameByPcSlot(2));
-  raw = raw.replace(/PC\s*3/g, getPlayerNameByPcSlot(3));
-  raw = raw.replace(/PC\s*4/g, getPlayerNameByPcSlot(4));
-  raw = raw.replace(/PC\s*5/g, getPlayerNameByPcSlot(5));
-  return raw.replace(/\[.*?\]/g, '').trim();
+  let raw = clueObj.rawName !== undefined ? clueObj.rawName : '';
+  if (!raw && typeof clueObj._rawName === 'string') raw = clueObj._rawName;
+  raw = String(raw).replace(/PC\s*1/g, getPlayerNameByPcSlot(1))
+                   .replace(/PC\s*2/g, getPlayerNameByPcSlot(2))
+                   .replace(/PC\s*3/g, getPlayerNameByPcSlot(3))
+                   .replace(/PC\s*4/g, getPlayerNameByPcSlot(4))
+                   .replace(/PC\s*5/g, getPlayerNameByPcSlot(5));
+  return raw.replace(/\[.*?\]/g, '').trim() || clueId;
 }
 
 function getClueDisplayLoc(c) {
   if (!c) return '';
-  const clueObj = typeof c === 'object' ? c : ALL_CLUES_DATA.find(x => x.id === (typeof c === 'string' ? c : c.id));
-  if (!clueObj || (!clueObj.loc && !clueObj.rawLoc)) return '';
-  let loc = clueObj.rawLoc || clueObj.loc;
-  loc = loc.replace(/PC\s*1/g, getPlayerNameByPcSlot(1));
-  loc = loc.replace(/PC\s*2/g, getPlayerNameByPcSlot(2));
-  loc = loc.replace(/PC\s*3/g, getPlayerNameByPcSlot(3));
-  loc = loc.replace(/PC\s*4/g, getPlayerNameByPcSlot(4));
-  loc = loc.replace(/PC\s*5/g, getPlayerNameByPcSlot(5));
+  const clueId = typeof c === 'string' ? c : c.id;
+  const clueObj = typeof c === 'object' ? c : (typeof ALL_CLUES_DATA !== 'undefined' ? ALL_CLUES_DATA.find(x => x.id === clueId) : null);
+  if (!clueObj) return '';
+  let loc = clueObj.rawLoc !== undefined ? clueObj.rawLoc : '';
+  if (!loc) return '';
+  loc = String(loc).replace(/PC\s*1/g, getPlayerNameByPcSlot(1))
+                   .replace(/PC\s*2/g, getPlayerNameByPcSlot(2))
+                   .replace(/PC\s*3/g, getPlayerNameByPcSlot(3))
+                   .replace(/PC\s*4/g, getPlayerNameByPcSlot(4))
+                   .replace(/PC\s*5/g, getPlayerNameByPcSlot(5));
   return loc;
 }
 
 function getClueDisplayDesc(c) {
   if (!c) return '';
-  const clueObj = typeof c === 'object' ? c : ALL_CLUES_DATA.find(x => x.id === (typeof c === 'string' ? c : c.id));
-  if (!clueObj || (!clueObj.desc && !clueObj.rawDesc)) return '';
-  let desc = clueObj.rawDesc || clueObj.desc;
+  const clueId = typeof c === 'string' ? c : c.id;
+  const clueObj = typeof c === 'object' ? c : (typeof ALL_CLUES_DATA !== 'undefined' ? ALL_CLUES_DATA.find(x => x.id === clueId) : null);
+  if (!clueObj) return '';
+  let desc = clueObj.rawDesc !== undefined ? clueObj.rawDesc : '';
+  if (!desc) return '';
   const p1 = getPlayerNameByPcSlot(1);
   const p2 = getPlayerNameByPcSlot(2);
   const p3 = getPlayerNameByPcSlot(3);
   const p4 = getPlayerNameByPcSlot(4);
   const p5 = getPlayerNameByPcSlot(5);
+  desc = String(desc);
   if (p1) desc = desc.replace(/PC\s*1/g, p1);
   if (p2) desc = desc.replace(/PC\s*2/g, p2);
   if (p3) desc = desc.replace(/PC\s*3/g, p3);
@@ -10345,11 +10351,23 @@ function populateStg1CluesDropdown() {
 function openAdminMinigameModal(defaultTab) {
   const modal = document.getElementById('adminMinigameModal');
   if (!modal) return;
-  populateStg1CluesDropdown();
-  populateAllConfigStageSelects();
+  try {
+    populateStg1CluesDropdown();
+  } catch (e) {
+    console.warn('[openAdminMinigameModal] Error in populateStg1CluesDropdown:', e);
+  }
+  try {
+    populateAllConfigStageSelects();
+  } catch (e) {
+    console.warn('[openAdminMinigameModal] Error in populateAllConfigStageSelects:', e);
+  }
   modal.classList.remove('hidden');
   modal.style.display = 'flex';
-  selectConfigTab(defaultTab || 'stage0');
+  try {
+    selectConfigTab(defaultTab || 'stage0');
+  } catch (e) {
+    console.warn('[openAdminMinigameModal] Error in selectConfigTab:', e);
+  }
   try {
     const dialog = modal.querySelector('.admin-config-modal-dialog');
     if (dialog) dialog.scrollTop = 0;
