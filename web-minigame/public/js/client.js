@@ -1985,6 +1985,7 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'closing_page_change') {
     if (gameState && gameState.stage === 'closing') {
       gameState.closingCurrentPage = msg.page;
+      playerPreviewClosingPage = msg.page;
       updateClosingDisplay();
       renderMobileTask('closing');
     }
@@ -6322,7 +6323,7 @@ function unlockNextClosingCard() {
     playSfx('correct');
     unlockedCards.forEach(item => {
       const slotText = item.slot ? `ช่องที่ ${item.slot}` : 'ตัวเลือกเสริม';
-      logCourt(`🔓 [CARD UNLOCKED]: การ์ด (${slotText} หน้าที่ ${item.card.page}: "${item.card.title}") ถูกปลดล็อกแล้ว!`);
+      logCourt(`🔓 [CARD UNLOCKED]: การ์ด (${slotText}: "${item.card.title}") ถูกปลดล็อกแล้ว!`);
       broadcast({
         type: 'closing_card_unlocked',
         playerId: item.playerKey,
@@ -6349,9 +6350,12 @@ function showBonusTimePopup(seconds) {
   }, 1800);
 }
 
+let playerPreviewClosingPage = 1;
+
 function adminSetClosingPage(page) {
   if (page < 1 || page > 5) return;
   gameState.closingCurrentPage = page;
+  playerPreviewClosingPage = page;
   updateClosingDisplay();
   broadcast({ type: 'closing_page_change', page: page });
   renderMobileTask('closing');
@@ -6359,7 +6363,7 @@ function adminSetClosingPage(page) {
 
 function playerSetClosingPage(page) {
   if (page < 1 || page > 5) return;
-  gameState.closingCurrentPage = page;
+  playerPreviewClosingPage = page;
   renderMobileTask('closing');
 }
 
@@ -6568,47 +6572,164 @@ function updateClosingDisplay() {
   }
 }
 
+let climaxAutoPlayTimer = null;
+let currentClimaxViewPage = 1;
+
 function startClosingClimaxPlayback() {
   const modal = document.getElementById('closingClimaxModal');
   const container = document.getElementById('climaxStoryboardContent');
+  const navRow = document.getElementById('climaxPageNavRow');
   if (!modal || !container) return;
 
   modal.classList.remove('hidden');
+  currentClimaxViewPage = 1;
   try {
     playSfx('point_break');
   } catch(e) {}
 
-  container.innerHTML = CLOSING_PAGES_DATA.map(p => {
+  // Render top page navigation chips inside cutscene
+  if (navRow) {
+    const pageTitles = [
+      '1. ครัว & หม้อสตูว์',
+      '2. เชือก & ท่อเพดาน',
+      '3. นาฬิกาน้ำ 80L',
+      '4. บูท & เครื่องอบผ้า',
+      '5. เสี้ยววินาทีสังหาร',
+      '👉 ชี้ตัวคนร้าย 💀'
+    ];
+    navRow.innerHTML = pageTitles.map((title, idx) => {
+      const pNum = idx + 1;
+      return `
+        <button type="button" class="preset-chip" id="climaxNavChip_${pNum}" onclick="jumpClimaxPage(${pNum})" style="white-space:nowrap; padding:6px 12px; font-size:0.8rem; font-weight:800; cursor:pointer;">
+          ${title}
+        </button>
+      `;
+    }).join('');
+  }
+
+  // Render all 5 pages + Finale card
+  const pagesHtml = CLOSING_PAGES_DATA.map(p => {
     const panelsHtml = p.panels.map(pan => {
       const isSlot = pan.type === 'slot';
       return `
-        <div class="climax-panel-item" style="background:#151525; border:2px solid ${isSlot ? 'var(--court-gold)' : '#3d3d5c'}; border-radius:8px; padding:12px; display:flex; align-items:center; gap:14px;">
-          <div style="font-size:2.2rem; min-width:50px; text-align:center;">${pan.art}</div>
+        <div class="climax-panel-item" style="background:#151525; border:2px solid ${isSlot ? 'var(--court-gold)' : '#3d3d5c'}; border-radius:8px; padding:12px; display:flex; align-items:center; gap:14px; box-shadow:${isSlot ? '0 0 12px rgba(255,215,0,0.25)' : 'none'};">
+          <div style="font-size:2.2rem; min-width:52px; text-align:center;">${pan.art}</div>
           <div style="flex:1;">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
               <span style="background:#000; color:var(--court-gold); padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:900;">ช่องที่ ${pan.num}</span>
-              ${isSlot ? '<span style="color:#00ff88; font-size:0.75rem; font-weight:800;">[การ์ดที่ถูกเติมสำเร็จ]</span>' : ''}
+              ${isSlot ? '<span style="background:#143522; color:#00ff88; border:1px solid #00ff88; font-size:0.7rem; font-weight:800; padding:1px 6px; border-radius:3px;">✓ การ์ดที่ถูกเติมสำเร็จ</span>' : '<span style="color:#94a3b8; font-size:0.75rem;">[ภาพเหตุการณ์]</span>'}
             </div>
-            <div style="color:#fff; font-size:0.9rem; line-height:1.4;">${pan.desc}</div>
+            <div style="color:#fff; font-size:0.92rem; line-height:1.45; font-weight:600;">${pan.desc}</div>
           </div>
         </div>
       `;
     }).join('');
 
     return `
-      <div class="climax-page-card" style="background:#0a0a14; border:1px solid #282845; border-radius:10px; padding:14px; margin-bottom:12px;">
-        <h4 style="color:var(--mono-pink); margin:0 0 10px 0; font-size:1rem; font-weight:900; border-bottom:1px solid #222238; padding-bottom:6px;">
-          📖 หน้าที่ ${p.page}: ${p.title}
+      <div id="climaxPageCard_${p.page}" class="climax-page-card" style="background:#0a0a14; border:1.5px solid #282845; border-radius:10px; padding:16px; margin-bottom:14px;">
+        <h4 style="color:var(--mono-pink); margin:0 0 12px 0; font-size:1.05rem; font-weight:900; border-bottom:1px solid #222238; padding-bottom:8px; display:flex; align-items:center; gap:8px;">
+          <span>📖 หน้าที่ ${p.page}:</span>
+          <span style="color:#fff;">${p.title}</span>
         </h4>
-        <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; flex-direction:column; gap:10px;">
           ${panelsHtml}
         </div>
       </div>
     `;
   }).join('');
+
+  // Dramatic Finale Card
+  const finaleHtml = `
+    <div id="climaxPageCard_6" class="climax-page-card" style="background:linear-gradient(135deg, #1c0512, #29081a); border:2px solid var(--mono-pink); box-shadow:0 0 35px rgba(255,0,85,0.4); border-radius:12px; padding:24px 20px; text-align:center; margin-top:8px;">
+      <div style="font-size:3.5rem; margin-bottom:8px; animation:pulse 1.2s infinite alternate;">👉</div>
+      <div class="slanted-banner pink" style="display:inline-block; font-size:0.9rem; padding:4px 18px; margin-bottom:10px;">THIS IS THE TRUTH OF THE CASE!</div>
+      <h3 style="color:#ff2a8d; font-size:clamp(1.25rem, 3.2vw, 1.85rem); font-weight:900; margin:6px 0 12px 0; text-shadow:0 0 20px rgba(255,42,141,0.8);">
+        "และคนร้ายตัวจริงที่จัดฉากฆาตกรรมทั้งหมดนี้... ก็คือแกนั่นแหละ!"
+      </h3>
+      <p style="color:#f1f5f9; font-size:0.95rem; line-height:1.65; max-width:720px; margin:0 auto 20px auto;">
+        หลักฐานทุกชิ้นเชื่อมโยงกันอย่างสมบูรณ์แบบ แผนการแยบยลของคนร้ายถูกเปิดโปงจนหมดสิ้นแล้ว! ถึงเวลาที่นักเรียนทุกคนจะต้องร่วมกันลงคะแนนตัดสินชะตากรรมของศาลชั้นเรียนนี้!
+      </p>
+      <button class="small-btn yellow" onclick="closeClosingClimaxModal(); adminSetGame('stage7');" style="font-size:1.05rem; font-weight:900; padding:12px 30px; box-shadow:0 0 25px var(--court-gold); cursor:pointer;">
+        🗳️ เข้าสู่ช่วงเวลาโหวตตัดสิน (Voting Time) ▶
+      </button>
+    </div>
+  `;
+
+  container.innerHTML = pagesHtml + finaleHtml;
+  jumpClimaxPage(1);
+}
+
+function jumpClimaxPage(pNum) {
+  currentClimaxViewPage = Math.max(1, Math.min(6, pNum));
+  const target = document.getElementById('climaxPageCard_' + currentClimaxViewPage);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  // Highlight active chip
+  for (let i = 1; i <= 6; i++) {
+    const chip = document.getElementById('climaxNavChip_' + i);
+    if (chip) {
+      if (i === currentClimaxViewPage) {
+        chip.style.borderColor = 'var(--court-gold)';
+        chip.style.background = 'rgba(255, 215, 0, 0.2)';
+        chip.style.color = '#fff';
+      } else {
+        chip.style.borderColor = '#444';
+        chip.style.background = '#222232';
+        chip.style.color = '#e2e8f0';
+      }
+    }
+  }
+}
+
+function scrollClimaxPage(delta) {
+  jumpClimaxPage(currentClimaxViewPage + delta);
+}
+
+function toggleClimaxAutoPlay() {
+  const btn = document.getElementById('btnClimaxAutoPlay');
+  if (climaxAutoPlayTimer) {
+    clearInterval(climaxAutoPlayTimer);
+    climaxAutoPlayTimer = null;
+    if (btn) {
+      btn.innerText = '▶ เล่นอัตโนมัติ (Auto-Play)';
+      btn.classList.remove('green');
+      btn.classList.add('pink');
+    }
+    showToast('⏹️ หยุดเล่นอัตโนมัติ');
+  } else {
+    let curP = 1;
+    jumpClimaxPage(curP);
+    if (btn) {
+      btn.innerText = '⏹️ หยุดเล่น (Pause)';
+      btn.classList.remove('pink');
+      btn.classList.add('green');
+    }
+    showToast('▶ เริ่มเล่นคัตซีนอัตโนมัติ...');
+    climaxAutoPlayTimer = setInterval(() => {
+      curP++;
+      if (curP > 6) {
+        clearInterval(climaxAutoPlayTimer);
+        climaxAutoPlayTimer = null;
+        if (btn) {
+          btn.innerText = '▶ เล่นอีกครั้ง (Replay)';
+          btn.classList.remove('green');
+          btn.classList.add('pink');
+        }
+        playSfx('point_break');
+      } else {
+        jumpClimaxPage(curP);
+        playSfx('chime');
+      }
+    }, 4500);
+  }
 }
 
 function closeClosingClimaxModal() {
+  if (climaxAutoPlayTimer) {
+    clearInterval(climaxAutoPlayTimer);
+    climaxAutoPlayTimer = null;
+  }
   const modal = document.getElementById('closingClimaxModal');
   if (modal) modal.classList.add('hidden');
 }
@@ -7489,14 +7610,16 @@ function renderMobileTask(stage) {
       </div>
     `;
   } else if (stage === 'closing') {
-    const curPage = gameState.closingCurrentPage || 1;
+    const courtPage = gameState.closingCurrentPage || 1;
+    const curPage = playerPreviewClosingPage || courtPage;
+    const isViewingCourtPage = (curPage === courtPage);
     const pageData = CLOSING_PAGES_DATA.find(p => p.page === curPage) || CLOSING_PAGES_DATA[0];
     const pageSlots = pageData.panels.filter(p => p.type === 'slot');
 
     // Retrieve my hand with robust multi-key resolution
     const myCards = getMyClosingCards();
 
-    // Slots HTML on active page
+    // Slots HTML on viewed page
     const slotsHtml = pageSlots.map(s => {
       const isSolved = gameState.closingSlots && gameState.closingSlots[s.slotId];
       if (isSolved) {
@@ -7509,7 +7632,7 @@ function renderMobileTask(stage) {
             <span style="font-size:1.4rem; margin-left:8px; color:#00ff88;">✓</span>
           </div>
         `;
-      } else {
+      } else if (isViewingCourtPage) {
         const hasSelected = Boolean(selectedClosingCardId);
         const slotBorder = hasSelected ? '2px dashed #ff2b6d' : '2px dashed #475569';
         const slotBg = hasSelected ? '#2a112d' : '#141426';
@@ -7527,6 +7650,20 @@ function renderMobileTask(stage) {
             </div>
           </button>
         `;
+      } else {
+        return `
+          <div style="background:#141426; border:2px dashed #334155; border-radius:8px; padding:12px; margin-bottom:8px; opacity:0.85;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span style="color:#94a3b8; font-weight:900; font-size:0.9rem;">🔒 ช่องที่ ${s.pageSlot} (ดูตัวอย่าง):</span>
+                <div style="color:#cbd5e1; font-size:0.82rem; margin-top:3px; line-height:1.3;">${s.title}</div>
+              </div>
+              <button type="button" onclick="showToast('👀 คุณกำลังดูตัวอย่างหน้าที่ ${curPage} — ต้องวางตามหน้าที่จอหลักเปิดอยู่ (หน้า ${courtPage}) เท่านั้น'); playSfx('wrong');" style="font-size:0.75rem; color:#f87171; font-weight:800; padding:4px 8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); border-radius:4px; cursor:pointer;">
+                👀 ดูเฉยๆ (ห้ามวาง)
+              </button>
+            </div>
+          </div>
+        `;
       }
     }).join('');
 
@@ -7541,7 +7678,7 @@ function renderMobileTask(stage) {
               <div style="font-size:0.85rem; color:#86efac; font-weight:700; text-decoration:line-through;">
                 <span style="background:#166534; color:#dcfce7; font-size:0.7rem; font-weight:900; padding:1px 6px; border-radius:3px; margin-right:6px;">✓ วางในมังงะแล้ว</span>${c.title}
               </div>
-              <div style="font-size:0.75rem; color:#4ade80; margin-top:2px;">(บรรจุลงในหน้า ${c.page} ช่องที่ ${c.slot} เรียบร้อยแล้ว)</div>
+              <div style="font-size:0.75rem; color:#4ade80; margin-top:2px;">(บรรจุลงในหน้ามังงะเรียบร้อยแล้ว)</div>
             </div>
           </div>
         `;
@@ -7552,7 +7689,7 @@ function renderMobileTask(stage) {
           <div class="p-closing-card locked" onclick="showToast('🔒 การ์ดใบนี้ถูกล็อกอยู่! ต้องรอให้เพื่อนช่วยกันไขช่องก่อนหน้าให้สำเร็จก่อน'); playSfx('wrong');" style="background:#0f111a; border:2px dashed #2e2e42; border-radius:8px; padding:10px; margin-bottom:8px; opacity:0.6; cursor:not-allowed; display:flex; align-items:center; gap:10px;">
             <span style="font-size:1.5rem; filter:grayscale(1);">🔒</span>
             <div style="flex:1;">
-              <span style="font-size:0.85rem; color:#94a3b8; font-weight:700;">🔒 การ์ดปริศนา ${c.page ? `(สำหรับหน้าที่ ${c.page})` : ''} [ยังไม่ถูกปลดล็อก]</span>
+              <span style="font-size:0.85rem; color:#94a3b8; font-weight:700;">🔒 การ์ดปริศนา [ยังไม่ถูกปลดล็อก]</span>
               <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">(แลกเปลี่ยนและปรึกษากับเพื่อนในศาลที่มีการ์ดปลดล็อก)</div>
             </div>
           </div>
@@ -7561,12 +7698,11 @@ function renderMobileTask(stage) {
         const borderStyle = isSelected ? '3px solid #ff2b6d' : '2px solid #444466';
         const bgStyle = isSelected ? 'rgba(255, 43, 109, 0.28)' : '#19192e';
         const shadowStyle = isSelected ? 'box-shadow: 0 0 16px rgba(255, 43, 109, 0.85); transform: scale(1.02);' : '';
-        const pageBadge = c.page ? `<span style="background:var(--mono-pink); color:#fff; font-size:0.7rem; font-weight:900; padding:1px 6px; border-radius:3px; margin-right:6px;">หน้า ${c.page}</span>` : '';
         return `
           <div class="p-closing-card ${isSelected ? 'selected' : ''}" onclick="selectClosingCard('${c.id}')" style="background:${bgStyle}; border:${borderStyle}; border-radius:8px; padding:12px; margin-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:10px; ${shadowStyle} transition:all 0.2s ease;">
             <span style="font-size:1.6rem;">${c.icon || '📄'}</span>
             <div style="flex:1;">
-              <div style="font-size:0.88rem; color:#fff; font-weight:${isSelected ? '900' : 'bold'}; line-height:1.35;">${pageBadge}${c.title}</div>
+              <div style="font-size:0.88rem; color:#fff; font-weight:${isSelected ? '900' : 'bold'}; line-height:1.35;">${c.title}</div>
               <div style="font-size:0.78rem; color:${isSelected ? 'var(--court-gold)' : 'var(--mono-cyan)'}; margin-top:4px; font-weight:${isSelected ? '800' : 'normal'};">
                 ${isSelected ? '👉 [เลือกการ์ดใบนี้แล้ว!] แตะปุ่มช่องว่างด้านบนเพื่อวาง' : '👆 แตะเพื่อเลือกการ์ดใบนี้'}
               </div>
@@ -7576,12 +7712,23 @@ function renderMobileTask(stage) {
       }
     }).join('');
 
+    const returnCourtBtn = !isViewingCourtPage ? `
+      <div style="margin-bottom:8px;">
+        <button type="button" onclick="playerSetClosingPage(${courtPage})" class="small-btn yellow" style="font-size:0.78rem; padding:6px 12px; width:100%; font-weight:800; cursor:pointer;">
+          📌 กลับไปยังหน้าที่จอหลักเปิดอยู่ (หน้า ${courtPage}) เพื่อวางการ์ด
+        </button>
+      </div>
+    ` : '';
+
     area.innerHTML = `
       <div style="margin-bottom:12px; border-bottom:1px solid #333348; padding-bottom:10px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <span style="color:var(--mono-pink); font-weight:900; font-size:0.95rem;">📖 มังงะสรุปคดี (หน้า ${curPage} / 5)</span>
-          <span style="color:#aaa; font-size:0.75rem;">(ศาล: หน้า ${gameState.closingCurrentPage || 1})</span>
+          <span style="color:${isViewingCourtPage ? '#00ff88' : '#f59e0b'}; font-size:0.75rem; font-weight:700;">
+            ${isViewingCourtPage ? `🟢 ซิงค์กับจอหลัก (หน้า ${courtPage})` : `👀 ดูตัวอย่าง (จอหลัก: หน้า ${courtPage})`}
+          </span>
         </div>
+        ${returnCourtBtn}
         <!-- Mobile Page Navigator -->
         <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; margin-bottom:8px; background:#121324; padding:5px 8px; border-radius:6px; border:1px solid #2a2a44;">
           <button type="button" onclick="playerSetClosingPage(${Math.max(1, curPage - 1)})" style="background:#222238; border:1px solid #444; color:#fff; border-radius:4px; padding:4px 8px; font-size:0.75rem; cursor:pointer;" ${curPage === 1 ? 'disabled style="opacity:0.4; pointer-events:none;"' : ''}>◀ ก่อนหน้า</button>
@@ -7591,10 +7738,11 @@ function renderMobileTask(stage) {
               const pData = CLOSING_PAGES_DATA.find(x => x.page === p);
               const pSlots = pData ? pData.panels.filter(x => x.type === 'slot').map(x => x.slotId) : [];
               const pSolved = pSlots.length > 0 && pSlots.every(sId => gameState.closingSlots && gameState.closingSlots[sId]);
+              const isCourtCurrent = (p === courtPage);
               const bg = isActive ? 'var(--mono-pink)' : (pSolved ? '#00ff88' : '#22223a');
               const color = (isActive || pSolved) ? '#000' : '#aaa';
-              const border = isActive ? '1px solid #fff' : '1px solid #444';
-              return `<span onclick="playerSetClosingPage(${p})" style="cursor:pointer; width:22px; height:22px; line-height:22px; text-align:center; font-size:0.75rem; font-weight:900; border-radius:4px; display:inline-block; background:${bg}; color:${color}; border:${border};">${p}</span>`;
+              const border = isCourtCurrent ? '2px solid var(--court-gold)' : (isActive ? '1px solid #fff' : '1px solid #444');
+              return `<span onclick="playerSetClosingPage(${p})" style="cursor:pointer; width:24px; height:24px; line-height:22px; text-align:center; font-size:0.75rem; font-weight:900; border-radius:4px; display:inline-block; background:${bg}; color:${color}; border:${border};" title="${isCourtCurrent ? 'หน้าที่จอหลักกำลังเปิด' : ''}">${p}</span>`;
             }).join('')}
           </div>
           <button type="button" onclick="playerSetClosingPage(${Math.min(5, curPage + 1)})" style="background:#222238; border:1px solid #444; color:#fff; border-radius:4px; padding:4px 8px; font-size:0.75rem; cursor:pointer;" ${curPage === 5 ? 'disabled style="opacity:0.4; pointer-events:none;"' : ''}>ถัดไป ▶</button>
@@ -7788,11 +7936,6 @@ function selectClosingCard(cardId) {
   } else {
     selectedClosingCardId = cardId;
     playSfx('menu_select');
-    // Auto-navigate mobile view to card's page so the matching slot is right in front of the player
-    if (cardObj && cardObj.page && cardObj.page >= 1 && cardObj.page <= 5 && cardObj.page !== gameState.closingCurrentPage) {
-      gameState.closingCurrentPage = cardObj.page;
-      showToast(`📄 เปิดไปยังหน้าที่ ${cardObj.page} เพื่อให้วางการ์ดลงช่องว่างได้ทันที!`);
-    }
   }
   renderMobileTask('closing');
 }
@@ -7803,6 +7946,21 @@ function submitSelectedClosingCard(slotId) {
     playSfx('wrong');
     return;
   }
+
+  const courtPage = gameState.closingCurrentPage || 1;
+  let targetPage = 1;
+  for (const p of CLOSING_PAGES_DATA) {
+    if (p.panels.some(pan => pan.type === 'slot' && pan.slotId === Number(slotId))) {
+      targetPage = p.page;
+      break;
+    }
+  }
+  if (targetPage !== courtPage) {
+    showToast(`⚠️ ช่องนี้อยู่ในหน้าที่ ${targetPage} แต่จอหลักกำลังเปิดหน้าที่ ${courtPage}! ต้องวางตามหน้าที่จอหลักเปิดอยู่เท่านั้น`);
+    playSfx('wrong');
+    return;
+  }
+
   let cardToSubmit = selectedClosingCardId;
   // Smart fallback: If no card currently selected, check if player holds an unlocked card for this slot
   if (!cardToSubmit) {
