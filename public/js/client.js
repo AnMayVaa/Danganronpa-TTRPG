@@ -4270,48 +4270,57 @@ function updateStg0CourtDisplay() {
     if (txtEl) txtEl.innerText = `"${s.text}"`;
   }
 
-  // Live Objection Cut-In Overlay on Court Screen
+  // Live Objection Cut-In Overlay on Court Screen (2-Stage System)
   const overlay = document.getElementById('stg0ObjectionOverlay');
   if (overlay) {
     if (gameState.stg0.buzzedBy) {
       overlay.classList.remove('hidden');
-      const quoteEl = document.getElementById('stg0ObjectionQuote');
+
+      const burstEl = document.getElementById('stg0MangaCutinBurst');
+      const explEl = document.getElementById('stg0ExplanationPhase');
+      const isBurst = (gameState.stg0.objectionPhase !== 'explanation');
+
+      if (burstEl) {
+        if (isBurst) {
+          burstEl.classList.remove('hidden');
+          const BURST_POSITIONS = ['burst-pos-1', 'burst-pos-2', 'burst-pos-3', 'burst-pos-4'];
+          BURST_POSITIONS.forEach(c => burstEl.classList.remove(c));
+          burstEl.classList.add(gameState.stg0.burstPos || 'burst-pos-1');
+
+          const bAv = document.getElementById('stg0BurstAvatar');
+          const bQuote = document.getElementById('stg0BurstQuote');
+          const bName = document.getElementById('stg0BurstPlayerName');
+          if (bAv) {
+            bAv.innerHTML = gameState.stg0.buzzedAvatarConfig
+              ? renderAvatarSvg(gameState.stg0.buzzedAvatarConfig, 165, true)
+              : `<div style="font-size:5rem; line-height:165px; text-align:center;">${gameState.stg0.buzzedAvatar || '👤'}</div>`;
+          }
+          if (bQuote) bQuote.innerText = gameState.stg0.objectionQuote || '⚡ นั่นมันผิดแล้วล่ะ! (NO, THAT\'S WRONG!)';
+          if (bName) bName.innerText = gameState.stg0.buzzedBy;
+        } else {
+          burstEl.classList.add('hidden');
+        }
+      }
+
+      if (explEl) {
+        if (!isBurst) {
+          explEl.classList.remove('hidden');
+        } else {
+          explEl.classList.add('hidden');
+        }
+      }
+
+      // Always populate explanation phase elements so they are ready
       const giantAv = document.getElementById('stg0GiantAvatar');
       const objName = document.getElementById('stg0ObjectorName');
       const objTitle = document.getElementById('stg0ObjectorTitle');
       const bCode = document.getElementById('stg0BulletCode');
       const bName = document.getElementById('stg0BulletName');
-      const charWrap = document.getElementById('stg0CutinCharacterWrap');
 
-      // Apply dynamic entrance angle class and trigger CSS animation
-      const CUTIN_ANGLES = ['cutin-angle-br', 'cutin-angle-bl', 'cutin-angle-sr', 'cutin-angle-sl', 'cutin-angle-bc'];
-      const angle = gameState.stg0.cutinAngle || 'cutin-angle-br';
-      const mangaPanel = document.getElementById('stg0CounterMangaPanel');
-
-      CUTIN_ANGLES.forEach(cls => {
-        overlay.classList.remove(cls);
-        if (mangaPanel) mangaPanel.classList.remove(cls);
-        if (charWrap) charWrap.classList.remove(cls);
-      });
-      void overlay.offsetWidth;
-      overlay.classList.add(angle);
-      if (mangaPanel) {
-        void mangaPanel.offsetWidth;
-        mangaPanel.classList.add(angle);
-      }
-      if (charWrap) {
-        void charWrap.offsetWidth;
-        charWrap.classList.add(angle);
-      }
-
-      if (quoteEl) quoteEl.innerText = gameState.stg0.objectionQuote || '⚡ นั่นมันผิดแล้วล่ะ! (NO, THAT\'S WRONG!)';
       if (giantAv) {
-        if (gameState.stg0.buzzedAvatarConfig) {
-          // Render 290px avatar with isShouting = true for open mouth, teeth/tongue & fierce brows
-          giantAv.innerHTML = renderAvatarSvg(gameState.stg0.buzzedAvatarConfig, 290, true);
-        } else {
-          giantAv.innerHTML = `<div style="font-size:7rem; line-height:290px; text-align:center;">${gameState.stg0.buzzedAvatar || '👤'}</div>`;
-        }
+        giantAv.innerHTML = gameState.stg0.buzzedAvatarConfig
+          ? renderAvatarSvg(gameState.stg0.buzzedAvatarConfig, 160, false)
+          : `<div style="font-size:5.5rem; line-height:160px; text-align:center;">${gameState.stg0.buzzedAvatar || '👤'}</div>`;
       }
       if (objName) objName.innerText = gameState.stg0.buzzedBy;
       if (objTitle) objTitle.innerText = gameState.stg0.buzzedRole || 'OBJECTION // ดาบแห่งความจริงฟันตัดข้อโต้แย้ง!';
@@ -4325,15 +4334,15 @@ function updateStg0CourtDisplay() {
         if (bName) bName.innerText = 'กำลังเลือกกระสุนใน Monopad...';
       }
     } else {
+      if (typeof stg0BurstTimer !== 'undefined' && stg0BurstTimer) {
+        clearTimeout(stg0BurstTimer);
+        stg0BurstTimer = null;
+      }
       overlay.classList.add('hidden');
-      const CUTIN_ANGLES = ['cutin-angle-br', 'cutin-angle-bl', 'cutin-angle-sr', 'cutin-angle-sl', 'cutin-angle-bc'];
-      CUTIN_ANGLES.forEach(cls => {
-        overlay.classList.remove(cls);
-        const mangaPanel = document.getElementById('stg0CounterMangaPanel');
-        if (mangaPanel) mangaPanel.classList.remove(cls);
-        const charWrap = document.getElementById('stg0CutinCharacterWrap');
-        if (charWrap) charWrap.classList.remove(cls);
-      });
+      const burstEl = document.getElementById('stg0MangaCutinBurst');
+      const explEl = document.getElementById('stg0ExplanationPhase');
+      if (burstEl) burstEl.classList.add('hidden');
+      if (explEl) explEl.classList.add('hidden');
     }
   }
 }
@@ -4443,16 +4452,32 @@ function stg0ShootClue() {
   renderMobileTask('stage0');
 }
 
+let stg0BurstTimer = null;
+
 function handleStg0Buzz(msg) {
   if (!gameState.stg0) gameState.stg0 = {};
   gameState.stg0.buzzedBy = msg.player;
   gameState.stg0.buzzedAvatar = msg.avatar || '👤';
   gameState.stg0.buzzedAvatarConfig = msg.avatarConfig || null;
   gameState.stg0.buzzedRole = msg.role || 'สุดยอดนักเรียนมัธยมปลาย';
-  gameState.stg0.objectionQuote = msg.quote || '⚡ นั่นผิดแล้ว!';
-  gameState.stg0.cutinAngle = msg.cutinAngle || 'cutin-angle-br';
+  gameState.stg0.objectionQuote = msg.quote || '⚡ นั่นมันผิดแล้วล่ะ!';
   gameState.stg0.isPaused = true;
   gameState.stg0.selectedClueId = null;
+  gameState.stg0.objectionPhase = 'burst';
+
+  const BURST_POSITIONS = ['burst-pos-1', 'burst-pos-2', 'burst-pos-3', 'burst-pos-4'];
+  gameState.stg0.burstPos = BURST_POSITIONS[Math.floor(Math.random() * BURST_POSITIONS.length)];
+
+  if (stg0BurstTimer) {
+    clearTimeout(stg0BurstTimer);
+    stg0BurstTimer = null;
+  }
+  stg0BurstTimer = setTimeout(() => {
+    if (gameState.stg0 && gameState.stg0.buzzedBy) {
+      gameState.stg0.objectionPhase = 'explanation';
+      updateStg0CourtDisplay();
+    }
+  }, 1800);
 
   if (currentView === 'admin') {
     updateAdminStg0Display();
@@ -4497,6 +4522,10 @@ function handleStg0Shoot(msg) {
 }
 
 function handleStg0Verdict(msg) {
+  if (stg0BurstTimer) {
+    clearTimeout(stg0BurstTimer);
+    stg0BurstTimer = null;
+  }
   if (!gameState.stg0) gameState.stg0 = {};
   gameState.stg0.approved = msg.approved;
 
@@ -4533,11 +4562,13 @@ function handleStg0Verdict(msg) {
       if (overlay) overlay.classList.add('hidden');
       const breakLayer = document.getElementById('stg0BreakLayer');
       if (breakLayer) breakLayer.classList.add('hidden');
+      if (gameState.stg0) gameState.stg0.objectionPhase = null;
     } else {
       if (gameState.stage === 'stage0') {
         gameState.stg0.buzzedBy = null;
         gameState.stg0.selectedClueId = null;
         gameState.stg0.isPaused = false;
+        gameState.stg0.objectionPhase = null;
         const overlay = document.getElementById('stg0ObjectionOverlay');
         if (overlay) overlay.classList.add('hidden');
         updateStg0CourtDisplay();
@@ -4551,10 +4582,15 @@ function handleStg0Verdict(msg) {
 }
 
 function handleStg0Resume() {
+  if (stg0BurstTimer) {
+    clearTimeout(stg0BurstTimer);
+    stg0BurstTimer = null;
+  }
   if (!gameState.stg0) gameState.stg0 = {};
   gameState.stg0.buzzedBy = null;
   gameState.stg0.selectedClueId = null;
   gameState.stg0.isPaused = false;
+  gameState.stg0.objectionPhase = null;
 
   if (currentView === 'admin') {
     updateAdminStg0Display();
@@ -10121,11 +10157,18 @@ function updatePlayerDisplays() {
       for (let i = 1; i <= 5; i++) {
         heartsHtml += `<span class="heart ${i <= cred ? 'active' : 'lost'}">♥</span>`;
       }
-      const avHtml = p.avatarConfig ? renderAvatarSvg(p.avatarConfig, 44) : `<div style="font-size:1.8rem; line-height:44px; text-align:center;">${p.avatar || '👤'}</div>`;
+      const avHtml = p.avatarConfig
+        ? renderAvatarSvg(p.avatarConfig, 105)
+        : `<div class="podium-emoji">${p.avatar || '👤'}</div>`;
       seat.innerHTML = `
-        <div class="podium-avatar" style="overflow:hidden; border-radius:50%; width:44px; height:44px; margin:0 auto 4px auto; background:#18182a; border:2px solid var(--mono-yellow); box-shadow:0 0 10px rgba(255,204,0,0.3);">${avHtml}</div>
-        <div class="podium-plate">${escapeHtml(p.name)}</div>
-        <div class="podium-cred-hearts" title="ความน่าเชื่อถือ: ${cred}/5">${heartsHtml}</div>
+        <div class="podium-character-layer">
+          <div class="podium-avatar-sprite">${avHtml}</div>
+        </div>
+        <div class="podium-desk">
+          <div class="podium-mic">🎙️</div>
+          <div class="podium-plate" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div>
+          <div class="podium-cred-hearts" title="ความน่าเชื่อถือ: ${cred}/5">${heartsHtml}</div>
+        </div>
       `;
       targetList.appendChild(seat);
     });

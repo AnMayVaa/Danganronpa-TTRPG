@@ -415,58 +415,70 @@
         <div id="stg0ObjectionOverlay" class="stg0-objection-overlay hidden">
           <!-- Directional Speedlines Stream -->
           <div class="stg0-directional-speedlines"></div>
-
-          <!-- Screen Edge Speedlines (Directional: only active edge displays!) -->
           <div class="stg0-edge-speedlines top"></div>
           <div class="stg0-edge-speedlines bottom"></div>
           <div class="stg0-edge-speedlines left"></div>
           <div class="stg0-edge-speedlines right"></div>
 
-          <!-- Slanted Manga Panel Frame -->
-          <div id="stg0CounterMangaPanel" class="stg0-counter-manga-panel">
-            <div class="stg0-panel-border top"></div>
-            <div class="stg0-panel-border bottom"></div>
-            <div class="stg0-panel-speedlines-bg"></div>
-
-            <!-- Slanted Panel Content Container -->
-            <div class="stg0-panel-content">
-              <!-- Left: Giant Brush Calligraphy COUNTER & Splatter & Quote -->
-              <div class="stg0-brush-counter-col">
-                <div class="stg0-counter-kanji">それは違うよ！</div>
-                <div class="stg0-brush-counter">
-                  <span class="stg0-counter-text">COUNTER</span>
-                  <div class="stg0-brush-splatter"></div>
+          <!-- STAGE 1: COMPACT MANGA LIGHTNING CUT-IN BURST (1.8s Fast Impact) -->
+          <div id="stg0MangaCutinBurst" class="stg0-manga-cutin-burst">
+            <div class="stg0-lightning-comic-frame" id="stg0LightningFrame">
+              <div class="stg0-comic-speedlines-bg"></div>
+              <div class="stg0-comic-burst-content">
+                <div class="stg0-burst-avatar-wrap">
+                  <div class="stg0-burst-avatar" id="stg0BurstAvatar">👤</div>
+                  <div class="stg0-burst-gleam">⚡</div>
                 </div>
-                <div class="stg0-quote-banner" id="stg0ObjectionQuote">
-                  ⚡ นั่นมันผิดแล้วล่ะ! (NO, THAT'S WRONG!)
+                <div class="stg0-burst-text-col">
+                  <div class="stg0-burst-kanji">それは違うよ！</div>
+                  <div class="stg0-burst-quote" id="stg0BurstQuote">⚡ นั่นมันผิดแล้วล่ะ! (NO, THAT'S WRONG!)</div>
+                  <div class="stg0-burst-player-tag">
+                    <span class="tag-icon">🗡️</span>
+                    <span id="stg0BurstPlayerName">ผู้เล่น</span>
+                    <span class="tag-objection">OBJECTION!</span>
+                  </div>
                 </div>
-              </div>
-
-              <!-- Right: Dynamic Multi-Angle Character Cut-In with Breathing Idle -->
-              <div id="stg0CutinCharacterWrap" class="stg0-cutin-character-wrap">
-                <div class="stg0-avatar-halo-wrap">
-                  <div class="stg0-giant-avatar" id="stg0GiantAvatar">👤</div>
-                  <div class="stg0-eye-gleam">✨</div>
-                </div>
-                <div class="stg0-cutin-nametag">
-                  <div class="stg0-objector-name" id="stg0ObjectorName">ผู้เล่น</div>
-                  <div class="stg0-objector-title" id="stg0ObjectorTitle">OBJECTION // ดาบแห่งความจริงฟันตัดข้อโต้แย้ง!</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Truth Bullet Showcase Strip at bottom of panel -->
-            <div class="stg0-bullet-showcase" id="stg0BulletShowcase">
-              <div class="stg0-bullet-tag">🎯 TRUTH BULLET // กระสุนความจริงที่เล็งยิง:</div>
-              <div class="stg0-bullet-display" id="stg0BulletDisplay">
-                <span class="bullet-code" id="stg0BulletCode">EVD-??</span>:
-                <span class="bullet-name" id="stg0BulletName">กำลังเลือกกระสุนใน Monopad...</span>
               </div>
             </div>
           </div>
 
-          <div class="stg0-verbal-hint">
-            📢 กำลังให้เหตุผลหักล้างต่อที่ประชุมศาล... (รอ DM ตัดสินผล)
+          <!-- STAGE 2: EXPLANATION PHASE (Cross-Examination & Truth Bullet Reveal) -->
+          <div id="stg0ExplanationPhase" class="stg0-explanation-phase hidden">
+            <div class="stg0-explanation-card">
+              <!-- Character Stand on Court -->
+              <div class="stg0-expl-character-col">
+                <div class="stg0-expl-podium-wrap">
+                  <div class="stg0-expl-avatar" id="stg0GiantAvatar">👤</div>
+                  <div class="stg0-expl-podium-desk">
+                    <div class="stg0-expl-name" id="stg0ObjectorName">ผู้เล่น</div>
+                    <div class="stg0-expl-role" id="stg0ObjectorTitle">OBJECTION // ดาบแห่งความจริงฟันตัดข้อโต้แย้ง!</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Evidence Bullet & Explanation Dialogue -->
+              <div class="stg0-expl-content-col">
+                <!-- Selected Truth Bullet Showcase -->
+                <div class="stg0-bullet-showcase" id="stg0BulletShowcase">
+                  <div class="stg0-bullet-tag">🎯 TRUTH BULLET // กระสุนความจริงที่ใช้หักล้าง:</div>
+                  <div class="stg0-bullet-display" id="stg0BulletDisplay">
+                    <span class="bullet-code" id="stg0BulletCode">EVD-??</span>:
+                    <span class="bullet-name" id="stg0BulletName">กำลังเลือกกระสุนใน Monopad...</span>
+                  </div>
+                </div>
+
+                <!-- Explanation / Argument Box -->
+                <div class="stg0-explanation-dialogue-box">
+                  <div class="stg0-dialogue-header">📢 กำลังให้เหตุผลหักล้างต่อที่ประชุมศาล:</div>
+                  <div class="stg0-dialogue-body" id="stg0DialogueBody">
+                    "โปรดฟังคำอธิบายจากผู้เล่นและตรวจสอบความสอดคล้องกับพยานหลักฐาน..."
+                  </div>
+                  <div class="stg0-dialogue-dm-status">
+                    ⚡ รอคำตัดสินของ DM บนแผงควบคุม (BREAK! เพื่ออนุมัติ หรือ REJECT เพื่อปฏิเสธ)
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
