@@ -842,6 +842,8 @@
                   <option value="timeline" selected>⏱️ 1: ไทม์ไลน์เสียงกระแทก (21:00 น.)</option>
                   <option value="weapon">🍖 2: การหมดสติ & อาวุธในครัว</option>
                   <option value="pulley">🪢 3: รอยเชือก & กลไกยกร่าง</option>
+                  <option value="vending">🥫 4: ข้ออ้างตู้กดน้ำ & เสี้ยววินาทีเดินผ่าน</option>
+                  <option value="twist">🔪 5: รอยตัดเชือก & มีดพกในกระเป๋า</option>
                 </select>
               </div>
 
@@ -887,6 +889,8 @@
                   <option value="barrel">🛢️ ซากถังน้ำ (EVD-19)</option>
                   <option value="meter">💧 มาตรวัดน้ำ (EVD-10)</option>
                   <option value="dryer">⏱️ เครื่องอบผ้า (EVD-05)</option>
+                  <option value="knife">🔪 มีดพับในกระเป๋า (EVD-12)</option>
+                  <option value="harness">🪢 เงื่อนโบว์ไลน์ & เชือกตัด (EVD-09)</option>
                 </select>
               </div>
               <div style="display:flex; gap:6px;">
@@ -910,6 +914,9 @@
                 <select id="adminStg2PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage2', this)" style="max-width:210px; flex:1;">
                   <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
                   <option value="WATER CLOCK" selected>WATER CLOCK (นาฬิกาน้ำ)</option>
+                  <option value="BOWLINE KNOT">BOWLINE KNOT (เงื่อนโบว์ไลน์)</option>
+                  <option value="SHOCK LOAD">SHOCK LOAD (แรงกระชาก)</option>
+                  <option value="DRYER">DRYER (เครื่องอบผ้า)</option>
                   <option value="COUNTERWEIGHT">COUNTERWEIGHT (ถ่วงน้ำหนัก)</option>
                   <option value="PORK BONE">PORK BONE (กระดูกหมู)</option>
                   <option value="CEILING PIPE">CEILING PIPE (ท่อเพดาน)</option>
@@ -930,10 +937,11 @@
                 <span class="dm-select-label">⚡ พรีเซ็ตการดวล:</span>
                 <select id="adminStg3PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage3', this)" style="max-width:210px; flex:1;">
                   <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
-                  <option value="kitchen" selected>🍳 ข้ออ้างครัว (นาเอกิ VS ฮิฟุมิ)</option>
-                  <option value="blackout">💡 ข้ออ้างไฟดับ (เคียวโกะ VS ฮิฟุมิ)</option>
-                  <option value="window">🪟 ข้ออ้างหน้าต่าง (เบียคุยะ VS ฮิฟุมิ)</option>
-                  <option value="suicide">🔪 ข้ออ้างฆ่าตัวตาย (นาเอกิ VS ฮิฟุมิ)</option>
+                  <option value="kitchen" selected>🍳 1: ข้ออ้างครัว (เคียวโกะ VS ฮิฟุมิ)</option>
+                  <option value="alibi">⏱️ 2: ข้ออ้าง Alibi ตอนสามทุ่ม (นาเอกิ VS ฮิฟุมิ)</option>
+                  <option value="window">🪟 3: ข้ออ้างหน้าต่างสูง 3.5 ม. (เบียคุยะ VS ฮิฟุมิ)</option>
+                  <option value="victim_twist">⚖️ 4: ปัดความรับผิดชอบเรื่อง Blackened (เบียคุยะ VS คนร้าย)</option>
+                  <option value="suicide">🔪 5: ข้ออ้างฆ่าตัวตาย (นาเอกิ VS ฮิฟุมิ)</option>
                 </select>
                 <button type="button" class="small-btn red dm-gear-btn" onclick="openAdminMinigameModal('stage3')" title="ปรับแต่งคำพูดดวลดาบละเอียด (Custom Edit)" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
               </div>
@@ -970,8 +978,9 @@
               <div class="dm-select-row" style="margin-top:2px;">
                 <span class="dm-select-label">⚡ พรีเซ็ตเส้นทาง:</span>
                 <select id="adminStg4PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage4', this)" style="max-width:210px; flex:1;">
-                  <option value="pulley" selected>🎯 Route 1: กลไกรอกเพดาน</option>
-                  <option value="timeline">⏱️ Route 2: เวลาตาย & แผนคนร้าย</option>
+                  <option value="pulley" selected>🎯 Route 1: กลไกรอกเพดาน & ถังน้ำหนัก</option>
+                  <option value="twist">🔪 Route 2: จุดพลิกผันมีดพก & เงื่อนโบว์ไลน์</option>
+                  <option value="timeline">⏱️ Route 3: เวลาตาย & แผนคนร้าย</option>
                 </select>
                 <button type="button" class="small-btn purple dm-gear-btn" onclick="openAdminMinigameModal('stage4')" title="ดูเส้นทางและตัวเลือกละเอียด (Custom Edit)" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
               </div>
@@ -999,6 +1008,7 @@
                   <option value="death_cause">💀 เหตุตายจริง (ขาดอากาศ)</option>
                   <option value="auto_pulley">🛢️ กลไกชักรอก (ถังน้ำหนัก)</option>
                   <option value="dryer_sound">👟 เสียง 21:00 น. (รองเท้าบูท)</option>
+                  <option value="blackened_truth">⚖️ Blackened ตัวจริง (เหยื่อ B)</option>
                 </select>
               </div>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
@@ -1015,16 +1025,16 @@
             <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
               <button class="dm-act-btn green" onclick="adminSetGame('stage5')" style="width:100%;">
                 <strong>5. Debate Scrum</strong>
-                <span id="stg5CardDesc" class="dm-card-active-preset">⚖️ ฆาตกรรม vs ฆ่าตัวตาย</span>
+                <span id="stg5CardDesc" class="dm-card-active-preset">⚖️ โหวต Trapper A vs โหวตเหยื่อ B</span>
               </button>
               <div class="dm-select-row" style="margin-top:2px;">
                 <span class="dm-select-label">⚡ พรีเซ็ต 2 ขั้ว:</span>
                 <select id="adminStg5PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage5', this)" style="max-width:210px; flex:1;">
                   <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
-                  <option value="0" selected>⚖️ ฆาตกรรม vs ฆ่าตัวตาย</option>
-                  <option value="1">⚖️ แรงคน vs ถังน้ำหนักอัตโนมัติ</option>
-                  <option value="2">⚖️ ตายก่อน vs หลังไฟดับ</option>
-                  <option value="3">⚖️ ตัดสิน Blackened</option>
+                  <option value="0" selected>⚖️ 1: โหวต Trapper A vs โหวตเหยื่อ B</option>
+                  <option value="1">⚖️ 2: แรงคน vs ถังน้ำหนักอัตโนมัติ</option>
+                  <option value="2">⏱️ 3: เวลาตาย: 17:30 น. vs 21:00 น.</option>
+                  <option value="3">🍖 4: สาเหตุ: กะโหลกแตก vs กระดูกคอหัก</option>
                 </select>
                 <button type="button" class="small-btn green dm-gear-btn" onclick="openAdminMinigameModal('stage5')" title="ปรับแต่งหัวข้อและทีมละเอียด (Custom Edit)" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
               </div>
@@ -1048,6 +1058,7 @@
                   <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
                   <option value="rope" selected>🪢 ปฏิเสธกลไกเชือกและน้ำ</option>
                   <option value="bone">🍖 ข้ออ้างกระดูกหมู</option>
+                  <option value="blackened_panic">😱 กรีดร้องแย่งตำแหน่งคนร้าย</option>
                   <option value="final">💥 คำดิ้นรนสุดท้าย</option>
                 </select>
                 <button type="button" class="small-btn orange dm-gear-btn" onclick="openAdminMinigameModal('stage6')" title="ปรับแต่งคำพูดคนร้ายละเอียด (Custom Edit)" style="padding:4px 8px; font-weight:900; margin-left:4px;">⚙️</button>
@@ -3049,6 +3060,8 @@
               <button type="button" class="preset-chip" onclick="applyPresetStage0('timeline')">⏱️ ข้อโต้แย้ง 1: ไทม์ไลน์เสียงกระแทก (21:00 น.)</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage0('weapon')">🍖 ข้อโต้แย้ง 2: การหมดสติ & อาวุธทุบหัวในครัว</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage0('pulley')">🪢 ข้อโต้แย้ง 3: รอยเชือก & กลไกยกร่างอัตโนมัติ</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage0('vending')">🥫 ข้อโต้แย้ง 4: ตู้กดน้ำ & เสี้ยววินาทีเดินผ่าน (17:45 น.)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage0('twist')">🔪 ข้อโต้แย้ง 5: รอยตัดเชือก & มีดพกในกระเป๋า</button>
             </div>
           </div>
           <div style="margin-top:10px;">
@@ -3076,6 +3089,8 @@
               <button type="button" class="preset-chip" onclick="applyPresetStage1('barrel')">🛢️ ซากถังน้ำถ่วงน้ำหนัก (EVD-19)</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage1('meter')">💧 มาตรวัดน้ำประปาหลัก (EVD-10)</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage1('dryer')">⏱️ เครื่องอบผ้าสร้างเสียงหลอก (EVD-05)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage1('knife')">🔪 มีดพับในกระเป๋าเหยื่อ (EVD-12)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage1('harness')">🪢 เงื่อนโบว์ไลน์ & รอยตัดเชือก (EVD-09)</button>
             </div>
           </div>
           <div style="margin-top:10px;">
@@ -3086,11 +3101,12 @@
             <label style="font-size:0.85rem; color:#ccc;">รหัสหลักฐานที่ถูกต้องที่ต้องยิง:</label>
             <select id="cfgStg1TargetClue" class="manual-code-input" style="width:100%; margin-top:4px;">
               <option value="EVD-02">EVD-02: ท่อนกระดูกหมูในหม้อสตูว์ (อาวุธทุบสลบ)</option>
+              <option value="EVD-04">EVD-04: คลิปหนีบกระดาษเหล็ก (หน้าบอร์ดประชาสัมพันธ์)</option>
               <option value="EVD-05">EVD-05: เครื่องอบผ้า DRY-1 (ตั้งเวลาหมุนรองเท้าบูท)</option>
               <option value="EVD-07">EVD-07: Monokuma File #1 (แผลท้ายทอย 1-2 ชม. ก่อนตาย ไม่ใช่เหตุตาย)</option>
               <option value="EVD-09">EVD-09: เชือกไนลอนสีชมพูบนพื้น (พาดท่อยกร่างออกนอกหน้าต่าง)</option>
               <option value="EVD-10">EVD-10: มาตรวัดน้ำประปาหลัก (อัตราไหล 0.4 L/min)</option>
-              <option value="EVD-12">EVD-12: มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ</option>
+              <option value="EVD-12">EVD-12: มีดพับในกระเป๋าเสื้อเหยื่อเรียวตะ (รอยใยเชือก)</option>
               <option value="EVD-14">EVD-14: ราวท่อสแตนเลสเพดานห้องซักรีด (รอกชักร่าง)</option>
               <option value="EVD-19">EVD-19: ซากถังน้ำพลาสติกตกแตก (ถังถ่วงน้ำหนักนอกหน้าต่าง)</option>
               <option value="EVD-23">EVD-23: สายยางน้ำเปิดทิ้งและน้ำท่วมขัง (ท่อส่งน้ำ)</option>
@@ -3104,6 +3120,9 @@
             <span class="preset-title">⚡ 1-Click Presets (Hangman):</span>
             <div class="preset-btn-row">
               <button type="button" class="preset-chip" onclick="applyPresetStage2('WATER CLOCK', 'ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!')">WATER CLOCK</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage2('BOWLINE KNOT', 'ถอดรหัสเงื่อนเซฟตี้ฮาร์เนสที่เหยื่อเรียวตะใช้ผูกกับตัวเอง!')">BOWLINE KNOT</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage2('SHOCK LOAD', 'ถอดรหัสแรงกระชากแบบไดนามิกจากมวลน้ำมหาศาลที่ทำให้เงื่อนหลุด!')">SHOCK LOAD</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage2('DRYER', 'ถอดรหัสเครื่องใช้ไฟฟ้าที่ถูกตั้งเวลาล่วงหน้าเพื่อสร้างเสียงต่อสู้หลอก!')">DRYER</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage2('COUNTERWEIGHT', 'ถอดรหัสน้ำหนักถ่วงนอกหน้าต่างที่ดึงร่างขึ้นเพดาน!')">COUNTERWEIGHT</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage2('PORK BONE', 'ถอดรหัสอาวุธทุบสลบที่ซ่อนอยู่ในหม้อสตูว์!')">PORK BONE</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage2('CEILING PIPE', 'ถอดรหัสจุดพาดเชือกไนลอนทำหน้าที่เป็นรอก!')">CEILING PIPE</button>
@@ -3126,10 +3145,11 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets (เลือกคู่ดวล & คำพูดค้านสำเร็จรูป):</span>
             <div class="preset-btn-row">
-              <button type="button" class="preset-chip" onclick="applyPresetStage3('นาเอกิ มาโคโตะ', 'ฮิฟุมิ ยามาดะ', 'ช่วงเวลาทำร้ายในครัว', 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?')">🍳 ข้ออ้างห้องครัว (นาเอกิ VS ฮิฟุมิ)</button>
-              <button type="button" class="preset-chip" onclick="applyPresetStage3('คิริกิริ เคียวโกะ', 'ฮิฟุมิ ยามาดะ', 'ช่วงเวลาไฟดับ & กลไกยกร่าง', 'ตอนไฟดับ 20:30 น. ฉันก็อยู่กับคนอื่น จะเอาเวลาที่ไหนไปดึงเชือกยกร่าง B ขึ้นไปบนเพดานได้!?')">💡 ข้ออ้างไฟดับ (เคียวโกะ VS ฮิฟุมิ)</button>
-              <button type="button" class="preset-chip" onclick="applyPresetStage3('โทกามิ เบียคุยะ', 'ฮิฟุมิ ยามาดะ', 'ความสูงหน้าต่าง 3.5 เมตร', 'หน้าต่างห้องซักผ้าสูงตั้ง 3.5 เมตร แถมไม่มีบันได ใครจะปีนออกไปผูกเชือกข้างนอกได้กันล่ะ!?')">🪟 ข้ออ้างหน้าต่างสูง (เบียคุยะ VS ฮิฟุมิ)</button>
-              <button type="button" class="preset-chip" onclick="applyPresetStage3('นาเอกิ มาโคโตะ', 'ฮิฟุมิ ยามาดะ', 'ข้อสันนิษฐานการฆ่าตัวตาย', 'เรียวตะเป็นคนถือมีดและผูกเงื่อนบ่วงเชือกเอง นี่มันการฆ่าตัวตายชัดๆ ไม่เกี่ยวกับฉันสักหน่อย!')">🔪 ข้ออ้างฆ่าตัวตาย (นาเอกิ VS ฮิฟุมิ)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage3('คิริกิริ เคียวโกะ', 'ฮิฟุมิ ยามาดะ', 'ช่วงเวลาทำร้ายในครัว & ท่อนกระดูกหมู', 'ฉันมีเวรทำอาหารมื้อค่ำอยู่ในครัวตลอดเวลาช่วง 17:45 - 18:30 น. จะเอาเวลาที่ไหนไปทำร้าย B ได้!?')">🍳 1: ข้ออ้างห้องครัว (เคียวโกะ VS ฮิฟุมิ)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage3('นาเอกิ มาโคโตะ', 'ฮิฟุมิ ยามาดะ', 'ข้ออ้าง Alibi ตอนสามทุ่ม & กลไกอัตโนมัติ', 'ตอนสามทุ่ม 21:00 น. ฉันก็นั่งกินข้าวคุยอยู่กับทุกคนที่โต๊ะอาหาร จะไปผูกเชือกแขวนคอ B ได้ยังไงกัน!?')">⏱️ 2: Alibi ตอนสามทุ่ม (นาเอกิ VS ฮิฟุมิ)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage3('โทกามิ เบียคุยะ', 'ฮิฟุมิ ยามาดะ', 'ความสูงหน้าต่าง 3.5 เมตร & น้ำหนักถ่วง', 'หน้าต่างห้องซักผ้าสูงตั้ง 3.5 เมตร แถมไม่มีบันได ใครจะปีนออกไปผูกเชือกข้างนอกได้กันล่ะ!?')">🪟 3: ข้ออ้างหน้าต่างสูง (เบียคุยะ VS ฮิฟุมิ)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage3('โทกามิ เบียคุยะ', 'ฮิฟุมิ ยามาดะ', 'การปัดความรับผิดชอบ & ใครคือ Blackened ที่แท้จริง', 'ฉันเป็นคนวางแผนทั้งหมด! ทุบหัว ผูกเชือก เปิดน้ำ ฉันต้องเป็นคนฆ่าสิ จะเป็น B ฆ่าตัวตายได้ยังไง!?')">⚖️ 4: ปัดความรับผิดชอบ (เบียคุยะ VS คนร้าย)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage3('นาเอกิ มาโคโตะ', 'ฮิฟุมิ ยามาดะ', 'ข้อสันนิษฐานการจัดฉากของเรียวตะ', 'เรียวตะเป็นคนถือมีดและผูกเงื่อนบ่วงเชือกเอง นี่มันการฆ่าตัวตายชัดๆ ไม่เกี่ยวกับฉันสักหน่อย!')">🔪 5: ข้ออ้างจัดฉากฆ่าตัวตาย (นาเอกิ VS ฮิฟุมิ)</button>
             </div>
           </div>
           
@@ -3171,8 +3191,9 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Route Presets:</span>
             <div class="preset-btn-row">
-              <button type="button" class="preset-chip" onclick="applyPresetStage4('pulley')">🎯 Route 1: ไขกลไกรอกเพดาน & ถังน้ำหนัก (The Ceiling Pulley Trap)</button>
-              <button type="button" class="preset-chip" onclick="applyPresetStage4('timeline')">⏱️ Route 2: คลี่คลายเวลาตาย & แผนคนร้าย (The Blackened Timeline)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage4('pulley')">🎯 Route 1: กลไกรอกเพดาน & ถังน้ำหนัก (The Ceiling Pulley Trap)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage4('twist')">🔪 Route 2: จุดพลิกผันมีดพก & เงื่อนโบว์ไลน์ (The Climax Twist)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage4('timeline')">⏱️ Route 3: ไทม์ไลน์เวลาตาย & แผนคนร้าย (The Blackened Timeline)</button>
             </div>
           </div>
           <div id="cfgStg4Summary" style="margin-top:10px; font-size:0.85rem; color:#bbb; line-height:1.6; background:#141424; padding:10px; border-radius:6px; border:1px solid #333348;">
@@ -3185,24 +3206,24 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets:</span>
             <div class="preset-btn-row">
-              <button type="button" class="preset-chip" onclick="applyPresetStage5('คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?', '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก', '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง')">ฆาตกรรม vs ฆ่าตัวตาย</button>
-              <button type="button" class="preset-chip" onclick="applyPresetStage5('การยกร่างเหยื่อขึ้นเพดาน เกิดจากแรงคนดึงสดๆ หรือกลไกถ่วงน้ำหนัก!?', '🔵 ข้อสันนิษฐานคนร้ายดึงเชือก', '🟣 ข้อสันนิษฐานถังน้ำหนักกลไกอัตโนมัติ')">แรงคน vs ถังน้ำหนักอัตโนมัติ</button>
-              <button type="button" class="preset-chip" onclick="applyPresetStage5('เวลาที่เรียวตะ (B) ถูกแขวนคอเสียชีวิต เกิดขึ้นก่อนหรือตอนที่ไฟดับ!?', '🔵 ข้อสันนิษฐานตายก่อนไฟดับ (20:15)', '🟣 ข้อสันนิษฐานตายตอนไฟดับ (20:30)')">ตายก่อน vs หลังไฟดับ</button>
-              <button type="button" class="preset-chip" onclick="applyPresetStage5('ใครคือ Blackened ผู้บงการกลไกมรณะในครั้งนี้!?', '🔵 ฝั่งน้ำเงิน: มีผู้วางแผนจัดฉาก', '🟣 ฝั่งชมพูม่วง: เหตุการณ์พลิกผันเกินควบคุม')">ตัดสิน Blackened</button>
+              <button type="button" class="preset-chip" onclick="applyScrumPresetFromDropdown(0)">⚖️ 1: โหวต Trapper A vs โหวตเหยื่อ B</button>
+              <button type="button" class="preset-chip" onclick="applyScrumPresetFromDropdown(1)">⚖️ 2: แรงคน vs ถังน้ำหนักอัตโนมัติ</button>
+              <button type="button" class="preset-chip" onclick="applyScrumPresetFromDropdown(2)">⏱️ 3: เวลาตาย: 17:30 น. vs 21:00 น.</button>
+              <button type="button" class="preset-chip" onclick="applyScrumPresetFromDropdown(3)">🍖 4: สาเหตุ: กะโหลกแตก vs กระดูกคอหัก</button>
             </div>
           </div>
           <div style="margin-top:10px;">
             <label style="font-size:0.85rem; color:#ccc;">หัวข้อการโต้เถียง (Scrum Topic):</label>
-            <input type="text" id="cfgStg5Topic" class="manual-code-input" style="width:100%; margin-top:4px;" value="คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?">
+            <input type="text" id="cfgStg5Topic" class="manual-code-input" style="width:100%; margin-top:4px;" value="ใครคือ Blackened ตัวจริง: โหวต Trapper A (ผู้วางกับดัก) หรือ โหวตเหยื่อ B (ผู้ผูกเชือกพลาดจนตาย)?">
           </div>
           <div style="display:flex; gap:8px; margin-top:8px;">
             <div style="flex:1;">
               <label style="font-size:0.85rem; color:#ccc;">ฝั่งน้ำเงิน (ซ้าย):</label>
-              <input type="text" id="cfgStg5Left" class="manual-code-input" style="width:100%; margin-top:4px;" value="🔵 ข้อสันนิษฐานคนร้ายวางกับดัก">
+              <input type="text" id="cfgStg5Left" class="manual-code-input" style="width:100%; margin-top:4px;" value="🔵 โหวต A: Trapper ผู้วางแผนกับดักฆ่า">
             </div>
             <div style="flex:1;">
               <label style="font-size:0.85rem; color:#ccc;">ฝั่งชมพูม่วง (ขวา):</label>
-              <input type="text" id="cfgStg5Right" class="manual-code-input" style="width:100%; margin-top:4px;" value="🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง">
+              <input type="text" id="cfgStg5Right" class="manual-code-input" style="width:100%; margin-top:4px;" value="🟣 โหวต B: เหยื่อที่ผูกเชือกพลาดจนคอหักตายเอง">
             </div>
           </div>
         </div>
@@ -3214,6 +3235,7 @@
             <div class="preset-btn-row">
               <button type="button" class="preset-chip" onclick="applyPresetStage6('ฮิฟุมิ ยามาดะ', 'ไม่มีทาง! รอกเชือกกับถังน้ำอะไรกัน... ฉันไม่เคยรู้เรื่องกลไกบ้าๆ นั่นเลยสักนิด!!')">🪢 ปฏิเสธกลไกเชือกและน้ำ</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage6('ฮิฟุมิ ยามาดะ', 'กระดูกหมูในหม้อสตูว์ก็แค่ของทำอาหาร! จะมาปรักปรำว่าเป็นอาวุธฟาดหัวได้ยังไงกัน!?')">🍖 ข้ออ้างกระดูกหมู</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage6('ฮิฟุมิ ยามาดะ', 'ฉันคือคนร้ายสิ! ฉันเป็นคนวางกับดักทั้งหมด! จะมาบอกว่าแผนของฉันล้มเหลวแล้ว B ฆ่าตัวตายได้ยังไง!!')">😱 กรีดร้องแย่งตำแหน่งคนร้าย</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage6('ฮิฟุมิ ยามาดะ', 'พวกแกไม่มีหลักฐานมัดตัวฉันหรอก! แผนการอันสมบูรณ์แบบของฉัน... ไม่มีวันพังทลายเด็ดขาด!!')">💥 คำดิ้นรนสุดท้าย</button>
             </div>
           </div>
@@ -3247,7 +3269,7 @@
             • <strong>หน้า 1 (17:00-17:30):</strong> ครัว & ท่อนกระดูกหมูฟาดท้ายทอยสลบ -> ซ่อนในหม้อสตูว์<br>
             • <strong>หน้า 2 (17:45-18:30):</strong> ย้ายร่างเหยื่อเข้าห้องซักรีด -> ผูกเชือกพาดท่อเพดานออกนอกหน้าต่างสูง<br>
             • <strong>หน้า 3 (18:30-20:00):</strong> ผูกปลายเชือกกับถังน้ำนอกอาคาร -> ต่อสายยางเติมน้ำถ่วงน้ำหนัก (0.4 L/min)<br>
-            • <strong>หน้า 4 (20:00-21:00):</strong> ตั้งเวลาเครื่องอบผ้าหมุนรองเท้าบูท -> สร้าง Alibi ช่วงไฟดับ 20:30 น.<br>
+            • <strong>หน้า 4 (20:00-21:00):</strong> ตั้งเวลาเครื่องอบผ้าหมุนรองเท้าบูท -> สร้าง Alibi นั่งคุยกับทุกคนในห้องนั่งเล่น<br>
             • <strong>หน้า 5 (21:00-21:05):</strong> มวลน้ำดึงถังตกลงพื้นคอร์ทยาร์ด -> ร่างถูกกระชากแขวนติดเพดานห้องซักรีด!<br>
             <span style="color:var(--court-gold); font-size:0.8rem;">* เริ่มต้นตั้งเวลา 90s (ยังไม่นับถอยหลังจนกว่า DM จะกดเริ่ม) / วางถูก 1 ช่องได้เวลาโบนัส +20s และสุ่มปลดล็อกการ์ดใหม่!</span>
           </div>
@@ -3262,6 +3284,7 @@
               <button type="button" class="preset-chip" onclick="applyPresetQuickQuestion('death_cause')">💀 เหตุตายจริง (ขาดอากาศหายใจ)</button>
               <button type="button" class="preset-chip" onclick="applyPresetQuickQuestion('auto_pulley')">🛢️ กลไกชักรอก (ถังน้ำถ่วงน้ำหนัก)</button>
               <button type="button" class="preset-chip" onclick="applyPresetQuickQuestion('dryer_sound')">👟 เสียง 21:00 น. (รองเท้าในเครื่องอบผ้า)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetQuickQuestion('blackened_truth')">⚖️ Blackened ตัวจริง (สึกิชิมะ เรียวตะ)</button>
             </div>
           </div>
           <div style="margin-top:10px;">
@@ -3278,7 +3301,7 @@
           </div>
           <div style="margin-top:8px;">
             <label style="font-size:0.85rem; color:#ccc;">ตัวเลือก C:</label>
-            <input type="text" id="cfgQqChoiceC" class="manual-code-input" style="width:100%; margin-top:4px;" value="20:30 น. (ช่วงก่อนไฟดับ)">
+            <input type="text" id="cfgQqChoiceC" class="manual-code-input" style="width:100%; margin-top:4px;" value="20:30 น. (ช่วงหลังมื้ออาหารค่ำ)">
           </div>
           <div style="margin-top:8px;">
             <label style="font-size:0.85rem; color:#ccc;">คำตอบที่ถูกต้อง:</label>

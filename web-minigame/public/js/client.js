@@ -964,7 +964,7 @@ const DEFAULT_STG0_STATEMENTS = [
   { speaker: "ฮิคาริ", avatar: "👩‍💼", text: "แต่ว่าสภาพห้องซักรีดมันไม่เห็นมีรอยการดิ้นรนหรือเลือดเปรอะเลยนะ..." },
   { speaker: "ไคโตะ", avatar: "🧑‍💻", text: "จะไม่มีได้ยังไง ก็เรียวตะพกมีดพกไปด้วย เขาก็ต้องชักออกมาป้องกันตัวสิ!" },
   { speaker: "เรนะ", avatar: "👱‍♀️", text: "ถ้าอย่างนั้น เสียงเหล็กกระแทกที่ดังสนั่น 2 ครั้งติดกันตอนนั้น มันมาจากไหนล่ะ!?" },
-  { speaker: "ชิน", avatar: "🕵️", text: "มีคนแอบลอบเข้าไปในห้องซักผ้าเพื่ออำพรางหลักฐานหลังจากไฟดับหรือเปล่า!?" }
+  { speaker: "ชิน", avatar: "🕵️", text: "หรือว่าเสียงนั่นจะไม่ได้มาจากคน แต่เป็นเสียงเครื่องจักรทำงานอัตโนมัติ!?" }
 ];
 
 function getDynamicStg0Statements() {
@@ -977,8 +977,8 @@ function getDynamicStg0Statements() {
     "แต่ว่าสภาพห้องซักรีดมันไม่เห็นมีรอยการดิ้นรนหรือเลือดเปรอะเลยนะ...",
     "จะไม่มีได้ยังไง ก็เรียวตะพกมีดพกไปด้วย เขาก็ต้องชักออกมาป้องกันตัวสิ!",
     "ถ้าอย่างนั้น เสียงเหล็กกระแทกที่ดังสนั่น 2 ครั้งติดกันตอนนั้น มันมาจากไหนล่ะ!?",
-    "มีคนแอบลอบเข้าไปในห้องซักผ้าเพื่ออำพรางหลักฐานหลังจากไฟดับหรือเปล่า!?",
-    "เดี๋ยวก่อนสิ... ถ้าจำไม่ผิดตอนนั้นไฟทางเดินก็กะพริบแปลกๆ ด้วยนะ!",
+    "หรือว่าเสียงนั่นจะไม่ได้มาจากคน แต่เป็นเสียงเครื่องจักรทำงานอัตโนมัติ!?",
+    "แล้วสายยางน้ำที่เปิดทิ้งไว้ล่ะ ใครเป็นคนเปิดทิ้งไว้กันแน่!?",
     "ฉันว่าพวกเราอาจจะมองข้ามอะไรบางอย่างที่สำคัญมากๆ ในที่เกิดเหตุไปรึเปล่า?"
   ];
 
@@ -2711,7 +2711,7 @@ const CHARACTER_DATA = {
     timeline: [
       { time: '17:30 - 18:30 น.', desc: 'เดินสำรวจรอบโถงกลาง สังเกตเห็นคนเดินเข้าออกระหว่างห้องครัวกับบันไดลงชั้นใต้ดินด้วยท่าทางเร่งรีบ' },
       { time: '19:00 - 20:00 น.', desc: 'ร่วมโต๊ะกินสตูว์เนื้อร่วมกับทุกคน จากนั้นก็นั่งคุยแลกเปลี่ยนข้อมูลอยู่ที่ห้องนั่งเล่น' },
-      { time: '20:00 - 21:00 น.', desc: 'ช่วงไฟดับสั้นๆ นั่งพักสายตาอยู่บนโซฟาห้องนั่งเล่น ไม่ได้ลุกไปไหน มีเพื่อนคนอื่นนั่งอยู่ข้างๆ' },
+      { time: '20:00 - 21:00 น.', desc: 'นั่งพักผ่อนคุยแลกเปลี่ยนข้อมูลกับเพื่อนๆ อยู่ที่โซฟาห้องนั่งเล่น ไม่ได้ลุกไปไหน มีเพื่อนคนอื่นนั่งอยู่ข้างๆ' },
       { time: '21:00 น.', desc: 'เสียงกระแทกดัง "ตึง! ตึง! ตึง!" มาจากห้องซักรีดใต้ดิน วิ่งตามกลุ่มไปพังประตูและเห็นร่าง B ห้อยอยู่บนเพดาน' }
     ]
   },
@@ -2756,11 +2756,11 @@ const CHARACTER_DATA = {
     stats: ['DEX 16 (+3)', 'INT 15 (+2)', 'CON 13 (+1)'],
     personality: 'พูดจาเพ้อฝัน มีความมั่นใจในโลก 2D แต่แอบซ่อนความทะเยอทะยานและแผนการอันแยบยลไว้',
     isKiller: true,
-    hook: '⚠️ ความลับคนร้าย: คุณคือผู้เซ็ตกับดักฆ่า B! คุณใช้ท่อนกระดูกหมูฟาดหัว B สลบ นำกระดูกไปต้มในหม้อสตูว์ ผูกเชือกกับลูกตุ้มและเจาะถังน้ำเพื่อตั้งเวลา... แต่ความจริง B ตัดเชือกและเกิดอุบัติเหตุคอหักตายเอง!',
+    hook: '⚠️ ความลับคนร้าย: คุณคือผู้เซ็ตกับดักฆ่า B! คุณใช้ท่อนกระดูกหมูฟาดหัว B สลบ นำกระดูกไปต้มในหม้อสตูว์ ผูกเชือกกับถังน้ำนอกหน้าต่างและต่อสายยางเพื่อตั้งเวลา 21:00 น.... แต่ความจริง B ตัดเชือกและเกิดอุบัติเหตุคอหักตายเอง!',
     timeline: [
       { time: '17:30 - 18:30 น.', desc: 'เข้าครัวไปแอบหยิบท่อนกระดูกหมู แล้วลงไปล่อ B ในห้องซักรีดเพื่อเซ็ตกับดักเชือก' },
       { time: '19:00 - 20:00 น.', desc: 'ตักสตูว์เนื้อให้เพื่อนๆ กินอย่างกระตือรือร้น เพื่อกลบเกลื่อนหลักฐาน' },
-      { time: '20:00 - 21:00 น.', desc: 'แอบปลดระบบไฟในตู้ควบคุม' },
+      { time: '20:00 - 21:00 น.', desc: 'นั่งร่วมกลุ่มคุยกับทุกคนที่ห้องนั่งเล่นเพื่อสร้าง Alibi ที่แน่นหนา' },
       { time: '21:00 น.', desc: 'แกล้งทำเป็นตกใจสุดขีดเมื่อเห็นศพ B ห้อยอยู่' }
     ]
   },
@@ -2768,11 +2768,11 @@ const CHARACTER_DATA = {
     title: 'PC 6: สุดยอดนักประดิษฐ์ (Ultimate Inventor)',
     stats: ['INT 17 (+3)', 'DEX 15 (+2)', 'CON 13 (+1)'],
     personality: 'หมกมุ่นกับกลไก ชอบรื้อ แก้ไข และสร้างสิ่งประดิษฐ์พิลึกพิลั่น',
-    hook: 'วิศวกรรมย้อนรอย: สังเกตเห็นระบบตั้งเวลาของเครื่องอบผ้าและวาล์วระบายน้ำประปาถูกดัดแปลงให้ทำงานสอดคล้องกับจังหวะไฟดับ',
+    hook: 'วิศวกรรมย้อนรอย: สังเกตเห็นระบบตั้งเวลาของเครื่องอบผ้าและวาล์วประปาถูกดัดแปลงให้ปล่อยน้ำถ่วงน้ำหนักตรงกับเวลา 21:00 น.',
     timeline: [
       { time: '17:30 - 18:30 น.', desc: 'ตรวจตู้ไฟและแผงท่อประปาชั้นใต้ดิน พบว่าวาล์วน้ำหลักถูกปรับแต่ง' },
       { time: '19:00 - 20:00 น.', desc: 'ร่วมกินสตูว์เนื้อ' },
-      { time: '20:00 - 21:00 น.', desc: 'ช่วงไฟดับ ไปตรวจดูตู้ไฟพบเศษใยเชือกตากผ้าไนลอนไหม้คาเบรกเกอร์' },
+      { time: '20:00 - 21:00 น.', desc: 'นั่งพักผ่อนในห้องอาหาร สังเกตเห็นมาตรวัดน้ำประปายังคงหมุนด้วยอัตรา 0.4 ลิตร/นาที อย่างต่อเนื่อง' },
       { time: '21:00 น.', desc: 'ตรวจเครื่องอบผ้าในห้องซักรีดพบแผงตั้งเวลาหยุดทำงาน' }
     ]
   }
@@ -3795,7 +3795,7 @@ function setStage(stage, config) {
         choices: config.choices || {
           A: '17:30 น. (ช่วงเตรียมอาหารเย็น)',
           B: '19:00 น. (ช่วงเริ่มรับประทานอาหาร)',
-          C: '20:30 น. (ช่วงก่อนไฟดับ)'
+          C: '20:30 น. (ช่วงหลังมื้ออาหารค่ำ)'
         },
         correct: config.correct || 'A',
         votes: {},
@@ -3808,7 +3808,7 @@ function setStage(stage, config) {
         choices: {
           A: '17:30 น. (ช่วงเตรียมอาหารเย็น)',
           B: '19:00 น. (ช่วงเริ่มรับประทานอาหาร)',
-          C: '20:30 น. (ช่วงก่อนไฟดับ)'
+          C: '20:30 น. (ช่วงหลังมื้ออาหารค่ำ)'
         },
         correct: 'A',
         votes: {},
@@ -5350,6 +5350,38 @@ const LOGIC_DIVE_ROUTES = {
       correct: "C"
     }
   ],
+  twist: [
+    {
+      step: 1,
+      question: "มีดพกในกระเป๋าเสื้อของ B กับรอยตัดที่เชือกไนลอน หมายความว่าอย่างไร?",
+      choices: {
+        A: "คนร้ายใช้มีดของ B ตัดเชือกเพื่ออำพราง",
+        B: "B ฟื้นสติขึ้นมา และใช้มีดพกตัดเชือกตัวเองจนรอดแล้ว!",
+        C: "เชือกขาดเองเพราะรับน้ำหนักไม่ไหว"
+      },
+      correct: "B"
+    },
+    {
+      step: 2,
+      question: "ถ้า B รอดแล้ว ทำไมถึงมีเงื่อนโบว์ไลน์ผูกติดอยู่กับสายรัดลำตัวใต้เสื้อ?",
+      choices: {
+        A: "B พยายามปีนหนีออกไปทางเพดาน",
+        B: "B ผูกสายรัดลำตัวเพื่อแกล้งจัดฉากว่าตัวเองถูกแขวนคอหลอก!",
+        C: "คนร้ายกลับเข้ามาผูกเชือกให้ใหม่"
+      },
+      correct: "B"
+    },
+    {
+      step: 3,
+      question: "แล้วทำไม B ถึงคอหักตายจริงๆ ได้ ทั้งที่มีสายรัดพยุงตัวอยู่!?",
+      choices: {
+        A: "น้ำหนักน้ำมหาศาลทำให้เกิด Shock Load กระชากเงื่อนหลุดขึ้นมารัดคอ!",
+        B: "B ถูกวางยาพิษไซยาไนด์จนหมดแรง",
+        C: "มีคนแอบมาดึงเชือกซ้ำตอน 21:00 น."
+      },
+      correct: "A"
+    }
+  ],
   timeline: [
     {
       step: 1,
@@ -5554,7 +5586,7 @@ const QUICK_QUESTION_PRESETS = {
     choices: {
       A: "17:30 น. (ช่วงเตรียมอาหารเย็น)",
       B: "19:00 น. (ช่วงเริ่มรับประทานอาหาร)",
-      C: "20:30 น. (ช่วงก่อนไฟดับ)"
+      C: "20:30 น. (ช่วงหลังมื้ออาหารค่ำ)"
     },
     correct: "A"
   },
@@ -5582,6 +5614,15 @@ const QUICK_QUESTION_PRESETS = {
       A: "การต่อสู้ระหว่างคนร้ายกับเหยื่อ",
       B: "รองเท้าผ้าใบที่ถูกตั้งเวลาหมุนในเครื่องอบผ้า",
       C: "ถังน้ำภายนอกหล่นกระแทกพื้น"
+    },
+    correct: "B"
+  },
+  blackened_truth: {
+    question: "ตามกฎของ Monokuma ใครคือผู้กระทำการชี้ขาด (Blackened) ที่ต้องถูกโหวตประหาร!?",
+    choices: {
+      A: "นักมายากล (A) ผู้เริ่มวางแผนและเซ็ตกับดักน้ำ",
+      B: "เหยื่อเรียวตะ (B) ผู้ตัดเชือกรอดแล้วจัดฉากผูกบ่วงรัดคอตัวเอง",
+      C: "ไม่มีใครผิด เป็นเหตุสุดวิสัยจากอาคารเรียน"
     },
     correct: "B"
   }
@@ -5613,7 +5654,8 @@ function applyPresetQuickQuestion(presetId, isSilent) {
     attack_time: '⏱️ เวลาทำร้ายในครัว (17:30)',
     death_cause: '💀 เหตุตายจริง (ขาดอากาศ)',
     auto_pulley: '🛢️ กลไกชักรอก (ถังน้ำหนัก)',
-    dryer_sound: '👟 เสียง 21:00 น. (รองเท้าบูท)'
+    dryer_sound: '👟 เสียง 21:00 น. (รองเท้าบูท)',
+    blackened_truth: '⚖️ กฎ Blackened ตัวจริง (โหวต B)'
   };
   const badgeText = labels[presetId] || `⚡ ${p.question.slice(0, 30)}...`;
   if (badge) {
@@ -5635,7 +5677,7 @@ function adminStartQuickQuestion() {
   const q = document.getElementById('cfgQqQuestion')?.value || 'เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?';
   const cA = document.getElementById('cfgQqChoiceA')?.value || '17:30 น. (ช่วงเตรียมอาหารเย็น)';
   const cB = document.getElementById('cfgQqChoiceB')?.value || '19:00 น. (ช่วงเริ่มรับประทานอาหาร)';
-  const cC = document.getElementById('cfgQqChoiceC')?.value || '20:30 น. (ช่วงก่อนไฟดับ)';
+  const cC = document.getElementById('cfgQqChoiceC')?.value || '20:30 น. (ช่วงหลังมื้ออาหารค่ำ)';
   const corr = document.getElementById('cfgQqCorrect')?.value || 'A';
   const config = {
     id: 'qq_' + Date.now(),
@@ -6613,7 +6655,7 @@ const CLOSING_PAGES_DATA = [
         num: 3,
         type: 'story',
         art: '🕯️',
-        desc: '[TRAPPER] กลับไปร่วมโต๊ะอาหารค่ำเวลา 19:00 น. และอยู่กับทุกคนตอนไฟดับเวลา 20:30 น. เพื่อสร้าง Alibi ว่าตนไม่ได้อยู่ในที่เกิดเหตุ'
+        desc: '[TRAPPER] กลับไปร่วมโต๊ะอาหารค่ำเวลา 19:00 น. และนั่งคุยกับทุกคนในห้องนั่งเล่นจนถึง 21:00 น. เพื่อสร้าง Alibi ว่าตนไม่ได้อยู่ในที่เกิดเหตุ'
       },
       {
         num: 4,
@@ -6677,7 +6719,7 @@ const CLOSING_CARDS_DATA = [
   // 15 unique decoy cards
   { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'คนร้ายเรียวตะแกล้งสลบแล้วชักมีดพับออกมาแทงสวน [TRAPPER] ในห้องครัว', icon: '🔪', decoy: true },
   { id: 'DECOY-LADDER', page: 0, slot: 0, title: '[TRAPPER] ปีนบันไดออกไปทางหน้าต่างสูงเพื่อผูกเชือกภายนอกอาคาร', icon: '🪜', decoy: true },
-  { id: 'DECOY-BREAKER', page: 0, slot: 0, title: '[TRAPPER] แอบไปสับคัตเอาต์ตัดสะพานไฟหลักในห้องควบคุมเพื่อดับไฟทั้งตึก', icon: '⚡', decoy: true },
+  { id: 'DECOY-VALVE', page: 0, slot: 0, title: '[TRAPPER] แอบไปปิดวาล์วน้ำหลักทั้งอาคารเพื่อไม่ให้มีใครใช้น้ำได้', icon: '🔧', decoy: true },
   { id: 'DECOY-WASH', page: 0, slot: 0, title: '[TRAPPER] นำเสื้อผ้าเปื้อนเลือดของตนเองใส่ลงไปปั่นซักในเครื่องซักผ้า', icon: '🫧', decoy: true },
   { id: 'DECOY-DOOR', page: 0, slot: 0, title: '[TRAPPER] ใช้โซ่เหล็กคล้องล็อกประตูด้านนอกของห้องซักรีดไว้', icon: '🔒', decoy: true },
   { id: 'DECOY-POISON', page: 0, slot: 0, title: '[TRAPPER] แอบหยอดยาพิษร้ายแรงลงในแก้วน้ำชาของเรียวตะก่อนลงมือ', icon: '🧪', decoy: true },
@@ -10519,6 +10561,24 @@ function applyPresetStage0(presetKey, isSilent) {
       { speaker: 'เรนะ', text: 'แต่รอบๆ จุดพบศพไม่มีเฟอร์นิเจอร์ตัวไหนถูกขยับเลยสักชิ้นเดียว!' },
       { speaker: 'ยูโตะ', text: 'หรือว่าร่างของเรียวตะไม่ได้ถูกคนดึงขึ้นไป แต่เป็นกลไกถ่วงน้ำหนักอัตโนมัติ!?' }
     ];
+  } else if (presetKey === 'vending') {
+    topic = "ข้ออ้างตู้กดน้ำ 17:45 น. & ไทม์ไลน์ช่วงเย็น";
+    badgeText = "🥫 4: ข้ออ้างตู้กดน้ำ (17:45 น.)";
+    statements = [
+      { speaker: 'ยูโตะ', text: 'คนร้ายอ้างว่าช่วง 17:45 น. ยืนกดกาแฟกระป๋องอยู่ที่โถงทางเดินชั้นหนึ่ง!' },
+      { speaker: 'ซากุระ', text: 'แต่ในถังขยะข้างตู้กดน้ำ มีใบเสร็จและกระป๋องเปล่าที่ทิ้งไว้ตั้งแต่เมื่อวานแล้วนะ!' },
+      { speaker: 'ฮิคาริ', text: 'ถ้าอย่างนั้นช่วง 17:30 - 18:00 น. คนร้ายก็ไม่มีใครยืนยันที่อยู่เลยน่ะสิ!' },
+      { speaker: 'ไคโตะ', text: 'อย่าลืมสิว่ามีคนเห็นเงาดำเดินลงบันไดไปชั้นใต้ดินช่วงนั้นด้วย!' }
+    ];
+  } else if (presetKey === 'twist') {
+    topic = "รอยตัดบนเชือกไนลอน & มีดพับในกระเป๋าเสื้อ";
+    badgeText = "🔪 5: รอยตัดเชือก & มีดพกในกระเป๋า";
+    statements = [
+      { speaker: 'ไคโตะ', text: 'เรียวตะถูกมัดมือมัดเท้าแขวนไว้ตั้งแต่แรกจนตายโดยขยับไม่ได้!' },
+      { speaker: 'เรนะ', text: 'แต่ปลายเชือกไนลอนเส้นเดิมมีรอยถูกของมีคมเฉือนตัดขาดอย่างชัดเจนนะ!' },
+      { speaker: 'ฮิคาริ', text: 'ในกระเป๋าเสื้อของเรียวตะก็มีมีดพับที่มีใยเชือกไนลอนสีชมพูติดอยู่ด้วย!' },
+      { speaker: 'ยูโตะ', text: 'แปลว่าเรียวตะฟื้นสติขึ้นมาตัดเชือกตัวเองจนรอดแล้วงั้นเหรอ!?' }
+    ];
   }
 
   if (topInput) topInput.value = topic;
@@ -10584,6 +10644,10 @@ function applyPresetStage1(presetKey, isSilent) {
     prompt = "สิ่งใดอยู่ในกระเป๋าเสื้อเหยื่อเรียวตะ (B) ที่ยืนยันว่าไม่มีการต่อสู้ระยะประชิดในห้องซักรีด!?";
     targetClue = "EVD-12";
     badgeText = "🔪 มีดพับในกระเป๋า (EVD-12)";
+  } else if (presetKey === 'harness') {
+    prompt = "หลักฐานชิ้นใดที่แสดงว่าเหยื่อเรียวตะ (B) รอดจากกับดักแรก และพยายามผูกเชือกพยุงตัวเองหลอก!?";
+    targetClue = "EVD-09";
+    badgeText = "🪢 เงื่อนโบว์ไลน์ & เชือกตัด (EVD-09)";
   }
 
   if (pInput) pInput.value = prompt;
@@ -10623,10 +10687,13 @@ function applyHangmanPresetFromDropdown(word, isSilent) {
   }
   const prompts = {
     'WATER CLOCK': { text: 'ถอดรหัสกลไกตั้งเวลาที่กระชากเชือกรอกโดยอัตโนมัติ!', th: 'นาฬิกาน้ำ' },
+    'BOWLINE KNOT': { text: 'ถอดรหัสเงื่อนเซฟตี้ฮาร์เนสที่เหยื่อเรียวตะใช้ผูกกับตัวเอง!', th: 'เงื่อนโบว์ไลน์' },
+    'SHOCK LOAD': { text: 'ถอดรหัสแรงกระชากแบบไดนามิกจากมวลน้ำมหาศาลที่ทำให้เงื่อนหลุด!', th: 'แรงกระชาก' },
     'COUNTERWEIGHT': { text: 'หลักการทางฟิสิกส์ที่ใช้ถ่วงน้ำหนักเพื่อยกร่างเหยื่อขึ้นสู่เพดานคืออะไร!?', th: 'ถ่วงน้ำหนัก' },
     'PORK BONE': { text: 'อาวุธที่แท้จริงซึ่งใช้ฟาดหัวเหยื่อในครัวก่อนนำไปต้มคืออะไร!?', th: 'กระดูกหมู' },
     'CEILING PIPE': { text: 'จุดพาดเชือกบนเพดานสูงที่ทำหน้าที่เสมือนรอกคืออะไร!?', th: 'ท่อเพดาน' },
     'WATER HOSE': { text: 'อุปกรณ์ส่งน้ำจากก๊อกไปยังถังน้ำภายนอกคืออะไร!?', th: 'สายยางน้ำ' },
+    'DRYER': { text: 'ถอดรหัสเครื่องใช้ไฟฟ้าที่ถูกตั้งเวลาล่วงหน้าเพื่อสร้างเสียงต่อสู้หลอก!', th: 'เครื่องอบผ้า' },
     'STAGING': { text: 'การจัดฉากสร้างหลักฐานเท็จและเวลาตายปลอมเรียกว่าอะไร!?', th: 'จัดฉากฆาตกรรม' }
   };
   const item = prompts[word] || { text: `ถอดรหัสคำศัพท์ "${word}"`, th: '' };
@@ -10730,28 +10797,35 @@ function applyRebuttalPresetFromDropdown(val, isSilent) {
       opp: 'ฮิฟุมิ ยามาดะ',
       topic: 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi',
       arg: 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?',
-      badge: '🍳 นาเอกิ VS ฮิฟุมิ (ข้ออ้างครัว)'
+      badge: '🍳 ข้ออ้างครัว (17:30 น.)'
     },
-    blackout: {
+    alibi: {
       chal: 'คิริกิริ เคียวโกะ',
       opp: 'ฮิฟุมิ ยามาดะ',
-      topic: 'ช่วงเวลาไฟดับ & กลไกยกร่าง',
-      arg: 'ตอนไฟดับ 20:30 น. ฉันก็อยู่กับคนอื่น จะเอาเวลาที่ไหนไปดึงเชือกยกร่าง B ขึ้นไปบนเพดานได้!?',
-      badge: '💡 เคียวโกะ VS ฮิฟุมิ (ข้ออ้างไฟดับ)'
+      topic: 'Alibi ตอนสามทุ่ม & เสียงเครื่องอบผ้า',
+      arg: 'ตอน 21:00 น. ฉันก็นั่งคุยอยู่กับทุกคนในห้องนั่งเล่น! แล้วฉันจะไปอยู่ในห้องซักรีดเพื่อฆ่า B ได้ยังไงกัน!?',
+      badge: '⏱️ ข้ออ้างสามทุ่ม (21:00 น.)'
     },
     window: {
       chal: 'โทกามิ เบียคุยะ',
       opp: 'ฮิฟุมิ ยามาดะ',
       topic: 'ความสูงหน้าต่าง 3.5 เมตร',
       arg: 'หน้าต่างห้องซักผ้าสูงตั้ง 3.5 เมตร แถมไม่มีบันได ใครจะปีนออกไปผูกเชือกข้างนอกได้กันล่ะ!?',
-      badge: '🪟 เบียคุยะ VS ฮิฟุมิ (ข้ออ้างหน้าต่าง)'
+      badge: '🪟 ข้ออ้างหน้าต่าง (3.5 ม.)'
     },
     suicide: {
       chal: 'นาเอกิ มาโคโตะ',
       opp: 'ฮิฟุมิ ยามาดะ',
       topic: 'ข้อสันนิษฐานการฆ่าตัวตาย',
       arg: 'เรียวตะเป็นคนถือมีดและผูกเงื่อนบ่วงเชือกเอง นี่มันการฆ่าตัวตายชัดๆ ไม่เกี่ยวกับฉันสักหน่อย!',
-      badge: '🔪 นาเอกิ VS ฮิฟุมิ (ข้ออ้างฆ่าตัวตาย)'
+      badge: '🔪 ข้ออ้างฆ่าตัวตาย'
+    },
+    victim_twist: {
+      chal: 'นาเอกิ มาโคโตะ',
+      opp: 'ฮิฟุมิ ยามาดะ',
+      topic: 'ปัดความรับผิดชอบเรื่อง Blackened',
+      arg: 'ฉันแค่จะสั่งสอนหมอนั่นเฉยๆ ไม่ได้กะให้ถึงตายสักหน่อย! คนที่ผูกคอตัวเองจนตายคือหมอนั่นเองนะ!',
+      badge: '🌀 ปัดความรับผิดชอบ Blackened'
     }
   };
   const p = presets[val] || presets.kitchen;
@@ -10801,10 +10875,18 @@ function applyPresetStage4(key, isSilent) {
     LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES.timeline;
     gameState.stg4Route = 'timeline';
     if (badge) {
-      badge.innerText = "⏱️ Route 2: เวลาตาย & แผนคนร้าย";
+      badge.innerText = "⏱️ Route 3: เวลาตาย & แผนคนร้าย";
       if (!isSilent) flashPresetBadge('stg4CardDesc');
     }
-    if (!isSilent) showToast("🛹 สลับ Logic Dive: Route 2 (The Blackened Timeline)");
+    if (!isSilent) showToast("🛹 สลับ Logic Dive: Route 3 (The Blackened Timeline)");
+  } else if (key === 'twist') {
+    LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES.twist;
+    gameState.stg4Route = 'twist';
+    if (badge) {
+      badge.innerText = "🌀 Route 2: ความจริงหักมุม (Shock Load)";
+      if (!isSilent) flashPresetBadge('stg4CardDesc');
+    }
+    if (!isSilent) showToast("🛹 สลับ Logic Dive: Route 2 (The Climax Twist)");
   } else {
     LOGIC_DIVE_DATA = LOGIC_DIVE_ROUTES.pulley;
     gameState.stg4Route = 'pulley';
@@ -10839,28 +10921,28 @@ function applyScrumPresetFromDropdown(val, isSilent) {
   }
   const presets = [
     {
-      topic: 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?',
-      left: '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก',
-      right: '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง',
-      badge: '⚖️ ฆาตกรรม vs ฆ่าตัวตาย'
+      topic: 'ใครคือ Blackened ตัวจริง: โหวตผู้วางกับดัก (A) หรือ โหวตเหยื่อผู้ดัดแปลงเชือกจนตายเอง (B)!?',
+      left: '🔵 ทีมโหวตนักมายากล (A ผู้เริ่มวางแผน)',
+      right: '🟣 ทีมโหวตเหยื่อเรียวตะ (B ผู้กระทำการชี้ขาด)',
+      badge: '⚖️ โหวต A vs โหวต B'
     },
     {
-      topic: 'การยกร่างเหยื่อขึ้นเพดาน เกิดจากแรงคนดึงสดๆ หรือกลไกถ่วงน้ำหนัก!?',
-      left: '🔵 ข้อสันนิษฐานคนร้ายดึงเชือก',
+      topic: 'การยกร่างเหยื่อขึ้นเพดาน เกิดจากแรงคนดึงสดๆ หรือกลไกถ่วงน้ำหนักอัตโนมัติ!?',
+      left: '🔵 ข้อสันนิษฐานคนร้ายออกแรงดึงเชือก',
       right: '🟣 ข้อสันนิษฐานถังน้ำหนักกลไกอัตโนมัติ',
-      badge: '⚖️ แรงคน vs ถังน้ำหนักอัตโนมัติ'
+      badge: '⚖️ แรงคน vs ถังน้ำหนัก'
     },
     {
-      topic: 'เวลาที่เรียวตะ (B) ถูกแขวนคอเสียชีวิต เกิดขึ้นก่อนหรือตอนที่ไฟดับ!?',
-      left: '🔵 ข้อสันนิษฐานตายก่อนไฟดับ (20:15)',
-      right: '🟣 ข้อสันนิษฐานตายตอนไฟดับ (20:30)',
-      badge: '⚖️ ตายก่อน vs หลังไฟดับ'
+      topic: 'ช่วงเวลาเสียชีวิตที่แท้จริงของเรียวตะ (B): เกิดขึ้นตอน 17:30 น. ในครัว หรือ 21:00 น. ในห้องซักรีด!?',
+      left: '🔵 ข้อสันนิษฐานตายในครัว (17:30 น.)',
+      right: '🟣 ข้อสันนิษฐานตายในห้องซักรีด (21:00 น.)',
+      badge: '⚖️ เวลาตาย 17:30 น. vs 21:00 น.'
     },
     {
-      topic: 'ใครคือ Blackened ผู้บงการกลไกมรณะในครั้งนี้!?',
-      left: '🔵 ฝั่งน้ำเงิน: มีผู้วางแผนจัดฉาก',
-      right: '🟣 ฝั่งชมพูม่วง: เหตุการณ์พลิกผันเกินควบคุม',
-      badge: '⚖️ ตัดสิน Blackened'
+      topic: 'สาเหตุการเสียชีวิตที่แท้จริง: กะโหลกศีรษะแตกจากท่อนกระดูก หรือ กระดูกคอหักจากเชือกกระชาก!?',
+      left: '🔵 กะโหลกศีรษะแตกจากท่อนกระดูกหมู',
+      right: '🟣 กระดูกคอหักจากแรงกระชาก Shock Load',
+      badge: '⚖️ กะโหลกแตก vs กระดูกคอหัก'
     }
   ];
   const idx = parseInt(val, 10) || 0;
@@ -10938,6 +11020,10 @@ function applyArmamentPresetFromDropdown(val, isSilent) {
     bone: {
       text: 'กระดูกหมูในหม้อสตูว์ก็แค่ของทำอาหาร! จะมาปรักปรำว่าเป็นอาวุธฟาดหัวได้ยังไงกัน!?',
       badge: '🍖 ข้ออ้างกระดูกหมู'
+    },
+    blackened_panic: {
+      text: 'ไม่จริง! ฉันต่างหากที่เป็นคนวางแผนทั้งหมด! ตำแหน่ง Blackened ต้องเป็นของฉัน ไม่ใช่ไอ้หมอนั่น!!',
+      badge: '😱 กรีดร้องแย่งตำแหน่งคนร้าย'
     },
     final: {
       text: 'พวกแกไม่มีหลักฐานมัดตัวฉันหรอก! แผนการอันสมบูรณ์แบบของฉัน... ไม่มีวันพังทลายเด็ดขาด!!',
@@ -11031,16 +11117,16 @@ function getStageConfigFromInputs(stage) {
     return { challenger: chal, opponent: opp, topic, argument: arg, statement: arg };
   } else if (stage === 'stage4') {
     const pSel = document.getElementById('adminStg4PresetSelect');
-    const route = (pSel && pSel.value === 'timeline') ? 'timeline' : ((gameState.stg4Route === 'timeline') ? 'timeline' : 'pulley');
+    const route = (pSel && pSel.value && pSel.value !== '__custom__') ? pSel.value : (gameState.stg4Route || 'pulley');
     return { route };
   } else if (stage === 'stage5') {
     const pSel = document.getElementById('adminStg5PresetSelect');
     if (pSel && pSel.value !== undefined && pSel.value !== '__custom__') {
       applyScrumPresetFromDropdown(pSel.value, true);
     }
-    const topic = document.getElementById('cfgStg5Topic')?.value || 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?';
-    const left = document.getElementById('cfgStg5Left')?.value || '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก';
-    const right = document.getElementById('cfgStg5Right')?.value || '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง';
+    const topic = document.getElementById('cfgStg5Topic')?.value || 'ใครคือ Blackened ตัวจริง: โหวตผู้วางกับดัก (A) หรือ โหวตเหยื่อผู้ดัดแปลงเชือกจนตายเอง (B)!?';
+    const left = document.getElementById('cfgStg5Left')?.value || '🔵 ทีมโหวตนักมายากล (A ผู้เริ่มวางแผน)';
+    const right = document.getElementById('cfgStg5Right')?.value || '🟣 ทีมโหวตเหยื่อเรียวตะ (B ผู้กระทำการชี้ขาด)';
     return { topic, leftTeam: left, rightTeam: right };
   } else if (stage === 'stage6') {
     const pSel = document.getElementById('adminStg6PresetSelect');
@@ -11063,7 +11149,7 @@ function getStageConfigFromInputs(stage) {
     const q = document.getElementById('cfgQqQuestion')?.value || 'เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?';
     const cA = document.getElementById('cfgQqChoiceA')?.value || '17:30 น. (ช่วงเตรียมอาหารเย็น)';
     const cB = document.getElementById('cfgQqChoiceB')?.value || '19:00 น. (ช่วงเริ่มรับประทานอาหาร)';
-    const cC = document.getElementById('cfgQqChoiceC')?.value || '20:30 น. (ช่วงก่อนไฟดับ)';
+    const cC = document.getElementById('cfgQqChoiceC')?.value || '20:30 น. (ช่วงหลังมื้ออาหารค่ำ)';
     const corr = document.getElementById('cfgQqCorrect')?.value || 'A';
     return {
       id: 'qq_' + Date.now(),
@@ -11159,14 +11245,14 @@ function adminSaveSelectedConfigGame(launchImmediately) {
     gameState.stg3Argument = arg;
   } else if (stg === 'stage4') {
     const pSel = document.getElementById('adminStg4PresetSelect');
-    const route = (pSel && pSel.value === 'timeline') ? 'timeline' : 'pulley';
+    const route = (pSel && pSel.value && pSel.value !== '__custom__') ? pSel.value : (gameState.stg4Route || 'pulley');
     config = { route, isCustom: true };
     badgeText = `✏️ กำหนดเอง: Route ${route}`;
     gameState.stg4Route = route;
   } else if (stg === 'stage5') {
-    const topic = document.getElementById('cfgStg5Topic')?.value?.trim() || 'คดีนี้เป็นการฆาตกรรมโดยคนร้าย หรือเป็นการจัดฉากฆ่าตัวตายของเหยื่อ!?';
-    const left = document.getElementById('cfgStg5Left')?.value?.trim() || '🔵 ข้อสันนิษฐานคนร้ายวางกับดัก';
-    const right = document.getElementById('cfgStg5Right')?.value?.trim() || '🟣 ข้อสันนิษฐานอุบัติเหตุ/เหยื่อทำตัวเอง';
+    const topic = document.getElementById('cfgStg5Topic')?.value?.trim() || 'ใครคือ Blackened ตัวจริง: โหวตผู้วางกับดัก (A) หรือ โหวตเหยื่อผู้ดัดแปลงเชือกจนตายเอง (B)!?';
+    const left = document.getElementById('cfgStg5Left')?.value?.trim() || '🔵 ทีมโหวตนักมายากล (A ผู้เริ่มวางแผน)';
+    const right = document.getElementById('cfgStg5Right')?.value?.trim() || '🟣 ทีมโหวตเหยื่อเรียวตะ (B ผู้กระทำการชี้ขาด)';
     config = { topic, leftTeam: left, rightTeam: right, isCustom: true };
     badgeText = `✏️ กำหนดเอง: ${topic.slice(0, 20)}...`;
     gameState.stg5Topic = topic;
@@ -11188,7 +11274,7 @@ function adminSaveSelectedConfigGame(launchImmediately) {
     const q = document.getElementById('cfgQqQuestion')?.value?.trim() || 'เวลาที่เหยื่อเรียวตะถูกลอบทำร้ายจนสลบในครัวคือช่วงเวลาใด!?';
     const cA = document.getElementById('cfgQqChoiceA')?.value?.trim() || '17:30 น. (ช่วงเตรียมอาหารเย็น)';
     const cB = document.getElementById('cfgQqChoiceB')?.value?.trim() || '19:00 น. (ช่วงเริ่มรับประทานอาหาร)';
-    const cC = document.getElementById('cfgQqChoiceC')?.value?.trim() || '20:30 น. (ช่วงก่อนไฟดับ)';
+    const cC = document.getElementById('cfgQqChoiceC')?.value?.trim() || '20:30 น. (ช่วงหลังมื้ออาหารค่ำ)';
     const corr = document.getElementById('cfgQqCorrect')?.value || 'A';
     config = {
       id: 'qq_' + Date.now(),
