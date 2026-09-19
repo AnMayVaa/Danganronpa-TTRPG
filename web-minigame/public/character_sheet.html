@@ -973,12 +973,13 @@
       <button class="btn-preset" onclick="loadPreset('gourmet')">PC 4: สายประสาทสัมผัส & พยาน</button>
       <button class="btn-preset" onclick="loadPreset('stuntman')">PC 5: สายเทคนิค & อุปกรณ์</button>
       <button class="btn-preset" onclick="loadPreset('mechanic')">PC 6: สายวิศวกรรม & ตรรกะ</button>
+      <button class="btn-preset" onclick="loadPreset('byakuya')">NPC: เบียคุยะ โทกามิ (Byakuya)</button>
     </div>
 
     <div class="action-row">
       <div style="display:flex; gap:8px;">
         <button class="print-btn" onclick="window.print()">🖨️ พิมพ์แผ่นนี้ (Print Current A4)</button>
-        <button class="print-all-btn" onclick="renderAndPrintAll()">📚 พิมพ์ครบทั้ง 6 ตัวละคร (Print All 6)</button>
+        <button class="print-all-btn" onclick="renderAndPrintAll()">📚 พิมพ์ครบทั้ง 7 ตัวละคร (Print All 7)</button>
       </div>
       <div style="display:flex; gap:8px;">
         <button class="btn-preset" onclick="document.getElementById('portraitUploader').click()">📷 ใส่รูปตัวละคร</button>
@@ -1691,6 +1692,65 @@
           <p>17:30 - 18:30 น. ตรวจมิเตอร์น้ำพบการใช้น้ำผิดปกติ</p>
           <p>20:00 - 21:00 น. นั่งคุยกับนักกีฬาในห้องนั่งเล่น</p>
         `
+      },
+      byakuya: {
+        player: "NPC (DM Controlled)",
+        character: "NPC: สุดยอดทายาทตระกูลมหาเศรษฐี (Ultimate Affluent Progeny) - เบียคุยะ โทกามิ",
+        height: "185 cm",
+        weight: "68 kg",
+        age: "17 ปี",
+        status: "ปกติ / ผู้บริสุทธิ์ (Innocent)",
+        str: "+0", agi: "+0", dex: "+1", tou: "+1", int: "+3", wis: "+2", cha: "+2", ego: "+3",
+        hp: "12", wp: "16",
+        conditions: `
+          [✔] สภาพปกติ (Healthy)<br>
+          [ ] หยิ่งผยองสูงสุด (Supreme Pride)<br>
+          [ ] รังเกียจสามัญชน (Disdain)
+        `,
+        talents: `
+          <div class="talent-feat">
+            <span class="talent-feat-title">👑 สุดยอดทายาทตระกูลมหาเศรษฐี (Ultimate Affluent Progeny):</span>
+            <p><strong>ความสามารถพิเศษ:</strong> เมื่อใช้ <strong>2d6 + INT</strong> หรือ <strong>2d6 + EGO</strong> ในการโต้แย้งในศาลชั้นเรียน หรือจับโกหก หากทอยได้ 8 ขึ้นไป สามารถชี้ Weak Point และลดเกจจิตใจของฝ่ายตรงข้ามได้รุนแรงขึ้น 2 เท่า หากถูกโจมตีทางวาจาสามารถใช้ <strong>2d6 + CHA/EGO</strong> ตอกกลับเพื่อไม่เสีย Credibility Gauge</p>
+            <p><strong>Roleplay Hook:</strong> เย่อหยิ่ง สุขุม มองทุกคนเป็นเบี้ยล่าง ไม่ยอมก้มหัวให้ใคร แต่ยึดมั่นในตรรกะความจริงสูงสุด</p>
+          </div>
+          <div class="rules-grid">
+            <div class="rule-box">
+              <strong>🔍 วิเคราะห์ตรรกะ & ข้อเท็จจริง:</strong> 2d6 + 3 (INT)<br>
+              <strong>👁️ จับโกหก & หยั่งรู้:</strong> 2d6 + 2 (WIS)
+            </div>
+            <div class="rule-box">
+              <strong>⚖️ บารมีตอกกลับในศาล:</strong> 2d6 + 3 (EGO) หรือ + 2 (CHA)<br>
+              <strong>💔 Credibility Gauge:</strong> ♡ ♡ ♡ ♡ ♡
+            </div>
+          </div>
+        `,
+        backpack: `
+          <div class="bp-cols">
+            <div>
+              <span class="bp-heading">สัมภาระติดตัว:</span>
+              <ul class="bp-list">
+                <li>Monopad คิโบกามิเนะรุ่นปรับแต่งพิเศษ</li>
+                <li>แว่นสายตากรอบทองคำขาว 18K</li>
+                <li>ผ้าเช็ดหน้าผ้าไหมปักตราตระกูลโทกามิ</li>
+                <li>ปากกาหมึกซึมทองคำ & เหรียญทองคำ</li>
+              </ul>
+            </div>
+            <div>
+              <span class="bp-heading">กระสุนความจริง:</span>
+              <ul class="bp-list">
+                <li>[✔] คำให้การตรวจตรา Blast Gate & มาตรวัดน้ำ</li>
+                <li>[✔] เครื่องอบผ้าตั้ง Delay Timer 21:00 น.</li>
+                <li>[✔] ราวท่อเพดานมีรอยขูดและปม Stopper Knot ขัดแน่น</li>
+              </ul>
+            </div>
+          </div>
+        `,
+        notes: `
+          <p><strong>ไทม์ไลน์สังเกตการณ์:</strong></p>
+          <p>17:30 - 18:15 น. ตรวจประตูกล Blast Gate และมาตรวัดน้ำประปา</p>
+          <p>18:00 น. สังเกตเห็น PC 4 เดินอยู่ที่ทางเดินกระจกใส</p>
+          <p>19:00 น. ร่วมโต๊ะอาหารมื้อค่ำและสังเกตว่าเรียวตะไม่ปรากฏตัว</p>
+        `
       }
     };
 
@@ -1770,7 +1830,7 @@
 
     function renderAndPrintAll() {
       const originalHTML = document.getElementById('sheetContainer').innerHTML;
-      const chars = ['novelist', 'athlete', 'magician', 'gourmet', 'stuntman', 'mechanic'];
+      const chars = ['novelist', 'athlete', 'magician', 'gourmet', 'stuntman', 'mechanic', 'byakuya'];
       
       let allSheetsHTML = '';
       chars.forEach(key => {
