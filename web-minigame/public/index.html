@@ -3472,6 +3472,57 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- MODAL 5B: MANGA PANEL INSPECTOR (CLOSING ARGUMENT) -->
+  <!-- ============================================== -->
+  <div id="mangaPanelInspectorModal" class="modal-backdrop hidden" onclick="if(event.target===this) closeMangaPanelInspector()">
+    <div class="modal-dialog manga-inspector-dialog">
+      <div class="modal-title-bar manga-inspector-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span id="mangaInspectorBadge" class="manga-tag-badge story">📖 ลำดับเหตุการณ์</span>
+          <h3 id="mangaInspectorTitle" class="modal-title" style="color: #fff; margin:0; font-size:1.05rem; font-weight:900;">มังงะช่องที่ 1</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeMangaPanelInspector()" aria-label="ปิดหน้าต่างตรวจสอบมังงะ" style="background:none; border:none; color:#94a3b8; font-size:1.4rem; cursor:pointer; line-height:1;">✕</button>
+      </div>
+      <div class="manga-inspector-body">
+        <!-- Manga Artwork Frame -->
+        <div class="manga-inspector-art-wrap">
+          <img id="mangaInspectorImage" src="" alt="Manga Artwork" class="manga-inspector-img" />
+          <div id="mangaInspectorSfx" class="manga-inspector-sfx">*CRASH!*</div>
+          <div class="manga-inspector-metabar">
+            <span id="mangaInspectorTime"><i class="fas fa-clock"></i> 17:30 น.</span>
+            <span id="mangaInspectorLocation"><i class="fas fa-map-marker-alt"></i> ห้องซักรีด</span>
+          </div>
+        </div>
+
+        <!-- Narration Card -->
+        <div class="manga-inspector-section">
+          <div class="manga-inspector-sec-label">📜 คำบรรยายเหตุการณ์ (NARRATION):</div>
+          <p id="mangaInspectorDesc" class="manga-inspector-desc">-</p>
+        </div>
+
+        <!-- Dialogue Bubble -->
+        <div id="mangaInspectorDialogueBox" class="manga-inspector-dialogue-box">
+          <div class="manga-bubble-speaker">💬 บทสนทนา / เสียงที่เกิดขึ้น:</div>
+          <p id="mangaInspectorDialogue" class="manga-inspector-dialogue-text">-</p>
+        </div>
+
+        <!-- Evidence Reference Clue -->
+        <div id="mangaInspectorEvidenceBox" class="manga-inspector-evidence-box">
+          <span class="manga-evidence-label">🔍 หลักฐานเชื่อมโยง:</span>
+          <span id="mangaInspectorEvidence" class="manga-evidence-val">-</span>
+        </div>
+      </div>
+
+      <!-- Navigation & Close Footer -->
+      <div class="manga-inspector-footer">
+        <button type="button" class="small-btn grey" onclick="navInspectorPanel(-1)">◀ ช่องก่อนหน้า</button>
+        <span id="mangaInspectorPageInd" style="color:var(--court-gold); font-weight:800; font-size:0.85rem;">หน้า 1 / 5 • ช่อง 1 / 4</span>
+        <button type="button" class="small-btn grey" onclick="navInspectorPanel(1)">ช่องถัดไป ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
   <!-- MODAL 6: NORMAL ROOM INSPECTION (BLUEPRINT)   -->
   <!-- ============================================== -->
   <div id="normalRoomInspectionModal" class="modal-backdrop hidden" onclick="if(event.target===this) closeNormalRoomModal()">

@@ -6847,7 +6847,13 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🥩',
-        desc: '[TRAPPER] ซึ่งมีหน้าที่เตรียมอาหารเย็น แอบนำท่อนกระดูกหมูแช่แข็งชิ้นใหญ่ออกจากช่องฟรีซในครัวมาเตรียมไว้'
+        image: 'assets/Rooms/room_kitchen.jpg',
+        timestamp: '17:00 น.',
+        location: 'ห้องครัวโรงเรียน',
+        sfxBadge: '*SHHHL*',
+        desc: '[TRAPPER] ซึ่งมีหน้าที่เตรียมอาหารเย็น แอบนำท่อนกระดูกหมูแช่แข็งชิ้นใหญ่ออกจากช่องฟรีซในครัวมาเตรียมไว้',
+        dialogue: '[TRAPPER]: "กระดูกชิ้นนี้... ทั้งหนาและแข็งเหมือนแท่งเหล็ก ถ้าใช้ฟาดทีเดียวคงสลบเหมือด..."',
+        evidence: 'EVD-13 ท่อนกระดูกหมูแช่แข็ง (ในช่องฟรีซ)'
       },
       {
         num: 2,
@@ -6856,8 +6862,14 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P1-S1', 'EVD-14', 'EVD-12', 'ACTION-CUT'],
         art: '🍖',
+        image: 'assets/item/item_pork_bone.jpg',
+        timestamp: '17:30 น.',
+        location: 'ห้องซักรีด ปีกบริการ',
+        sfxBadge: '*CRACK!*',
         title: 'ช่องว่างที่ 1: การลงมือจู่โจม',
-        desc: '[TRAPPER] ดักซุ่มในห้องซักรีด ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยคนร้ายจนสลบแน่นิ่งเวลา 17:30 น.'
+        desc: '[TRAPPER] ดักซุ่มในห้องซักรีด ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยคนร้ายจนสลบแน่นิ่งเวลา 17:30 น.',
+        dialogue: '[TRAPPER]: "ผลั่ก! ...ขอโทษนะเรียวตะ แต่เพื่อความอยู่รอดของฉัน นายต้องเสียสละ!"',
+        evidence: 'EVD-13 ท่อนกระดูกหมู & EVD-25 ผ้าขนหนูเปื้อนเลือด'
       },
       {
         num: 3,
@@ -6866,14 +6878,26 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P1-S2', 'EVD-11', 'EVD-09', 'ACTION-NOOSE'],
         art: '🍲',
+        image: 'assets/Crime_Scene/crime_scene_kitchen_stew.jpg',
+        timestamp: '17:40 น.',
+        location: 'หม้อต้มในห้องครัว',
+        sfxBadge: '*PLOP!*',
         title: 'ช่องว่างที่ 2: การทำลายหลักฐานและอาวุธ',
-        desc: '[TRAPPER] โยนท่อนกระดูกหมูเปื้อนเลือดลงก้นหม้อสตูว์เนื้อที่กำลังเดือดในครัวเพื่อต้มล้างคราบและซ่อนอาวุธ'
+        desc: '[TRAPPER] โยนท่อนกระดูกหมูเปื้อนเลือดลงก้นหม้อสตูว์เนื้อที่กำลังเดือดในครัวเพื่อต้มล้างคราบและซ่อนอาวุธ',
+        dialogue: '[TRAPPER]: "ต้มลงในหม้อสตูว์เนื้อซะ... คราบเลือดจะกลายเป็นน้ำซุป และไม่มีใครหามันเจอ!"',
+        evidence: 'EVD-02 หม้อสตูว์เนื้อ & EVD-26 ไวน์แดงดับกลิ่น'
       },
       {
         num: 4,
         type: 'story',
         art: '🥘',
-        desc: 'ไขมันและกลิ่นเครื่องเทศของสตูว์เนื้อกลบคราบเลือดจนมิด กลายเป็นอาหารเย็นที่ทุกคนทานร่วมกัน'
+        image: 'assets/Rooms/room_dining_hall.jpg',
+        timestamp: '19:00 น.',
+        location: 'โรงอาหาร',
+        sfxBadge: '*YUMMY*',
+        desc: 'ไขมันและกลิ่นเครื่องเทศของสตูว์เนื้อกลบคราบเลือดจนมิด กลายเป็นอาหารเย็นที่ทุกคนทานร่วมกัน',
+        dialogue: 'เพื่อนๆ: "สตูว์วันนี้อร่อยจังเลยนะ [TRAPPER]! เนื้อนุ่มจนแทบละลายในปากเลย!"',
+        evidence: 'EVD-16 ตารางเวรทำอาหารบน Monopad'
       }
     ]
   },
@@ -6885,7 +6909,13 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🚪',
-        desc: 'คนร้ายสลบแน่นิ่งอยู่บนพื้นห้องซักรีด [TRAPPER] จึงเริ่มติดตั้งกลไกเชือกและรอกตามแผนการวางกับดัก'
+        image: 'assets/Crime_Scene/crime_scene_laundry.jpg',
+        timestamp: '17:45 น.',
+        location: 'ห้องซักรีด ชั้น 1',
+        sfxBadge: '*CREAK*',
+        desc: 'คนร้ายสลบแน่นิ่งอยู่บนพื้นห้องซักรีด [TRAPPER] จึงเริ่มติดตั้งกลไกเชือกและรอกตามแผนการวางกับดัก',
+        dialogue: '[TRAPPER]: "ร่างนี้หมดสติสนิท... ต่อไปคือการโยงเชือกขึ้นเพดานตามแบบแผนที่คำนวณไว้..."',
+        evidence: 'EVD-04 บันทึกแผนผังห้องซักรีด'
       },
       {
         num: 2,
@@ -6894,8 +6924,14 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P2-S1'],
         art: '🪢',
+        image: 'assets/item/item_pink_rope.jpg',
+        timestamp: '18:00 น.',
+        location: 'ห้องซักรีด ชั้น 1',
+        sfxBadge: '*BIND*',
         title: 'ช่องว่างที่ 1: การมัดร่างและคล้องเชือก',
-        desc: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูร้อยผูกมัดลำตัวและคล้องหลวมๆ รอบคอของคนร้าย'
+        desc: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูร้อยผูกมัดลำตัวและคล้องหลวมๆ รอบคอของคนร้าย',
+        dialogue: '[TRAPPER]: "มัดตัวไว้แน่นหนา คล้องบ่วงไว้หลวมๆ เพื่อรอน้ำหนักถ่วงดึงร่างขึ้นไป..."',
+        evidence: 'EVD-14 เชือกไนลอนสีชมพูห้องซักรีด'
       },
       {
         num: 3,
@@ -6904,14 +6940,26 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P2-S2'],
         art: '⚙️',
+        image: 'assets/item/item_ceiling_pipe.jpg',
+        timestamp: '18:15 น.',
+        location: 'เพดานห้องซักรีด',
+        sfxBadge: '*SLIDE*',
         title: 'ช่องว่างที่ 2: การทำรอกชักร่างขึ้นเพดาน',
-        desc: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอกชักน้ำหนัก'
+        desc: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอกชักน้ำหนัก',
+        dialogue: '[TRAPPER]: "ราวท่อสแตนเลสนี้แข็งแรงพอที่จะรับน้ำหนักตัวคนได้สบายๆ..."',
+        evidence: 'EVD-14 ราวท่อส่งไอน้ำเพดาน (รอยเสียดสีเชือก)'
       },
       {
         num: 4,
         type: 'story',
         art: '🪟',
-        desc: '[TRAPPER] โยนปลายเชือกอีกด้านออกนอกหน้าต่างระบายอากาศสูง 3.5 เมตร สู่ลานคอร์ทยาร์ดภายนอก'
+        image: 'assets/item/item_laundry_window.jpg',
+        timestamp: '18:30 น.',
+        location: 'หน้าต่างระบายอากาศห้องซักรีด',
+        sfxBadge: '*TOSS*',
+        desc: '[TRAPPER] โยนปลายเชือกอีกด้านออกนอกหน้าต่างระบายอากาศสูง 3.5 เมตร สู่ลานคอร์ทยาร์ดภายนอก',
+        dialogue: '[TRAPPER]: "โยนปลายเชือกออกไปที่ลานด้านนอก... เท่านี้กลไกภายในห้องซักรีดก็เสร็จสมบูรณ์"',
+        evidence: 'EVD-17 บานเกล็ดหน้าต่างระบายอากาศเปิดอ้า'
       }
     ]
   },
@@ -6923,7 +6971,13 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🏢',
-        desc: 'ที่ลานคอร์ทยาร์ดนอกอาคาร [TRAPPER] วางถังน้ำพลาสติก 80 ลิตรไว้ตรงกับแนวหน้าต่างห้องซักรีด'
+        image: 'assets/Rooms/room_courtyard.jpg',
+        timestamp: '18:35 น.',
+        location: 'ลานคอร์ทยาร์ดภายนอก',
+        sfxBadge: '*THUD*',
+        desc: 'ที่ลานคอร์ทยาร์ดนอกอาคาร [TRAPPER] วางถังน้ำพลาสติก 80 ลิตรไว้ตรงกับแนวหน้าต่างห้องซักรีด',
+        dialogue: '[TRAPPER]: "จุดนี้ไม่มีกล้องวงจรปิดส่องถึง วางถังน้ำตรงนี้จะตรงกับแนวดิ่งพอดี"',
+        evidence: 'EVD-08 ลานคอร์ทยาร์ดปีกบริการ'
       },
       {
         num: 2,
@@ -6932,8 +6986,14 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P3-S1'],
         art: '🪣',
+        image: 'assets/item/item_shattered_barrel.jpg',
+        timestamp: '18:45 น.',
+        location: 'ลานคอร์ทยาร์ดภายนอก',
+        sfxBadge: '*TIE*',
         title: 'ช่องว่างที่ 1: การผูกถังถ่วงน้ำหนัก',
-        desc: '[TRAPPER] ผูกปลายเชือกไนลอนที่หย่อนลงมาเข้ากับหูหิ้วของถังน้ำ เพื่อทำหน้าที่เป็นน้ำหนักถ่วง (Counterweight)'
+        desc: '[TRAPPER] ผูกปลายเชือกไนลอนที่หย่อนลงมาเข้ากับหูหิ้วของถังน้ำ เพื่อทำหน้าที่เป็นน้ำหนักถ่วง (Counterweight)',
+        dialogue: '[TRAPPER]: "ผูกเงื่อนสองชั้นเข้ากับหูหิ้วถัง... เมื่อน้ำหนักเต็ม ถังจะกลายเป็นตัวฉุดมหาศาล"',
+        evidence: 'EVD-10 เศษถังพลาสติก 80 ลิตรแตกกระจาย'
       },
       {
         num: 3,
@@ -6942,14 +7002,26 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P3-S2'],
         art: '🚰',
+        image: 'assets/item/item_water_hose.jpg',
+        timestamp: '18:50 น.',
+        location: 'ก๊อกน้ำห้องซักรีดสู่คอร์ทยาร์ด',
+        sfxBadge: '*DRIP...*',
         title: 'ช่องว่างที่ 2: กลไกนาฬิกาน้ำตั้งเวลา',
-        desc: '[TRAPPER] ต่อสายยางน้ำประปาเข้าก๊อก เปิดน้ำให้ไหลเติมลงถังอย่างช้าๆ 0.4 ลิตร/นาที (กลไกนาฬิกาน้ำ)'
+        desc: '[TRAPPER] ต่อสายยางน้ำประปาเข้าก๊อก เปิดน้ำให้ไหลเติมลงถังอย่างช้าๆ 0.4 ลิตร/นาที (กลไกนาฬิกาน้ำ)',
+        dialogue: '[TRAPPER]: "เปิดหรี่วาล์วน้ำไว้ที่ 0.40 ลิตรต่อนาที... อีก 130 นาทีน้ำจะเต็มถังตอน 21:00 น. พอดี!"',
+        evidence: 'EVD-15 สายยางสีเขียว & มาตรวัดน้ำ EVD-18'
       },
       {
         num: 4,
         type: 'story',
         art: '⏳',
-        desc: 'กลไกนาฬิกาน้ำเริ่มทำงาน ระดับน้ำจะค่อยๆ เพิ่มขึ้นจนมีน้ำหนักมากพอที่จะกระชากเชือกเมื่อครบกำหนดเวลา 21:00 น.'
+        image: 'assets/item/item_water_drops.jpg',
+        timestamp: '19:00 น.',
+        location: 'ถังน้ำลานคอร์ทยาร์ด',
+        sfxBadge: '*TICK-TOCK*',
+        desc: 'กลไกนาฬิกาน้ำเริ่มทำงาน ระดับน้ำจะค่อยๆ เพิ่มขึ้นจนมีน้ำหนักมากพอที่จะกระชากเชือกเมื่อครบกำหนดเวลา 21:00 น.',
+        dialogue: 'Monokuma: "อุปุ๊ปุ๊! นาฬิกาน้ำมรณะกำลังนับถอยหลังสู่เวลาสังหารอย่างเงียบเชียบ..."',
+        evidence: 'EVD-18 มาตรวัดน้ำประปาบันทึกการไหล 52 ลิตร'
       }
     ]
   },
@@ -6964,8 +7036,14 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P4-S1'],
         art: '⏱️',
+        image: 'assets/item/item_dryer_dry1.jpg',
+        timestamp: '18:55 น.',
+        location: 'ห้องซักรีด ชั้น 1',
+        sfxBadge: '*BEEP*',
         title: 'ช่องว่างที่ 1: การตั้งเวลาเครื่องอบผ้าล่วงหน้า',
-        desc: 'ก่อนออกจากห้องซักรีด [TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้า (Delay Timer) ให้เริ่มทำงานตอน 21:00 น.'
+        desc: 'ก่อนออกจากห้องซักรีด [TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้า (Delay Timer) ให้เริ่มทำงานตอน 21:00 น.',
+        dialogue: '[TRAPPER]: "ตั้งโปรแกรม Delay Start ไว้ 2 ชั่วโมง... เครื่องจะปั่นทำงานตอน 21:00 น. เป๊ะ!"',
+        evidence: 'EVD-05 เครื่องอบผ้าอุตสาหกรรม DRY-1'
       },
       {
         num: 2,
@@ -6974,20 +7052,38 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P4-S2'],
         art: '👢',
+        image: 'assets/item/item_dryer_dry1.jpg',
+        timestamp: '18:58 น.',
+        location: 'ถังปั่นเครื่องอบผ้า DRY-1',
+        sfxBadge: '*CLATTER*',
         title: 'ช่องว่างที่ 2: วัตถุสร้างเสียงต่อสู้หลอก',
-        desc: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้า DRY-1 เพื่อให้เกิดเสียงกระแทกเลียนแบบการต่อสู้หลอกตอน 21:00 น.'
+        desc: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้า DRY-1 เพื่อให้เกิดเสียงกระแทกเลียนแบบการต่อสู้หลอกตอน 21:00 น.',
+        dialogue: '[TRAPPER]: "รองเท้าบูทหนังหนาคู่นี้ เมื่อหมุนในถังอบผ้าจะดัง \'โครม! คราม!\' เหมือนมีคนกำลังดิ้นรนต่อสู้!"',
+        evidence: 'EVD-05 รองเท้าบูทหนังในถังอบผ้า'
       },
       {
         num: 3,
         type: 'story',
         art: '🕯️',
-        desc: '[TRAPPER] กลับไปร่วมโต๊ะอาหารค่ำเวลา 19:00 น. และนั่งคุยกับทุกคนในห้องนั่งเล่นจนถึง 21:00 น. เพื่อสร้าง Alibi ว่าตนไม่ได้อยู่ในที่เกิดเหตุ'
+        image: 'assets/Rooms/room_dining_hall.jpg',
+        timestamp: '19:00 – 21:00 น.',
+        location: 'ห้องอาหารและห้องนั่งเล่น',
+        sfxBadge: '*ALIBI*',
+        desc: '[TRAPPER] กลับไปร่วมโต๊ะอาหารค่ำเวลา 19:00 น. และนั่งคุยกับทุกคนในห้องนั่งเล่นจนถึง 21:00 น. เพื่อสร้าง Alibi ว่าตนไม่ได้อยู่ในที่เกิดเหตุ',
+        dialogue: '[TRAPPER]: "ฉันอยู่กับทุกคนตลอดเวลาตั้งแต่ 19:00 น. ไม่มีทางที่จะไปฆ่าใครตอน 21:00 น. ได้แน่นอน!"',
+        evidence: 'EVD-03 พยานปากเอกของเพื่อนทุกคนในห้องนั่งเล่น'
       },
       {
         num: 4,
         type: 'story',
         art: '🔪',
-        desc: 'แต่ก่อน 21:00 น. คนร้ายฟื้นสติขึ้นมา! เมื่อพบว่าตนถูกลอบทำร้ายใน Killing Game คนร้ายไม่ยอมหนี แต่ชักมีดพับออกมาตัดเชือกเพื่อ "ซ้อนแผน" วางกับดักย้อนกลับใส่ผู้ที่ทำร้ายตน!'
+        image: 'assets/item/item_pocket_knife.jpg',
+        timestamp: '20:45 น.',
+        location: 'ห้องซักรีด ชั้น 1',
+        sfxBadge: '*SLASH!*',
+        desc: 'แต่ก่อน 21:00 น. คนร้ายฟื้นสติขึ้นมา! เมื่อพบว่าตนถูกลอบทำร้ายใน Killing Game คนร้ายไม่ยอมหนี แต่ชักมีดพับออกมาตัดเชือกเพื่อ "ซ้อนแผน" วางกับดักย้อนกลับใส่ผู้ที่ทำร้ายตน!',
+        dialogue: 'คนร้าย: "หึ... คิดจะฆ่าฉันเหรอ? ในฐานะสุดยอดนักเอาตัวรอด ฉันจะซ้อนแผนกับดักนี้ แกล้งตายเพื่อลากแกไปประหารในศาล!"',
+        evidence: 'EVD-09 มีดพับปลายแหลม & รอยตัดเชือกคมกริบ'
       }
     ]
   },
@@ -6999,7 +7095,13 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🪢',
-        desc: 'คนร้ายรีบผูกต่อเชือกใหม่และปีนขึ้นไปดัดแปลงบ่วงบนเพดานเพื่อจัดฉากฆาตกรรมย้อนกลับ แต่ในความมืดและความลนลาน เงื่อนบ่วงใหม่กลับคล้องรัดคอของคนร้ายเองจนแน่นหนาและปลดไม่ออก!'
+        image: 'assets/item/item_pink_rope.jpg',
+        timestamp: '20:55 น.',
+        location: 'ใต้ราวท่อเพดานห้องซักรีด',
+        sfxBadge: '*KNOT*',
+        desc: 'คนร้ายรีบผูกต่อเชือกใหม่และปีนขึ้นไปดัดแปลงบ่วงบนเพดานเพื่อจัดฉากฆาตกรรมย้อนกลับ แต่ในความมืดและความลนลาน เงื่อนบ่วงใหม่กลับคล้องรัดคอของคนร้ายเองจนแน่นหนาและปลดไม่ออก!',
+        dialogue: 'คนร้าย: "บ้าเอ๊ย! เชือกไนลอนมันลื่นและมัดเงื่อนตาย... ปลดบ่วงไม่ออก! ถังน้ำข้างนอกกำลังจะร่วงแล้ว!!"',
+        evidence: 'EVD-14 เงื่อนเชือกประดิษฐ์เองของเรียวตะ'
       },
       {
         num: 2,
@@ -7008,8 +7110,14 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P5-S1'],
         art: '💥',
+        image: 'assets/Crime_Scene/crime_scene_courtyard_impact.jpg',
+        timestamp: '21:00:00 น.',
+        location: 'ลานคอร์ทยาร์ด',
+        sfxBadge: '*KRA-BOOM!!*',
         title: 'ช่องว่างที่ 1: จังหวะถังน้ำร่วงกระแทกพื้น',
-        desc: 'เวลา 21:00 น. น้ำในถังคอร์ทยาร์ดสะสมจนหนักทะลุ 70 กก. ดึงถังร่วงกระแทกพื้นแตกกระจายตามเวลา'
+        desc: 'เวลา 21:00 น. น้ำในถังคอร์ทยาร์ดสะสมจนหนักทะลุ 70 กก. ดึงถังร่วงกระแทกพื้นแตกกระจายตามเวลา',
+        dialogue: 'เสียงดังสนั่น: "โครมมมมมมมมมมมมม! ถังน้ำมวล 65.2 กิโลกรัมร่วงดิ่งจากอากาศกระแทกพื้นลานคอร์ทยาร์ดแตกเป็นชิ้นเล็กชิ้นน้อย!"',
+        evidence: 'EVD-10 ชิ้นส่วนถังแตก & พื้นคอร์ทยาร์ดเจิ่งนอง'
       },
       {
         num: 3,
@@ -7018,46 +7126,58 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P5-S2'],
         art: '⛓️',
+        image: 'assets/Crime_Scene/crime_scene_victim_discovery.jpg',
+        timestamp: '21:00:02 น.',
+        location: 'ห้องซักรีด ชั้น 1',
+        sfxBadge: '*SNAP!!*',
         title: 'ช่องว่างที่ 2: บ่วงเชือกกระชากร่างคนร้าย',
-        desc: 'แรงกระชากดึงเชือกเส้นใหม่ที่คนร้ายผูกพลาด ยกร่างคนร้ายลอยขึ้นไปแขวนตรึงติดราวท่อเพดานจนกระดูกคอหักเสียชีวิตทันที!'
+        desc: 'แรงกระชากดึงเชือกเส้นใหม่ที่คนร้ายผูกพลาด ยกร่างคนร้ายลอยขึ้นไปแขวนตรึงติดราวท่อเพดานจนกระดูกคอหักเสียชีวิตทันที!',
+        dialogue: 'แรง Shock Load: "กริ๊กกกก-เป๊าะ! แรงกระชากกว่า 3,000 นิวตันกระชากบ่วงเชือกที่เรียวตะคล้องคอตนเองจนกระดูกต้นคอหักสะบั้น สิ้นลมหายใจทันที!"',
+        evidence: 'EVD-01 รายงานการชันสูตร Monokuma File #1'
       },
       {
         num: 4,
         type: 'story',
         art: '⚖️',
-        desc: 'เครื่องอบผ้าทำงานเกิดเสียงรองเท้าบูทกระแทกโครมครามตามที่ [TRAPPER] ตั้งเวลาไว้ หลอกให้ทุกคนพังประตูเข้ามาพบศพ! แต่แท้จริงแล้วผู้ที่ผูกเงื่อนเชือกเส้นตายที่สังหารตนเองก็คือ "คนร้าย (The Blackened)" นั่นเอง!'
+        image: 'assets/Rooms/room_courtroom.jpg',
+        timestamp: '21:05 น.',
+        location: 'ศาลชั้นเรียน',
+        sfxBadge: '*OBJECTION!*',
+        desc: 'เครื่องอบผ้าทำงานเกิดเสียงรองเท้าบูทกระแทกโครมครามตามที่ [TRAPPER] ตั้งเวลาไว้ หลอกให้ทุกคนพังประตูเข้ามาพบศพ! แต่แท้จริงแล้วผู้ที่ผูกเงื่อนเชือกเส้นตายที่สังหารตนเองก็คือ "คนร้าย (The Blackened)" นั่นเอง!',
+        dialogue: 'Monokuma: "อุปุ๊ปุ๊ปุ๊! และนี่คือความจริงเบื้องหลังคดีฆ่าตัวตายโดยไม่ตั้งใจของสุดยอดนักเอาตัวรอด ผู้เป็น Blackened ตัวจริง!"',
+        evidence: 'บทสรุปคำพิพากษาคดีศาลชั้นเรียนที่ 1'
       }
     ]
   }
 ];
 
 const CLOSING_CARDS_DATA = [
-  { id: 'CARD-P1-S1', page: 1, slot: 1, title: '[TRAPPER] ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยคนร้ายจนสลบในห้องซักรีด (17:30 น.)', icon: '🍖' },
-  { id: 'CARD-P1-S2', page: 1, slot: 2, title: '[TRAPPER] โยนท่อนกระดูกหมูเปื้อนเลือดลงไปต้มในหม้อสตูว์เนื้อเพื่อทำลายหลักฐาน', icon: '🍲' },
-  { id: 'CARD-P2-S1', page: 2, slot: 3, title: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูผูกมัดลำตัวและคล้องคอคนร้าย', icon: '🪢' },
-  { id: 'CARD-P2-S2', page: 2, slot: 4, title: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️' },
-  { id: 'CARD-P3-S1', page: 3, slot: 5, title: '[TRAPPER] ผูกปลายเชือกไนลอนเข้ากับหูหิ้วถังน้ำพลาสติก 80 ลิตรที่ลานคอร์ทยาร์ด', icon: '🪣' },
-  { id: 'CARD-P3-S2', page: 3, slot: 6, title: '[TRAPPER] ต่อสายยางเปิดน้ำประปาไหลเติมลงถังทีละน้อย 0.4 ลิตร/นาที (นาฬิกาน้ำ)', icon: '🚰' },
-  { id: 'CARD-P4-S1', page: 4, slot: 7, title: '[TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้าให้เริ่มทำงานตอน 21:00 น. ก่อนไปทานอาหาร', icon: '⏱️' },
-  { id: 'CARD-P4-S2', page: 4, slot: 8, title: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น.', icon: '👢' },
-  { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย (21:00 น.)', icon: '💥' },
-  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงบ่วงเชือกที่คนร้ายผูกพลาด ยกร่างคนร้ายขึ้นแขวนติดท่อเพดานจนเสียชีวิต', icon: '⛓️' },
+  { id: 'CARD-P1-S1', page: 1, slot: 1, title: '[TRAPPER] ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยคนร้ายจนสลบในห้องซักรีด (17:30 น.)', icon: '🍖', thumb: 'assets/item/item_pork_bone.jpg' },
+  { id: 'CARD-P1-S2', page: 1, slot: 2, title: '[TRAPPER] โยนท่อนกระดูกหมูเปื้อนเลือดลงไปต้มในหม้อสตูว์เนื้อเพื่อทำลายหลักฐาน', icon: '🍲', thumb: 'assets/Crime_Scene/crime_scene_kitchen_stew.jpg' },
+  { id: 'CARD-P2-S1', page: 2, slot: 3, title: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูผูกมัดลำตัวและคล้องคอคนร้าย', icon: '🪢', thumb: 'assets/item/item_pink_rope.jpg' },
+  { id: 'CARD-P2-S2', page: 2, slot: 4, title: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️', thumb: 'assets/item/item_ceiling_pipe.jpg' },
+  { id: 'CARD-P3-S1', page: 3, slot: 5, title: '[TRAPPER] ผูกปลายเชือกไนลอนเข้ากับหูหิ้วถังน้ำพลาสติก 80 ลิตรที่ลานคอร์ทยาร์ด', icon: '🪣', thumb: 'assets/item/item_shattered_barrel.jpg' },
+  { id: 'CARD-P3-S2', page: 3, slot: 6, title: '[TRAPPER] ต่อสายยางเปิดน้ำประปาไหลเติมลงถังทีละน้อย 0.4 ลิตร/นาที (นาฬิกาน้ำ)', icon: '🚰', thumb: 'assets/item/item_water_hose.jpg' },
+  { id: 'CARD-P4-S1', page: 4, slot: 7, title: '[TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้าให้เริ่มทำงานตอน 21:00 น. ก่อนไปทานอาหาร', icon: '⏱️', thumb: 'assets/item/item_dryer_dry1.jpg' },
+  { id: 'CARD-P4-S2', page: 4, slot: 8, title: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น.', icon: '👢', thumb: 'assets/item/item_dryer_dry1.jpg' },
+  { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย (21:00 น.)', icon: '💥', thumb: 'assets/Crime_Scene/crime_scene_courtyard_impact.jpg' },
+  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงบ่วงเชือกที่คนร้ายผูกพลาด ยกร่างคนร้ายขึ้นแขวนติดท่อเพดานจนเสียชีวิต', icon: '⛓️', thumb: 'assets/Crime_Scene/crime_scene_victim_discovery.jpg' },
   // 15 unique decoy cards
-  { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'คนร้ายแกล้งสลบแล้วชักมีดพับออกมาแทงสวน [TRAPPER] ในห้องครัว', icon: '🔪', decoy: true },
-  { id: 'DECOY-LADDER', page: 0, slot: 0, title: '[TRAPPER] ปีนบันไดออกไปทางหน้าต่างสูงเพื่อผูกเชือกภายนอกอาคาร', icon: '🪜', decoy: true },
-  { id: 'DECOY-VALVE', page: 0, slot: 0, title: '[TRAPPER] แอบไปปิดวาล์วน้ำหลักทั้งอาคารเพื่อไม่ให้มีใครใช้น้ำได้', icon: '🔧', decoy: true },
-  { id: 'DECOY-WASH', page: 0, slot: 0, title: '[TRAPPER] นำเสื้อผ้าเปื้อนเลือดของตนเองใส่ลงไปปั่นซักในเครื่องซักผ้า', icon: '🫧', decoy: true },
-  { id: 'DECOY-DOOR', page: 0, slot: 0, title: '[TRAPPER] ใช้โซ่เหล็กคล้องล็อกประตูด้านนอกของห้องซักรีดไว้', icon: '🔒', decoy: true },
-  { id: 'DECOY-POISON', page: 0, slot: 0, title: '[TRAPPER] แอบหยอดยาพิษร้ายแรงลงในแก้วน้ำชาของคนร้ายก่อนลงมือ', icon: '🧪', decoy: true },
-  { id: 'DECOY-VENT', page: 0, slot: 0, title: '[TRAPPER] มุดท่อระบายอากาศจากห้องครัวตรงไปยังห้องซักรีดโดยไม่ผ่านโถงทางเดิน', icon: '🕳️', decoy: true },
-  { id: 'DECOY-FREEZER', page: 0, slot: 0, title: '[TRAPPER] ซ่อนร่างของคนร้ายไว้ในตู้แช่แข็งขนาดใหญ่จนตัวแข็งก่อนนำไปแขวน', icon: '🧊', decoy: true },
-  { id: 'DECOY-WEIGHTS', page: 0, slot: 0, title: '[TRAPPER] ใช้ดัมเบลและแผ่นเหล็กยกน้ำหนักจากยิมมาถ่วงน้ำหนักแทนถังน้ำ', icon: '🏋️', decoy: true },
-  { id: 'DECOY-GLOVES', page: 0, slot: 0, title: '[TRAPPER] สวมถุงมือยางและโยนทิ้งลงในเตาเผาขยะเพื่อไม่ให้ทิ้งรอยนิ้วมือ', icon: '🧤', decoy: true },
-  { id: 'DECOY-CLOCK', page: 0, slot: 0, title: '[TRAPPER] หมุนเข็มนาฬิกาแขวนผนังในห้องซักรีดให้เร็วขึ้น 30 นาทีเพื่อลวงเวลา', icon: '⏰', decoy: true },
-  { id: 'DECOY-WINDOW', page: 0, slot: 0, title: '[TRAPPER] ใช้ค้อนทุบกระจกหน้าต่างห้องซักรีดให้แตกเพื่อแกล้งทำเป็นทางหลบหนี', icon: '🪟', decoy: true },
-  { id: 'DECOY-CURTAIN', page: 0, slot: 0, title: '[TRAPPER] ใช้ผ้าม่านห้องอาบน้ำห่อหุ้มร่างคนร้ายเพื่อป้องกันเลือดเปรอะเปื้อนพื้น', icon: '🚿', decoy: true },
-  { id: 'DECOY-CLEANER', page: 0, slot: 0, title: '[TRAPPER] ใช้น้ำยาฟอกขาวเข้มข้นราดขัดพื้นห้องซักรีดเพื่อกำจัดรอยรองเท้า', icon: '🧴', decoy: true },
-  { id: 'DECOY-FIRE', page: 0, slot: 0, title: '[TRAPPER] จุดไฟเผากองเศษผ้าเพื่อเปิดระบบสปริงเกลอร์ฉีดน้ำล้างห้อง', icon: '🔥', decoy: true }
+  { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'คนร้ายแกล้งสลบแล้วชักมีดพับออกมาแทงสวน [TRAPPER] ในห้องครัว', icon: '🔪', thumb: 'assets/item/item_pocket_knife.jpg', decoy: true },
+  { id: 'DECOY-LADDER', page: 0, slot: 0, title: '[TRAPPER] ปีนบันไดออกไปทางหน้าต่างสูงเพื่อผูกเชือกภายนอกอาคาร', icon: '🪜', thumb: 'assets/Rooms/room_gymnasium.jpg', decoy: true },
+  { id: 'DECOY-VALVE', page: 0, slot: 0, title: '[TRAPPER] แอบไปปิดวาล์วน้ำหลักทั้งอาคารเพื่อไม่ให้มีใครใช้น้ำได้', icon: '🔧', thumb: 'assets/item/crime_scene_water_meter.jpg', decoy: true },
+  { id: 'DECOY-WASH', page: 0, slot: 0, title: '[TRAPPER] นำเสื้อผ้าเปื้อนเลือดของตนเองใส่ลงไปปั่นซักในเครื่องซักผ้า', icon: '🫧', thumb: 'assets/item/item_dryer_dry1.jpg', decoy: true },
+  { id: 'DECOY-DOOR', page: 0, slot: 0, title: '[TRAPPER] ใช้โซ่เหล็กคล้องล็อกประตูด้านนอกของห้องซักรีดไว้', icon: '🔒', thumb: 'assets/item/item_blast_gate_lock.jpg', decoy: true },
+  { id: 'DECOY-POISON', page: 0, slot: 0, title: '[TRAPPER] แอบหยอดยาพิษร้ายแรงลงในแก้วน้ำชาของคนร้ายก่อนลงมือ', icon: '🧪', thumb: 'assets/item/item_wine_bottle.jpg', decoy: true },
+  { id: 'DECOY-VENT', page: 0, slot: 0, title: '[TRAPPER] มุดท่อระบายอากาศจากห้องครัวตรงไปยังห้องซักรีดโดยไม่ผ่านโถงทางเดิน', icon: '🕳️', thumb: 'assets/item/item_ceiling_pipe.jpg', decoy: true },
+  { id: 'DECOY-FREEZER', page: 0, slot: 0, title: '[TRAPPER] ซ่อนร่างของคนร้ายไว้ในตู้แช่แข็งขนาดใหญ่จนตัวแข็งก่อนนำไปแขวน', icon: '🧊', thumb: 'assets/Rooms/room_kitchen.jpg', decoy: true },
+  { id: 'DECOY-WEIGHTS', page: 0, slot: 0, title: '[TRAPPER] ใช้ดัมเบลและแผ่นเหล็กยกน้ำหนักจากยิมมาถ่วงน้ำหนักแทนถังน้ำ', icon: '🏋️', thumb: 'assets/Rooms/room_gymnasium.jpg', decoy: true },
+  { id: 'DECOY-GLOVES', page: 0, slot: 0, title: '[TRAPPER] สวมถุงมือยางและโยนทิ้งลงในเตาเผาขยะเพื่อไม่ให้ทิ้งรอยนิ้วมือ', icon: '🧤', thumb: 'assets/item/item_bloody_towel.jpg', decoy: true },
+  { id: 'DECOY-CLOCK', page: 0, slot: 0, title: '[TRAPPER] หมุนเข็มนาฬิกาแขวนผนังในห้องซักรีดให้เร็วขึ้น 30 นาทีเพื่อลวงเวลา', icon: '⏰', thumb: 'assets/item/item_dryer_dry1.jpg', decoy: true },
+  { id: 'DECOY-WINDOW', page: 0, slot: 0, title: '[TRAPPER] ใช้ค้อนทุบกระจกหน้าต่างห้องซักรีดให้แตกเพื่อแกล้งทำเป็นทางหลบหนี', icon: '🪟', thumb: 'assets/item/item_laundry_window.jpg', decoy: true },
+  { id: 'DECOY-CURTAIN', page: 0, slot: 0, title: '[TRAPPER] ใช้ผ้าม่านห้องอาบน้ำห่อหุ้มร่างคนร้ายเพื่อป้องกันเลือดเปรอะเปื้อนพื้น', icon: '🚿', thumb: 'assets/item/item_towel_rack.jpg', decoy: true },
+  { id: 'DECOY-CLEANER', page: 0, slot: 0, title: '[TRAPPER] ใช้น้ำยาฟอกขาวเข้มข้นราดขัดพื้นห้องซักรีดเพื่อกำจัดรอยรองเท้า', icon: '🧴', thumb: 'assets/item/item_bleach_gallon.jpg', decoy: true },
+  { id: 'DECOY-FIRE', page: 0, slot: 0, title: '[TRAPPER] จุดไฟเผากองเศษผ้าเพื่อเปิดระบบสปริงเกลอร์ฉีดน้ำล้างห้อง', icon: '🔥', thumb: 'assets/item/item_water_drops.jpg', decoy: true }
 ];
 
 // Dynamic getters for CLOSING_PAGES_DATA and CLOSING_CARDS_DATA
@@ -7082,6 +7202,15 @@ CLOSING_PAGES_DATA.forEach(p => {
       Object.defineProperty(pan, 'title', {
         get() { return formatClosingText(this.rawTitle); },
         set(v) { this.rawTitle = v; },
+        configurable: true,
+        enumerable: true
+      });
+    }
+    if (pan.dialogue) {
+      pan.rawDialogue = pan.dialogue;
+      Object.defineProperty(pan, 'dialogue', {
+        get() { return formatClosingText(this.rawDialogue); },
+        set(v) { this.rawDialogue = v; },
         configurable: true,
         enumerable: true
       });
@@ -7507,43 +7636,220 @@ function updateClosingDisplay() {
     }
   }
 
-  // Render grid panels for active page
+  // Render authentic manga comic panels for active page
   const grid = document.getElementById('mangaTimelineGrid');
   if (grid && pageData) {
     grid.innerHTML = pageData.panels.map(panel => {
-      if (panel.type === 'story') {
+      const isSlot = panel.type === 'slot';
+      const isSolved = isSlot ? Boolean(gameState.closingSlots && gameState.closingSlots[panel.slotId]) : true;
+      const imgSrc = panel.image || 'assets/Crime_Scene/crime_scene_laundry.jpg';
+      const sfx = panel.sfxBadge || (isSlot ? (isSolved ? '*SOLVED*' : '???') : '*STORY*');
+
+      if (!isSlot) {
+        // Story Panel (Permanent Climax Manga Cell)
         return `
-          <div class="manga-panel complete">
-            <div class="panel-num">ช่องที่ ${panel.num}</div>
-            <div class="panel-tag">ลำดับเหตุการณ์</div>
-            <div class="panel-art">${panel.art}</div>
-            <div class="panel-desc">${panel.desc}</div>
+          <div class="manga-panel story-cell" onclick="openMangaPanelInspector(${curPage}, ${panel.num})" title="คลิกเพื่ออ่านขยายและดูรายละเอียดช่องนี้">
+            <div class="manga-panel-header">
+              <span class="manga-panel-badge">ช่องที่ ${panel.num}</span>
+              <span class="manga-time-badge">🕒 ${panel.timestamp || ''}</span>
+            </div>
+            <div class="manga-panel-media">
+              <img src="${imgSrc}" alt="Manga Panel ${panel.num}" class="manga-panel-img" loading="lazy" />
+              <div class="manga-sfx-float">${sfx}</div>
+              <div class="manga-location-tag">📍 ${panel.location || ''}</div>
+              <div class="manga-inspect-hint">🔍 คลิกอ่านรายละเอียด</div>
+            </div>
+            <div class="manga-caption-box">
+              <div class="manga-panel-title">ลำดับเหตุการณ์</div>
+              <div class="manga-panel-desc">${panel.desc}</div>
+            </div>
+          </div>
+        `;
+      } else if (isSolved) {
+        // Solved Slot Panel (Placed card artwork)
+        return `
+          <div class="manga-panel solved-cell" onclick="openMangaPanelInspector(${curPage}, ${panel.num})" title="คลิกเพื่ออ่านขยายและดูรายละเอียดช่องนี้">
+            <div class="manga-panel-header solved">
+              <span class="manga-panel-badge solved">ช่องที่ ${panel.num}</span>
+              <span class="manga-time-badge solved">✅ เติมสำเร็จ • ${panel.timestamp || ''}</span>
+            </div>
+            <div class="manga-panel-media">
+              <img src="${imgSrc}" alt="Manga Panel ${panel.num}" class="manga-panel-img" loading="lazy" />
+              <div class="manga-sfx-float solved">${sfx}</div>
+              <div class="manga-location-tag">📍 ${panel.location || ''}</div>
+              <div class="manga-inspect-hint">🔍 คลิกอ่านรายละเอียด</div>
+            </div>
+            <div class="manga-caption-box solved">
+              <div class="manga-panel-title" style="color:#00ff88;">✅ ${panel.title || 'ช่องว่างที่ ' + panel.pageSlot}</div>
+              <div class="manga-panel-desc solved">${panel.desc}</div>
+            </div>
           </div>
         `;
       } else {
-        const isSolved = gameState.closingSlots && gameState.closingSlots[panel.slotId];
-        if (isSolved) {
-          return `
-            <div class="manga-panel complete solved">
-              <div class="panel-num">ช่องที่ ${panel.num}</div>
-              <div class="panel-tag" style="color:#00ff88;">✅ เติมถูกต้องแล้ว</div>
-              <div class="panel-art">${panel.art}</div>
-              <div class="panel-desc" style="color:#fff; font-weight:700;">${panel.desc}</div>
+        // Missing Slot Panel (Waiting for player card)
+        return `
+          <div class="manga-panel missing-cell" onclick="openMangaPanelInspector(${curPage}, ${panel.num})" title="คลิกเพื่อดูคำใบ้ช่องว่างนี้">
+            <div class="manga-panel-header missing">
+              <span class="manga-panel-badge missing">ช่องที่ ${panel.num}</span>
+              <span class="manga-time-badge missing">❓ ช่องว่างที่ ${panel.pageSlot}</span>
             </div>
-          `;
-        } else {
-          return `
-            <div class="manga-panel missing">
-              <div class="panel-num">ช่องที่ ${panel.num}</div>
-              <div class="panel-tag" style="color:var(--mono-pink);">❓ ช่องว่างที่ ${panel.pageSlot}</div>
-              <div class="panel-art" style="opacity:0.4;">❓</div>
-              <div class="panel-desc" style="color:#aaa; font-style:italic;">[รอผู้เล่นเติมการ์ดเหตุการณ์ที่ถูกต้อง]</div>
+            <div class="manga-panel-media missing-slot-dropzone" id="courtSlotDrop_${panel.slotId}">
+              <div class="manga-missing-backdrop">
+                <div class="manga-question-mark">❓</div>
+                <div class="manga-missing-text">รอผู้เล่นวางการ์ดเหตุการณ์</div>
+                <div class="manga-missing-sub">แตะเพื่อดูคำใบ้ประจำช่อง</div>
+              </div>
+              <div class="manga-sfx-float missing">???</div>
             </div>
-          `;
-        }
+            <div class="manga-caption-box missing">
+              <div class="manga-panel-title missing" style="color:var(--mono-pink);">ช่องว่างที่ ${panel.pageSlot}</div>
+              <div class="manga-panel-desc missing">[รอการ์ดที่ตรงกับเงื่อนงำจากมือถือผู้เล่น]</div>
+            </div>
+          </div>
+        `;
       }
     }).join('');
   }
+}
+
+// Manga Panel Inspector Lightbox Controls
+let currentInspectorPage = 1;
+let currentInspectorPanelNum = 1;
+
+function openMangaPanelInspector(page, panelNum) {
+  const pData = CLOSING_PAGES_DATA.find(p => p.page === page);
+  if (!pData) return;
+  const panel = pData.panels.find(pan => pan.num === panelNum);
+  if (!panel) return;
+
+  currentInspectorPage = page;
+  currentInspectorPanelNum = panelNum;
+
+  const modal = document.getElementById('mangaPanelInspectorModal');
+  if (!modal) return;
+
+  const imgEl = document.getElementById('mangaInspectorImage');
+  const badgeEl = document.getElementById('mangaInspectorBadge');
+  const titleEl = document.getElementById('mangaInspectorTitle');
+  const sfxEl = document.getElementById('mangaInspectorSfx');
+  const timeEl = document.getElementById('mangaInspectorTime');
+  const locEl = document.getElementById('mangaInspectorLocation');
+  const descEl = document.getElementById('mangaInspectorDesc');
+  const diaBox = document.getElementById('mangaInspectorDialogueBox');
+  const diaEl = document.getElementById('mangaInspectorDialogue');
+  const evdBox = document.getElementById('mangaInspectorEvidenceBox');
+  const evdEl = document.getElementById('mangaInspectorEvidence');
+  const pageInd = document.getElementById('mangaInspectorPageInd');
+
+  const isSlot = panel.type === 'slot';
+  const isSolved = isSlot ? Boolean(gameState.closingSlots && gameState.closingSlots[panel.slotId]) : true;
+
+  if (titleEl) {
+    if (isSlot) {
+      titleEl.innerText = isSolved ? `ช่องที่ ${panel.num}: ${panel.title || 'การ์ดเหตุการณ์'}` : `ช่องที่ ${panel.num}: ❓ ช่องว่างที่ ${panel.pageSlot}`;
+    } else {
+      titleEl.innerText = `ช่องที่ ${panel.num}: ลำดับเหตุการณ์`;
+    }
+  }
+
+  if (badgeEl) {
+    if (!isSlot) {
+      badgeEl.className = 'manga-tag-badge story';
+      badgeEl.innerText = '📖 ลำดับเหตุการณ์ (STORY)';
+    } else if (isSolved) {
+      badgeEl.className = 'manga-tag-badge solved';
+      badgeEl.innerText = '✅ เติมการ์ดสำเร็จ (SOLVED)';
+    } else {
+      badgeEl.className = 'manga-tag-badge mystery';
+      badgeEl.innerText = `❓ ช่องว่างที่ ${panel.pageSlot} (MISSING)`;
+    }
+  }
+
+  if (imgEl) {
+    if (isSlot && !isSolved) {
+      imgEl.src = 'assets/Rooms/room_courtroom.jpg';
+      imgEl.style.filter = 'grayscale(0.8) blur(1px) brightness(0.4)';
+    } else {
+      imgEl.src = panel.image || 'assets/Crime_Scene/crime_scene_laundry.jpg';
+      imgEl.style.filter = 'none';
+    }
+  }
+
+  if (sfxEl) {
+    if (isSlot && !isSolved) {
+      sfxEl.innerText = '? ? ?';
+      sfxEl.style.opacity = '0.5';
+    } else {
+      sfxEl.innerText = panel.sfxBadge || '*DANGAN*';
+      sfxEl.style.opacity = '1';
+    }
+  }
+
+  if (timeEl) timeEl.innerHTML = `<i class="fas fa-clock"></i> ${panel.timestamp || '-'}`;
+  if (locEl) locEl.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${panel.location || '-'}`;
+
+  if (descEl) {
+    if (isSlot && !isSolved) {
+      descEl.innerHTML = `<span style="color:var(--mono-pink); font-weight:bold;">[ช่องว่างที่ยังไม่ได้รับการเติมการ์ด]</span><br>คำใบ้เหตุการณ์: ${panel.desc}<br><em style="color:#94a3b8; font-size:0.85rem;">(ผู้เล่นที่มีการ์ดซึ่งมีเนื้อหาและสถานที่ตรงกับช่องนี้ ต้องนำการ์ดมาวางจากหน้าจอมือถือ)</em>`;
+    } else {
+      descEl.innerText = panel.desc;
+    }
+  }
+
+  if (diaBox && diaEl) {
+    if (panel.dialogue && (!isSlot || isSolved)) {
+      diaBox.style.display = 'block';
+      diaEl.innerText = panel.dialogue;
+    } else {
+      diaBox.style.display = 'none';
+    }
+  }
+
+  if (evdBox && evdEl) {
+    if (panel.evidence && (!isSlot || isSolved)) {
+      evdBox.style.display = 'block';
+      evdEl.innerText = panel.evidence;
+    } else {
+      evdBox.style.display = 'none';
+    }
+  }
+
+  if (pageInd) {
+    pageInd.innerText = `หน้า ${page} / 5 • ช่อง ${panelNum} / 4`;
+  }
+
+  try {
+    playSfx('menu_select');
+  } catch(e) {}
+  modal.classList.remove('hidden');
+}
+
+function closeMangaPanelInspector() {
+  const modal = document.getElementById('mangaPanelInspectorModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function navInspectorPanel(delta) {
+  let targetNum = currentInspectorPanelNum + delta;
+  let targetPage = currentInspectorPage;
+
+  if (targetNum > 4) {
+    if (targetPage < 5) {
+      targetPage++;
+      targetNum = 1;
+    } else {
+      targetNum = 4;
+    }
+  } else if (targetNum < 1) {
+    if (targetPage > 1) {
+      targetPage--;
+      targetNum = 4;
+    } else {
+      targetNum = 1;
+    }
+  }
+
+  openMangaPanelInspector(targetPage, targetNum);
 }
 
 let climaxAutoPlayTimer = null;
@@ -8655,13 +8961,19 @@ function renderMobileTask(stage) {
     const slotsHtml = pageSlots.map(s => {
       const isSolved = gameState.closingSlots && gameState.closingSlots[s.slotId];
       if (isSolved) {
+        const slotThumb = s.image ? `
+          <div style="width:46px; height:46px; min-width:46px; border-radius:6px; overflow:hidden; border:1.5px solid #00ff88; background:#000; flex-shrink:0;">
+            <img src="${s.image}" alt="" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'" />
+          </div>
+        ` : '';
         return `
-          <div style="background:#0d2616; border:2px solid #00ff88; border-radius:8px; padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
-            <div>
+          <div class="p-closing-slot solved" onclick="openMangaPanelInspector(${curPage}, ${s.num})" style="background:#0d2616; border:2px solid #00ff88; border-radius:8px; padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px; cursor:pointer;" title="แตะเพื่ออ่านเนื้อหามังงะช่องนี้">
+            ${slotThumb}
+            <div style="flex:1;">
               <span style="color:#00ff88; font-weight:900; font-size:0.85rem;">✅ ช่องที่ ${s.pageSlot} (เติมถูกต้องแล้ว):</span>
               <div style="color:#fff; font-size:0.8rem; margin-top:2px; line-height:1.3;">${s.desc}</div>
             </div>
-            <span style="font-size:1.4rem; margin-left:8px; color:#00ff88;">✓</span>
+            <span style="font-size:0.75rem; color:#86efac; font-weight:800; background:rgba(0,255,136,0.15); padding:3px 6px; border-radius:4px; margin-left:4px; white-space:nowrap;">🔍 ดูมังงะ</span>
           </div>
         `;
       } else if (isViewingCourtPage) {
@@ -8704,9 +9016,14 @@ function renderMobileTask(stage) {
       const isPlaced = Boolean(c.slot && gameState.closingSlots && gameState.closingSlots[c.slot]);
       const cardTitle = formatClosingText(c.title);
       if (isPlaced) {
+        const placedThumb = c.thumb ? `
+          <div style="width:44px; height:44px; min-width:44px; border-radius:6px; overflow:hidden; border:1px solid #166534; opacity:0.75; flex-shrink:0;">
+            <img src="${c.thumb}" alt="" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'" />
+          </div>
+        ` : `<span style="font-size:1.5rem; filter:grayscale(0.5);">✅</span>`;
         return `
           <div class="p-closing-card placed" style="background:#0d1d16; border:1px solid #1e5238; border-radius:8px; padding:10px; margin-bottom:8px; opacity:0.65; cursor:default; display:flex; align-items:center; gap:10px;">
-            <span style="font-size:1.5rem; filter:grayscale(0.5);">✅</span>
+            ${placedThumb}
             <div style="flex:1;">
               <div style="font-size:0.85rem; color:#86efac; font-weight:700; text-decoration:line-through;">
                 <span style="background:#166534; color:#dcfce7; font-size:0.7rem; font-weight:900; padding:1px 6px; border-radius:3px; margin-right:6px;">✓ วางในมังงะแล้ว</span>${cardTitle}
@@ -8731,9 +9048,14 @@ function renderMobileTask(stage) {
         const borderStyle = isSelected ? '3px solid #ff2b6d' : '2px solid #444466';
         const bgStyle = isSelected ? 'rgba(255, 43, 109, 0.28)' : '#19192e';
         const shadowStyle = isSelected ? 'box-shadow: 0 0 16px rgba(255, 43, 109, 0.85); transform: scale(1.02);' : '';
+        const thumbImg = c.thumb ? `
+          <div style="width:52px; height:52px; min-width:52px; border-radius:6px; overflow:hidden; border:1.5px solid ${isSelected ? 'var(--mono-pink)' : '#444'}; background:#000; flex-shrink:0;">
+            <img src="${c.thumb}" alt="" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.style.display='none'" />
+          </div>
+        ` : `<span style="font-size:1.6rem;">${c.icon || '📄'}</span>`;
         return `
-          <div class="p-closing-card ${isSelected ? 'selected' : ''}" onclick="selectClosingCard('${c.id}')" style="background:${bgStyle}; border:${borderStyle}; border-radius:8px; padding:12px; margin-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:10px; ${shadowStyle} transition:all 0.2s ease;">
-            <span style="font-size:1.6rem;">${c.icon || '📄'}</span>
+          <div class="p-closing-card ${isSelected ? 'selected' : ''}" onclick="selectClosingCard('${c.id}')" style="background:${bgStyle}; border:${borderStyle}; border-radius:8px; padding:10px 12px; margin-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:12px; ${shadowStyle} transition:all 0.2s ease;">
+            ${thumbImg}
             <div style="flex:1;">
               <div style="font-size:0.88rem; color:#fff; font-weight:${isSelected ? '900' : 'bold'}; line-height:1.35;">${cardTitle}</div>
               <div style="font-size:0.78rem; color:${isSelected ? 'var(--court-gold)' : 'var(--mono-cyan)'}; margin-top:4px; font-weight:${isSelected ? '800' : 'normal'};">
