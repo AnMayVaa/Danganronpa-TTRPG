@@ -46,8 +46,8 @@
   7. `Voting Time` (ส่งหน้าจอโหวตเข้ามือถือทุกคน)
 - **Timer & HP Controls:** ปรับเพิ่ม/ลดเวลา (+30s, -15s), ปรับหลอดเลือดศาล (+20%, -20%, Reset 100%)
 - **Verdict Execution Buttons:** สั่งประหารและเปิดผลลัพธ์:
-  - 🟢 **ตัดสินถูก (B คือ Blackened):** ทุกคนรอดชีวิต! A แผนพังยับเยิน (True Ending)
-  - 🔴 **ตัดสินผิด (โหวต A):** ประหารชีวิตหมู่นักเรียนทุกคน! (Bad Ending)
+  - 🟢 **ตัดสินถูก (เรียวตะคือ Blackened):** ทุกคนรอดชีวิต! Trapper แผนพังยับเยิน (True Ending)
+  - 🔴 **ตัดสินผิด (โหวต Trapper):** ประหารชีวิตหมู่นักเรียนทุกคน! (Bad Ending)
 - **Monokuma Soundboard & FX:** เคาะค้อนศาล (Gavel), เสียงหัวเราะ Monokuma, ไซเรนเตือนภัย, สัญญาณ Glitch
 
 ### 3. 📱 จอมือถือผู้เล่น (Mobile Player View)
@@ -68,7 +68,7 @@
    - สรุปเบื้องหลังคดี (Master Solution & Timeline 17:30 - 21:00 น.)
    - สคริปต์การรันเกมตั้งแต่ Scene 1 (The Awakening) จนถึง Scene 10 (The Verdict) เชื่อมโยงกับเว็บมินิเกม
 3. **[`02_Character_Sheets_and_Handouts.md`](file:///c:/Antigravity/Danganronpa-TTRPG/02_Character_Sheets_and_Handouts.md)**
-   - แผ่นตัวละคร PC 1-6 และ NPC B (เหยื่อ)
+   - แผ่นตัวละคร PC 1-6 และ เรียวตะ (เหยื่อ)
    - เอกสารแจกแยก **Phase 1 (ข้อมูลเริ่มเกม)** และ **Phase 2 (ไทม์ไลน์ความทรงจำเฉพาะบุคคล + บทบาท Saboteur)**
 4. **[`03_Investigation_Clues_Cards.md`](file:///c:/Antigravity/Danganronpa-TTRPG/03_Investigation_Clues_Cards.md)**
    - ระบบการสุ่มจั่วการ์ดตาม 5 จุดสำรวจ

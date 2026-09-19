@@ -2735,7 +2735,7 @@ const CHARACTER_DATA = {
       { time: '17:30 - 18:30 น.', desc: 'เดินสำรวจรอบโถงกลาง สังเกตเห็นคนเดินเข้าออกระหว่างห้องครัวกับบันไดลงชั้นใต้ดินด้วยท่าทางเร่งรีบ' },
       { time: '19:00 - 20:00 น.', desc: 'ร่วมโต๊ะกินสตูว์เนื้อร่วมกับทุกคน จากนั้นก็นั่งคุยแลกเปลี่ยนข้อมูลอยู่ที่ห้องนั่งเล่น' },
       { time: '20:00 - 21:00 น.', desc: 'นั่งพักผ่อนคุยแลกเปลี่ยนข้อมูลกับเพื่อนๆ อยู่ที่โซฟาห้องนั่งเล่น ไม่ได้ลุกไปไหน มีเพื่อนคนอื่นนั่งอยู่ข้างๆ' },
-      { time: '21:00 น.', desc: 'เสียงกระแทกดัง "ตึง! ตึง! ตึง!" มาจากห้องซักรีดใต้ดิน วิ่งตามกลุ่มไปพังประตูและเห็นร่าง B ห้อยอยู่บนเพดาน' }
+      { time: '21:00 น.', desc: 'เสียงกระแทกดัง "ตึง! ตึง! ตึง!" มาจากห้องซักรีดใต้ดิน วิ่งตามกลุ่มไปพังประตูและเห็นร่างของเรียวตะห้อยอยู่บนเพดาน' }
     ]
   },
   'สุดยอดนักสืบ': {
@@ -2779,12 +2779,12 @@ const CHARACTER_DATA = {
     stats: ['DEX 16 (+3)', 'INT 15 (+2)', 'CON 13 (+1)'],
     personality: 'พูดจาเพ้อฝัน มีความมั่นใจในโลก 2D แต่แอบซ่อนความทะเยอทะยานและแผนการอันแยบยลไว้',
     isKiller: true,
-    hook: '⚠️ ความลับคนร้าย: คุณคือผู้เซ็ตกับดักฆ่า B! คุณใช้ท่อนกระดูกหมูฟาดหัว B สลบ นำกระดูกไปต้มในหม้อสตูว์ ผูกเชือกกับถังน้ำนอกหน้าต่างและต่อสายยางเพื่อตั้งเวลา 21:00 น.... แต่ความจริง B ตัดเชือกและเกิดอุบัติเหตุคอหักตายเอง!',
+    hook: '⚠️ ความลับคนร้าย (The Trapper): คุณคือผู้เซ็ตกับดักฆ่าเรียวตะ! คุณใช้ท่อนกระดูกหมูฟาดหัวเรียวตะสลบ นำกระดูกไปต้มในหม้อสตูว์ ผูกเชือกกับถังน้ำนอกหน้าต่างและต่อสายยางเพื่อตั้งเวลา 21:00 น.... แต่ความจริงเรียวตะตัดเชือกและเกิดอุบัติเหตุคอหักตายเอง!',
     timeline: [
-      { time: '17:30 - 18:30 น.', desc: 'เข้าครัวไปแอบหยิบท่อนกระดูกหมู แล้วลงไปล่อ B ในห้องซักรีดเพื่อเซ็ตกับดักเชือก' },
+      { time: '17:30 - 18:30 น.', desc: 'เข้าครัวไปแอบหยิบท่อนกระดูกหมู แล้วลงไปล่อเรียวตะในห้องซักรีดเพื่อเซ็ตกับดักเชือก' },
       { time: '19:00 - 20:00 น.', desc: 'ตักสตูว์เนื้อให้เพื่อนๆ กินอย่างกระตือรือร้น เพื่อกลบเกลื่อนหลักฐาน' },
       { time: '20:00 - 21:00 น.', desc: 'นั่งร่วมกลุ่มคุยกับทุกคนที่ห้องนั่งเล่นเพื่อสร้าง Alibi ที่แน่นหนา' },
-      { time: '21:00 น.', desc: 'แกล้งทำเป็นตกใจสุดขีดเมื่อเห็นศพ B ห้อยอยู่' }
+      { time: '21:00 น.', desc: 'แกล้งทำเป็นตกใจสุดขีดเมื่อเห็นศพของเรียวตะห้อยอยู่' }
     ]
   },
   'สุดยอดนักประดิษฐ์': {
@@ -2840,7 +2840,7 @@ function renderPlayerCharSheet() {
   const stats = (cData && cData.stats) ? cData.stats : ['INT 15 (+2)', 'WIS 14 (+2)', 'CHA 13 (+1)', 'DEX 12 (+1)'];
   const personality = (cData && cData.personality) ? cData.personality : `นักเรียนผู้มีความสามารถเฉพาะทางด้าน "${role}" ร่วมค้นหาความจริงและหักล้างคำโกหกในศาลชั้นเรียน`;
   const hook = isKiller
-    ? '⚠️ ความลับคนร้าย: คุณคือผู้เซ็ตกับดักฆ่า B! คุณใช้ท่อนกระดูกหมูฟาดหัว B สลบ นำกระดูกไปต้มในหม้อสตูว์ ผูกเชือกกับลูกตุ้มและเจาะถังน้ำเพื่อตั้งเวลา... แต่ความจริง B ตัดเชือกและเกิดอุบัติเหตุคอหักตายเอง!'
+    ? '⚠️ ความลับคนร้าย (The Trapper): คุณคือผู้เซ็ตกับดักฆ่าเรียวตะ! คุณใช้ท่อนกระดูกหมูฟาดหัวเรียวตะสลบ นำกระดูกไปต้มในหม้อสตูว์ ผูกเชือกกับลูกตุ้มและเจาะถังน้ำเพื่อตั้งเวลา... แต่ความจริงเรียวตะตัดเชือกและเกิดอุบัติเหตุคอหักตายเอง!'
     : ((cData && cData.hook) ? cData.hook : `🎯 ทักษะเฉพาะตัว: ใช้สัญชาตญาณและความชำนาญในฐานะ "${role}" ตรวจสอบเบาะแสและจับพิรุธพฤติกรรมที่ขัดแย้ง`);
 
   let timelineHtml = '';
@@ -5377,7 +5377,7 @@ const LOGIC_DIVE_ROUTES = {
   pulley: [
     {
       step: 1,
-      question: "ร่างของเหยื่อเรียวตะ (B) ถูกดึงขึ้นไปแขวนติดเพดานห้องซักผ้าได้อย่างไร?",
+      question: "ร่างของเรียวตะถูกดึงขึ้นไปแขวนติดเพดานห้องซักผ้าได้อย่างไร?",
       choices: {
         A: "มีคนแอบซ่อนอยู่บนฝ้าเพดานช่วยดึง",
         B: "ถังน้ำหนักนอกหน้าต่างตกลงมาถ่วงดึงเชือก",
@@ -5397,7 +5397,7 @@ const LOGIC_DIVE_ROUTES = {
     },
     {
       step: 3,
-      question: "สาเหตุการเสียชีวิตที่แท้จริงของเหยื่อเรียวตะ (B) คืออะไร?",
+      question: "สาเหตุการเสียชีวิตที่แท้จริงของเรียวตะคืออะไร?",
       choices: {
         A: "จมน้ำขาดอากาศหายใจในถัง",
         B: "ถูกกะโหลกแตกด้วยหม้อสตูว์",
@@ -5409,30 +5409,30 @@ const LOGIC_DIVE_ROUTES = {
   twist: [
     {
       step: 1,
-      question: "มีดพกในกระเป๋าเสื้อของ B กับรอยตัดที่เชือกไนลอน หมายความว่าอย่างไร?",
+      question: "มีดพกในกระเป๋าเสื้อของเรียวตะกับรอยตัดที่เชือกไนลอน หมายความว่าอย่างไร?",
       choices: {
-        A: "คนร้ายใช้มีดของ B ตัดเชือกเพื่ออำพราง",
-        B: "B ฟื้นสติขึ้นมา และใช้มีดพกตัดเชือกตัวเองจนรอดแล้ว!",
+        A: "คนร้ายใช้มีดของเรียวตะตัดเชือกเพื่ออำพราง",
+        B: "เรียวตะฟื้นสติขึ้นมา และใช้มีดพกตัดเชือกตัวเองจนรอดแล้ว!",
         C: "เชือกขาดเองเพราะรับน้ำหนักไม่ไหว"
       },
       correct: "B"
     },
     {
       step: 2,
-      question: "ถ้า B รอดแล้ว ทำไมถึงมีเงื่อนโบว์ไลน์ผูกติดอยู่กับสายรัดลำตัวใต้เสื้อ?",
+      question: "ถ้าเรียวตะรอดแล้ว ทำไมถึงมีเงื่อนโบว์ไลน์ผูกติดอยู่กับสายรัดลำตัวใต้เสื้อ?",
       choices: {
-        A: "B พยายามปีนหนีออกไปทางเพดาน",
-        B: "B ผูกสายรัดลำตัวเพื่อแกล้งจัดฉากว่าตัวเองถูกแขวนคอหลอก!",
+        A: "เรียวตะพยายามปีนหนีออกไปทางเพดาน",
+        B: "เรียวตะผูกสายรัดลำตัวเพื่อแกล้งจัดฉากว่าตัวเองถูกแขวนคอหลอก!",
         C: "คนร้ายกลับเข้ามาผูกเชือกให้ใหม่"
       },
       correct: "B"
     },
     {
       step: 3,
-      question: "แล้วทำไม B ถึงคอหักตายจริงๆ และศพยังค้างอยู่บนเพดาน ทั้งที่ถังน้ำตกแตกแล้ว!?",
+      question: "แล้วทำไมเรียวตะถึงคอหักตายจริงๆ และศพยังค้างอยู่บนเพดาน ทั้งที่ถังน้ำตกแตกแล้ว!?",
       choices: {
         A: "แรงกระชาก Shock Load ดึงเงื่อนหลุดมารัดคอ และปมเชือกขัดติดแน่นคาราวท่อเพดาน (Stopper Knot)!",
-        B: "B ถูกวางยาพิษไซยาไนด์จนหมดแรง",
+        B: "เรียวตะถูกวางยาพิษไซยาไนด์จนหมดแรง",
         C: "มีคนแอบมาดึงเชือกซ้ำตอน 21:00 น."
       },
       correct: "A"
@@ -5647,7 +5647,7 @@ const QUICK_QUESTION_PRESETS = {
     correct: "A"
   },
   death_cause: {
-    question: "สาเหตุการเสียชีวิตที่แท้จริงของเรียวตะ (B) คืออะไร!?",
+    question: "สาเหตุการเสียชีวิตที่แท้จริงของเรียวตะคืออะไร!?",
     choices: {
       A: "กะโหลกศีรษะแตกจากกระดูกหมู",
       B: "ขาดอากาศหายใจจากการถูกแขวนคอ",
@@ -5676,8 +5676,8 @@ const QUICK_QUESTION_PRESETS = {
   blackened_truth: {
     question: "ตามกฎของ Monokuma ใครคือผู้กระทำการชี้ขาด (Blackened) ที่ต้องถูกโหวตประหาร!?",
     choices: {
-      A: "นักมายากล (A) ผู้เริ่มวางแผนและเซ็ตกับดักน้ำ",
-      B: "เหยื่อเรียวตะ (B) ผู้ตัดเชือกรอดแล้วจัดฉากผูกบ่วงรัดคอตัวเอง",
+      A: "Trapper ผู้วางแผนและเซ็ตกับดักน้ำ",
+      B: "เรียวตะ ผู้ตัดเชือกรอดแล้วจัดฉากผูกบ่วงรัดคอตัวเอง",
       C: "ไม่มีใครผิด เป็นเหตุสุดวิสัยจากอาคารเรียน"
     },
     correct: "B"
@@ -5711,7 +5711,7 @@ function applyPresetQuickQuestion(presetId, isSilent) {
     death_cause: '💀 เหตุตายจริง (ขาดอากาศ)',
     auto_pulley: '🛢️ กลไกชักรอก (ถังน้ำหนัก)',
     dryer_sound: '👟 เสียง 21:00 น. (รองเท้าบูท)',
-    blackened_truth: '⚖️ กฎ Blackened ตัวจริง (โหวต B)'
+    blackened_truth: '⚖️ กฎ Blackened ตัวจริง (โหวตเรียวตะ)'
   };
   const badgeText = labels[presetId] || `⚡ ${p.question.slice(0, 30)}...`;
   if (badge) {
@@ -9898,7 +9898,7 @@ function adminStartRebuttal() {
   const chal = rebSel ? rebSel.value : '';
   const opp = rebOppSel ? rebOppSel.value : '';
   const topic = document.getElementById('cfgStg3Topic')?.value || gameState.stg3Topic || 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi';
-  const arg = document.getElementById('cfgStg3Arg')?.value || gameState.stg3Argument || 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?';
+  const arg = document.getElementById('cfgStg3Arg')?.value || gameState.stg3Argument || 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้ายเรียวตะที่ห้องซักผ้าได้!?';
   adminSetGame('stage3', { challenger: chal, opponent: opp, topic: topic, argument: arg, statement: arg });
 }
 
@@ -10865,11 +10865,11 @@ function applyPresetStage1(presetKey, isSilent) {
     targetClue = "EVD-05";
     badgeText = "⏱️ เครื่องอบผ้า (EVD-05)";
   } else if (presetKey === 'knife') {
-    prompt = "สิ่งใดอยู่ในกระเป๋าเสื้อเหยื่อเรียวตะ (B) ที่ยืนยันว่าไม่มีการต่อสู้ระยะประชิดในห้องซักรีด!?";
+    prompt = "สิ่งใดอยู่ในกระเป๋าเสื้อของเรียวตะที่ยืนยันว่าไม่มีการต่อสู้ระยะประชิดในห้องซักรีด!?";
     targetClue = "EVD-12";
     badgeText = "🔪 มีดพับในกระเป๋า (EVD-12)";
   } else if (presetKey === 'harness') {
-    prompt = "หลักฐานชิ้นใดที่แสดงว่าเหยื่อเรียวตะ (B) รอดจากกับดักแรก และพยายามผูกเชือกพยุงตัวเองหลอก!?";
+    prompt = "หลักฐานชิ้นใดที่แสดงว่าเรียวตะรอดจากกับดักแรก และพยายามผูกเชือกพยุงตัวเองหลอก!?";
     targetClue = "EVD-09";
     badgeText = "🪢 เงื่อนโบว์ไลน์ & เชือกตัด (EVD-09)";
   }
@@ -11020,14 +11020,14 @@ function applyRebuttalPresetFromDropdown(val, isSilent) {
       chal: 'นาเอกิ มาโคโตะ',
       opp: 'ฮิฟุมิ ยามาดะ',
       topic: 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi',
-      arg: 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?',
+      arg: 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้ายเรียวตะที่ห้องซักผ้าได้!?',
       badge: '🍳 ข้ออ้างครัว (17:30 น.)'
     },
     alibi: {
       chal: 'คิริกิริ เคียวโกะ',
       opp: 'ฮิฟุมิ ยามาดะ',
       topic: 'Alibi ตอนสามทุ่ม & เสียงเครื่องอบผ้า',
-      arg: 'ตอน 21:00 น. ฉันก็นั่งคุยอยู่กับทุกคนในห้องนั่งเล่น! แล้วฉันจะไปอยู่ในห้องซักรีดเพื่อฆ่า B ได้ยังไงกัน!?',
+      arg: 'ตอน 21:00 น. ฉันก็นั่งคุยอยู่กับทุกคนในห้องนั่งเล่น! แล้วฉันจะไปอยู่ในห้องซักรีดเพื่อฆ่าเรียวตะได้ยังไงกัน!?',
       badge: '⏱️ ข้ออ้างสามทุ่ม (21:00 น.)'
     },
     window: {
@@ -11145,10 +11145,10 @@ function applyScrumPresetFromDropdown(val, isSilent) {
   }
   const presets = [
     {
-      topic: 'ใครคือ Blackened ตัวจริง: โหวตผู้วางกับดัก (A) หรือ โหวตเหยื่อผู้ดัดแปลงเชือกจนตายเอง (B)!?',
-      left: '🔵 ทีมโหวตนักมายากล (A ผู้เริ่มวางแผน)',
-      right: '🟣 ทีมโหวตเหยื่อเรียวตะ (B ผู้กระทำการชี้ขาด)',
-      badge: '⚖️ โหวต A vs โหวต B'
+      topic: 'ใครคือ Blackened ตัวจริง: โหวตผู้วางกับดัก (Trapper) หรือ โหวตเรียวตะ (ผู้จัดฉากผูกเชือกพลาดจนตายเอง)!?',
+      left: '🔵 ทีมโหวต Trapper (ผู้วางแผนกับดักฆ่า)',
+      right: '🟣 ทีมโหวตเรียวตะ (ผู้กระทำการชี้ขาดจนตาย)',
+      badge: '⚖️ โหวต Trapper vs โหวตเรียวตะ'
     },
     {
       topic: 'การยกร่างเหยื่อขึ้นเพดาน เกิดจากแรงคนดึงสดๆ หรือกลไกถ่วงน้ำหนักอัตโนมัติ!?',
@@ -11157,7 +11157,7 @@ function applyScrumPresetFromDropdown(val, isSilent) {
       badge: '⚖️ แรงคน vs ถังน้ำหนัก'
     },
     {
-      topic: 'ช่วงเวลาเสียชีวิตที่แท้จริงของเรียวตะ (B): เกิดขึ้นตอน 17:30 น. ในครัว หรือ 21:00 น. ในห้องซักรีด!?',
+      topic: 'ช่วงเวลาเสียชีวิตที่แท้จริงของเรียวตะ: เกิดขึ้นตอน 17:30 น. ในครัว หรือ 21:00 น. ในห้องซักรีด!?',
       left: '🔵 ข้อสันนิษฐานตายในครัว (17:30 น.)',
       right: '🟣 ข้อสันนิษฐานตายในห้องซักรีด (21:00 น.)',
       badge: '⚖️ เวลาตาย 17:30 น. vs 21:00 น.'
@@ -11337,7 +11337,7 @@ function getStageConfigFromInputs(stage) {
     const opp = (typeof getSelectOrCustomValue === 'function' ? getSelectOrCustomValue(oppSel, oppInput) : null) || document.getElementById('adminRebuttalOpponentSelect')?.value || 'ฮิฟุมิ ยามาดะ';
 
     const topic = document.getElementById('cfgStg3Topic')?.value || 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi';
-    const arg = document.getElementById('cfgStg3Arg')?.value || 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?';
+    const arg = document.getElementById('cfgStg3Arg')?.value || 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้ายเรียวตะที่ห้องซักผ้าได้!?';
     return { challenger: chal, opponent: opp, topic, argument: arg, statement: arg };
   } else if (stage === 'stage4') {
     const pSel = document.getElementById('adminStg4PresetSelect');
@@ -11348,9 +11348,9 @@ function getStageConfigFromInputs(stage) {
     if (pSel && pSel.value !== undefined && pSel.value !== '__custom__') {
       applyScrumPresetFromDropdown(pSel.value, true);
     }
-    const topic = document.getElementById('cfgStg5Topic')?.value || 'ใครคือ Blackened ตัวจริง: โหวตผู้วางกับดัก (A) หรือ โหวตเหยื่อผู้ดัดแปลงเชือกจนตายเอง (B)!?';
-    const left = document.getElementById('cfgStg5Left')?.value || '🔵 ทีมโหวตนักมายากล (A ผู้เริ่มวางแผน)';
-    const right = document.getElementById('cfgStg5Right')?.value || '🟣 ทีมโหวตเหยื่อเรียวตะ (B ผู้กระทำการชี้ขาด)';
+    const topic = document.getElementById('cfgStg5Topic')?.value || 'ใครคือ Blackened ตัวจริง: โหวตผู้วางกับดัก (Trapper) หรือ โหวตเรียวตะ (ผู้จัดฉากผูกเชือกพลาดจนตายเอง)!?';
+    const left = document.getElementById('cfgStg5Left')?.value || '🔵 ทีมโหวต Trapper (ผู้วางแผนกับดักฆ่า)';
+    const right = document.getElementById('cfgStg5Right')?.value || '🟣 ทีมโหวตเรียวตะ (ผู้กระทำการชี้ขาดจนตาย)';
     return { topic, leftTeam: left, rightTeam: right };
   } else if (stage === 'stage6') {
     const pSel = document.getElementById('adminStg6PresetSelect');
@@ -11460,7 +11460,7 @@ function adminSaveSelectedConfigGame(launchImmediately) {
     const oppInput = document.getElementById('cfgStg3OpponentCustom');
     const opp = (typeof getSelectOrCustomValue === 'function' ? getSelectOrCustomValue(oppSel, oppInput) : null) || document.getElementById('adminRebuttalOpponentSelect')?.value || 'ฮิฟุมิ ยามาดะ';
     const topic = document.getElementById('cfgStg3Topic')?.value?.trim() || 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi';
-    const arg = document.getElementById('cfgStg3Arg')?.value?.trim() || 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?';
+    const arg = document.getElementById('cfgStg3Arg')?.value?.trim() || 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้ายเรียวตะที่ห้องซักผ้าได้!?';
     config = { challenger: chal, opponent: opp, topic, argument: arg, statement: arg, isCustom: true };
     badgeText = `✏️ กำหนดเอง: ${chal} VS ${opp}`;
     gameState.stg3Challenger = chal;
@@ -11474,9 +11474,9 @@ function adminSaveSelectedConfigGame(launchImmediately) {
     badgeText = `✏️ กำหนดเอง: Route ${route}`;
     gameState.stg4Route = route;
   } else if (stg === 'stage5') {
-    const topic = document.getElementById('cfgStg5Topic')?.value?.trim() || 'ใครคือ Blackened ตัวจริง: โหวตผู้วางกับดัก (A) หรือ โหวตเหยื่อผู้ดัดแปลงเชือกจนตายเอง (B)!?';
-    const left = document.getElementById('cfgStg5Left')?.value?.trim() || '🔵 ทีมโหวตนักมายากล (A ผู้เริ่มวางแผน)';
-    const right = document.getElementById('cfgStg5Right')?.value?.trim() || '🟣 ทีมโหวตเหยื่อเรียวตะ (B ผู้กระทำการชี้ขาด)';
+    const topic = document.getElementById('cfgStg5Topic')?.value?.trim() || 'ใครคือ Blackened ตัวจริง: โหวตผู้วางกับดัก (Trapper) หรือ โหวตเรียวตะ (ผู้จัดฉากผูกเชือกพลาดจนตายเอง)!?';
+    const left = document.getElementById('cfgStg5Left')?.value?.trim() || '🔵 ทีมโหวต Trapper (ผู้วางแผนกับดักฆ่า)';
+    const right = document.getElementById('cfgStg5Right')?.value?.trim() || '🟣 ทีมโหวตเรียวตะ (ผู้กระทำการชี้ขาดจนตาย)';
     config = { topic, leftTeam: left, rightTeam: right, isCustom: true };
     badgeText = `✏️ กำหนดเอง: ${topic.slice(0, 20)}...`;
     gameState.stg5Topic = topic;
@@ -12522,7 +12522,7 @@ async function simStage3RebuttalRaw() {
       challenger: 'นาเอกิ มาโคโตะ',
       opponent: 'ฮิฟุมิ ยามาดะ',
       topic: 'ช่วงเวลาทำร้ายในครัว & ข้ออ้าง Alibi',
-      argument: 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?'
+      argument: 'ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้ายเรียวตะที่ห้องซักผ้าได้!?'
     }
   });
   await new Promise(r => setTimeout(r, 450));
@@ -12799,7 +12799,7 @@ const ACADEMY_ROOMS_DATA = {
       '<strong>มวลน้ำเต็มถัง:</strong> 100 ลิตร = มวล 100 กิโลกรัม',
       '<strong>คำนวณแรงกระชาก (Shock Load):</strong> เมื่อมวล 100 กก. ตกจากความสูง 3.5 ม. จะสร้างแรงกระตุกฉับพลันสูงถึง 250 - 300 กิโลกรัม-แรง!'
     ],
-    timeline: '• <strong>18:10 น.:</strong> A ปล่อยน้ำไหลเอื่อยๆ กะเวลาให้เต็มตอน 21:00 น.<br>• <strong>21:00 น.:</strong> น้ำหนักเกินสมดุล ถังร่วงดึงร่าง B ขึ้นแขวนคอ'
+    timeline: '• <strong>18:10 น.:</strong> Trapper ปล่อยน้ำไหลเอื่อยๆ กะเวลาให้เต็มตอน 21:00 น.<br>• <strong>21:00 น.:</strong> น้ำหนักเกินสมดุล ถังร่วงดึงร่างของเรียวตะขึ้นแขวนคอ'
   },
   'window': {
     badge: '🪟 จุดเชื่อมต่อสถาปัตยกรรม (3.5 M WINDOW)',
@@ -12862,7 +12862,7 @@ const ACADEMY_ROOMS_DATA = {
     image: 'assets/room_dormitory_hallway.jpg',
     arch: 'ห้องพักส่วนตัว 6 ห้อง แต่ละห้องมีประตูล็อกดิจิทัล ปลดล็อกด้วย Monopad ประจำตัวเท่านั้น',
     clues: [
-      '<strong>ห้องพัก B:</strong> B ไม่ได้กลับมาที่ห้องพักตั้งแต่ช่วงบ่าย เพราะเก็บตัวอยู่ที่ห้องซักรีด',
+      '<strong>ห้องพักเรียวตะ:</strong> เรียวตะไม่ได้กลับมาที่ห้องพักตั้งแต่ช่วงบ่าย เพราะเก็บตัวอยู่ที่ห้องซักรีด',
       '<strong>Alibi ช่วง 20:00 - 21:00 น.:</strong> ผู้เล่นใช้ห้องพักและห้องนั่งเล่นในการประกาศกิจกรรมพักผ่อน'
     ],
     timeline: '• <strong>17:30 น.:</strong> PC 2 เดินทดสอบระบบกลอนประตูดิจิทัล<br>• <strong>20:00 น.:</strong> เสียงระฆังราตรี Night Time'

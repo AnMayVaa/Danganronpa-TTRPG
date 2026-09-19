@@ -363,7 +363,7 @@
             </div>
             <div class="investigation-loc-title">🧺 ห้องซักรีด ปีกบริการชั้น 1 (Laundry Room)</div>
             <div class="investigation-loc-desc" style="font-size:0.85rem; line-height:1.55; color:#cbd5e1;">
-              ห้องซักรีดจุดพบศพ เรียวตะ (B) เรียงรายด้วยเครื่องซักผ้า-อบผ้า อ่างก๊อกน้ำ และราวท่อสแตนเลสเพดานสูง 4 ม. เหนือบานหน้าต่าง 3.5 ม. บรรยากาศอับทึบ กลิ่นผงซักฟอกปะปนกลิ่นคาวเลือด โดยมีน้ำเอ่อท่วมเจิ่งนองพื้นกระเบื้องทั่วห้อง
+              ห้องซักรีดจุดพบศพ เรียวตะ เรียงรายด้วยเครื่องซักผ้า-อบผ้า อ่างก๊อกน้ำ และราวท่อสแตนเลสเพดานสูง 4 ม. เหนือบานหน้าต่าง 3.5 ม. บรรยากาศอับทึบ กลิ่นผงซักฟอกปะปนกลิ่นคาวเลือด โดยมีน้ำเอ่อท่วมเจิ่งนองพื้นกระเบื้องทั่วห้อง
             </div>
           </div>
 
@@ -1008,7 +1008,7 @@
                   <option value="death_cause">💀 เหตุตายจริง (ขาดอากาศ)</option>
                   <option value="auto_pulley">🛢️ กลไกชักรอก (ถังน้ำหนัก)</option>
                   <option value="dryer_sound">👟 เสียง 21:00 น. (รองเท้าบูท)</option>
-                  <option value="blackened_truth">⚖️ Blackened ตัวจริง (เหยื่อ B)</option>
+                  <option value="blackened_truth">⚖️ Blackened ตัวจริง (เรียวตะ)</option>
                 </select>
               </div>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
@@ -1025,13 +1025,13 @@
             <div class="dm-combo-block" style="display:flex; flex-direction:column; gap:6px;">
               <button class="dm-act-btn green" onclick="adminSetGame('stage5')" style="width:100%;">
                 <strong>5. Debate Scrum</strong>
-                <span id="stg5CardDesc" class="dm-card-active-preset">⚖️ โหวต Trapper A vs โหวตเหยื่อ B</span>
+                <span id="stg5CardDesc" class="dm-card-active-preset">⚖️ โหวต Trapper vs โหวตเรียวตะ</span>
               </button>
               <div class="dm-select-row" style="margin-top:2px;">
                 <span class="dm-select-label">⚡ พรีเซ็ต 2 ขั้ว:</span>
                 <select id="adminStg5PresetSelect" class="dm-styled-select" onchange="onAdminPresetChange('stage5', this)" style="max-width:210px; flex:1;">
                   <option value="__custom__">✏️ ข้อมูลที่กำหนดเอง (Custom Edit)...</option>
-                  <option value="0" selected>⚖️ 1: โหวต Trapper A vs โหวตเหยื่อ B</option>
+                  <option value="0" selected>⚖️ 1: โหวต Trapper vs โหวตเรียวตะ</option>
                   <option value="1">⚖️ 2: แรงคน vs ถังน้ำหนักอัตโนมัติ</option>
                   <option value="2">⏱️ 3: เวลาตาย: 17:30 น. vs 21:00 น.</option>
                   <option value="3">🍖 4: สาเหตุ: กะโหลกแตก vs กระดูกคอหัก</option>
@@ -1125,11 +1125,11 @@
           <p class="card-desc">เมื่อโหวตเสร็จสิ้น DM กดปุ่มเพื่อสั่งประหารและเปิดผลลัพธ์:</p>
           <div class="verdict-btn-group">
             <button class="verdict-btn win" onclick="adminTriggerVerdict(true)">
-              🟢 ตัดสินถูก (B คือ Blackened)
-              <small>ทุกคนรอดชีวิต! A แผนพังยับเยิน (True Ending)</small>
+              🟢 ตัดสินถูก (เรียวตะคือ Blackened)
+              <small>ทุกคนรอดชีวิต! Trapper แผนพังยับเยิน (True Ending)</small>
             </button>
             <button class="verdict-btn lose" onclick="adminTriggerVerdict(false)">
-              🔴 ตัดสินผิด (โหวต A)
+              🔴 ตัดสินผิด (โหวต Trapper)
               <small>ประหารชีวิตหมู่ทุกคน! (Bad Ending)</small>
             </button>
           </div>
@@ -2529,26 +2529,32 @@
               <rect x="35" y="178" width="265" height="202" fill="#130d1d" stroke="#f43f5e" stroke-width="2"/>
               <!-- Badge placed at y=210 for clean 30px clearance from window -->
               <rect x="45" y="210" width="240" height="24" fill="#280c18" stroke="#f43f5e" rx="3"/>
-              <text x="55" y="226" font-size="11" fill="#f43f5e" font-weight="900">🧺 ห้องซักรีด (CRIME SCENE: พบศพ B)</text>
+              <text x="55" y="226" font-size="11" fill="#f43f5e" font-weight="900">🧺 ห้องซักรีด (CRIME SCENE: พบศพเรียวตะ)</text>
 
               <!-- Stainless Clothes Rail -->
               <rect x="110" y="255" width="140" height="12" fill="#e2e8f0" stroke="#94a3b8" rx="4"/>
               <circle cx="190" cy="261" r="5" fill="#e60067"/>
               <text x="180" y="280" font-size="9" fill="#e2e8f0" font-weight="800" text-anchor="middle">ราวท่อสแตนเลสเพดาน H=4m</text>
 
-              <!-- Dryer 21:00 -->
+              <!-- Washing Machines W-1 to W-4 -->
+              <g fill="#1e293b" stroke="#38bdf8" stroke-width="1.5">
+                <rect x="45" y="245" width="28" height="22" rx="2"/>
+                <rect x="75" y="245" width="28" height="22" rx="2"/>
+              </g>
+
+              <!-- Dryer (DELAY TIMER 21:00) -->
               <rect x="45" y="270" width="45" height="45" fill="#1e293b" stroke="#eab308" stroke-width="2" rx="3"/>
               <text x="67" y="293" font-size="8.5" fill="#eab308" font-weight="900" text-anchor="middle">DRYER</text>
-              <text x="67" y="306" font-size="8" fill="#eab308" text-anchor="middle">⏱️ 21:00</text>
+              <text x="67" y="306" font-size="8" fill="#eab308" font-weight="900" text-anchor="middle">⏱️ 21:00</text>
 
               <!-- Sink -->
               <rect x="245" y="245" width="30" height="30" fill="#1e293b" stroke="#00ffff" rx="2"/>
               <text x="260" y="265" font-size="11" text-anchor="middle">🚿</text>
 
-              <!-- Victim B Spot -->
+              <!-- Victim Ryota Spot -->
               <circle cx="190" cy="335" r="16" fill="rgba(230, 0, 103, 0.25)" stroke="#e60067" stroke-width="2"/>
               <text x="190" y="341" font-size="14" text-anchor="middle">☠️</text>
-              <text x="190" y="363" font-size="10" fill="#e60067" font-weight="900" text-anchor="middle">จุดพบศพ เรียวตะ (B)</text>
+              <text x="190" y="363" font-size="10" fill="#e60067" font-weight="900" text-anchor="middle">จุดพบศพ เรียวตะ</text>
               <text x="190" y="375" font-size="8.5" fill="#cbd5e1" text-anchor="middle">(มีดพก & เชือกมีรอยตัด)</text>
             </g>
 
@@ -2800,7 +2806,7 @@
             <div class="sim-narrative-badge" id="simNarrativeBadge">เฟส 1: การเซ็ตกับดักเชือกตากผ้า (18:15 น.)</div>
             <h2 class="sim-narrative-title" id="simNarrativeTitle">คนร้ายลอบวางกับดักน้ำถ่วงเวลาในห้องซักรีด</h2>
             <p class="sim-narrative-desc" id="simNarrativeDesc">
-              A (ผู้มี INT สูง) นำเชือกตากผ้าไนลอนคล้องบ่วงที่คอ B ซึ่งนอนสลบ พาดผ่านราวท่อสแตนเลสเพดาน หย่อนถังใส่ผ้าซักเปล่า (หนัก 2 กก.) ออกนอกหน้าต่างบานเลื่อนระบายอากาศสูง 3.5 ม. สอดสายยางผ่านรูมือจับของถังซักผ้าและมัดประคองด้วยเชือกไนลอน (ทางน้ำเปิดโล่ง 100%) และหรี่น้ำ 0.5 ลิตร/นาที โดยมีร่างเรียวตะ (65 กก.) เป็นตัวถ่วงน้ำหนักรั้งถังไม่ให้ขยับจนกว่าน้ำจะเต็มตอน 21:00 น.!
+              คนร้าย (ผู้มี INT สูง) นำเชือกตากผ้าไนลอนคล้องบ่วงที่คอของเรียวตะซึ่งนอนสลบ พาดผ่านราวท่อสแตนเลสเพดาน หย่อนถังใส่ผ้าซักเปล่า (หนัก 2 กก.) ออกนอกหน้าต่างบานเลื่อนระบายอากาศสูง 3.5 ม. สอดสายยางผ่านรูมือจับของถังซักผ้าและมัดประคองด้วยเชือกไนลอน (ทางน้ำเปิดโล่ง 100%) และหรี่น้ำ 0.5 ลิตร/นาที โดยมีร่างเรียวตะ (65 กก.) เป็นตัวถ่วงน้ำหนักรั้งถังไม่ให้ขยับจนกว่าน้ำจะเต็มตอน 21:00 น.!
             </p>
           </div>
 
@@ -3155,10 +3161,10 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets (เลือกคู่ดวล & คำพูดค้านสำเร็จรูป):</span>
             <div class="preset-btn-row">
-              <button type="button" class="preset-chip" onclick="applyPresetStage3('คิริกิริ เคียวโกะ', 'ฮิฟุมิ ยามาดะ', 'ช่วงเวลาทำร้ายในครัว & ท่อนกระดูกหมู', 'ฉันมีเวรทำอาหารมื้อค่ำอยู่ในครัวตลอดเวลาช่วง 17:45 - 18:30 น. จะเอาเวลาที่ไหนไปทำร้าย B ได้!?')">🍳 1: ข้ออ้างห้องครัว (เคียวโกะ VS ฮิฟุมิ)</button>
-              <button type="button" class="preset-chip" onclick="applyPresetStage3('นาเอกิ มาโคโตะ', 'ฮิฟุมิ ยามาดะ', 'ข้ออ้าง Alibi ตอนสามทุ่ม & กลไกอัตโนมัติ', 'ตอนสามทุ่ม 21:00 น. ฉันก็นั่งกินข้าวคุยอยู่กับทุกคนที่โต๊ะอาหาร จะไปผูกเชือกแขวนคอ B ได้ยังไงกัน!?')">⏱️ 2: Alibi ตอนสามทุ่ม (นาเอกิ VS ฮิฟุมิ)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage3('คิริกิริ เคียวโกะ', 'ฮิฟุมิ ยามาดะ', 'ช่วงเวลาทำร้ายในครัว & ท่อนกระดูกหมู', 'ฉันมีเวรทำอาหารมื้อค่ำอยู่ในครัวตลอดเวลาช่วง 17:45 - 18:30 น. จะเอาเวลาที่ไหนไปทำร้ายเรียวตะได้!?')">🍳 1: ข้ออ้างห้องครัว (เคียวโกะ VS ฮิฟุมิ)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage3('นาเอกิ มาโคโตะ', 'ฮิฟุมิ ยามาดะ', 'ข้ออ้าง Alibi ตอนสามทุ่ม & กลไกอัตโนมัติ', 'ตอนสามทุ่ม 21:00 น. ฉันก็นั่งกินข้าวคุยอยู่กับทุกคนที่โต๊ะอาหาร จะไปผูกเชือกแขวนคอเรียวตะได้ยังไงกัน!?')">⏱️ 2: Alibi ตอนสามทุ่ม (นาเอกิ VS ฮิฟุมิ)</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage3('โทกามิ เบียคุยะ', 'ฮิฟุมิ ยามาดะ', 'ความสูงหน้าต่าง 3.5 เมตร & น้ำหนักถ่วง', 'หน้าต่างห้องซักผ้าสูงตั้ง 3.5 เมตร แถมไม่มีบันได ใครจะปีนออกไปผูกเชือกข้างนอกได้กันล่ะ!?')">🪟 3: ข้ออ้างหน้าต่างสูง (เบียคุยะ VS ฮิฟุมิ)</button>
-              <button type="button" class="preset-chip" onclick="applyPresetStage3('โทกามิ เบียคุยะ', 'ฮิฟุมิ ยามาดะ', 'การปัดความรับผิดชอบ & ใครคือ Blackened ที่แท้จริง', 'ฉันเป็นคนวางแผนทั้งหมด! ทุบหัว ผูกเชือก เปิดน้ำ ฉันต้องเป็นคนฆ่าสิ จะเป็น B ฆ่าตัวตายได้ยังไง!?')">⚖️ 4: ปัดความรับผิดชอบ (เบียคุยะ VS คนร้าย)</button>
+              <button type="button" class="preset-chip" onclick="applyPresetStage3('โทกามิ เบียคุยะ', 'ฮิฟุมิ ยามาดะ', 'การปัดความรับผิดชอบ & ใครคือ Blackened ที่แท้จริง', 'ฉันเป็นคนวางแผนทั้งหมด! ทุบหัว ผูกเชือก เปิดน้ำ ฉันต้องเป็นคนฆ่าสิ จะเป็นเรียวตะฆ่าตัวตายได้ยังไง!?')">⚖️ 4: ปัดความรับผิดชอบ (เบียคุยะ VS คนร้าย)</button>
               <button type="button" class="preset-chip" onclick="applyPresetStage3('นาเอกิ มาโคโตะ', 'ฮิฟุมิ ยามาดะ', 'ข้อสันนิษฐานการจัดฉากของเรียวตะ', 'เรียวตะเป็นคนถือมีดและผูกเงื่อนบ่วงเชือกเอง นี่มันการฆ่าตัวตายชัดๆ ไม่เกี่ยวกับฉันสักหน่อย!')">🔪 5: ข้ออ้างจัดฉากฆ่าตัวตาย (นาเอกิ VS ฮิฟุมิ)</button>
             </div>
           </div>
@@ -3192,7 +3198,7 @@
 
           <div class="cfg-field-group" style="margin-top:10px;">
             <label class="cfg-label">💬 4. คำพูดค้านของฝ่ายตรงข้าม (Argument Statement ที่ต้องฟัน):</label>
-            <textarea id="cfgStg3Arg" class="manual-code-input" style="width:100%; height:65px; margin-top:4px; font-family:inherit; font-size:0.85rem; line-height:1.4;">ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้าย B ที่ห้องซักผ้าได้!?</textarea>
+            <textarea id="cfgStg3Arg" class="manual-code-input" style="width:100%; height:65px; margin-top:4px; font-family:inherit; font-size:0.85rem; line-height:1.4;">ฉันอยู่แต่ในครัวคนเดียวตลอดช่วงเย็น จะไปเอาเวลาที่ไหนไปทำร้ายเรียวตะที่ห้องซักผ้าได้!?</textarea>
           </div>
         </div>
 
@@ -3216,7 +3222,7 @@
           <div class="preset-group">
             <span class="preset-title">⚡ 1-Click Presets:</span>
             <div class="preset-btn-row">
-              <button type="button" class="preset-chip" onclick="applyScrumPresetFromDropdown(0)">⚖️ 1: โหวต Trapper A vs โหวตเหยื่อ B</button>
+              <button type="button" class="preset-chip" onclick="applyScrumPresetFromDropdown(0)">⚖️ 1: โหวต Trapper vs โหวตเรียวตะ</button>
               <button type="button" class="preset-chip" onclick="applyScrumPresetFromDropdown(1)">⚖️ 2: แรงคน vs ถังน้ำหนักอัตโนมัติ</button>
               <button type="button" class="preset-chip" onclick="applyScrumPresetFromDropdown(2)">⏱️ 3: เวลาตาย: 17:30 น. vs 21:00 น.</button>
               <button type="button" class="preset-chip" onclick="applyScrumPresetFromDropdown(3)">🍖 4: สาเหตุ: กะโหลกแตก vs กระดูกคอหัก</button>
@@ -3224,16 +3230,16 @@
           </div>
           <div style="margin-top:10px;">
             <label style="font-size:0.85rem; color:#ccc;">หัวข้อการโต้เถียง (Scrum Topic):</label>
-            <input type="text" id="cfgStg5Topic" class="manual-code-input" style="width:100%; margin-top:4px;" value="ใครคือ Blackened ตัวจริง: โหวต Trapper A (ผู้วางกับดัก) หรือ โหวตเหยื่อ B (ผู้ผูกเชือกพลาดจนตาย)?">
+            <input type="text" id="cfgStg5Topic" class="manual-code-input" style="width:100%; margin-top:4px;" value="ใครคือ Blackened ตัวจริง: โหวต Trapper (ผู้วางกับดัก) หรือ โหวตเรียวตะ (ผู้ผูกเชือกพลาดจนตาย)?">
           </div>
           <div style="display:flex; gap:8px; margin-top:8px;">
             <div style="flex:1;">
               <label style="font-size:0.85rem; color:#ccc;">ฝั่งน้ำเงิน (ซ้าย):</label>
-              <input type="text" id="cfgStg5Left" class="manual-code-input" style="width:100%; margin-top:4px;" value="🔵 โหวต A: Trapper ผู้วางแผนกับดักฆ่า">
+              <input type="text" id="cfgStg5Left" class="manual-code-input" style="width:100%; margin-top:4px;" value="🔵 โหวต Trapper: ผู้วางแผนกับดักฆ่า">
             </div>
             <div style="flex:1;">
               <label style="font-size:0.85rem; color:#ccc;">ฝั่งชมพูม่วง (ขวา):</label>
-              <input type="text" id="cfgStg5Right" class="manual-code-input" style="width:100%; margin-top:4px;" value="🟣 โหวต B: เหยื่อที่ผูกเชือกพลาดจนคอหักตายเอง">
+              <input type="text" id="cfgStg5Right" class="manual-code-input" style="width:100%; margin-top:4px;" value="🟣 โหวตเรียวตะ: จัดฉากผูกเชือกพลาดจนคอหักตายเอง">
             </div>
           </div>
         </div>
