@@ -8392,7 +8392,8 @@ function renderMobileTask(stage) {
     renderMobilePhaseCard(stage);
     return;
   } else if (stage === 'lobby') {
-    area.innerHTML = '<div class="idle-message"><div class="idle-spinner"></div><p>กำลังรอเริ่มศาลชั้นเรียน... (Lobby)</p></div>';
+    renderMobilePhaseCard('lobby');
+    return;
   } else if (stage === 'trial') {
     area.innerHTML = `
       <div style="background:rgba(20,20,35,0.95); border:2px solid var(--mono-yellow); border-radius:10px; padding:16px; text-align:center;">
