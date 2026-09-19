@@ -197,7 +197,7 @@
       <div id="courtDailyLife" class="court-box hidden">
         <div class="idle-splash-container">
           <div style="width:100%; max-width:680px; height:170px; border-radius:10px; overflow:hidden; margin:0 auto 16px auto; border:2px solid #38bdf8; box-shadow:0 0 20px rgba(56,189,248,0.3);">
-            <img src="assets/room_dining_hall.jpg" alt="Daily Life" style="width:100%; height:100%; object-fit:cover; display:block;">
+            <img src="assets/Rooms/room_dining_hall.jpg" alt="Daily Life" style="width:100%; height:100%; object-fit:cover; display:block;">
           </div>
           <div class="idle-crest-circle" style="background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(15, 23, 42, 0.9) 70%); border-color: #38bdf8;">
             <span style="font-size:3.8rem; filter: drop-shadow(0 0 12px #38bdf8);">☕</span>
@@ -214,6 +214,11 @@
             <span class="idle-strip-pill">ROOM CODE: <strong id="courtDailyRoomCode">------</strong></span>
             <span class="idle-strip-pill">นักเรียนในห้อง: <strong id="courtDailyPlayerCount">0</strong> คน</span>
           </div>
+          <div style="margin-top:16px;">
+            <button class="dangan-action-btn yellow" onclick="courtStartInvestigation()" style="font-weight:900; padding:10px 22px; font-size:0.98rem; cursor:pointer; box-shadow:0 0 15px rgba(234,179,8,0.4);">
+              🔍 เข้าสู่ช่วงสืบสวน (Start Investigation Phase) ➔
+            </button>
+          </div>
         </div>
       </div>
 
@@ -221,7 +226,7 @@
       <div id="courtIdle" class="court-box hidden">
         <div class="idle-splash-container">
           <div style="width:100%; max-width:680px; height:170px; border-radius:10px; overflow:hidden; margin:0 auto 16px auto; border:2px solid var(--court-gold); box-shadow:0 0 20px rgba(234,179,8,0.3);">
-            <img src="assets/room_courtroom.jpg" alt="Class Trial" style="width:100%; height:100%; object-fit:cover; display:block;">
+            <img src="assets/Rooms/room_courtroom.jpg" alt="Class Trial" style="width:100%; height:100%; object-fit:cover; display:block;">
           </div>
           <div class="idle-crest-circle">
             <span style="font-size:3.8rem; filter: drop-shadow(0 0 12px var(--court-gold));">⚖️</span>
@@ -271,8 +276,11 @@
             <p class="sub-guide">เมื่อผู้เล่นสแกนเข้าห้องแล้ว กรุณาเลือกตัวละครประจำตำแหน่งโพเดียม</p>
             
             <!-- Court Control Action Buttons -->
-            <div class="court-lobby-actions">
-              <button class="small-btn red" onclick="courtTerminateSession()" style="font-weight:900; padding:10px 20px; font-size:1rem;">
+            <div class="court-lobby-actions" style="display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap; margin-top:14px;">
+              <button id="courtBtnStartDaily" class="dangan-action-btn cyan" onclick="courtStartDailyLife()" style="font-weight:900; font-size:1.15rem; padding:12px 28px; box-shadow:0 0 25px rgba(0,240,255,0.4); border-radius:8px; cursor:pointer;">
+                ☕ เริ่มเกม (Start Game) ➔ ช่วงชีวิตประจำวัน (Daily Life)
+              </button>
+              <button class="small-btn red" onclick="courtTerminateSession()" style="font-weight:900; padding:10px 18px; font-size:0.95rem;">
                 🚪 จบ Session & เตะทุกคนออก
               </button>
             </div>
@@ -809,6 +817,13 @@
         <div class="admin-card">
           <div class="admin-card-header-row">
             <h2 class="admin-card-title" style="margin-bottom:0;">🎛️ เลือกเปิดมินิเกม (Mini-Game Selector)</h2>
+          </div>
+          <!-- Prominent Lobby Start Game Banner for DM -->
+          <div id="adminLobbyStartBanner" style="margin:10px 0 14px 0; padding:12px 16px; background:linear-gradient(135deg, rgba(2,132,199,0.3), rgba(8,47,73,0.9)); border:2px solid #38bdf8; border-radius:10px; text-align:center; box-shadow:0 0 20px rgba(56,189,248,0.25);">
+            <div style="font-size:0.92rem; color:#bae6fd; font-weight:700; margin-bottom:8px;">📢 เมื่อผู้เล่นเข้าห้องเรียบร้อยแล้ว กดปุ่มนี้เพื่อเริ่มดำเนินเนื้อเรื่อง:</div>
+            <button type="button" class="dangan-action-btn cyan" onclick="adminStartDailyLife()" style="font-size:1.08rem; font-weight:900; padding:10px 24px; box-shadow:0 0 20px rgba(56,189,248,0.5); cursor:pointer; width:100%; max-width:440px;">
+              ☕ เริ่มเกม (Start Game) ➔ ช่วงชีวิตประจำวัน (Daily Life)
+            </button>
           </div>
           <div class="minigame-btn-grid">
             <button class="dm-act-btn cyan" onclick="adminSetGame('dailylife')" style="grid-column: 1 / -1; background:#082f49; border:2px solid #38bdf8;">

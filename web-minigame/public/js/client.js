@@ -558,16 +558,31 @@ function renderMobilePhaseCard(stage) {
     return;
   }
 
-  if (stage === 'dailylife' || stage === 'daily' || stage === 'lobby') {
+  if (stage === 'lobby') {
+    const pName = (myPlayer && myPlayer.name) ? myPlayer.name : 'นักเรียน';
     area.innerHTML = `
-      <div style="background:rgba(56,189,248,0.06); border:2px solid #38bdf8; border-radius:12px; padding:20px 16px; text-align:center;">
-        <div style="font-size:2rem; margin-bottom:8px;">☕</div>
-        <h3 style="color:#38bdf8; font-weight:900; margin-bottom:8px; font-size:1.15rem;">ช่วงชีวิตประจำวัน (Daily Life)</h3>
-        <p style="color:#cbd5e1; font-size:0.88rem; line-height:1.5; margin-bottom:14px;">
-          ขณะนี้โรงเรียนเปิดภาคการศึกษาปกติ นักเรียนสามารถศึกษา <strong>📜 กฎโรงเรียน</strong> และทำความคุ้นเคยกับ <strong>🗺️ ผังโรงเรียน</strong> ผ่าน Monopad
+      <div style="background:rgba(20,20,35,0.95); border:2px solid var(--mono-pink); border-radius:12px; padding:22px 16px; text-align:center; box-shadow:0 0 20px rgba(255,42,133,0.25);">
+        <div style="font-size:2.6rem; margin-bottom:8px;">🏛️</div>
+        <h3 style="color:var(--mono-pink); font-weight:900; margin-bottom:8px; font-size:1.2rem;">ห้องพักผู้เล่น (Session Lobby)</h3>
+        <p style="color:#cbd5e1; font-size:0.9rem; line-height:1.5; margin-bottom:14px;">
+          คุณเข้าสู่ห้องและยืนประจำโพเดียมเรียบร้อยแล้วในฐานะ <strong>${escapeHtml(pName)}</strong><br>
+          กรุณารอเพื่อนๆ เข้าห้องให้ครบ จากนั้นผู้ดูแลศาล (DM) จะกดเริ่มเกมจากจอหลักหรือ Admin
         </p>
-        <div style="display:inline-block; background:rgba(56,189,248,0.15); border:1px solid #38bdf8; border-radius:20px; padding:6px 14px; font-size:0.8rem; color:#38bdf8; font-weight:800;">
-          ⏳ กำลังดำเนินชีวิตประจำวัน...
+        <div style="display:inline-block; background:rgba(255,42,133,0.15); border:1px solid var(--mono-pink); border-radius:20px; padding:6px 16px; font-size:0.82rem; color:var(--mono-pink); font-weight:800;">
+          ⏳ รอนักเรียนเข้าห้องครบ / รอ DM กดเริ่มเกม...
+        </div>
+      </div>
+    `;
+  } else if (stage === 'dailylife' || stage === 'daily') {
+    area.innerHTML = `
+      <div style="background:rgba(56,189,248,0.06); border:2px solid #38bdf8; border-radius:12px; padding:20px 16px; text-align:center; box-shadow:0 0 20px rgba(56,189,248,0.2);">
+        <div style="font-size:2.4rem; margin-bottom:8px;">☕</div>
+        <h3 style="color:#38bdf8; font-weight:900; margin-bottom:8px; font-size:1.2rem;">ช่วงชีวิตประจำวัน (Daily Life)</h3>
+        <p style="color:#cbd5e1; font-size:0.88rem; line-height:1.5; margin-bottom:14px;">
+          ยินดีต้อนรับสู่ Hope's Peak Academy! ขณะนี้เปิดภาคการศึกษาปกติ นักเรียนสามารถศึกษา <strong>📜 กฎโรงเรียน</strong> และทำความคุ้นเคยกับ <strong>🗺️ ผังโรงเรียน</strong> ผ่าน Monopad
+        </p>
+        <div style="display:inline-block; background:rgba(56,189,248,0.15); border:1px solid #38bdf8; border-radius:20px; padding:6px 16px; font-size:0.82rem; color:#38bdf8; font-weight:800;">
+          ☕ กำลังดำเนินชีวิตประจำวัน... (ยังไม่เกิดคดีฆาตกรรม)
         </div>
       </div>
     `;
@@ -1822,9 +1837,15 @@ function handleIncomingMessage(msg, senderConn) {
     });
 
     const isKiller = (parseInt(pcSlot, 10) === 5) || isHifumi;
+    const isInvOrLater = typeof gameState !== 'undefined' && gameState && (
+      gameState.stage === 'investigation' ||
+      gameState.stage === 'trial' ||
+      (typeof gameState.stage === 'string' && gameState.stage.startsWith('stage')) ||
+      gameState.stage === 'closing'
+    );
     const initialClues = (Array.isArray(msg.clues) && msg.clues.length > 0)
       ? msg.clues
-      : (PC_INVESTIGATION_CLUES[pcSlot] ? [...PC_INVESTIGATION_CLUES[pcSlot]] : []);
+      : (isInvOrLater && PC_INVESTIGATION_CLUES[pcSlot] ? [...PC_INVESTIGATION_CLUES[pcSlot]] : []);
 
     const playerObj = {
       id: senderId,
@@ -1911,18 +1932,29 @@ function handleIncomingMessage(msg, senderConn) {
     updateMonopadPhaseTabs(gameState.stage);
     playSfx('correct');
 
-    if (myPlayer && Array.isArray(myPlayer.clues) && myPlayer.clues.length > 0) {
-      saveUnlockedClues(myPlayer.clues);
+    const isInvOrLater = typeof gameState !== 'undefined' && gameState && (
+      gameState.stage === 'investigation' ||
+      gameState.stage === 'trial' ||
+      (typeof gameState.stage === 'string' && gameState.stage.startsWith('stage')) ||
+      gameState.stage === 'closing'
+    );
+    if (isInvOrLater) {
+      if (myPlayer && Array.isArray(myPlayer.clues) && myPlayer.clues.length > 0) {
+        saveUnlockedClues(myPlayer.clues);
+        if (typeof renderPlayerCluesList === 'function') renderPlayerCluesList();
+      }
+      grantInvestigationClues(true);
+      broadcast({
+        type: 'sync_player_clues',
+        userHash: currentUserHash,
+        playerName: myPlayer.name,
+        clues: getUnlockedClues()
+      });
+    } else {
+      // In Lobby and Daily Life: Do not grant murder clues before investigation phase!
+      saveUnlockedClues([]);
       if (typeof renderPlayerCluesList === 'function') renderPlayerCluesList();
     }
-    grantInvestigationClues(true);
-    // Broadcast initial clues to host immediately
-    broadcast({
-      type: 'sync_player_clues',
-      userHash: currentUserHash,
-      playerName: myPlayer.name,
-      clues: getUnlockedClues()
-    });
   } else if (msg.type === 'claim_rejected') {
     if (currentView === 'admin' || currentView === 'court') return;
     if (msg.targetHash && currentUserHash && msg.targetHash !== currentUserHash) return;
@@ -3361,15 +3393,23 @@ function getUnlockedClues() {
       }
     }
 
-    // Default to player's starting investigation clues if they have a pcSlot
-    let slot = 0;
-    if (myPlayer && myPlayer.pcSlot) slot = parseInt(myPlayer.pcSlot, 10);
-    else {
-      const qSlot = new URLSearchParams(window.location.search).get('pc');
-      if (qSlot) slot = parseInt(qSlot, 10);
-    }
-    if (slot && PC_INVESTIGATION_CLUES[slot]) {
-      return [...PC_INVESTIGATION_CLUES[slot]];
+    // Default to player's starting investigation clues ONLY if investigation has started!
+    const isInvOrLater = typeof gameState !== 'undefined' && gameState && (
+      gameState.stage === 'investigation' ||
+      gameState.stage === 'trial' ||
+      (typeof gameState.stage === 'string' && gameState.stage.startsWith('stage')) ||
+      gameState.stage === 'closing'
+    );
+    if (isInvOrLater) {
+      let slot = 0;
+      if (myPlayer && myPlayer.pcSlot) slot = parseInt(myPlayer.pcSlot, 10);
+      else {
+        const qSlot = new URLSearchParams(window.location.search).get('pc');
+        if (qSlot) slot = parseInt(qSlot, 10);
+      }
+      if (slot && PC_INVESTIGATION_CLUES[slot]) {
+        return [...PC_INVESTIGATION_CLUES[slot]];
+      }
     }
     return [];
   }
@@ -3572,6 +3612,18 @@ function renderPlayerCluesList() {
   const q = (qEl && qEl.value ? qEl.value : '').toLowerCase().trim();
 
   let html = '';
+  if (typeof gameState !== 'undefined' && gameState && (gameState.stage === 'lobby' || gameState.stage === 'dailylife' || gameState.stage === 'daily')) {
+    html += `
+      <div style="background:rgba(56,189,248,0.08); border:2px solid #38bdf8; border-radius:10px; padding:16px 14px; text-align:center; color:#cbd5e1; margin-bottom:14px; box-shadow:0 0 15px rgba(56,189,248,0.15);">
+        <div style="font-size:2rem; margin-bottom:6px;">☕</div>
+        <div style="font-weight:900; color:#38bdf8; font-size:1.05rem; margin-bottom:4px;">ยังไม่เกิดเหตุคดีฆาตกรรม (ช่วงชีวิตประจำวัน)</div>
+        <div style="font-size:0.84rem; line-height:1.5; color:#94a3b8;">
+          ขณะนี้นักเรียนทุกคนกำลังดำเนินชีวิตประจำวันในโรงเรียนอย่างสงบสุข<br>
+          แฟ้มคดี Monokuma File และการค้นหากระสุนความจริงจะเปิดใช้งานเมื่อเข้าสู่ <strong>ช่วงเวลาสืบสวน (Investigation Phase)</strong>
+        </div>
+      </div>
+    `;
+  }
   let visibleCount = 0;
 
   ALL_CLUES_DATA.forEach(c => {
@@ -4221,6 +4273,32 @@ function handleClueDiscovered(clueId, clueName, playerName, userHash) {
 }
 
 // ==========================================================
+// GAME START FLOW HELPERS (LOBBY -> DAILY LIFE -> INVESTIGATION)
+// ==========================================================
+function courtStartDailyLife() {
+  const pCount = Object.keys(gameState.players || {}).length;
+  if (pCount === 0) {
+    if (!confirm('ยังไม่มีผู้เล่นเข้ามาในห้อง ต้องการเริ่มช่วงชีวิตประจำวันเลยหรือไม่?')) return;
+  }
+  adminSetGame('dailylife');
+  playSfx('correct');
+  showToast('☕ เริ่มต้นช่วงชีวิตประจำวัน (Daily Life)!');
+}
+
+function adminStartDailyLife() {
+  adminSetGame('dailylife');
+  playSfx('correct');
+  showToast('☕ เริ่มต้นช่วงชีวิตประจำวัน (Daily Life)!');
+}
+
+function courtStartInvestigation() {
+  if (!confirm('ยืนยันเปิดช่วงเวลาสืบสวนหาหลักฐาน (Investigation Phase)?\nระบบจะเริ่มแจกจ่ายพยานหลักฐานและเปิด Monopad ให้ทุกคนสแกน QR')) return;
+  adminSetGame('investigation');
+  playSfx('gavel');
+  showToast('🔍 เข้าสู่ช่วงสืบสวนหาหลักฐาน (Investigation Phase)!');
+}
+
+// ==========================================================
 // STAGE RENDERERS (COURTROOM VIEW & MOBILE VIEW)
 // ==========================================================
 function renderStage(stage) {
@@ -4229,6 +4307,16 @@ function renderStage(stage) {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
+
+  // Toggle DM Admin Lobby Start Banner
+  const lobbyBanner = document.getElementById('adminLobbyStartBanner');
+  if (lobbyBanner) {
+    if (stage === 'lobby' || !stage) {
+      lobbyBanner.style.display = 'block';
+    } else {
+      lobbyBanner.style.display = 'none';
+    }
+  }
 
   if (stage !== 'stage0') {
     stopStg0Loop();
@@ -4247,6 +4335,10 @@ function renderStage(stage) {
   if (stage === 'dailylife' || stage === 'daily') {
     const dl = document.getElementById('courtDailyLife');
     if (dl) dl.classList.remove('hidden');
+    const dCode = document.getElementById('courtDailyRoomCode');
+    if (dCode) dCode.innerText = roomCode || '------';
+    const dCount = document.getElementById('courtDailyPlayerCount');
+    if (dCount) dCount.innerText = Object.keys(gameState.players || {}).length;
     updatePlayerDisplays();
   } else if (stage === 'idle') {
     const idl = document.getElementById('courtIdle');
@@ -6847,10 +6939,10 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🥩',
-        image: 'assets/Rooms/room_kitchen.jpg',
+        image: 'assets/manga_p1_kitchen_shadow.jpg',
         timestamp: '17:00 น.',
         location: 'ห้องครัวโรงเรียน',
-        sfxBadge: '*SHHHL*',
+        sfxBadge: '*RUMMAGE... FREEZER*',
         desc: '[TRAPPER] ซึ่งมีหน้าที่เตรียมอาหารเย็น แอบนำท่อนกระดูกหมูแช่แข็งชิ้นใหญ่ออกจากช่องฟรีซในครัวมาเตรียมไว้',
         dialogue: '[TRAPPER]: "กระดูกชิ้นนี้... ทั้งหนาและแข็งเหมือนแท่งเหล็ก ถ้าใช้ฟาดทีเดียวคงสลบเหมือด..."',
         evidence: 'EVD-13 ท่อนกระดูกหมูแช่แข็ง (ในช่องฟรีซ)'
@@ -6891,12 +6983,12 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '🥘',
-        image: 'assets/Rooms/room_dining_hall.jpg',
-        timestamp: '19:00 น.',
-        location: 'โรงอาหาร',
-        sfxBadge: '*YUMMY*',
-        desc: 'ไขมันและกลิ่นเครื่องเทศของสตูว์เนื้อกลบคราบเลือดจนมิด กลายเป็นอาหารเย็นที่ทุกคนทานร่วมกัน',
-        dialogue: 'เพื่อนๆ: "สตูว์วันนี้อร่อยจังเลยนะ [TRAPPER]! เนื้อนุ่มจนแทบละลายในปากเลย!"',
+        image: 'assets/manga_p1_wipe_traces.jpg',
+        timestamp: '17:40 น.',
+        location: 'ห้องครัวโรงเรียน',
+        sfxBadge: '*WIPE... SILENCE*',
+        desc: 'ไขมันและกลิ่นเครื่องเทศของสตูว์เนื้อกลบคราบเลือดจนมิด [TRAPPER] เช็ดทำความสะอาดรอยเลือดทั้งหมดก่อนออกจากครัวอย่างเงียบเชียบ',
+        dialogue: '[TRAPPER]: "เช็ดคราบเลือดให้หมดจด... เท่านี้ก็ไม่มีใครจับได้ว่าฉันใช้อาวุธอะไร"',
         evidence: 'EVD-16 ตารางเวรทำอาหารบน Monopad'
       }
     ]
@@ -6909,10 +7001,10 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🚪',
-        image: 'assets/Crime_Scene/crime_scene_laundry.jpg',
+        image: 'assets/manga_p2_drag_victim.jpg',
         timestamp: '17:45 น.',
         location: 'ห้องซักรีด ชั้น 1',
-        sfxBadge: '*CREAK*',
+        sfxBadge: '*CREAK... DRAG*',
         desc: 'เงาดำคนร้ายสลบแน่นิ่งอยู่บนพื้นห้องซักรีด [TRAPPER] จึงเริ่มติดตั้งกลไกเชือกและรอกตามแผนการวางกับดัก',
         dialogue: '[TRAPPER]: "เงาดำหมดสติสนิท... ต่อไปคือการโยงเชือกขึ้นเพดานตามแบบแผนที่คำนวณไว้..."',
         evidence: 'EVD-04 บันทึกแผนผังห้องซักรีด'
@@ -6940,10 +7032,10 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P2-S2'],
         art: '⚙️',
-        image: 'assets/item/item_ceiling_pipe.jpg',
+        image: 'assets/manga_p2_pulley_pipe.jpg',
         timestamp: '18:15 น.',
         location: 'เพดานห้องซักรีด',
-        sfxBadge: '*SLIDE*',
+        sfxBadge: '*SLIDE... HOIST!*',
         title: 'ช่องว่างที่ 2: การทำรอกชักร่างขึ้นเพดาน',
         desc: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอกชักน้ำหนัก',
         dialogue: '[TRAPPER]: "ราวท่อสแตนเลสนี้แข็งแรงพอที่จะรับน้ำหนักตัวคนได้สบายๆ..."',
@@ -6953,10 +7045,10 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '🪟',
-        image: 'assets/item/item_laundry_window.jpg',
+        image: 'assets/manga_p2_toss_window.jpg',
         timestamp: '18:30 น.',
         location: 'หน้าต่างระบายอากาศห้องซักรีด',
-        sfxBadge: '*TOSS*',
+        sfxBadge: '*TOSS... OUTSIDE!*',
         desc: '[TRAPPER] โยนปลายเชือกอีกด้านออกนอกหน้าต่างระบายอากาศสูง 3.5 เมตร สู่ลานคอร์ทยาร์ดภายนอก',
         dialogue: '[TRAPPER]: "โยนปลายเชือกออกไปที่ลานด้านนอก... เท่านี้กลไกภายในห้องซักรีดก็เสร็จสมบูรณ์"',
         evidence: 'EVD-17 บานเกล็ดหน้าต่างระบายอากาศเปิดอ้า'
@@ -6971,10 +7063,10 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🏢',
-        image: 'assets/Rooms/room_courtyard.jpg',
+        image: 'assets/manga_p3_barrel_position.jpg',
         timestamp: '18:35 น.',
         location: 'ลานคอร์ทยาร์ดภายนอก',
-        sfxBadge: '*THUD*',
+        sfxBadge: '*THUD... BLINDSPOT*',
         desc: 'ที่ลานคอร์ทยาร์ดนอกอาคาร [TRAPPER] วางถังน้ำพลาสติก 80 ลิตรไว้ตรงกับแนวหน้าต่างห้องซักรีด',
         dialogue: '[TRAPPER]: "จุดนี้ไม่มีกล้องวงจรปิดส่องถึง วางถังน้ำตรงนี้จะตรงกับแนวดิ่งพอดี"',
         evidence: 'EVD-08 ลานคอร์ทยาร์ดปีกบริการ'
@@ -6986,10 +7078,10 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P3-S1'],
         art: '🪣',
-        image: 'assets/item/item_shattered_barrel.jpg',
+        image: 'assets/manga_p3_tie_barrel.jpg',
         timestamp: '18:45 น.',
         location: 'ลานคอร์ทยาร์ดภายนอก',
-        sfxBadge: '*TIE*',
+        sfxBadge: '*BIND... KNOT!*',
         title: 'ช่องว่างที่ 1: การผูกถังถ่วงน้ำหนัก',
         desc: '[TRAPPER] ผูกปลายเชือกไนลอนที่หย่อนลงมาเข้ากับหูหิ้วของถังน้ำ เพื่อทำหน้าที่เป็นน้ำหนักถ่วง (Counterweight)',
         dialogue: '[TRAPPER]: "ผูกเงื่อนสองชั้นเข้ากับหูหิ้วถัง... เมื่อน้ำหนักเต็ม ถังจะกลายเป็นตัวฉุดมหาศาล"',
@@ -7002,10 +7094,10 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P3-S2'],
         art: '🚰',
-        image: 'assets/item/item_water_hose.jpg',
+        image: 'assets/manga_p3_water_hose.jpg',
         timestamp: '18:50 น.',
         location: 'ก๊อกน้ำห้องซักรีดสู่คอร์ทยาร์ด',
-        sfxBadge: '*DRIP...*',
+        sfxBadge: '*DRIP... TRICKLE*',
         title: 'ช่องว่างที่ 2: กลไกนาฬิกาน้ำตั้งเวลา',
         desc: '[TRAPPER] ต่อสายยางน้ำประปาเข้าก๊อก เปิดน้ำให้ไหลเติมลงถังอย่างช้าๆ 0.4 ลิตร/นาที (กลไกนาฬิกาน้ำ)',
         dialogue: '[TRAPPER]: "เปิดหรี่วาล์วน้ำไว้ที่ 0.40 ลิตรต่อนาที... อีก 130 นาทีน้ำจะเต็มถังตอน 21:00 น. พอดี!"',
@@ -7015,10 +7107,10 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '⏳',
-        image: 'assets/item/item_water_drops.jpg',
+        image: 'assets/manga_p3_water_timer.jpg',
         timestamp: '19:00 น.',
         location: 'ถังน้ำลานคอร์ทยาร์ด',
-        sfxBadge: '*TICK-TOCK*',
+        sfxBadge: '*TICK-TOCK... 21:00*',
         desc: 'กลไกนาฬิกาน้ำเริ่มทำงาน ระดับน้ำจะค่อยๆ เพิ่มขึ้นจนมีน้ำหนักมากพอที่จะกระชากเชือกเมื่อครบกำหนดเวลา 21:00 น.',
         dialogue: 'Monokuma: "อุปุ๊ปุ๊! นาฬิกาน้ำมรณะกำลังนับถอยหลังสู่เวลาสังหารอย่างเงียบเชียบ..."',
         evidence: 'EVD-18 มาตรวัดน้ำประปาบันทึกการไหล 52 ลิตร'
@@ -7036,10 +7128,10 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P4-S1'],
         art: '⏱️',
-        image: 'assets/item/item_dryer_dry1.jpg',
+        image: 'assets/manga_p4_delay_dryer.jpg',
         timestamp: '18:55 น.',
         location: 'ห้องซักรีด ชั้น 1',
-        sfxBadge: '*BEEP*',
+        sfxBadge: '*BEEP... SET*',
         title: 'ช่องว่างที่ 1: การตั้งเวลาเครื่องอบผ้าล่วงหน้า',
         desc: 'ก่อนออกจากห้องซักรีด [TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้า (Delay Timer) ให้เริ่มทำงานตอน 21:00 น.',
         dialogue: '[TRAPPER]: "ตั้งโปรแกรม Delay Start ไว้ 2 ชั่วโมง... เครื่องจะปั่นทำงานตอน 21:00 น. เป๊ะ!"',
@@ -7052,10 +7144,10 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P4-S2'],
         art: '👢',
-        image: 'assets/item/item_dryer_dry1.jpg',
+        image: 'assets/manga_p4_boots_dryer.jpg',
         timestamp: '18:58 น.',
         location: 'ถังปั่นเครื่องอบผ้า DRY-1',
-        sfxBadge: '*CLATTER*',
+        sfxBadge: '*CLATTER & STAMP!*',
         title: 'ช่องว่างที่ 2: วัตถุสร้างเสียงต่อสู้หลอก',
         desc: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้า DRY-1 เพื่อให้เกิดเสียงกระแทกเลียนแบบการต่อสู้หลอกตอน 21:00 น.',
         dialogue: '[TRAPPER]: "รองเท้าบูทหนังหนาคู่นี้ เมื่อหมุนในถังอบผ้าจะดัง \'โครม! คราม!\' เหมือนมีคนกำลังดิ้นรนต่อสู้!"',
@@ -7065,10 +7157,10 @@ const CLOSING_PAGES_DATA = [
         num: 3,
         type: 'story',
         art: '🕯️',
-        image: 'assets/Rooms/room_dining_hall.jpg',
+        image: 'assets/manga_p4_dining_alibi.jpg',
         timestamp: '19:00 – 21:00 น.',
         location: 'ห้องอาหารและห้องนั่งเล่น',
-        sfxBadge: '*ALIBI*',
+        sfxBadge: '*IRONCLAD ALIBI*',
         desc: '[TRAPPER] กลับไปร่วมโต๊ะอาหารค่ำเวลา 19:00 น. และนั่งคุยกับทุกคนในห้องนั่งเล่นจนถึง 21:00 น. เพื่อสร้าง Alibi ว่าตนไม่ได้อยู่ในที่เกิดเหตุ',
         dialogue: '[TRAPPER]: "ฉันอยู่กับทุกคนตลอดเวลาตั้งแต่ 19:00 น. ไม่มีทางที่จะไปฆ่าใครตอน 21:00 น. ได้แน่นอน!"',
         evidence: 'EVD-03 พยานปากเอกของเพื่อนทุกคนในห้องนั่งเล่น'
@@ -7077,10 +7169,10 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '🔪',
-        image: 'assets/item/item_pocket_knife.jpg',
+        image: 'assets/manga_p4_knife_cut.jpg',
         timestamp: '20:45 น.',
         location: 'ห้องซักรีด ชั้น 1',
-        sfxBadge: '*SLASH!*',
+        sfxBadge: '*SLASH!! SEVERED!*',
         desc: 'แต่ก่อน 21:00 น. เงาดำคนร้ายกลับฟื้นสติขึ้นมา! เมื่อพบว่าตนถูกลอบทำร้าย เงาดำลึกลับจึงชักมีดพับออกมาตัดเชือกไนลอน แล้วเริ่มแผนการวางกับดักสังหารย้อนกลับใส่ผู้ที่ลอบทำร้ายตน!',
         dialogue: 'เงาดำคนร้าย: "หึ... คิดจะเล่นงานฉันงั้นเหรอ? ในความมืดนี้ ฉันจะตัดเชือกแล้วผูกเงื่อนมรณะดักคอย้อนศรแกล้งตายเพื่อลากแกไปประหาร!"',
         evidence: 'EVD-09 มีดพับปลายแหลม & รอยตัดเชือกคมกริบ'
@@ -7095,10 +7187,10 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🪢',
-        image: 'assets/item/item_pink_rope.jpg',
+        image: 'assets/manga_p5_rebind_noose.jpg',
         timestamp: '20:55 น.',
         location: 'ใต้ราวท่อเพดานห้องซักรีด',
-        sfxBadge: '*CHOKE!*',
+        sfxBadge: '*CHOKE... TRAPPED!!*',
         desc: 'เงาดำคนร้ายรีบผูกต่อเชือกใหม่และปีนขึ้นไปดัดแปลงบ่วงบนเพดานเพื่อจัดฉากฆาตกรรมย้อนกลับ แต่ในความมืดและความลนลาน เงื่อนบ่วงใหม่กลับคล้องรัดคอของเงาดำคนร้ายเองจนแน่นหนาและปลดไม่ออก!',
         dialogue: 'เงาดำคนร้าย: "บ้าเอ๊ย! เชือกไนลอนมันลื่นและมัดเงื่อนตาย... ปลดบ่วงไม่ออก! ถังน้ำข้างนอกกำลังจะร่วงแล้ว!!"',
         evidence: 'EVD-14 เงื่อนเชือกประดิษฐ์เองของเรียวตะ'
@@ -7110,10 +7202,10 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P5-S1'],
         art: '💥',
-        image: 'assets/Crime_Scene/crime_scene_courtyard_impact.jpg',
+        image: 'assets/manga_p5_barrel_crash.jpg',
         timestamp: '21:00:00 น.',
         location: 'ลานคอร์ทยาร์ด',
-        sfxBadge: '*KRA-BOOM!!*',
+        sfxBadge: '*KRA-BOOM!! CRASH!!*',
         title: 'ช่องว่างที่ 1: จังหวะถังน้ำร่วงกระแทกพื้น',
         desc: 'เวลา 21:00 น. น้ำในถังคอร์ทยาร์ดสะสมจนหนักทะลุ 70 กก. ดึงถังร่วงกระแทกพื้นแตกกระจายตามเวลา',
         dialogue: 'เสียงดังสนั่น: "โครมมมมมมมมมมมมม! ถังน้ำมวล 65.2 กิโลกรัมร่วงดิ่งจากอากาศกระแทกพื้นลานคอร์ทยาร์ดแตกเป็นชิ้นเล็กชิ้นน้อย!"',
@@ -7126,10 +7218,10 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P5-S2'],
         art: '⛓️',
-        image: 'assets/character/ryota.jpg',
+        image: 'assets/manga_p5_ryota_reveal.jpg',
         timestamp: '21:00:02 น.',
         location: 'ห้องซักรีด ชั้น 1',
-        sfxBadge: '*SNAP!!*',
+        sfxBadge: '*SNAP!! REVEAL!*',
         title: 'ช่องว่างที่ 2: เผยโฉมหน้าคนร้ายตัวจริง — สึกิชิมะ เรียวตะ!',
         desc: 'แรงกระชาก Shock Load ยกร่างเงาดำลอยขึ้นแขวนติดราวท่อเพดานจนคอหักเสียชีวิตทันที! ทันใดนั้น เงามืดจางหายไป... เผยโฉมหน้าที่แท้จริงว่าศพที่ถูกแขวนคือ "สึกิชิมะ เรียวตะ" สุดยอดนักเอาตัวรอด ผู้ผูกเงื่อนสังหารตนเอง!',
         dialogue: 'เผยโฉมหน้าคนร้าย: "เงามืดปริศนาสลายไป... ร่างที่ถูกแขวนคอแท้จริงแล้วคือ สึกิชิมะ เรียวตะ! ผู้เป็นคนร้าย Blackened ตัวจริงของคดีนี้!"',
@@ -7139,10 +7231,10 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '⚖️',
-        image: 'assets/character/monokuma.jpg',
+        image: 'assets/manga_p5_monokuma_guilty.jpg',
         timestamp: '21:05 น.',
         location: 'ศาลชั้นเรียน',
-        sfxBadge: '*OBJECTION!*',
+        sfxBadge: '*PUNISHMENT TIME!!*',
         desc: 'เครื่องอบผ้าทำงานเกิดเสียงรองเท้าบูทกระแทกโครมครามตามที่ [TRAPPER] ตั้งเวลาไว้ หลอกให้ทุกคนพังประตูเข้ามาพบศพ! แต่แท้จริงแล้วผู้ที่ผูกเงื่อนเชือกเส้นตายที่สังหารตนเองก็คือ "สึกิชิมะ เรียวตะ" ผู้เป็น Blackened ตัวจริง!',
         dialogue: 'Monokuma: "อุปุ๊ปุ๊ปุ๊! และนี่คือความจริงเบื้องหลังคดีฆ่าตัวตายโดยไม่ตั้งใจของสุดยอดนักเอาตัวรอด สึกิชิมะ เรียวตะ ผู้เป็น Blackened ตัวจริง!"',
         evidence: 'บทสรุปคำพิพากษาคดีศาลชั้นเรียนที่ 1'
@@ -7155,13 +7247,13 @@ const CLOSING_CARDS_DATA = [
   { id: 'CARD-P1-S1', page: 1, slot: 1, title: '[TRAPPER] ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเงาดำคนร้ายจนสลบในห้องซักรีด (17:30 น.)', icon: '🍖', thumb: 'assets/manga_p1_bone_attack.jpg' },
   { id: 'CARD-P1-S2', page: 1, slot: 2, title: '[TRAPPER] โยนท่อนกระดูกหมูเปื้อนเลือดลงไปต้มในหม้อสตูว์เนื้อเพื่อทำลายหลักฐาน', icon: '🍲', thumb: 'assets/manga_p1_bone_stew.jpg' },
   { id: 'CARD-P2-S1', page: 2, slot: 3, title: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูผูกมัดลำตัวและรัดเงาดำคนร้าย', icon: '🪢', thumb: 'assets/manga_p2_tie_rope.jpg' },
-  { id: 'CARD-P2-S2', page: 2, slot: 4, title: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️', thumb: 'assets/item/item_ceiling_pipe.jpg' },
-  { id: 'CARD-P3-S1', page: 3, slot: 5, title: '[TRAPPER] ผูกปลายเชือกไนลอนเข้ากับหูหิ้วถังน้ำพลาสติก 80 ลิตรที่ลานคอร์ทยาร์ด', icon: '🪣', thumb: 'assets/item/item_shattered_barrel.jpg' },
-  { id: 'CARD-P3-S2', page: 3, slot: 6, title: '[TRAPPER] ต่อสายยางเปิดน้ำประปาไหลเติมลงถังทีละน้อย 0.4 ลิตร/นาที (นาฬิกาน้ำ)', icon: '🚰', thumb: 'assets/item/item_water_hose.jpg' },
-  { id: 'CARD-P4-S1', page: 4, slot: 7, title: '[TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้าให้เริ่มทำงานตอน 21:00 น. ก่อนไปทานอาหาร', icon: '⏱️', thumb: 'assets/item/item_dryer_dry1.jpg' },
-  { id: 'CARD-P4-S2', page: 4, slot: 8, title: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น.', icon: '👢', thumb: 'assets/item/item_dryer_dry1.jpg' },
-  { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย (21:00 น.)', icon: '💥', thumb: 'assets/Crime_Scene/crime_scene_courtyard_impact.jpg' },
-  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงบ่วงเชือก เผยโฉมหน้าคนร้ายที่แท้จริงคือ "สึกิชิมะ เรียวตะ"!', icon: '⛓️', thumb: 'assets/character/ryota.jpg' },
+  { id: 'CARD-P2-S2', page: 2, slot: 4, title: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️', thumb: 'assets/manga_p2_pulley_pipe.jpg' },
+  { id: 'CARD-P3-S1', page: 3, slot: 5, title: '[TRAPPER] ผูกปลายเชือกไนลอนเข้ากับหูหิ้วถังน้ำพลาสติก 80 ลิตรที่ลานคอร์ทยาร์ด', icon: '🪣', thumb: 'assets/manga_p3_tie_barrel.jpg' },
+  { id: 'CARD-P3-S2', page: 3, slot: 6, title: '[TRAPPER] ต่อสายยางเปิดน้ำประปาไหลเติมลงถังทีละน้อย 0.4 ลิตร/นาที (นาฬิกาน้ำ)', icon: '🚰', thumb: 'assets/manga_p3_water_hose.jpg' },
+  { id: 'CARD-P4-S1', page: 4, slot: 7, title: '[TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้าให้เริ่มทำงานตอน 21:00 น. ก่อนไปทานอาหาร', icon: '⏱️', thumb: 'assets/manga_p4_delay_dryer.jpg' },
+  { id: 'CARD-P4-S2', page: 4, slot: 8, title: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น.', icon: '👢', thumb: 'assets/manga_p4_boots_dryer.jpg' },
+  { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย (21:00 น.)', icon: '💥', thumb: 'assets/manga_p5_barrel_crash.jpg' },
+  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงบ่วงเชือก เผยโฉมหน้าคนร้ายที่แท้จริงคือ "สึกิชิมะ เรียวตะ"!', icon: '⛓️', thumb: 'assets/manga_p5_ryota_reveal.jpg' },
   // 15 unique decoy cards
   { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'คนร้ายแกล้งสลบแล้วชักมีดพับออกมาแทงสวน [TRAPPER] ในห้องครัว', icon: '🔪', thumb: 'assets/item/item_pocket_knife.jpg', decoy: true },
   { id: 'DECOY-LADDER', page: 0, slot: 0, title: '[TRAPPER] ปีนบันไดออกไปทางหน้าต่างสูงเพื่อผูกเชือกภายนอกอาคาร', icon: '🪜', thumb: 'assets/Rooms/room_gymnasium.jpg', decoy: true },
