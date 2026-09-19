@@ -997,29 +997,29 @@ function getDynamicStg0Statements() {
 // AUTHENTIC DANGANRONPA AUDIO & SFX ENGINE
 // ==========================================================
 const SOUND_FILES = {
-  gavel: '/sounds/gavel_wooden.wav',
-  laugh: '/sounds/monokuma_laugh_pure.wav',
-  laugh1: '/sounds/monokuma_laugh_pure.wav',
-  laugh2: '/sounds/monokuma_laugh_pure.wav',
-  laugh3: '/sounds/monokuma_laugh_pure.wav',
-  blade: '/sounds/sword_clash.wav',
-  slash: '/sounds/sword_swing.wav',
-  break: '/sounds/screenbreak.mp3',
-  point_break: '/sounds/screenbreak.mp3',
-  chime: '/sounds/dingdongbingbong.mp3',
-  bda: '/sounds/bda_bell.mp3',
-  bda_bell: '/sounds/bda_bell.mp3',
-  counter: '/sounds/countersfx.mp3',
-  shoot: '/sounds/shoottb.mp3',
-  rebuttal: '/sounds/rebuttal_intro.wav',
-  vote_intro: '/sounds/vote_intro.wav',
-  vote_music: '/sounds/vote_intro.wav',
-  correct: '/sounds/correct_logic.wav',
-  wrong: '/sounds/vote_incorrect.wav',
-  clue_get: '/sounds/bullet_get.mp3',
-  bullet_get: '/sounds/bullet_get.mp3',
-  glitch: '/sounds/static.mp3',
-  despair: '/sounds/despairnoise.mp3'
+  gavel: 'sounds/gavel_wooden.wav',
+  laugh: 'sounds/monokuma_laugh_pure.wav',
+  laugh1: 'sounds/monokuma_laugh1.wav',
+  laugh2: 'sounds/monokuma_laugh2.wav',
+  laugh3: 'sounds/monokuma_laugh3.wav',
+  blade: 'sounds/sword_clash.wav',
+  slash: 'sounds/sword_swing.wav',
+  break: 'sounds/screenbreak.mp3',
+  point_break: 'sounds/screenbreak.mp3',
+  chime: 'sounds/dingdongbingbong.mp3',
+  bda: 'sounds/bda_bell.mp3',
+  bda_bell: 'sounds/bda_bell.mp3',
+  counter: 'sounds/countersfx.mp3',
+  shoot: 'sounds/shoottb.mp3',
+  rebuttal: 'sounds/rebuttal_intro.wav',
+  vote_intro: 'sounds/vote_intro.wav',
+  vote_music: 'sounds/vote_intro.wav',
+  correct: 'sounds/correct_logic.wav',
+  wrong: 'sounds/vote_incorrect.wav',
+  clue_get: 'sounds/bullet_get.mp3',
+  bullet_get: 'sounds/bullet_get.mp3',
+  glitch: 'sounds/static.mp3',
+  despair: 'sounds/despairnoise.mp3'
 };
 
 let audioCtx = null;
@@ -1036,6 +1036,25 @@ let isAudioMuted = false;
 function toggleCourtAudioMute() {
   isAudioMuted = !isAudioMuted;
   showToast(isAudioMuted ? '🔇 ปิดเสียง (Audio Muted)' : '🔊 เปิดเสียง (Audio Unmuted)');
+}
+
+function speakMonokumaLaugh() {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance('อุ๊ปุ๊ๆๆๆ! อุ๊ปุ๊ปุ๊ปุ๊!');
+      utt.lang = 'th-TH';
+      utt.pitch = 1.9;
+      utt.rate = 1.45;
+      utt.volume = 0.95;
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        const thVoice = voices.find(v => v.lang === 'th-TH' || v.lang.startsWith('th') || (v.lang && v.lang.includes('th_TH')));
+        if (thVoice) utt.voice = thVoice;
+      }
+      window.speechSynthesis.speak(utt);
+    } catch(e) {}
+  }
 }
 
 function playSfx(type) {
@@ -1064,6 +1083,11 @@ function playSfx(type) {
   }
   lastSfxPlayTimes[type] = now;
 
+  // Authentic Monokuma Thai vocalization for laugh triggers
+  if (type === 'laugh' || type.startsWith('laugh')) {
+    speakMonokumaLaugh();
+  }
+
   const file = SOUND_FILES[type];
   if (file) {
     try {
@@ -1072,7 +1096,13 @@ function playSfx(type) {
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          playSynthSfx(type);
+          // If relative path fails, try root path fallback or synth
+          const fallback = file.startsWith('/') ? file.slice(1) : '/' + file;
+          const audio2 = new Audio(fallback);
+          audio2.volume = 0.88;
+          audio2.play().catch(() => {
+            playSynthSfx(type);
+          });
         });
       }
       return;
@@ -1175,21 +1205,49 @@ function playSynthSfx(type) {
       ring.connect(ringGain); ringGain.connect(ctx.destination);
       ring.start(now + 0.05); ring.stop(now + 0.35);
 
-    } else if (type === 'laugh') {
-      // Monokuma "Upupupu" sinister laughter with vibrato
-      [360, 410, 470, 400].forEach((freq, idx) => {
-        const start = now + idx * 0.09;
-        const dur = 0.08;
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = 'sawtooth';
-        o.frequency.setValueAtTime(freq, start);
-        o.frequency.linearRampToValueAtTime(freq * 1.15, start + dur * 0.5);
-        o.frequency.linearRampToValueAtTime(freq, start + dur);
-        g.gain.setValueAtTime(0.22, start);
-        g.gain.exponentialRampToValueAtTime(0.01, start + dur);
-        o.connect(g); g.connect(ctx.destination);
-        o.start(start); o.stop(start + dur);
+    } else if (type === 'laugh' || type.startsWith('laugh')) {
+      // Monokuma "Upupupu" (อุ๊ปุ๊ๆๆๆ) authentic high-pitched staccato laughter
+      const syllPitches = [840, 920, 1020, 1120, 1040, 920];
+      syllPitches.forEach((freq, idx) => {
+        const start = now + idx * 0.10;
+        const dur = 0.085;
+
+        // 1. High vocal fundamental + formant filter
+        const o1 = ctx.createOscillator();
+        const g1 = ctx.createGain();
+        o1.type = 'triangle';
+        o1.frequency.setValueAtTime(freq, start);
+        o1.frequency.linearRampToValueAtTime(freq * 1.08, start + dur * 0.5);
+        o1.frequency.linearRampToValueAtTime(freq, start + dur);
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1050, start);
+        filter.Q.setValueAtTime(2.2, start);
+
+        g1.gain.setValueAtTime(0.28, start);
+        g1.gain.exponentialRampToValueAtTime(0.001, start + dur);
+
+        o1.connect(filter);
+        filter.connect(g1);
+        g1.connect(ctx.destination);
+        o1.start(start);
+        o1.stop(start + dur);
+
+        // 2. Plosive 'P' consonant transient click on each syllable
+        if (idx > 0) {
+          const click = ctx.createOscillator();
+          const clickGain = ctx.createGain();
+          click.type = 'square';
+          click.frequency.setValueAtTime(450, start);
+          click.frequency.exponentialRampToValueAtTime(60, start + 0.018);
+          clickGain.gain.setValueAtTime(0.20, start);
+          clickGain.gain.exponentialRampToValueAtTime(0.001, start + 0.018);
+          click.connect(clickGain);
+          clickGain.connect(ctx.destination);
+          click.start(start);
+          click.stop(start + 0.018);
+        }
       });
 
     } else if (type === 'correct') {
@@ -1729,9 +1787,30 @@ function handleIncomingMessage(msg, senderConn) {
     const reqName = msg.playerName;
     const senderId = senderConn ? senderConn.peer : (msg.userHash || currentUserHash || ('p_' + Math.random().toString(36).substr(2, 6)));
 
+    // Early slot resolution to prevent ReferenceError (Temporal Dead Zone)
+    let pcSlot = msg.pcSlot ? parseInt(msg.pcSlot, 10) : NaN;
+    if (!pcSlot || isNaN(pcSlot) || pcSlot < 1 || pcSlot > 5) {
+      const textToMatch = `${reqRole || ''} ${reqName || ''}`;
+      if (/PC\s*1|นาเอกิ|naegi/i.test(textToMatch)) pcSlot = 1;
+      else if (/PC\s*2|เคียวโกะ|kyoko|kirigiri/i.test(textToMatch)) pcSlot = 2;
+      else if (/PC\s*3|เบียคุยะ|byakuya|togami/i.test(textToMatch)) pcSlot = 3;
+      else if (/PC\s*4|อาโออิ|aoi|asahina/i.test(textToMatch)) pcSlot = 4;
+      else if (/PC\s*5|ฮิฟุมิ|hifumi|yamada/i.test(textToMatch)) pcSlot = 5;
+      else {
+        const match = textToMatch.match(/PC\s*([1-5])/i);
+        if (match) pcSlot = parseInt(match[1], 10);
+        else pcSlot = ((Object.keys(gameState.players).length % 5) + 1);
+      }
+    }
+
+    const isHifumi = Boolean(reqName && (reqName.includes('ฮิฟุมิ') || reqName.toLowerCase().includes('hifumi') || reqName.includes('ยามาดะ')));
+    if (isHifumi) {
+      pcSlot = 5;
+    }
+
     // Auto-assign available role internally if not specified
     if (!reqRole) {
-      reqRole = msg.role || (pcSlot ? `สุดยอดนักเรียนมัธยมปลาย (PC ${pcSlot})` : `สุดยอดนักเรียนมัธยมปลาย`);
+      reqRole = `สุดยอดนักเรียนมัธยมปลาย (PC ${pcSlot})`;
     }
 
     // Deduplication guard: Remove any prior entry matching the same userHash OR same name to prevent character doubling!
@@ -1742,12 +1821,11 @@ function handleIncomingMessage(msg, senderConn) {
       }
     });
 
-    let pcSlot = msg.pcSlot ? parseInt(msg.pcSlot, 10) : ((Object.keys(gameState.players).length % 5) + 1);
-    const isHifumi = Boolean(reqName && (reqName.includes('ฮิฟุมิ') || reqName.toLowerCase().includes('hifumi') || reqName.includes('ยามาดะ')));
-    if (isHifumi) {
-      pcSlot = 5;
-    }
     const isKiller = (parseInt(pcSlot, 10) === 5) || isHifumi;
+    const initialClues = (Array.isArray(msg.clues) && msg.clues.length > 0)
+      ? msg.clues
+      : (PC_INVESTIGATION_CLUES[pcSlot] ? [...PC_INVESTIGATION_CLUES[pcSlot]] : []);
+
     const playerObj = {
       id: senderId,
       name: reqName,
@@ -1757,7 +1835,7 @@ function handleIncomingMessage(msg, senderConn) {
       roomCode: roomCode,
       userHash: msg.userHash || senderId,
       avatarConfig: msg.avatarConfig || currentAvatarConfig,
-      clues: Array.isArray(msg.clues) ? msg.clues : []
+      clues: initialClues
     };
     const canonicalKey = msg.userHash || senderId;
     gameState.players[canonicalKey] = playerObj;
@@ -1832,6 +1910,19 @@ function handleIncomingMessage(msg, senderConn) {
     updateMonopadDeviceBar();
     updateMonopadPhaseTabs(gameState.stage);
     playSfx('correct');
+
+    if (myPlayer && Array.isArray(myPlayer.clues) && myPlayer.clues.length > 0) {
+      saveUnlockedClues(myPlayer.clues);
+      if (typeof renderPlayerCluesList === 'function') renderPlayerCluesList();
+    }
+    grantInvestigationClues(true);
+    // Broadcast initial clues to host immediately
+    broadcast({
+      type: 'sync_player_clues',
+      userHash: currentUserHash,
+      playerName: myPlayer.name,
+      clues: getUnlockedClues()
+    });
   } else if (msg.type === 'claim_rejected') {
     if (currentView === 'admin' || currentView === 'court') return;
     if (msg.targetHash && currentUserHash && msg.targetHash !== currentUserHash) return;
@@ -1940,11 +2031,30 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'admin_grant_clue') {
     if (currentView === 'admin' || currentView === 'court') return;
     const isTarget = (currentUserHash && msg.targetKey === currentUserHash) ||
+                     (msg.targetName && myPlayer && myPlayer.name === msg.targetName) ||
+                     (msg.targetSlot && myPlayer && String(myPlayer.pcSlot) === String(msg.targetSlot)) ||
                      (myPlayer && (myPlayer.id === msg.targetKey || myPlayer.name === msg.targetKey || (myPlayer.userHash && myPlayer.userHash === msg.targetKey)));
     if (isTarget) {
       unlockClueDirect(msg.clueId);
       playSfx('clue_get');
       showToast(`🎁 [DM มอบหลักฐาน]: คุณได้รับ [${msg.clueName || msg.clueId}] เข้าสู่ Monopad แล้ว!`);
+      broadcast({
+        type: 'sync_player_clues',
+        userHash: currentUserHash,
+        playerName: (myPlayer && myPlayer.name) ? myPlayer.name : '',
+        clues: getUnlockedClues()
+      });
+    }
+  } else if (msg.type === 'admin_grant_batch_clues') {
+    if (currentView === 'admin' || currentView === 'court') return;
+    const isTarget = (currentUserHash && msg.targetKey === currentUserHash) ||
+                     (msg.targetName && myPlayer && myPlayer.name === msg.targetName) ||
+                     (msg.targetSlot && myPlayer && String(myPlayer.pcSlot) === String(msg.targetSlot)) ||
+                     (myPlayer && (myPlayer.id === msg.targetKey || myPlayer.name === msg.targetKey || (myPlayer.userHash && myPlayer.userHash === msg.targetKey)));
+    if (isTarget && Array.isArray(msg.clueIds)) {
+      msg.clueIds.forEach(cid => unlockClueDirect(cid));
+      playSfx('clue_get');
+      showToast(`🎁 [DM มอบหลักฐานตามบทบาท]: ได้รับหลักฐาน ${msg.clueIds.length} ชิ้นเข้าสู่ Monopad แล้ว!`);
       broadcast({
         type: 'sync_player_clues',
         userHash: currentUserHash,
@@ -2218,6 +2328,19 @@ function applyState(st) {
     );
     if (updatedMe) {
       Object.assign(myPlayer, updatedMe);
+      if (Array.isArray(updatedMe.clues) && updatedMe.clues.length > 0) {
+        let changed = false;
+        const currentUnlocked = getUnlockedClues();
+        updatedMe.clues.forEach(cid => {
+          if (!currentUnlocked.includes(cid)) {
+            unlockClueDirect(cid);
+            changed = true;
+          }
+        });
+        if (changed && typeof renderPlayerCluesList === 'function') {
+          renderPlayerCluesList();
+        }
+      }
     }
   }
   updateSaboteurPanelVisibility();
@@ -2979,6 +3102,25 @@ const PC_INVESTIGATION_CLUES = {
   5: ['EVD-07', 'EVD-16', 'EVD-09', 'EVD-14', 'EVD-21', 'EVD-23', 'EVD-25', 'EVD-26']
 };
 
+function resolvePlayerSlot(p, defaultIndex = 1) {
+  if (!p) return defaultIndex || 1;
+  let slot = parseInt(p.pcSlot, 10);
+  if (slot >= 1 && slot <= 5) return slot;
+
+  const text = `${p.pcSlot || ''} ${p.role || ''} ${p.name || ''}`;
+  if (/PC\s*1|นาเอกิ|naegi/i.test(text)) return 1;
+  if (/PC\s*2|เคียวโกะ|kyoko|kirigiri/i.test(text)) return 2;
+  if (/PC\s*3|เบียคุยะ|byakuya|togami/i.test(text)) return 3;
+  if (/PC\s*4|อาโออิ|aoi|asahina/i.test(text)) return 4;
+  if (/PC\s*5|ฮิฟุมิ|hifumi|yamada/i.test(text)) return 5;
+
+  const match = text.match(/PC\s*([1-5])/i);
+  if (match) return parseInt(match[1], 10);
+
+  if (defaultIndex >= 1 && defaultIndex <= 5) return defaultIndex;
+  return 1;
+}
+
 function getPlayerNameByPcSlot(slotNum) {
   const slotInt = parseInt(slotNum, 10);
   if (gameState && gameState.players) {
@@ -3094,13 +3236,14 @@ ALL_CLUES_DATA.forEach(c => {
 function grantInvestigationClues(silent = false) {
   if (currentView === 'admin' || currentView === 'court') return;
   let slot = 0;
-  if (myPlayer && myPlayer.pcSlot) {
-    slot = parseInt(myPlayer.pcSlot, 10);
+  if (myPlayer) {
+    slot = resolvePlayerSlot(myPlayer, parseInt(new URLSearchParams(window.location.search).get('pc') || '1', 10));
+    myPlayer.pcSlot = slot;
   } else {
     const qSlot = new URLSearchParams(window.location.search).get('pc');
     if (qSlot) slot = parseInt(qSlot, 10);
   }
-  if (!slot || slot < 1 || slot > 5) return;
+  if (!slot || slot < 1 || slot > 5) slot = 1;
 
   const assigned = PC_INVESTIGATION_CLUES[slot] || [];
   if (!assigned.length) return;
@@ -3425,7 +3568,8 @@ function renderPlayerCluesList() {
 
 
 
-  const q = (document.getElementById('clueSearchInput') ? document.getElementById('clueSearchInput').value : '').toLowerCase().trim();
+  const qEl = document.getElementById('clueSearchInput');
+  const q = (qEl && qEl.value ? qEl.value : '').toLowerCase().trim();
 
   let html = '';
   let visibleCount = 0;
@@ -4258,20 +4402,130 @@ function closeCourtResultModal(skipBroadcast = false) {
 
 function triggerMonokumaExecutionCutscene(isVictory, skipBroadcast = false) {
   stopTimer();
-  if (currentView === 'admin' || currentView === 'simulation') {
-    return; // Execution cutscene must NEVER block DM Admin or parent simulation view!
+  if (currentView === 'simulation') {
+    return; // Parent simulation dashboard shouldn't overlay cutscene
   }
   const modal = document.getElementById('monokumaExecutionModal');
+  const contentBox = document.getElementById('executionContentBox');
+  const sirenLight = document.getElementById('executionSirenLight');
+  const topBanner = document.getElementById('executionTopBanner');
+  const headline = document.getElementById('executionHeadline');
+  const subHeadline = document.getElementById('executionSubHeadline');
+  const guiltyStamp = document.getElementById('guiltyStamp');
+  const stampMain = document.getElementById('executionStampMain');
+  const stampSub = document.getElementById('executionStampSub');
+  const imgEl = document.getElementById('executionImage');
+  const culpritCard = document.getElementById('executionCulpritCard');
   const nameEl = document.getElementById('executionCulpritName');
   const verdictEl = document.getElementById('executionVerdictText');
   const avatarEl = document.getElementById('executionCulpritAvatar');
+  const closeBtn = document.getElementById('executionCloseBtn');
 
-  if (nameEl) nameEl.innerText = isVictory ? 'NPC B (สุดยอดนักเอาตัวรอด)' : 'นักเรียนทุกคน (โหวตผิดตัว)';
-  if (avatarEl) avatarEl.innerText = isVictory ? '💀' : '⚡';
-  if (verdictEl) {
-    verdictEl.innerHTML = isVictory
-      ? '<p style="color:#00ff88; font-weight:700; margin-bottom:10px;">ถูกต้อง! คนที่ผูกเงื่อนรัดคอตัวเองจนเกิดอุบัติเหตุคอหักตายคือ B (สุดยอดนักเอาตัวรอด)!</p><p>Monokuma หัวเราะเยาะ A (นักมายากล) ที่แผนการพังไม่เป็นท่า และลากร่างศพของ B ไปประหารซ้ำแบบเย้ยหยัน! ผู้เล่นทุกคนรอดชีวิต แต่ A จะถูกเพื่อนร่วมชั้นเกลียดชังและหวาดระแวงตลอดกาล! (TRUE ENDING)</p>'
-      : '<p style="color:#ff2244; font-weight:700; margin-bottom:10px;">โหวตผิด! Blackened ที่แท้จริงคือ B ไม่ใช่คนอื่น!</p><p>ตามกฎศักดิ์สิทธิ์ของโรงเรียน เมื่อลงคะแนนผิด... นักเรียนทุกคนในห้องพิจารณาคดีจะต้องถูกนำตัวเข้าสู่ลานประหารชีวิตหมู่!! ขอต้อนรับสู่ความสิ้นหวังอย่างสมบูรณ์แบบ! (BAD ENDING)</p>';
+  const trapperName = getTrapperName();
+
+  if (isVictory) {
+    // True Ending: Class Survived! Green/Emerald/Hope Theme
+    if (contentBox) contentBox.classList.add('victory-theme');
+    if (sirenLight) sirenLight.classList.add('siren-victory');
+    if (guiltyStamp) guiltyStamp.classList.add('stamp-victory');
+    if (topBanner) {
+      topBanner.className = 'slanted-banner green';
+      topBanner.innerText = 'CLASS SURVIVAL & MOCK EXECUTION';
+    }
+    if (headline) {
+      headline.classList.add('headline-victory');
+      headline.innerText = 'NOT GUILTY: CLASS SURVIVED!';
+    }
+    if (subHeadline) {
+      subHeadline.innerText = 'นักเรียนทุกคนรอดชีวิต! แผนของ Trapper พังทลาย... พิธีประหารซ้ำศพคนร้ายจำลอง!';
+      subHeadline.style.color = '#a7f3d0';
+    }
+    if (stampMain) stampMain.innerText = 'SURVIVED';
+    if (stampSub) stampSub.innerText = 'นักเรียนทุกคนรอดชีวิต!';
+    if (imgEl) imgEl.src = 'assets/execution_true_ending.jpg';
+    if (culpritCard) culpritCard.classList.add('card-victory');
+    if (avatarEl) avatarEl.innerText = '🎉';
+    if (nameEl) {
+      nameEl.innerText = 'สึกิชิมะ เรียวตะ (สุดยอดนักเอาตัวรอด - The Blackened)';
+      nameEl.style.color = '#34d399';
+    }
+    if (closeBtn) closeBtn.className = 'small-btn green';
+
+    if (verdictEl) {
+      verdictEl.innerHTML = `
+        <div style="color:#10b981; font-weight:800; font-size:1.1rem; margin-bottom:8px; border-bottom:1px solid rgba(16,185,129,0.3); padding-bottom:6px;">
+          🟢 ปิ๊งป่อง! ตัดสินถูกต้อง! คนร้าย (The Blackened) ที่แท้จริงคือ สึกิชิมะ เรียวตะ!
+        </div>
+        <div class="execution-story-box">
+          <p style="margin-bottom:8px;">
+            <strong style="color:#38bdf8;">Monokuma:</strong> "อุปุ๊ปุ๊ปุ๊! ปิ๊งป่องงงงง! ถูกต้องนะคร้าบบบบบบบ! เก่งมาก! ยอดเยี่ยมที่สุด! คนร้ายตัวจริง... 'Blackened' ของคดีนี้ไม่ใช่ใครอื่น แต่คือพ่อหนุ่มสุดยอดนักเอาตัวรอด <strong>'สึกิชิมะ เรียวตะ'</strong> นั่นเองจ้าาาา!"
+          </p>
+          <p style="margin-bottom:8px; color:#fca5a5;">
+            <strong>${escapeHtml(trapperName)} (The Trapper):</strong> "มะ... ไม่จริง... ฉัน... ฉันเป็นคนฟาดหัวเขา... เอาเชือกไปคล้องคอเขา... เปิดน้ำใส่ถัง... ฉันสิที่เป็นคนฆ่าเขา! ทำไมฉันถึงไม่ใช่คนร้ายล่ะ?!"
+          </p>
+          <p style="margin-bottom:8px;">
+            <strong style="color:#38bdf8;">Monokuma:</strong> "อุปุ๊ปุ๊! กฎก็คือกฎจ้ะ! การกระทำของเธอน่ะมันแค่ <strong>'พยายามฆ่า'</strong> เท่านั้นแหละ! เจ้าเรียวตะมันฟื้นขึ้นมา ตัดเชือกของเธอทิ้งไปแล้ว มันรอดตาย 100% แล้วแท้ๆ! แต่เพราะความหยิ่งยะโส คิดว่าตัวเองฉลาดเหนือใคร อยากจะแกล้งตายเพื่อมาแฉเธอในศาล... มันก็เลยเอาเศษเชือกมาผูกเป็นฮาร์เนสเอง แล้วก็เอาบ่วงมาคล้องคอตัวเองใหม่! แต่เพราะเงื่อนมันหลุดจากแรง Shock Load มวลน้ำ 65.2 กิโลกรัม เชือกเลยกระชากคอหอยมันหักดังเป๊าะ! คนที่ผูกเงื่อนมรณะเส้นนั้นเงื่อนสุดท้าย... คนที่เอามันมาสวมคอตัวเอง... ก็คือตัวมันเองทั้งนั้น! ฮ่าๆๆๆ!"
+          </p>
+          <div style="background:rgba(16,185,129,0.12); border-left:3px solid #10b981; padding:8px 10px; margin:10px 0; border-radius:4px; text-align:left;">
+            <strong style="color:#34d399;">🎬 ฉากประหารจำลองศพเรียวตะ: The Ultimate Survivalist's Final Drill</strong><br/>
+            ศพของเรียวตะถูกมัดติดเป้สนาม 100 กก. เข้าคอร์สฝึกภัยพิบัติหิมะถล่ม ดงหมีคลั่ง และหลุมพราง ก่อนถูกเฮลิคอปเตอร์กู้ภัยยกตัวลอยขึ้นสู่อากาศ... ทว่าสลิงเกิดขาดเพราะรับน้ำหนักเกินป้ายเตือน <em>'MAX LOAD: 50.0 KG'</em> ร่างร่วงดิ่งลงสู่เครื่องบดอัดขยะอุตสาหกรรม กลายเป็น <strong>'กระป๋องเสบียงยังชีพฉุกเฉิน (Survival Ration Can)'</strong> ขนาดยักษ์พร้อมตราประทับสีชมพูตัวเบ้อเริ่มว่า <strong>'EXPIRED // หมดอายุขัย'</strong>!
+          </div>
+          <p style="color:#6ee7b7; font-weight:700; margin-top:8px;">
+            ✨ <strong>บทสรุป (True Ending):</strong> ในเมื่อคนร้ายตัวจริงได้ตายไปแล้ว การประหารศพจึงถือว่าครบถ้วนสมบูรณ์... <strong>ไม่มีใครในพวกแกต้องตายเพิ่มแม้แต่คนเดียว! ทุกคนรอดชีวิต! ส่วนแผนการของ ${escapeHtml(trapperName)} พังทลายไม่เป็นท่า!</strong>
+          </p>
+        </div>
+      `;
+    }
+  } else {
+    // Bad Ending: Class Cleansing Total Despair Execution
+    if (contentBox) contentBox.classList.remove('victory-theme');
+    if (sirenLight) sirenLight.classList.remove('siren-victory');
+    if (guiltyStamp) guiltyStamp.classList.remove('stamp-victory');
+    if (topBanner) {
+      topBanner.className = 'slanted-banner pink';
+      topBanner.innerText = 'DANGANRONPA EXECUTION';
+    }
+    if (headline) {
+      headline.classList.remove('headline-victory');
+      headline.innerText = 'PUNISHMENT TIME';
+    }
+    if (subHeadline) {
+      subHeadline.innerText = 'ถึงเวลาลงทัณฑ์แห่งความสิ้นหวัง... อุปุ๊ปุ๊!';
+      subHeadline.style.color = '#ffb3cc';
+    }
+    if (stampMain) stampMain.innerText = 'GUILTY';
+    if (stampSub) stampSub.innerText = 'มีความผิดจริง (ประหารชีวิตหมู่)';
+    if (imgEl) imgEl.src = 'assets/execution_bad_ending.jpg';
+    if (culpritCard) culpritCard.classList.remove('card-victory');
+    if (avatarEl) avatarEl.innerText = '💀';
+    if (nameEl) {
+      nameEl.innerText = 'นักเรียนทุกคนในห้องพิจารณาคดี (โหวตผิดตัว)';
+      nameEl.style.color = 'var(--court-gold)';
+    }
+    if (closeBtn) closeBtn.className = 'small-btn red';
+
+    if (verdictEl) {
+      verdictEl.innerHTML = `
+        <div style="color:#ff2244; font-weight:800; font-size:1.1rem; margin-bottom:8px; border-bottom:1px solid rgba(255,34,68,0.3); padding-bottom:6px;">
+          🔴 โหวตผิด! Blackened ที่แท้จริงคือ สึกิชิมะ เรียวตะ ไม่ใช่คนอื่น!
+        </div>
+        <div class="execution-story-box">
+          <p style="margin-bottom:8px;">
+            <strong style="color:#ff2244;">Monokuma:</strong> "ปิ๊งป่อง... ผิดจ้าาาาาาาา! อุปุ๊ปุ๊ปุ๊! ว้ายๆๆ โดนหลอกกันหมดทั้งบางเลยนะเนี่ย! เจ้าคนที่พวกแกชี้หน้าว่าเป็นฆาตกร (<strong>${escapeHtml(trapperName)}</strong>) น่ะ มันเป็นแค่คนวางกับดักที่ล้มเหลวไม่เป็นท่าต่างหาก! คนที่ผูกเงื่อนมรณะจนตัวเองคอหักตายคือเจ้าเรียวตะเองต่างหากล่ะจ๊ะ!"
+          </p>
+          <p style="margin-bottom:8px;">
+            <strong style="color:#ff2244;">Monokuma:</strong> "ในเมื่อพวกแกชี้ตัว Blackened ผิด... กฎเหล็กของโรงเรียนระบุไว้ชัดเจนว่า <em>'หากศาลชั้นเรียนตัดสินผิด... ผู้เป็น Blackened จะได้สำเร็จการศึกษา ส่วนนักเรียนที่เหลือทั้งหมด... จะต้องถูกประหารชีวิต!'</em> แต่เพราะ Blackened ดันชิงตายไปก่อนแล้ว... เหลือเพียงอย่างเดียวเท่านั้นสำหรับพวกแกทุกคนที่ยืนอยู่ตรงนี้... การลงโทษหมู่ยกชั้นเรียนยังไงล่ะ! <strong>IT'S PUNISHMENT TIME!!</strong>"
+          </p>
+          <div style="background:rgba(255,34,68,0.15); border-left:3px solid #ff0055; padding:8px 10px; margin:10px 0; border-radius:4px; text-align:left;">
+            <strong style="color:#ff6b8b;">🎬 ฉากประหารหมู่นักเรียนทั้งห้อง: The Grand Class Cleansing</strong><br/>
+            ตรวนเหล็กดีดล็อกโพเดียมของทุกคน เลื่อนลงสู่สายพานมรณะใต้ดิน <em>'The Despair Sorting Conveyor'</em> หุ่นยนต์ Monokuma ถือแท่งเหล็กประทับร้อนไฟลุกโชนประทับตรา <strong>'FAIL / ตกรอบ'</strong> ลงบนหน้าผากและแผ่นอกของทุกคน ก่อนจะลอดผ่านพายุลูกตุ้มเหล็กหนามยักษ์ และทิ้งดิ่งลงสู่ปากเตาหลอมมรณะ เปลวเพลิงสีชมพูอมม่วงระเบิดพวยพุ่งเป็นรูปหัวกะโหลก Monokuma แสยะยิ้ม!
+          </div>
+          <p style="color:#ff8899; font-weight:700; margin-top:8px;">
+            🩸 <strong>บทสรุป (Bad Ending):</strong> ปิดฉากเรื่องราวของเหล่านักเรียนแห่งความหวัง... สู่ห้วงลึกแห่งความสิ้นหวังชั่วนิรันดร์ (TOTAL DESPAIR)
+          </p>
+        </div>
+      `;
+    }
   }
 
   if (modal) {
@@ -4297,6 +4551,15 @@ function closeExecutionModal(skipBroadcast = false) {
     modal.classList.add('hidden');
     modal.style.display = 'none';
   }
+  const contentBox = document.getElementById('executionContentBox');
+  const sirenLight = document.getElementById('executionSirenLight');
+  const guiltyStamp = document.getElementById('guiltyStamp');
+  const culpritCard = document.getElementById('executionCulpritCard');
+  if (contentBox) contentBox.classList.remove('victory-theme');
+  if (sirenLight) sirenLight.classList.remove('siren-victory');
+  if (guiltyStamp) guiltyStamp.classList.remove('stamp-victory');
+  if (culpritCard) culpritCard.classList.remove('card-victory');
+
   if (!skipBroadcast && isHost) broadcast({ type: 'close_execution_cutscene' });
 }
 
@@ -6545,6 +6808,8 @@ function updateStage6Displays() {
 
 // 7. Closing Argument (Mini-Game 7) - 5-Page Airtight Manga Overhaul
 function getTrapperName() {
+  const p5Name = getPlayerNameByPcSlot(5);
+  if (p5Name) return p5Name;
   if (gameState && gameState.trapperName) return gameState.trapperName;
   if (gameState && gameState.players) {
     const trapperPlayer = Object.values(gameState.players).find(p => p.isKiller || parseInt(p.pcSlot, 10) === 5);
@@ -6553,18 +6818,23 @@ function getTrapperName() {
   if (myPlayer && (myPlayer.isKiller || parseInt(myPlayer.pcSlot, 10) === 5) && myPlayer.name) {
     return myPlayer.name;
   }
-  return getPlayerNameByPcSlot(5) || 'ฮิฟุมิ';
+  return 'ฮิฟุมิ';
 }
 
 function formatClosingText(str) {
   if (!str) return '';
-  const trapper = getTrapperName();
-  let res = str.replace(/\[TRAPPER\]/g, trapper);
+  const pc5Name = getTrapperName();
+  let res = str.replace(/\[TRAPPER\]/g, pc5Name);
+  res = res.replace(/ฮิฟุมิ/g, pc5Name);
+  // เรียวตะ ใช้คำว่า คนร้าย
+  res = res.replace(/คนร้ายเรียวตะ/g, 'คนร้าย');
+  res = res.replace(/สึกิชิมะ\s*เรียวตะ/g, 'คนร้าย');
+  res = res.replace(/เรียวตะ/g, 'คนร้าย');
   res = res.replace(/PC\s*1/g, getPlayerNameByPcSlot(1));
   res = res.replace(/PC\s*2/g, getPlayerNameByPcSlot(2));
   res = res.replace(/PC\s*3/g, getPlayerNameByPcSlot(3));
   res = res.replace(/PC\s*4/g, getPlayerNameByPcSlot(4));
-  res = res.replace(/PC\s*5/g, getPlayerNameByPcSlot(5));
+  res = res.replace(/PC\s*5/g, pc5Name);
   return res;
 }
 
@@ -6587,7 +6857,7 @@ const CLOSING_PAGES_DATA = [
         acceptedIds: ['CARD-P1-S1', 'EVD-14', 'EVD-12', 'ACTION-CUT'],
         art: '🍖',
         title: 'ช่องว่างที่ 1: การลงมือจู่โจม',
-        desc: '[TRAPPER] ดักซุ่มในห้องซักรีด ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเรียวตะจนสลบแน่นิ่งเวลา 17:30 น.'
+        desc: '[TRAPPER] ดักซุ่มในห้องซักรีด ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยคนร้ายจนสลบแน่นิ่งเวลา 17:30 น.'
       },
       {
         num: 3,
@@ -6615,7 +6885,7 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🚪',
-        desc: 'เรียวตะสลบแน่นิ่งอยู่บนพื้นห้องซักรีด [TRAPPER] จึงเริ่มติดตั้งกลไกเชือกและรอกตามแผนการวางกับดัก'
+        desc: 'คนร้ายสลบแน่นิ่งอยู่บนพื้นห้องซักรีด [TRAPPER] จึงเริ่มติดตั้งกลไกเชือกและรอกตามแผนการวางกับดัก'
       },
       {
         num: 2,
@@ -6625,7 +6895,7 @@ const CLOSING_PAGES_DATA = [
         acceptedIds: ['CARD-P2-S1'],
         art: '🪢',
         title: 'ช่องว่างที่ 1: การมัดร่างและคล้องเชือก',
-        desc: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูร้อยผูกมัดลำตัวและคล้องหลวมๆ รอบคอของเรียวตะ'
+        desc: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูร้อยผูกมัดลำตัวและคล้องหลวมๆ รอบคอของคนร้าย'
       },
       {
         num: 3,
@@ -6635,7 +6905,7 @@ const CLOSING_PAGES_DATA = [
         acceptedIds: ['CARD-P2-S2'],
         art: '⚙️',
         title: 'ช่องว่างที่ 2: การทำรอกชักร่างขึ้นเพดาน',
-        desc: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีด เพื่อทำหน้าที่เป็นรอกชักน้ำหนัก'
+        desc: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอกชักน้ำหนัก'
       },
       {
         num: 4,
@@ -6685,7 +6955,7 @@ const CLOSING_PAGES_DATA = [
   },
   {
     page: 4,
-    title: 'การตั้งเวลากลลวง & เรียวตะซ้อนแผนตัดเชือก (18:45 – 20:55 น.)',
+    title: 'การตั้งเวลากลลวง & คนร้ายซ้อนแผนตัดเชือก (18:45 – 20:55 น.)',
     panels: [
       {
         num: 1,
@@ -6717,19 +6987,19 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '🔪',
-        desc: 'แต่ก่อน 21:00 น. เรียวตะฟื้นสติขึ้นมา! เมื่อพบว่าตนถูกลอบทำร้ายใน Killing Game เรียวตะไม่ยอมหนี แต่ชักมีดพับออกมาตัดเชือกเพื่อ "ซ้อนแผน" วางกับดักย้อนกลับใส่ผู้ที่ทำร้ายตน!'
+        desc: 'แต่ก่อน 21:00 น. คนร้ายฟื้นสติขึ้นมา! เมื่อพบว่าตนถูกลอบทำร้ายใน Killing Game คนร้ายไม่ยอมหนี แต่ชักมีดพับออกมาตัดเชือกเพื่อ "ซ้อนแผน" วางกับดักย้อนกลับใส่ผู้ที่ทำร้ายตน!'
       }
     ]
   },
   {
     page: 5,
-    title: 'ความผิดพลาดของคนร้ายเรียวตะ & มวลน้ำกระชากร่าง (21:00 – 21:05 น.)',
+    title: 'ความผิดพลาดของคนร้าย & มวลน้ำกระชากร่าง (21:00 – 21:05 น.)',
     panels: [
       {
         num: 1,
         type: 'story',
         art: '🪢',
-        desc: 'คนร้ายเรียวตะรีบผูกต่อเชือกใหม่และปีนขึ้นไปดัดแปลงบ่วงบนเพดานเพื่อจัดฉากฆาตกรรมย้อนกลับ แต่ในความมืดและความลนลาน เงื่อนบ่วงใหม่กลับคล้องรัดคอของคนร้ายเรียวตะเองจนแน่นหนาและปลดไม่ออก!'
+        desc: 'คนร้ายรีบผูกต่อเชือกใหม่และปีนขึ้นไปดัดแปลงบ่วงบนเพดานเพื่อจัดฉากฆาตกรรมย้อนกลับ แต่ในความมืดและความลนลาน เงื่อนบ่วงใหม่กลับคล้องรัดคอของคนร้ายเองจนแน่นหนาและปลดไม่ออก!'
       },
       {
         num: 2,
@@ -6748,44 +7018,44 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P5-S2'],
         art: '⛓️',
-        title: 'ช่องว่างที่ 2: บ่วงเชือกกระชากร่างคนร้ายเรียวตะ',
-        desc: 'แรงกระชากดึงเชือกเส้นใหม่ที่คนร้ายเรียวตะผูกพลาด ยกร่างเรียวตะลอยขึ้นไปแขวนตรึงติดราวท่อเพดานจนกระดูกคอหักเสียชีวิตทันที!'
+        title: 'ช่องว่างที่ 2: บ่วงเชือกกระชากร่างคนร้าย',
+        desc: 'แรงกระชากดึงเชือกเส้นใหม่ที่คนร้ายผูกพลาด ยกร่างคนร้ายลอยขึ้นไปแขวนตรึงติดราวท่อเพดานจนกระดูกคอหักเสียชีวิตทันที!'
       },
       {
         num: 4,
         type: 'story',
         art: '⚖️',
-        desc: 'เครื่องอบผ้าทำงานเกิดเสียงรองเท้าบูทกระแทกโครมครามตามที่ [TRAPPER] ตั้งเวลาไว้ หลอกให้ทุกคนพังประตูเข้ามาพบศพ! แต่แท้จริงแล้วผู้ที่ผูกเงื่อนเชือกเส้นตายที่สังหารตนเองก็คือ "คนร้ายเรียวตะ (The Blackened)" นั่นเอง!'
+        desc: 'เครื่องอบผ้าทำงานเกิดเสียงรองเท้าบูทกระแทกโครมครามตามที่ [TRAPPER] ตั้งเวลาไว้ หลอกให้ทุกคนพังประตูเข้ามาพบศพ! แต่แท้จริงแล้วผู้ที่ผูกเงื่อนเชือกเส้นตายที่สังหารตนเองก็คือ "คนร้าย (The Blackened)" นั่นเอง!'
       }
     ]
   }
 ];
 
 const CLOSING_CARDS_DATA = [
-  { id: 'CARD-P1-S1', page: 1, slot: 1, title: '[TRAPPER] ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเรียวตะจนสลบในห้องซักรีด (17:30 น.)', icon: '🍖' },
+  { id: 'CARD-P1-S1', page: 1, slot: 1, title: '[TRAPPER] ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยคนร้ายจนสลบในห้องซักรีด (17:30 น.)', icon: '🍖' },
   { id: 'CARD-P1-S2', page: 1, slot: 2, title: '[TRAPPER] โยนท่อนกระดูกหมูเปื้อนเลือดลงไปต้มในหม้อสตูว์เนื้อเพื่อทำลายหลักฐาน', icon: '🍲' },
-  { id: 'CARD-P2-S1', page: 2, slot: 3, title: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูผูกมัดลำตัวและคล้องคอเรียวตะ', icon: '🪢' },
+  { id: 'CARD-P2-S1', page: 2, slot: 3, title: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูผูกมัดลำตัวและคล้องคอคนร้าย', icon: '🪢' },
   { id: 'CARD-P2-S2', page: 2, slot: 4, title: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️' },
   { id: 'CARD-P3-S1', page: 3, slot: 5, title: '[TRAPPER] ผูกปลายเชือกไนลอนเข้ากับหูหิ้วถังน้ำพลาสติก 80 ลิตรที่ลานคอร์ทยาร์ด', icon: '🪣' },
   { id: 'CARD-P3-S2', page: 3, slot: 6, title: '[TRAPPER] ต่อสายยางเปิดน้ำประปาไหลเติมลงถังทีละน้อย 0.4 ลิตร/นาที (นาฬิกาน้ำ)', icon: '🚰' },
   { id: 'CARD-P4-S1', page: 4, slot: 7, title: '[TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้าให้เริ่มทำงานตอน 21:00 น. ก่อนไปทานอาหาร', icon: '⏱️' },
   { id: 'CARD-P4-S2', page: 4, slot: 8, title: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น.', icon: '👢' },
   { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย (21:00 น.)', icon: '💥' },
-  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงบ่วงเชือกที่คนร้ายเรียวตะผูกพลาด ยกร่างเรียวตะขึ้นแขวนติดท่อเพดานจนเสียชีวิต', icon: '⛓️' },
+  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงบ่วงเชือกที่คนร้ายผูกพลาด ยกร่างคนร้ายขึ้นแขวนติดท่อเพดานจนเสียชีวิต', icon: '⛓️' },
   // 15 unique decoy cards
-  { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'คนร้ายเรียวตะแกล้งสลบแล้วชักมีดพับออกมาแทงสวน [TRAPPER] ในห้องครัว', icon: '🔪', decoy: true },
+  { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'คนร้ายแกล้งสลบแล้วชักมีดพับออกมาแทงสวน [TRAPPER] ในห้องครัว', icon: '🔪', decoy: true },
   { id: 'DECOY-LADDER', page: 0, slot: 0, title: '[TRAPPER] ปีนบันไดออกไปทางหน้าต่างสูงเพื่อผูกเชือกภายนอกอาคาร', icon: '🪜', decoy: true },
   { id: 'DECOY-VALVE', page: 0, slot: 0, title: '[TRAPPER] แอบไปปิดวาล์วน้ำหลักทั้งอาคารเพื่อไม่ให้มีใครใช้น้ำได้', icon: '🔧', decoy: true },
   { id: 'DECOY-WASH', page: 0, slot: 0, title: '[TRAPPER] นำเสื้อผ้าเปื้อนเลือดของตนเองใส่ลงไปปั่นซักในเครื่องซักผ้า', icon: '🫧', decoy: true },
   { id: 'DECOY-DOOR', page: 0, slot: 0, title: '[TRAPPER] ใช้โซ่เหล็กคล้องล็อกประตูด้านนอกของห้องซักรีดไว้', icon: '🔒', decoy: true },
-  { id: 'DECOY-POISON', page: 0, slot: 0, title: '[TRAPPER] แอบหยอดยาพิษร้ายแรงลงในแก้วน้ำชาของเรียวตะก่อนลงมือ', icon: '🧪', decoy: true },
+  { id: 'DECOY-POISON', page: 0, slot: 0, title: '[TRAPPER] แอบหยอดยาพิษร้ายแรงลงในแก้วน้ำชาของคนร้ายก่อนลงมือ', icon: '🧪', decoy: true },
   { id: 'DECOY-VENT', page: 0, slot: 0, title: '[TRAPPER] มุดท่อระบายอากาศจากห้องครัวตรงไปยังห้องซักรีดโดยไม่ผ่านโถงทางเดิน', icon: '🕳️', decoy: true },
-  { id: 'DECOY-FREEZER', page: 0, slot: 0, title: '[TRAPPER] ซ่อนร่างของเรียวตะไว้ในตู้แช่แข็งขนาดใหญ่จนตัวแข็งก่อนนำไปแขวน', icon: '🧊', decoy: true },
+  { id: 'DECOY-FREEZER', page: 0, slot: 0, title: '[TRAPPER] ซ่อนร่างของคนร้ายไว้ในตู้แช่แข็งขนาดใหญ่จนตัวแข็งก่อนนำไปแขวน', icon: '🧊', decoy: true },
   { id: 'DECOY-WEIGHTS', page: 0, slot: 0, title: '[TRAPPER] ใช้ดัมเบลและแผ่นเหล็กยกน้ำหนักจากยิมมาถ่วงน้ำหนักแทนถังน้ำ', icon: '🏋️', decoy: true },
   { id: 'DECOY-GLOVES', page: 0, slot: 0, title: '[TRAPPER] สวมถุงมือยางและโยนทิ้งลงในเตาเผาขยะเพื่อไม่ให้ทิ้งรอยนิ้วมือ', icon: '🧤', decoy: true },
   { id: 'DECOY-CLOCK', page: 0, slot: 0, title: '[TRAPPER] หมุนเข็มนาฬิกาแขวนผนังในห้องซักรีดให้เร็วขึ้น 30 นาทีเพื่อลวงเวลา', icon: '⏰', decoy: true },
   { id: 'DECOY-WINDOW', page: 0, slot: 0, title: '[TRAPPER] ใช้ค้อนทุบกระจกหน้าต่างห้องซักรีดให้แตกเพื่อแกล้งทำเป็นทางหลบหนี', icon: '🪟', decoy: true },
-  { id: 'DECOY-CURTAIN', page: 0, slot: 0, title: '[TRAPPER] ใช้ผ้าม่านห้องอาบน้ำห่อหุ้มร่างเรียวตะเพื่อป้องกันเลือดเปรอะเปื้อนพื้น', icon: '🚿', decoy: true },
+  { id: 'DECOY-CURTAIN', page: 0, slot: 0, title: '[TRAPPER] ใช้ผ้าม่านห้องอาบน้ำห่อหุ้มร่างคนร้ายเพื่อป้องกันเลือดเปรอะเปื้อนพื้น', icon: '🚿', decoy: true },
   { id: 'DECOY-CLEANER', page: 0, slot: 0, title: '[TRAPPER] ใช้น้ำยาฟอกขาวเข้มข้นราดขัดพื้นห้องซักรีดเพื่อกำจัดรอยรองเท้า', icon: '🧴', decoy: true },
   { id: 'DECOY-FIRE', page: 0, slot: 0, title: '[TRAPPER] จุดไฟเผากองเศษผ้าเพื่อเปิดระบบสปริงเกลอร์ฉีดน้ำล้างห้อง', icon: '🔥', decoy: true }
 ];
@@ -9160,7 +9430,7 @@ function toggleSaboteurCamouflage() {
       sabBtnScramble: ['ป่วน Monopad', 'สั่นจอหลักฐานเพื่อน 6s'],
       sabBtnSmoke: ['ม่านควันบังตา', 'ควันดำบังจอมินิเกม 5s'],
       sabBtnRumor: ['ปล่อยข่าวลวง', 'ขึ้นข่าวลือโมโนคุมะลวง'],
-      sabBtnShock: ['ทลายสมาธิ', 'เขย่าจอ + หัวเราะ Upupupu']
+      sabBtnShock: ['ทลายสมาธิ', 'เขย่าจอ + หัวเราะ อุ๊ปุ๊ๆๆๆ']
     };
     Object.keys(originals).forEach(id => {
       const btn = document.getElementById(id);
@@ -10016,6 +10286,13 @@ function updateAdminDisplay() {
     `;
     table.appendChild(row);
   });
+
+  // Update Trapper name in verdict decision buttons
+  const trapperName = getTrapperName();
+  document.querySelectorAll('.trapper-name-label, .trapper-name-display').forEach(el => {
+    el.innerText = trapperName;
+  });
+
   renderAdminEvidenceTracker();
 }
 
@@ -10049,21 +10326,42 @@ function renderAdminEvidenceTracker() {
     });
   }
 
-  const players = Object.values(gameState.players);
+  const rawPlayers = Object.values(gameState.players || {});
+  // Deduplicate players by userHash, id, or name to prevent card multiplying
+  const seenKeys = new Set();
+  const players = [];
+  rawPlayers.forEach(p => {
+    if (!p || !p.name) return;
+    const key = p.userHash || p.id || p.name.trim().toLowerCase();
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      players.push(p);
+    }
+  });
+
+  const courtPanel = document.getElementById('adminCourtCoreEvidencePanel');
+
   if (players.length === 0) {
     container.innerHTML = '<div style="text-align:center; padding:16px; color:#64748b; font-size:0.85rem;">ยังไม่มีผู้เล่นเชื่อมต่อในระบบ (0 คน)</div>';
+    if (courtPanel) {
+      courtPanel.innerHTML = '<div style="text-align:center; padding:12px; color:#64748b; font-size:0.82rem;">ยังไม่มีผู้เล่นในระบบ</div>';
+    }
     return;
   }
 
+  // Clear container before rendering player cards to avoid duplicates!
+  container.innerHTML = '';
+
   // Court-wide Core Clues Aggregation (PC 1 - 5)
-  const courtPanel = document.getElementById('adminCourtCoreEvidencePanel');
   const coreClues = ALL_CLUES_DATA.filter(c => c.importance === 'MUST' || c.secretType === 'CORE');
   
   const courtHeldMap = {}; // clueId -> [playerNames]
   players.forEach(p => {
     (p.clues || []).forEach(cid => {
       if (!courtHeldMap[cid]) courtHeldMap[cid] = [];
-      courtHeldMap[cid].push(p.name);
+      if (!courtHeldMap[cid].includes(p.name)) {
+        courtHeldMap[cid].push(p.name);
+      }
     });
   });
 
@@ -10112,7 +10410,9 @@ function renderAdminEvidenceTracker() {
     `;
   }
 
-  players.forEach(p => {
+  players.forEach((p, idx) => {
+    const slot = resolvePlayerSlot(p, idx + 1);
+    p.pcSlot = slot;
     const pKey = p.userHash || p.id || p.name;
     const pClues = Array.isArray(p.clues) ? p.clues : [];
     const totalClues = ALL_CLUES_DATA.length; // 31
@@ -10169,14 +10469,14 @@ function renderAdminEvidenceTracker() {
         <div>
           <strong style="color:#f8fafc; font-size:0.95rem;">${escapeHtml(p.name)}</strong>
           ${p.isKiller ? '<span style="font-size:0.7rem; background:#dc2626; color:#fff; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">SABOTEUR</span>' : ''}
-          ${p.pcSlot ? `<span style="font-size:0.7rem; background:#0284c7; color:#fff; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">PC ${p.pcSlot}</span>` : ''}
+          <span style="font-size:0.7rem; background:#0284c7; color:#fff; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">PC ${slot}</span>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
           <span style="font-size:0.85rem; font-weight:bold; color:${percent >= 70 ? '#10b981' : percent >= 40 ? '#38bdf8' : '#eab308'};">
             ${pCount} / ${totalClues} ชิ้น (${percent}%)
           </span>
           <button type="button" class="small-btn yellow" onclick="adminGrantRoleCluesToPlayer('${pKey}')" style="padding:4px 8px; font-size:0.72rem; font-weight:800;" title="มอบชุดหลักฐานเฉพาะบทบาทของ PC นี้">
-            🎯 มอบชุดบทบาท
+            🎯 มอบชุดบทบาท (PC ${slot})
           </button>
           <button type="button" class="small-btn ${isExpanded ? 'grey' : 'cyan'}" onclick="adminTogglePlayerCluesExpand('${pKey}')" style="padding:4px 10px; font-size:0.75rem; font-weight:800;">
             ${isExpanded ? '▲ ซ่อน' : '▼ ดู/มอบหลักฐาน'}
@@ -10205,13 +10505,19 @@ function adminGrantClue(targetKey, clueId) {
   const clueName = clue ? clue.name : clueId;
 
   // Update in host memory
+  let targetPlayer = null;
   Object.values(gameState.players).forEach(p => {
     if ((p.userHash && p.userHash === targetKey) || (p.id && p.id === targetKey) || p.name === targetKey) {
+      targetPlayer = p;
       if (!p.clues) p.clues = [];
       if (!p.clues.includes(clueId)) p.clues.push(clueId);
     }
   });
 
+  const slot = targetPlayer ? resolvePlayerSlot(targetPlayer, 1) : 1;
+  const tName = targetPlayer ? targetPlayer.name : '';
+
+  broadcast({ type: 'sync_state', state: gameState });
   renderAdminEvidenceTracker();
   playSfx('correct');
   showToast(`🎁 มอบหลักฐาน [${clueId}: ${clueName}] ให้ผู้เล่นแล้ว`);
@@ -10219,6 +10525,8 @@ function adminGrantClue(targetKey, clueId) {
   broadcast({
     type: 'admin_grant_clue',
     targetKey: targetKey,
+    targetSlot: slot,
+    targetName: tName,
     clueId: clueId,
     clueName: clueName
   });
@@ -10245,6 +10553,7 @@ function adminBroadcastClue(clueId) {
     if (!p.clues.includes(clueId)) p.clues.push(clueId);
   });
 
+  broadcast({ type: 'sync_state', state: gameState });
   renderAdminEvidenceTracker();
   playSfx('correct');
   showToast(`📢 มอบหลักฐาน [${clue.id}: ${clue.name}] ให้ทุกคนในห้องแล้ว!`);
@@ -10266,38 +10575,47 @@ function adminDistributeRoleClues() {
   if (!confirm(`ยืนยันการมอบหลักฐานตามบทบาทของ PC แต่ละคน (ไม่ซ้ำกัน)?\nผู้เล่นแต่ละคนจะได้รับหลักฐานเฉพาะตัวตามบทบาทและที่ตั้งสืบสวน โดยไม่ได้รับข้อมูลซ้ำซ้อนกัน`)) return;
 
   let totalGranted = 0;
-  players.forEach(p => {
-    let slot = parseInt(p.pcSlot, 10);
-    if (!slot || isNaN(slot)) {
-      if (p.role) {
-        if (/PC\s*1|นาเอกิ/i.test(p.role)) slot = 1;
-        else if (/PC\s*2|เคียวโกะ/i.test(p.role)) slot = 2;
-        else if (/PC\s*3|เบียคุยะ/i.test(p.role)) slot = 3;
-        else if (/PC\s*4|อาโออิ/i.test(p.role)) slot = 4;
-        else if (/PC\s*5|ฮิฟุมิ/i.test(p.role)) slot = 5;
-      }
-    }
-    if (!slot || !PC_INVESTIGATION_CLUES[slot]) return;
+  players.forEach((p, idx) => {
+    let slot = resolvePlayerSlot(p, idx + 1);
+    p.pcSlot = slot;
+    if (!PC_INVESTIGATION_CLUES[slot]) return;
 
     const roleClues = PC_INVESTIGATION_CLUES[slot];
     const pKey = p.userHash || p.id || p.name;
     if (!p.clues) p.clues = [];
 
+    const newClues = [];
     roleClues.forEach(cid => {
       if (!p.clues.includes(cid)) {
         p.clues.push(cid);
+        newClues.push(cid);
         totalGranted++;
+      }
+    });
+
+    if (newClues.length > 0) {
+      broadcast({
+        type: 'admin_grant_batch_clues',
+        targetKey: pKey,
+        targetSlot: slot,
+        targetName: p.name,
+        clueIds: newClues
+      });
+      newClues.forEach(cid => {
         const cObj = ALL_CLUES_DATA.find(c => c.id === cid);
         broadcast({
           type: 'admin_grant_clue',
           targetKey: pKey,
+          targetSlot: slot,
+          targetName: p.name,
           clueId: cid,
           clueName: cObj ? cObj.name : cid
         });
-      }
-    });
+      });
+    }
   });
 
+  broadcast({ type: 'sync_state', state: gameState });
   renderAdminEvidenceTracker();
   playSfx('correct');
   logCourt(`🎯 [DM มอบหลักฐานตามบทบาท]: แจกหลักฐานเฉพาะตัวให้ PC 1-5 สำเร็จ รวม ${totalGranted} รายการ (ไม่ซ้ำ)`);
@@ -10328,10 +10646,10 @@ function adminDistributeMissingCoreFairly() {
   let playerIndex = 0;
   let grantedCount = 0;
   missing.forEach(clue => {
-    // Pick next player
     const p = players[playerIndex % players.length];
     playerIndex++;
     const pKey = p.userHash || p.id || p.name;
+    const slot = resolvePlayerSlot(p, 1);
     if (!p.clues) p.clues = [];
     if (!p.clues.includes(clue.id)) {
       p.clues.push(clue.id);
@@ -10339,12 +10657,15 @@ function adminDistributeMissingCoreFairly() {
       broadcast({
         type: 'admin_grant_clue',
         targetKey: pKey,
+        targetSlot: slot,
+        targetName: p.name,
         clueId: clue.id,
         clueName: clue.name
       });
     }
   });
 
+  broadcast({ type: 'sync_state', state: gameState });
   renderAdminEvidenceTracker();
   playSfx('correct');
   logCourt(`✨ [DM เฉลี่ยหลักฐาน Core]: แจกจ่าย Core ที่ขาด ${grantedCount} ชิ้น ให้ผู้เล่นในศาลแบบไม่ซ้ำกัน`);
@@ -10354,39 +10675,50 @@ function adminDistributeMissingCoreFairly() {
 function adminGrantRoleCluesToPlayer(pKey) {
   const p = Object.values(gameState.players).find(x => (x.userHash && x.userHash === pKey) || (x.id && x.id === pKey) || x.name === pKey);
   if (!p) return;
-  let slot = parseInt(p.pcSlot, 10);
-  if (!slot || isNaN(slot)) {
-    if (p.role) {
-      if (/PC\s*1|นาเอกิ/i.test(p.role)) slot = 1;
-      else if (/PC\s*2|เคียวโกะ/i.test(p.role)) slot = 2;
-      else if (/PC\s*3|เบียคุยะ/i.test(p.role)) slot = 3;
-      else if (/PC\s*4|อาโออิ/i.test(p.role)) slot = 4;
-      else if (/PC\s*5|ฮิฟุมิ/i.test(p.role)) slot = 5;
-    }
-  }
+  let slot = resolvePlayerSlot(p, 1);
+  p.pcSlot = slot;
   if (!slot || !PC_INVESTIGATION_CLUES[slot]) {
-    alert(`ผู้เล่น "${p.name}" ยังไม่ได้เลือกบทบาท PC 1-5`);
+    alert(`ไม่สามารถระบุบทบาท PC ของ "${p.name}" ได้`);
     return;
   }
   const roleClues = PC_INVESTIGATION_CLUES[slot];
   if (!p.clues) p.clues = [];
   let added = 0;
+  const newClues = [];
   roleClues.forEach(cid => {
     if (!p.clues.includes(cid)) {
       p.clues.push(cid);
+      newClues.push(cid);
       added++;
+    }
+  });
+
+  if (newClues.length > 0) {
+    broadcast({
+      type: 'admin_grant_batch_clues',
+      targetKey: pKey,
+      targetSlot: slot,
+      targetName: p.name,
+      clueIds: newClues
+    });
+    newClues.forEach(cid => {
       const cObj = ALL_CLUES_DATA.find(c => c.id === cid);
       broadcast({
         type: 'admin_grant_clue',
         targetKey: pKey,
+        targetSlot: slot,
+        targetName: p.name,
         clueId: cid,
         clueName: cObj ? cObj.name : cid
       });
-    }
-  });
+    });
+  }
+
+  broadcast({ type: 'sync_state', state: gameState });
   renderAdminEvidenceTracker();
   playSfx('correct');
-  showToast(`🎯 มอบชุดหลักฐานบทบาท PC ${slot} ให้ ${p.name} เรียบร้อย (${added} รายการใหม่)`);
+  logCourt(`🎯 [DM มอบหลักฐานบทบาท PC ${slot}]: มอบชุดหลักฐานให้ "${p.name}" สำเร็จ (+${added} ชิ้น)`);
+  showToast(`🎯 มอบชุดหลักฐานบทบาท PC ${slot} ให้ ${p.name} แล้ว (+${added} ชิ้น)`);
 }
 
 function updatePlayerDisplays() {
@@ -11283,11 +11615,11 @@ function applyArmamentPresetFromDropdown(val, isSilent) {
 function applyPresetStage7(mode) {
   const badge = document.getElementById('stg7CardDesc');
   if (badge) {
-    badge.innerText = "📖 มังงะสรุปคดี (The Culprit B Timeline)";
+    badge.innerText = "📖 มังงะสรุปคดี (The True Culprit Timeline)";
     flashPresetBadge('stg7CardDesc');
   }
   showToast("📖 โหลดพรีเซ็ตคดีห้องซักผ้าฉบับสมบูรณ์เรียบร้อย");
-  logCourt("📖 [CLOSING PRESET]: DM โหลดพรีเซ็ตมังงะสรุปคดีห้องซักผ้าฉบับสมบูรณ์ (The Culprit B Timeline)");
+  logCourt("📖 [CLOSING PRESET]: DM โหลดพรีเซ็ตมังงะสรุปคดีห้องซักผ้าฉบับสมบูรณ์ (The True Culprit Timeline)");
 }
 
 function getStageConfigFromInputs(stage) {

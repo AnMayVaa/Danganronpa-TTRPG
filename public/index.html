@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=4.4.0">
+  <link rel="stylesheet" href="/css/style.css?v=5.0.0">
   <!-- Early view detection script: immediately hides other page navigation buttons on Court and PC views -->
   <script>
     (function() {
@@ -703,7 +703,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; width:100%;">
             <div>
               <div class="slanted-banner cyan">MINI-GAME 7: CLOSING ARGUMENT</div>
-              <h2 class="riddle-title" style="margin-top:6px; margin-bottom:2px;">"ปะติดปะต่อมังงะคดีความ 5 หน้า (The Culprit B Timeline)"</h2>
+              <h2 class="riddle-title" style="margin-top:6px; margin-bottom:2px;">"ปะติดปะต่อมังงะคดีความ 5 หน้า (The True Culprit Timeline)"</h2>
             </div>
             <div class="closing-progress-badge" style="display:flex; align-items:center; gap:12px; background:#141424; padding:6px 14px; border-radius:8px; border:1px solid #333348;">
               <span style="color:#aaa; font-size:0.85rem;">ความคืบหน้ารวม:</span>
@@ -1074,7 +1074,7 @@
               <div style="display:flex; gap:6px; align-items:center;">
                 <button class="dm-act-btn cyan" onclick="adminSetGame('closing')" style="flex:1; margin:0;">
                   <strong>7. Closing Argument</strong>
-                  <span id="stg7CardDesc" class="dm-card-active-preset">📖 มังงะสรุปคดี (The Culprit B Timeline)</span>
+                  <span id="stg7CardDesc" class="dm-card-active-preset">📖 มังงะสรุปคดี (The True Culprit Timeline)</span>
                 </button>
                 <button type="button" class="small-btn pink dm-gear-btn" onclick="openAdminMinigameModal('stage7')" title="ดูรายละเอียดมังงะ (Custom Edit)" style="padding:10px 14px; font-weight:900; font-size:1rem;">
                   ⚙️
@@ -1124,12 +1124,12 @@
           <h2 class="admin-card-title">⚖️ สรุปคำตัดสินของ Monokuma (The Execution)</h2>
           <p class="card-desc">เมื่อโหวตเสร็จสิ้น DM กดปุ่มเพื่อสั่งประหารและเปิดผลลัพธ์:</p>
           <div class="verdict-btn-group">
-            <button class="verdict-btn win" onclick="adminTriggerVerdict(true)">
+            <button class="verdict-btn win" id="btnAdminVerdictWin" onclick="adminTriggerVerdict(true)">
               🟢 ตัดสินถูก (เรียวตะคือ Blackened)
-              <small>ทุกคนรอดชีวิต! Trapper แผนพังยับเยิน (True Ending)</small>
+              <small id="subAdminVerdictWin">ทุกคนรอดชีวิต! <span class="trapper-name-label">ฮิฟุมิ (PC 5)</span> แผนพังยับเยิน (True Ending)</small>
             </button>
-            <button class="verdict-btn lose" onclick="adminTriggerVerdict(false)">
-              🔴 ตัดสินผิด (โหวต Trapper)
+            <button class="verdict-btn lose" id="btnAdminVerdictLose" onclick="adminTriggerVerdict(false)">
+              🔴 ตัดสินผิด (โหวต <span class="trapper-name-label">ฮิฟุมิ (PC 5)</span>)
               <small>ประหารชีวิตหมู่ทุกคน! (Bad Ending)</small>
             </button>
           </div>
@@ -1198,7 +1198,7 @@
         <div class="admin-card">
           <h2 class="admin-card-title">📢 Monokuma Soundboard & SFX</h2>
           <div class="soundboard-grid">
-            <button class="sound-btn" onclick="triggerFx('laugh')">🐻 หัวเราะ Upupupu</button>
+            <button class="sound-btn" onclick="triggerFx('laugh')">🐻 หัวเราะ อุ๊ปุ๊ๆๆๆ (Upupupu)</button>
             <button class="sound-btn" onclick="triggerFx('chime')">🔔 ระฆัง Ding Dong</button>
             <button class="sound-btn" onclick="triggerFx('bda')">💀 ประกาศพบศพ (BDA)</button>
             <button class="sound-btn" onclick="triggerFx('counter')">🔫 Sore wa Chigau yo!</button>
@@ -1911,7 +1911,7 @@
                   <span class="sab-cd-tag" id="cd_panic_shock">35s</span>
                 </div>
                 <div class="sab-card-name">ทลายสมาธิ</div>
-                <div class="sab-card-desc">เขย่าจอ + หัวเราะ Upupupu</div>
+                <div class="sab-card-desc">เขย่าจอ + หัวเราะ อุ๊ปุ๊ๆๆๆ</div>
               </button>
             </div>
           </div>
@@ -2906,31 +2906,36 @@
   <!-- MONOKUMA PUNISHMENT EXECUTION CUTSCENE         -->
   <!-- ============================================== -->
   <div id="monokumaExecutionModal" class="execution-cutscene-overlay hidden">
-    <div class="execution-siren-light"></div>
-    <div class="execution-content-box">
+    <div class="execution-siren-light" id="executionSirenLight"></div>
+    <div class="execution-content-box" id="executionContentBox">
       <div class="execution-top-banner">
-        <span class="slanted-banner pink" style="font-size:1.1rem; padding:6px 20px;">DANGANRONPA EXECUTION</span>
+        <span class="slanted-banner pink" id="executionTopBanner" style="font-size:1.1rem; padding:6px 20px;">DANGANRONPA EXECUTION</span>
       </div>
-      <h1 class="punishment-headline">PUNISHMENT TIME</h1>
-      <div class="punishment-sub">ถึงเวลาลงทัณฑ์แห่งความสิ้นหวัง... อุปุ๊ปุ๊!</div>
+      <h1 class="punishment-headline" id="executionHeadline">PUNISHMENT TIME</h1>
+      <div class="punishment-sub" id="executionSubHeadline">ถึงเวลาลงทัณฑ์แห่งความสิ้นหวัง... อุปุ๊ปุ๊!</div>
       
       <div class="guilty-stamp-container">
         <div id="guiltyStamp" class="guilty-rubber-stamp">
-          GUILTY
-          <span class="stamp-sub">มีความผิดจริง</span>
+          <span id="executionStampMain">GUILTY</span>
+          <span class="stamp-sub" id="executionStampSub">มีความผิดจริง</span>
         </div>
+      </div>
+
+      <!-- Execution Visual Image Cutscene -->
+      <div class="execution-media-wrap" id="executionMediaContainer">
+        <img id="executionImage" src="assets/execution_true_ending.jpg" alt="Execution Cutscene" />
       </div>
 
       <div class="culprit-reveal-card" id="executionCulpritCard">
         <div class="culprit-avatar" id="executionCulpritAvatar">💀</div>
-        <div class="culprit-info">
+        <div class="culprit-info" style="width:100%;">
           <h2 id="executionCulpritName" style="color:var(--court-gold); margin:0 0 6px 0;">???</h2>
           <div id="executionVerdictText" style="color:#ddd; font-size:1rem; line-height:1.5;"></div>
         </div>
       </div>
 
       <div class="execution-actions">
-        <button class="small-btn red" onclick="closeExecutionModal()" style="font-weight:900; padding:10px 24px; font-size:1rem;">
+        <button class="small-btn red" id="executionCloseBtn" onclick="closeExecutionModal()" style="font-weight:900; padding:10px 24px; font-size:1rem;">
           🏛️ สิ้นสุดการลงทัณฑ์ & กลับสู่ศาล
         </button>
       </div>
@@ -3683,7 +3688,7 @@
   </button>
 
   <script src="/js/jsQR.min.js"></script>
-  <script src="/js/client.js?v=4.5.1"></script>
+  <script src="/js/client.js?v=5.0.0"></script>
   <div id="blueprintPrintSection" class="print-only"></div>
 </body>
 </html>

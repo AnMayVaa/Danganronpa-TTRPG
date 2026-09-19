@@ -5131,6 +5131,84 @@ select option:disabled {
   gap: 15px;
 }
 
+/* Victory / Class Survived Theme (Green / Cyan / Gold) */
+.execution-content-box.victory-theme {
+  border: 3px solid #10b981 !important;
+  box-shadow: 0 0 60px rgba(16, 185, 129, 0.6), inset 0 0 30px rgba(16, 185, 129, 0.25) !important;
+  background: rgba(8, 24, 18, 0.95) !important;
+}
+
+.execution-siren-light.siren-victory {
+  background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.3) 0%, transparent 70%) !important;
+  animation: sirenFlashGreen 0.8s infinite alternate !important;
+}
+
+@keyframes sirenFlashGreen {
+  0% { opacity: 0.2; background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.2) 0%, transparent 70%); }
+  100% { opacity: 0.9; background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.65) 0%, transparent 75%); }
+}
+
+.guilty-rubber-stamp.stamp-victory {
+  border: 6px solid #10b981 !important;
+  color: #10b981 !important;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.7) !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+}
+
+.punishment-headline.headline-victory {
+  color: #10b981 !important;
+  text-shadow: 0 0 30px rgba(16, 185, 129, 0.9), 4px 4px 0 #000 !important;
+}
+
+.culprit-reveal-card.card-victory {
+  border: 2px solid #065f46 !important;
+  background: rgba(6, 40, 25, 0.75) !important;
+}
+
+.execution-media-wrap {
+  width: 100%;
+  max-height: 280px;
+  overflow: hidden;
+  border-radius: 8px;
+  margin: 14px 0 16px 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+  position: relative;
+  background: #000;
+}
+
+.execution-media-wrap img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.execution-media-wrap:hover img {
+  transform: scale(1.02);
+}
+
+.execution-story-box {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.execution-story-box::-webkit-scrollbar {
+  width: 6px;
+}
+.execution-story-box::-webkit-scrollbar-thumb {
+  background: #38bdf8;
+  border-radius: 3px;
+}
+
 /* ==========================================================
    DANGANRONPA CLIMAX INFERENCE CUTSCENE OVERLAY
    ========================================================== */
