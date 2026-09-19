@@ -398,7 +398,7 @@ function requestHandler(req, res) {
     let fileFound = !err && stats && stats.isFile();
     if (!fileFound && cleanUrl.startsWith('/assets/')) {
       const baseName = path.basename(cleanUrl);
-      const subdirs = ['item', 'Rooms', 'Crime_Scene', 'battlemap', 'character'];
+      const subdirs = ['item', 'Rooms', 'Crime_Scene', 'battlemap', 'character', 'manga'];
       for (const sub of subdirs) {
         const subPath = path.join(__dirname, 'assets', sub, baseName);
         if (fs.existsSync(subPath) && fs.statSync(subPath).isFile()) {

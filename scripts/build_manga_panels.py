@@ -5,7 +5,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps, ImageEnhance
 
 TARGET_WIDTH = 1376
 TARGET_HEIGHT = 768
-ASSETS_DIR = os.path.abspath('assets')
+ASSETS_DIR = os.path.abspath('assets/manga')
+os.makedirs(ASSETS_DIR, exist_ok=True)
 
 def get_font(font_name, size):
     try:

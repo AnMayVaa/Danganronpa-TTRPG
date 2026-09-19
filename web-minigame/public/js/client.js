@@ -491,16 +491,21 @@ function updateMonopadDeviceBar() {
 }
 
 function updateMonopadPhaseTabs(stage) {
-  const currentStage = stage || (gameState && gameState.stage) || 'idle';
-  const isDailyLife = (currentStage === 'dailylife' || currentStage === 'daily' || currentStage === 'lobby');
+  const currentStage = stage || (gameState && gameState.stage) || 'lobby';
+  const isLobby = (currentStage === 'lobby' || !currentStage);
+  const isDailyLife = (currentStage === 'dailylife' || currentStage === 'daily');
   const isInvestigation = (currentStage === 'investigation');
 
   // Toggle phase classes on body and #viewPlayer for CSS responsive rules
+  document.body.classList.toggle('phase-lobby', isLobby);
   document.body.classList.toggle('phase-dailylife', isDailyLife);
   const vPlayer = document.getElementById('viewPlayer');
-  if (vPlayer) vPlayer.classList.toggle('phase-dailylife', isDailyLife);
+  if (vPlayer) {
+    vPlayer.classList.toggle('phase-lobby', isLobby);
+    vPlayer.classList.toggle('phase-dailylife', isDailyLife);
+    vPlayer.classList.toggle('phase-investigation', isInvestigation);
+  }
   document.body.classList.toggle('phase-investigation', isInvestigation);
-  if (vPlayer) vPlayer.classList.toggle('phase-investigation', isInvestigation);
 
   const tabGame = document.getElementById('pTabGame');
   const tabClues = document.getElementById('pTabClues');
@@ -509,16 +514,32 @@ function updateMonopadPhaseTabs(stage) {
   const tabRules = document.getElementById('pTabRules');
   const pSectionClues = document.getElementById('playerSectionClues');
   const pSectionGuide = document.getElementById('playerSectionGuide');
+  const pSectionMap = document.getElementById('playerSectionMap');
+  const pSectionRules = document.getElementById('playerSectionRules');
 
-  // Rules, Map, and Activity (ช่วงกิจกรรม) are ALWAYS visible across all phases!
-  if (tabRules) tabRules.style.display = 'flex';
-  if (tabMap) tabMap.style.display = 'flex';
-  if (tabGame) tabGame.style.display = 'flex';
+  if (isLobby) {
+    // Stage 0 (Session Lobby): ONLY Activity (ช่วงกิจกรรม) tab is visible!
+    // NO map, NO rules, NO guide, NO clues whatsoever!
+    if (tabGame) tabGame.style.display = 'flex';
+    if (tabClues) tabClues.style.display = 'none';
+    if (tabMap) tabMap.style.display = 'none';
+    if (tabGuide) tabGuide.style.display = 'none';
+    if (tabRules) tabRules.style.display = 'none';
 
-  if (isDailyLife) {
-    // Phase 1 (Daily Life): Activity, Rules, Map ONLY (No murder yet -> Clues & Debate Guide strictly hidden)
+    if (pSectionClues) pSectionClues.classList.add('hidden');
+    if (pSectionGuide) pSectionGuide.classList.add('hidden');
+    if (pSectionMap) pSectionMap.classList.add('hidden');
+    if (pSectionRules) pSectionRules.classList.add('hidden');
+
+    switchPlayerTab('game');
+  } else if (isDailyLife) {
+    // Phase 1 (Daily Life): Activity, Map, Rules visible (No murder yet -> Clues & Debate Guide hidden)
+    if (tabGame) tabGame.style.display = 'flex';
+    if (tabMap) tabMap.style.display = 'flex';
+    if (tabRules) tabRules.style.display = 'flex';
     if (tabClues) tabClues.style.display = 'none';
     if (tabGuide) tabGuide.style.display = 'none';
+
     if (pSectionClues) pSectionClues.classList.add('hidden');
     if (pSectionGuide) pSectionGuide.classList.add('hidden');
 
@@ -528,7 +549,10 @@ function updateMonopadPhaseTabs(stage) {
     }
   } else if (isInvestigation) {
     // Phase 2 (Investigation): Activity, Clues, Rules, Map (Clues visible, Debate Guide hidden)
+    if (tabGame) tabGame.style.display = 'flex';
     if (tabClues) tabClues.style.display = 'flex';
+    if (tabMap) tabMap.style.display = 'flex';
+    if (tabRules) tabRules.style.display = 'flex';
     if (tabGuide) tabGuide.style.display = 'none';
     if (pSectionGuide) pSectionGuide.classList.add('hidden');
 
@@ -538,8 +562,11 @@ function updateMonopadPhaseTabs(stage) {
     }
   } else {
     // Phase 3 (Class Trial / Recess 'idle' / Minigames): All tabs visible like Class Trial!
+    if (tabGame) tabGame.style.display = 'flex';
     if (tabClues) tabClues.style.display = 'flex';
+    if (tabMap) tabMap.style.display = 'flex';
     if (tabGuide) tabGuide.style.display = 'flex';
+    if (tabRules) tabRules.style.display = 'flex';
 
     if (currentStage.startsWith('stage') || currentStage === 'closing') {
       switchPlayerTab('game');
@@ -2815,10 +2842,13 @@ let currentClueFilter = 'ALL';
 
 function switchPlayerTab(tab) {
   if (currentView === 'admin' || currentView === 'court') return;
-  const curStage = (gameState && gameState.stage) || 'idle';
-  const isDailyLife = (curStage === 'dailylife' || curStage === 'daily' || curStage === 'lobby');
+  const curStage = (gameState && gameState.stage) || 'lobby';
+  const isLobby = (curStage === 'lobby' || !curStage);
+  const isDailyLife = (curStage === 'dailylife' || curStage === 'daily');
   const isInvestigation = (curStage === 'investigation');
-  if (isDailyLife && (tab === 'clues' || tab === 'guide')) {
+  if (isLobby) {
+    tab = 'game';
+  } else if (isDailyLife && (tab === 'clues' || tab === 'guide')) {
     tab = 'game';
   } else if (isInvestigation && tab === 'guide') {
     tab = 'clues';
@@ -4402,6 +4432,7 @@ function renderStage(stage) {
 
   // Render on Mobile
   renderMobileTask(stage);
+  updateMonopadPhaseTabs(stage);
 }
 
 // ==========================================================
@@ -6939,7 +6970,7 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🥩',
-        image: 'assets/manga_p1_kitchen_shadow.jpg',
+        image: 'assets/manga/manga_p1_kitchen_shadow.jpg',
         timestamp: '17:00 น.',
         location: 'ห้องครัวโรงเรียน',
         sfxBadge: '*RUMMAGE... FREEZER*',
@@ -6954,7 +6985,7 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P1-S1', 'EVD-14', 'EVD-12', 'ACTION-CUT'],
         art: '🍖',
-        image: 'assets/manga_p1_bone_attack.jpg',
+        image: 'assets/manga/manga_p1_bone_attack.jpg',
         timestamp: '17:30 น.',
         location: 'ห้องซักรีด ปีกบริการ',
         sfxBadge: '*WHACK!*',
@@ -6970,7 +7001,7 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P1-S2', 'EVD-11', 'EVD-09', 'ACTION-NOOSE'],
         art: '🍲',
-        image: 'assets/manga_p1_bone_stew.jpg',
+        image: 'assets/manga/manga_p1_bone_stew.jpg',
         timestamp: '17:40 น.',
         location: 'หม้อต้มในห้องครัว',
         sfxBadge: '*PLOP... SIZZLE!*',
@@ -6983,7 +7014,7 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '🥘',
-        image: 'assets/manga_p1_wipe_traces.jpg',
+        image: 'assets/manga/manga_p1_wipe_traces.jpg',
         timestamp: '17:40 น.',
         location: 'ห้องครัวโรงเรียน',
         sfxBadge: '*WIPE... SILENCE*',
@@ -7001,7 +7032,7 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🚪',
-        image: 'assets/manga_p2_drag_victim.jpg',
+        image: 'assets/manga/manga_p2_drag_victim.jpg',
         timestamp: '17:45 น.',
         location: 'ห้องซักรีด ชั้น 1',
         sfxBadge: '*CREAK... DRAG*',
@@ -7016,7 +7047,7 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P2-S1'],
         art: '🪢',
-        image: 'assets/manga_p2_tie_rope.jpg',
+        image: 'assets/manga/manga_p2_tie_rope.jpg',
         timestamp: '18:00 น.',
         location: 'ห้องซักรีด ชั้น 1',
         sfxBadge: '*BIND... KNOT*',
@@ -7032,7 +7063,7 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P2-S2'],
         art: '⚙️',
-        image: 'assets/manga_p2_pulley_pipe.jpg',
+        image: 'assets/manga/manga_p2_pulley_pipe.jpg',
         timestamp: '18:15 น.',
         location: 'เพดานห้องซักรีด',
         sfxBadge: '*SLIDE... HOIST!*',
@@ -7045,7 +7076,7 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '🪟',
-        image: 'assets/manga_p2_toss_window.jpg',
+        image: 'assets/manga/manga_p2_toss_window.jpg',
         timestamp: '18:30 น.',
         location: 'หน้าต่างระบายอากาศห้องซักรีด',
         sfxBadge: '*TOSS... OUTSIDE!*',
@@ -7063,7 +7094,7 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🏢',
-        image: 'assets/manga_p3_barrel_position.jpg',
+        image: 'assets/manga/manga_p3_barrel_position.jpg',
         timestamp: '18:35 น.',
         location: 'ลานคอร์ทยาร์ดภายนอก',
         sfxBadge: '*THUD... BLINDSPOT*',
@@ -7078,7 +7109,7 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P3-S1'],
         art: '🪣',
-        image: 'assets/manga_p3_tie_barrel.jpg',
+        image: 'assets/manga/manga_p3_tie_barrel.jpg',
         timestamp: '18:45 น.',
         location: 'ลานคอร์ทยาร์ดภายนอก',
         sfxBadge: '*BIND... KNOT!*',
@@ -7094,7 +7125,7 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P3-S2'],
         art: '🚰',
-        image: 'assets/manga_p3_water_hose.jpg',
+        image: 'assets/manga/manga_p3_water_hose.jpg',
         timestamp: '18:50 น.',
         location: 'ก๊อกน้ำห้องซักรีดสู่คอร์ทยาร์ด',
         sfxBadge: '*DRIP... TRICKLE*',
@@ -7107,7 +7138,7 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '⏳',
-        image: 'assets/manga_p3_water_timer.jpg',
+        image: 'assets/manga/manga_p3_water_timer.jpg',
         timestamp: '19:00 น.',
         location: 'ถังน้ำลานคอร์ทยาร์ด',
         sfxBadge: '*TICK-TOCK... 21:00*',
@@ -7128,7 +7159,7 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P4-S1'],
         art: '⏱️',
-        image: 'assets/manga_p4_delay_dryer.jpg',
+        image: 'assets/manga/manga_p4_delay_dryer.jpg',
         timestamp: '18:55 น.',
         location: 'ห้องซักรีด ชั้น 1',
         sfxBadge: '*BEEP... SET*',
@@ -7144,7 +7175,7 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P4-S2'],
         art: '👢',
-        image: 'assets/manga_p4_boots_dryer.jpg',
+        image: 'assets/manga/manga_p4_boots_dryer.jpg',
         timestamp: '18:58 น.',
         location: 'ถังปั่นเครื่องอบผ้า DRY-1',
         sfxBadge: '*CLATTER & STAMP!*',
@@ -7157,7 +7188,7 @@ const CLOSING_PAGES_DATA = [
         num: 3,
         type: 'story',
         art: '🕯️',
-        image: 'assets/manga_p4_dining_alibi.jpg',
+        image: 'assets/manga/manga_p4_dining_alibi.jpg',
         timestamp: '19:00 – 21:00 น.',
         location: 'ห้องอาหารและห้องนั่งเล่น',
         sfxBadge: '*IRONCLAD ALIBI*',
@@ -7169,7 +7200,7 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '🔪',
-        image: 'assets/manga_p4_knife_cut.jpg',
+        image: 'assets/manga/manga_p4_knife_cut.jpg',
         timestamp: '20:45 น.',
         location: 'ห้องซักรีด ชั้น 1',
         sfxBadge: '*SLASH!! SEVERED!*',
@@ -7187,7 +7218,7 @@ const CLOSING_PAGES_DATA = [
         num: 1,
         type: 'story',
         art: '🪢',
-        image: 'assets/manga_p5_rebind_noose.jpg',
+        image: 'assets/manga/manga_p5_rebind_noose.jpg',
         timestamp: '20:55 น.',
         location: 'ใต้ราวท่อเพดานห้องซักรีด',
         sfxBadge: '*CHOKE... TRAPPED!!*',
@@ -7202,7 +7233,7 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 1,
         acceptedIds: ['CARD-P5-S1'],
         art: '💥',
-        image: 'assets/manga_p5_barrel_crash.jpg',
+        image: 'assets/manga/manga_p5_barrel_crash.jpg',
         timestamp: '21:00:00 น.',
         location: 'ลานคอร์ทยาร์ด',
         sfxBadge: '*KRA-BOOM!! CRASH!!*',
@@ -7218,7 +7249,7 @@ const CLOSING_PAGES_DATA = [
         pageSlot: 2,
         acceptedIds: ['CARD-P5-S2'],
         art: '⛓️',
-        image: 'assets/manga_p5_ryota_reveal.jpg',
+        image: 'assets/manga/manga_p5_ryota_reveal.jpg',
         timestamp: '21:00:02 น.',
         location: 'ห้องซักรีด ชั้น 1',
         sfxBadge: '*SNAP!! REVEAL!*',
@@ -7231,7 +7262,7 @@ const CLOSING_PAGES_DATA = [
         num: 4,
         type: 'story',
         art: '⚖️',
-        image: 'assets/manga_p5_monokuma_guilty.jpg',
+        image: 'assets/manga/manga_p5_monokuma_guilty.jpg',
         timestamp: '21:05 น.',
         location: 'ศาลชั้นเรียน',
         sfxBadge: '*PUNISHMENT TIME!!*',
@@ -7244,16 +7275,16 @@ const CLOSING_PAGES_DATA = [
 ];
 
 const CLOSING_CARDS_DATA = [
-  { id: 'CARD-P1-S1', page: 1, slot: 1, title: '[TRAPPER] ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเงาดำคนร้ายจนสลบในห้องซักรีด (17:30 น.)', icon: '🍖', thumb: 'assets/manga_p1_bone_attack.jpg' },
-  { id: 'CARD-P1-S2', page: 1, slot: 2, title: '[TRAPPER] โยนท่อนกระดูกหมูเปื้อนเลือดลงไปต้มในหม้อสตูว์เนื้อเพื่อทำลายหลักฐาน', icon: '🍲', thumb: 'assets/manga_p1_bone_stew.jpg' },
-  { id: 'CARD-P2-S1', page: 2, slot: 3, title: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูผูกมัดลำตัวและรัดเงาดำคนร้าย', icon: '🪢', thumb: 'assets/manga_p2_tie_rope.jpg' },
-  { id: 'CARD-P2-S2', page: 2, slot: 4, title: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️', thumb: 'assets/manga_p2_pulley_pipe.jpg' },
-  { id: 'CARD-P3-S1', page: 3, slot: 5, title: '[TRAPPER] ผูกปลายเชือกไนลอนเข้ากับหูหิ้วถังน้ำพลาสติก 80 ลิตรที่ลานคอร์ทยาร์ด', icon: '🪣', thumb: 'assets/manga_p3_tie_barrel.jpg' },
-  { id: 'CARD-P3-S2', page: 3, slot: 6, title: '[TRAPPER] ต่อสายยางเปิดน้ำประปาไหลเติมลงถังทีละน้อย 0.4 ลิตร/นาที (นาฬิกาน้ำ)', icon: '🚰', thumb: 'assets/manga_p3_water_hose.jpg' },
-  { id: 'CARD-P4-S1', page: 4, slot: 7, title: '[TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้าให้เริ่มทำงานตอน 21:00 น. ก่อนไปทานอาหาร', icon: '⏱️', thumb: 'assets/manga_p4_delay_dryer.jpg' },
-  { id: 'CARD-P4-S2', page: 4, slot: 8, title: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น.', icon: '👢', thumb: 'assets/manga_p4_boots_dryer.jpg' },
-  { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย (21:00 น.)', icon: '💥', thumb: 'assets/manga_p5_barrel_crash.jpg' },
-  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงบ่วงเชือก เผยโฉมหน้าคนร้ายที่แท้จริงคือ "สึกิชิมะ เรียวตะ"!', icon: '⛓️', thumb: 'assets/manga_p5_ryota_reveal.jpg' },
+  { id: 'CARD-P1-S1', page: 1, slot: 1, title: '[TRAPPER] ใช้ท่อนกระดูกหมูแช่แข็งฟาดท้ายทอยเงาดำคนร้ายจนสลบในห้องซักรีด (17:30 น.)', icon: '🍖', thumb: 'assets/manga/manga_p1_bone_attack.jpg' },
+  { id: 'CARD-P1-S2', page: 1, slot: 2, title: '[TRAPPER] โยนท่อนกระดูกหมูเปื้อนเลือดลงไปต้มในหม้อสตูว์เนื้อเพื่อทำลายหลักฐาน', icon: '🍲', thumb: 'assets/manga/manga_p1_bone_stew.jpg' },
+  { id: 'CARD-P2-S1', page: 2, slot: 3, title: '[TRAPPER] ใช้เชือกตากผ้าไนลอนสีชมพูผูกมัดลำตัวและรัดเงาดำคนร้าย', icon: '🪢', thumb: 'assets/manga/manga_p2_tie_rope.jpg' },
+  { id: 'CARD-P2-S2', page: 2, slot: 4, title: '[TRAPPER] พาดปลายเชือกไนลอนข้ามราวท่อสแตนเลสบนเพดานห้องซักรีดเพื่อทำหน้าที่เป็นรอก', icon: '⚙️', thumb: 'assets/manga/manga_p2_pulley_pipe.jpg' },
+  { id: 'CARD-P3-S1', page: 3, slot: 5, title: '[TRAPPER] ผูกปลายเชือกไนลอนเข้ากับหูหิ้วถังน้ำพลาสติก 80 ลิตรที่ลานคอร์ทยาร์ด', icon: '🪣', thumb: 'assets/manga/manga_p3_tie_barrel.jpg' },
+  { id: 'CARD-P3-S2', page: 3, slot: 6, title: '[TRAPPER] ต่อสายยางเปิดน้ำประปาไหลเติมลงถังทีละน้อย 0.4 ลิตร/นาที (นาฬิกาน้ำ)', icon: '🚰', thumb: 'assets/manga/manga_p3_water_hose.jpg' },
+  { id: 'CARD-P4-S1', page: 4, slot: 7, title: '[TRAPPER] แอบตั้งเวลาเครื่องอบผ้า DRY-1 ล่วงหน้าให้เริ่มทำงานตอน 21:00 น. ก่อนไปทานอาหาร', icon: '⏱️', thumb: 'assets/manga/manga_p4_delay_dryer.jpg' },
+  { id: 'CARD-P4-S2', page: 4, slot: 8, title: '[TRAPPER] ใส่รองเท้าบูทหนังหนาเข้าไปในเครื่องอบผ้าเพื่อสร้างเสียงต่อสู้หลอกเวลา 21:00 น.', icon: '👢', thumb: 'assets/manga/manga_p4_boots_dryer.jpg' },
+  { id: 'CARD-P5-S1', page: 5, slot: 9, title: 'น้ำในถังหนักเกิน 70 กก. ดึงถังร่วงกระแทกพื้นคอร์ทยาร์ดแตกกระจาย (21:00 น.)', icon: '💥', thumb: 'assets/manga/manga_p5_barrel_crash.jpg' },
+  { id: 'CARD-P5-S2', page: 5, slot: 10, title: 'แรงฉุดกระชากดึงบ่วงเชือก เผยโฉมหน้าคนร้ายที่แท้จริงคือ "สึกิชิมะ เรียวตะ"!', icon: '⛓️', thumb: 'assets/manga/manga_p5_ryota_reveal.jpg' },
   // 15 unique decoy cards
   { id: 'DECOY-KNIFE', page: 0, slot: 0, title: 'คนร้ายแกล้งสลบแล้วชักมีดพับออกมาแทงสวน [TRAPPER] ในห้องครัว', icon: '🔪', thumb: 'assets/item/item_pocket_knife.jpg', decoy: true },
   { id: 'DECOY-LADDER', page: 0, slot: 0, title: '[TRAPPER] ปีนบันไดออกไปทางหน้าต่างสูงเพื่อผูกเชือกภายนอกอาคาร', icon: '🪜', thumb: 'assets/Rooms/room_gymnasium.jpg', decoy: true },
@@ -7984,13 +8015,20 @@ function startClosingClimaxPlayback() {
   const pagesHtml = CLOSING_PAGES_DATA.map(p => {
     const panelsHtml = p.panels.map(pan => {
       const isSlot = pan.type === 'slot';
+      const imgSrc = pan.image || '';
+      const imgThumb = imgSrc ? `
+        <div style="width:120px; height:70px; min-width:120px; border-radius:6px; overflow:hidden; border:1.5px solid ${isSlot ? 'var(--court-gold)' : '#444466'}; background:#000; flex-shrink:0;">
+          <img src="${imgSrc}" alt="Manga Panel ${pan.num}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.style.display='none'" />
+        </div>
+      ` : `<div style="font-size:2.2rem; min-width:52px; text-align:center;">${pan.art}</div>`;
       return `
         <div class="climax-panel-item" style="background:#151525; border:2px solid ${isSlot ? 'var(--court-gold)' : '#3d3d5c'}; border-radius:8px; padding:12px; display:flex; align-items:center; gap:14px; box-shadow:${isSlot ? '0 0 12px rgba(255,215,0,0.25)' : 'none'};">
-          <div style="font-size:2.2rem; min-width:52px; text-align:center;">${pan.art}</div>
+          ${imgThumb}
           <div style="flex:1;">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
               <span style="background:#000; color:var(--court-gold); padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:900;">ช่องที่ ${pan.num}</span>
               ${isSlot ? '<span style="background:#143522; color:#00ff88; border:1px solid #00ff88; font-size:0.7rem; font-weight:800; padding:1px 6px; border-radius:3px;">✓ การ์ดที่ถูกเติมสำเร็จ</span>' : '<span style="color:#94a3b8; font-size:0.75rem;">[ภาพเหตุการณ์]</span>'}
+              <span style="color:var(--court-gold); font-size:0.75rem; margin-left:auto;">🕒 ${pan.timestamp || ''}</span>
             </div>
             <div style="color:#fff; font-size:0.92rem; line-height:1.45; font-weight:600;">${pan.desc}</div>
           </div>

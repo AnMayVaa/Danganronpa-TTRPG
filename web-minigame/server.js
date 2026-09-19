@@ -395,7 +395,21 @@ function requestHandler(req, res) {
   }
 
   fs.stat(filePath, (err, stats) => {
-    if (err || !stats.isFile()) {
+    let fileFound = !err && stats && stats.isFile();
+    if (!fileFound && cleanUrl.startsWith('/assets/')) {
+      const baseName = path.basename(cleanUrl);
+      const subdirs = ['item', 'Rooms', 'Crime_Scene', 'battlemap', 'character', 'manga'];
+      for (const sub of subdirs) {
+        const subPath = path.join(__dirname, 'public', 'assets', sub, baseName);
+        if (fs.existsSync(subPath) && fs.statSync(subPath).isFile()) {
+          filePath = subPath;
+          fileFound = true;
+          break;
+        }
+      }
+    }
+
+    if (!fileFound) {
       // Check public folder
       const publicPath = path.normalize(path.join(__dirname, 'public', cleanUrl));
       if (publicPath.startsWith(__dirname) && fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
