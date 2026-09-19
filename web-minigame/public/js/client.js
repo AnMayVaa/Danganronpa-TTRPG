@@ -2145,6 +2145,16 @@ function handleIncomingMessage(msg, senderConn) {
         renderAdminEvidenceTracker();
       }
     }
+  } else if (msg.type === 'request_clue_sync') {
+    // Admin is requesting each player to report their current clue state
+    if (currentView !== 'admin' && currentView !== 'court' && myPlayer && myPlayer.name) {
+      broadcast({
+        type: 'sync_player_clues',
+        userHash: currentUserHash,
+        playerName: myPlayer.name,
+        clues: getUnlockedClues()
+      });
+    }
   } else if (msg.type === 'set_stage') {
     setStage(msg.stage, msg.config);
   } else if (msg.type === 'admin_adjust_timer') {
@@ -3340,6 +3350,16 @@ function grantInvestigationClues(silent = false) {
     renderPlayerCluesList();
   }
 
+  // Sync clue state back to Admin so DM Evidence Tracker shows up-to-date data
+  if (myPlayer && myPlayer.name) {
+    broadcast({
+      type: 'sync_player_clues',
+      userHash: currentUserHash,
+      playerName: myPlayer.name,
+      clues: getUnlockedClues()
+    });
+  }
+
   if (!silent) {
     const clueLines = assigned.map(cid => {
       const c = ALL_CLUES_DATA.find(x => x.id === cid);
@@ -3496,6 +3516,17 @@ function unlockClueDirect(clueId) {
     saveUnlockedClues(unlocked);
   }
   renderPlayerCluesList();
+
+  // Sync clue state back to Admin so DM Evidence Tracker stays current
+  if (myPlayer && myPlayer.name) {
+    broadcast({
+      type: 'sync_player_clues',
+      userHash: currentUserHash,
+      playerName: myPlayer.name,
+      clues: getUnlockedClues()
+    });
+  }
+
   return true;
 }
 
@@ -10750,10 +10781,15 @@ function updateAdminDisplay() {
 }
 
 let adminExpandedPlayerClues = {};
+let _lastClueSyncRequest = 0;
 
 function adminRefreshEvidenceTracker() {
-  renderAdminEvidenceTracker();
+  // Force-request clue sync from all players and re-render
+  broadcast({ type: 'request_clue_sync' });
+  _lastClueSyncRequest = Date.now();
+  setTimeout(() => renderAdminEvidenceTracker(), 600);
   playSfx('click');
+  showToast('🔄 ขอข้อมูลหลักฐานจากผู้เล่นทุกคนแล้ว...');
 }
 
 function adminTogglePlayerCluesExpand(playerId) {
@@ -10765,6 +10801,13 @@ function renderAdminEvidenceTracker() {
   const container = document.getElementById('adminPlayerEvidenceList');
   const broadcastSel = document.getElementById('adminBroadcastClueSelect');
   if (!container) return;
+
+  // Throttle: broadcast request_clue_sync at most once every 3 seconds
+  const now = Date.now();
+  if (now - _lastClueSyncRequest > 3000) {
+    broadcast({ type: 'request_clue_sync' });
+    _lastClueSyncRequest = now;
+  }
 
   // Populate broadcast select if empty
   if (broadcastSel && broadcastSel.options.length <= 1) {
