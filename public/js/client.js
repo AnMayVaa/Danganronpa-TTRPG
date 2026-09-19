@@ -9132,8 +9132,7 @@ function renderMobileTask(stage) {
           <div class="p-closing-slot solved" onclick="openMangaPanelInspector(${curPage}, ${s.num})" style="background:#0d2616; border:2px solid #00ff88; border-radius:8px; padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px; cursor:pointer;" title="แตะเพื่ออ่านเนื้อหามังงะช่องนี้">
             ${slotThumb}
             <div style="flex:1;">
-              <span style="color:#00ff88; font-weight:900; font-size:0.85rem;">✅ ช่องที่ ${s.pageSlot} (เติมถูกต้องแล้ว):</span>
-              <div style="color:#fff; font-size:0.8rem; margin-top:2px; line-height:1.3;">${s.desc}</div>
+              <span style="color:#00ff88; font-weight:900; font-size:0.85rem;">✅ ช่องที่ ${s.pageSlot} (เติมถูกต้องแล้ว)</span>
             </div>
             <span style="font-size:0.75rem; color:#86efac; font-weight:800; background:rgba(0,255,136,0.15); padding:3px 6px; border-radius:4px; margin-left:4px; white-space:nowrap;">🔍 ดูมังงะ</span>
           </div>
@@ -9150,7 +9149,7 @@ function renderMobileTask(stage) {
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div>
                 <span style="color:${slotActionColor}; font-weight:900; font-size:0.9rem;">📥 ช่องที่ ${s.pageSlot}:</span>
-                <div style="color:#e2e8f0; font-size:0.82rem; margin-top:3px; line-height:1.3;">${s.title}</div>
+                <div style="color:#e2e8f0; font-size:0.82rem; margin-top:3px; line-height:1.3;">ช่องว่างรอการ์ดของคุณ...</div>
               </div>
               <span style="font-size:0.85rem; color:${slotActionColor}; font-weight:900; white-space:nowrap; margin-left:8px; padding:4px 8px; background:rgba(0,0,0,0.3); border-radius:4px;">${slotActionTxt}</span>
             </div>
@@ -9161,8 +9160,7 @@ function renderMobileTask(stage) {
           <div style="background:#141426; border:2px dashed #334155; border-radius:8px; padding:12px; margin-bottom:8px; opacity:0.85;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div>
-                <span style="color:#94a3b8; font-weight:900; font-size:0.9rem;">🔒 ช่องที่ ${s.pageSlot} (ดูตัวอย่าง):</span>
-                <div style="color:#cbd5e1; font-size:0.82rem; margin-top:3px; line-height:1.3;">${s.title}</div>
+                <span style="color:#94a3b8; font-weight:900; font-size:0.9rem;">🔒 ช่องที่ ${s.pageSlot} (ดูตัวอย่าง)</span>
               </div>
               <button type="button" onclick="showToast('👀 คุณกำลังดูตัวอย่างหน้าที่ ${curPage} — ต้องวางตามหน้าที่จอหลักเปิดอยู่ (หน้า ${courtPage}) เท่านั้น'); playSfx('wrong');" style="font-size:0.75rem; color:#f87171; font-weight:800; padding:4px 8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); border-radius:4px; cursor:pointer;">
                 👀 ดูเฉยๆ (ห้ามวาง)

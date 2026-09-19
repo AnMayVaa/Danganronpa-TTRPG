@@ -4120,16 +4120,36 @@ body.dangan-body {
 
   .modal-dialog {
     position: static !important;
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
     max-height: none !important;
+    min-height: 0 !important;
     overflow: visible !important;
+    overflow-y: visible !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;
+    flex: none !important;
+  }
+
+  #adminPrintCluesModal .modal-dialog {
+    display: block !important;
+    overflow: visible !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  #printableCluesSheet {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    flex: none !important;
   }
 
   .modal-title-bar,
