@@ -793,6 +793,9 @@
         <a href="/character_sheet.html" target="_blank" class="small-btn yellow admin-top-sheet-btn">
           📜 พิมพ์ Sheet A4
         </a>
+        <a href="/print_podium.html" target="_blank" class="small-btn gold admin-top-sheet-btn" style="box-shadow: 0 0 10px rgba(255,215,0,0.4);">
+          🏛️ พิมพ์โพเดียม 45°
+        </a>
         <button class="small-btn red admin-logout-btn" onclick="adminLogout()">
           <span class="btn-txt-full">🔒 ล็อก / ออกจากระบบ</span>
           <span class="btn-txt-short">🔒 ออก</span>
@@ -2908,6 +2911,7 @@
   <div id="monokumaExecutionModal" class="execution-cutscene-overlay hidden">
     <div class="execution-siren-light" id="executionSirenLight"></div>
     <div class="execution-content-box" id="executionContentBox">
+      <button class="modal-close-btn" onclick="closeExecutionModal()" aria-label="ปิดหน้าต่างคำตัดสิน" style="position:absolute; top:12px; right:16px; background:rgba(0,0,0,0.5); border:1px solid #444; border-radius:50%; width:32px; height:32px; color:#cbd5e1; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:10; transition:all 0.2s ease;">✕</button>
       <div class="execution-top-banner">
         <span class="slanted-banner pink" id="executionTopBanner" style="font-size:1.1rem; padding:6px 20px;">DANGANRONPA EXECUTION</span>
       </div>
