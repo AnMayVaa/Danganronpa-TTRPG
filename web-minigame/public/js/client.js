@@ -1553,7 +1553,7 @@ function setupServerStream(code) {
   // Always bind in-browser BroadcastChannel for zero-latency local/inter-frame sync
   setupLocalChannel(code);
 
-  if (serverStreamSource && activeServerRoomCode === code) return;
+  if (serverStreamSource && activeServerRoomCode === code && serverStreamSource.readyState !== 2) return;
 
   if (serverStreamSource) {
     try { serverStreamSource.close(); } catch(e) {}
@@ -1602,9 +1602,32 @@ function setupServerStream(code) {
 
     serverStreamSource.onerror = (err) => {
       console.warn('[SSE] Stream notice/reconnecting:', err);
+      if (serverStreamSource && serverStreamSource.readyState === 2) {
+        try { serverStreamSource.close(); } catch(e) {}
+        serverStreamSource = null;
+        setTimeout(() => {
+          if (activeServerRoomCode === code) {
+            setupServerStream(code);
+          }
+        }, 1500);
+      }
     };
   } catch (err) {
     console.error('[SSE] Failed to initialize EventSource:', err);
+  }
+
+  // Periodic watchdog to ensure SSE connection stays alive
+  if (typeof window !== 'undefined' && !window._sseWatchdogStarted) {
+    window._sseWatchdogStarted = true;
+    setInterval(() => {
+      const targetRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
+      if (targetRoom) {
+        if (!serverStreamSource || serverStreamSource.readyState === 2) {
+          console.log('[SSE Watchdog] Stream closed or missing. Reconnecting to room:', targetRoom);
+          setupServerStream(targetRoom);
+        }
+      }
+    }, 4000);
   }
 }
 
@@ -1911,7 +1934,7 @@ function handleIncomingMessage(msg, senderConn) {
   } else if (msg.type === 'admin_reset_session' || msg.type === 'reset_session') {
     handleResetSession();
   } else if (msg.type === 'kick_player') {
-    handleKickPlayer(msg.playerId);
+    handleKickPlayer(msg);
   } else if (msg.type === 'clue_discovered') {
     handleClueDiscovered(msg.clueId, msg.clueName, msg.playerName, msg.userHash);
   } else if (msg.type === 'admin_grant_clue') {
@@ -2949,11 +2972,11 @@ const ALL_CLUES_DATA = [
 ];
 
 const PC_INVESTIGATION_CLUES = {
-  1: ['EVD-07', 'EVD-20'],
-  2: ['EVD-07', 'EVD-03'],
-  3: ['EVD-07', 'EVD-27'],
-  4: ['EVD-07', 'EVD-30'],
-  5: ['EVD-07', 'EVD-16']
+  1: ['EVD-07', 'EVD-20', 'EVD-06', 'EVD-12', 'EVD-24', 'EVD-04'],
+  2: ['EVD-07', 'EVD-03', 'EVD-19', 'EVD-15', 'EVD-01', 'EVD-17'],
+  3: ['EVD-07', 'EVD-27', 'EVD-05', 'EVD-10', 'EVD-18', 'EVD-13'],
+  4: ['EVD-07', 'EVD-30', 'EVD-02', 'EVD-28', 'EVD-29', 'EVD-31'],
+  5: ['EVD-07', 'EVD-16', 'EVD-09', 'EVD-14', 'EVD-21', 'EVD-23', 'EVD-25', 'EVD-26']
 };
 
 function getPlayerNameByPcSlot(slotNum) {
@@ -3177,10 +3200,10 @@ function getUnlockedClues() {
   // If player is identified by hash or character name
   if (currentUserHash || (myPlayer && myPlayer.name)) {
     const userKeys = [
-      currentUserHash ? ('dangan_unlocked_' + prefix + currentUserHash) : null,
-      currentUserHash ? ('dangan_unlocked_' + currentUserHash) : null,
-      (myPlayer && myPlayer.name) ? ('dangan_unlocked_name_' + prefix + myPlayer.name.trim().toLowerCase()) : null,
-      (myPlayer && myPlayer.name) ? ('dangan_unlocked_name_' + myPlayer.name.trim().toLowerCase()) : null
+      (prefix && currentUserHash) ? ('dangan_unlocked_' + prefix + currentUserHash) : null,
+      (!prefix && currentUserHash) ? ('dangan_unlocked_' + currentUserHash) : null,
+      (prefix && myPlayer && myPlayer.name) ? ('dangan_unlocked_name_' + prefix + myPlayer.name.trim().toLowerCase()) : null,
+      (!prefix && myPlayer && myPlayer.name) ? ('dangan_unlocked_name_' + myPlayer.name.trim().toLowerCase()) : null
     ].filter(Boolean);
 
     for (const k of userKeys) {
@@ -3980,18 +4003,51 @@ function handleResetSession() {
   }
 }
 
-function handleKickPlayer(kickedId) {
-  if (myPlayer && myPlayer.id === kickedId) {
-    if (hostPeer) hostPeer.close();
-    sessionStorage.removeItem('dangan_user_hash');
+function handleKickPlayer(msgOrId) {
+  const kickMsg = (typeof msgOrId === 'object' && msgOrId !== null) ? msgOrId : { playerId: msgOrId, targetKey: msgOrId };
+  const kickId = kickMsg.playerId;
+  const kickHash = kickMsg.userHash;
+  const kickKey = kickMsg.targetKey;
+  const kickName = kickMsg.playerName;
+
+  const isMe = (myPlayer && (
+    (kickId && myPlayer.id === kickId) ||
+    (kickHash && myPlayer.userHash === kickHash) ||
+    (kickKey && (myPlayer.id === kickKey || myPlayer.userHash === kickKey)) ||
+    (kickName && myPlayer.name === kickName)
+  )) || (currentUserHash && (currentUserHash === kickHash || currentUserHash === kickKey || currentUserHash === kickId));
+
+  if (isMe) {
+    if (hostPeer) { try { hostPeer.close(); } catch(e){} }
+    if (serverStreamSource) { try { serverStreamSource.close(); } catch(e){} }
+    if (localRoomChannel) { try { localRoomChannel.close(); } catch(e){} }
+    try {
+      sessionStorage.removeItem('dangan_user_hash');
+      sessionStorage.removeItem('dangan_court_room_code');
+      localStorage.removeItem('dangan_current_room');
+      localStorage.removeItem('dangan_my_player');
+    } catch(e) {}
     alert('⚠️ คุณถูกนำออกจากห้องโดยผู้ดูแลศาล (DM)');
-    navigate('/');
+    if (typeof navigate === 'function') {
+      navigate('/');
+    } else {
+      window.location.href = '/';
+    }
     return;
   }
 
-  if (gameState.players[kickedId]) {
-    delete gameState.players[kickedId];
+  // Remove matching player from gameState.players
+  if (gameState && gameState.players) {
+    Object.keys(gameState.players).forEach(k => {
+      const p = gameState.players[k];
+      if (k === kickKey || k === kickId || k === kickHash ||
+          (p && (p.id === kickId || p.userHash === kickHash || (kickName && p.name === kickName)))) {
+        delete gameState.players[k];
+      }
+    });
     updatePlayerDisplays();
+    if (typeof updateAdminDisplay === 'function') updateAdminDisplay();
+    if (typeof renderAdminEvidenceTracker === 'function') renderAdminEvidenceTracker();
   }
 }
 
@@ -9955,7 +10011,7 @@ function updateAdminDisplay() {
       </div>
       <div class="admin-p-actions">
         <span class="admin-p-vote-status">${p.votedFor ? `โหวต: ${escapeHtml(p.votedFor)}` : 'ยังไม่โหวต'}</span>
-        <button class="small-btn red admin-p-kick-btn" onclick="adminKickPlayer('${p.id}')">❌ เตะ</button>
+        <button class="small-btn red admin-p-kick-btn" onclick="adminKickPlayer('${escapeHtml(p.userHash || p.id)}', '${escapeHtml(p.name)}')">❌ เตะ</button>
       </div>
     `;
     table.appendChild(row);
@@ -10113,12 +10169,16 @@ function renderAdminEvidenceTracker() {
         <div>
           <strong style="color:#f8fafc; font-size:0.95rem;">${escapeHtml(p.name)}</strong>
           ${p.isKiller ? '<span style="font-size:0.7rem; background:#dc2626; color:#fff; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">SABOTEUR</span>' : ''}
+          ${p.pcSlot ? `<span style="font-size:0.7rem; background:#0284c7; color:#fff; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">PC ${p.pcSlot}</span>` : ''}
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
+        <div style="display:flex; align-items:center; gap:6px;">
           <span style="font-size:0.85rem; font-weight:bold; color:${percent >= 70 ? '#10b981' : percent >= 40 ? '#38bdf8' : '#eab308'};">
             ${pCount} / ${totalClues} ชิ้น (${percent}%)
           </span>
-          <button class="small-btn ${isExpanded ? 'grey' : 'cyan'}" onclick="adminTogglePlayerCluesExpand('${pKey}')" style="padding:4px 10px; font-size:0.75rem; font-weight:800;">
+          <button type="button" class="small-btn yellow" onclick="adminGrantRoleCluesToPlayer('${pKey}')" style="padding:4px 8px; font-size:0.72rem; font-weight:800;" title="มอบชุดหลักฐานเฉพาะบทบาทของ PC นี้">
+            🎯 มอบชุดบทบาท
+          </button>
+          <button type="button" class="small-btn ${isExpanded ? 'grey' : 'cyan'}" onclick="adminTogglePlayerCluesExpand('${pKey}')" style="padding:4px 10px; font-size:0.75rem; font-weight:800;">
             ${isExpanded ? '▲ ซ่อน' : '▼ ดู/มอบหลักฐาน'}
           </button>
         </div>
@@ -10177,6 +10237,8 @@ function adminBroadcastClue(clueId) {
   const clue = ALL_CLUES_DATA.find(c => c.id === clueId);
   if (!clue) return;
 
+  if (!confirm(`ยืนยันการมอบหลักฐาน [${clue.id}: ${clue.name}] ให้กับผู้เล่น "ทุกคน" ในห้อง?\n(หมายเหตุ: การแจกให้ทุกคนจะทำให้ผู้เล่นทุกคนมีหลักฐานนี้เหมือนกัน)`)) return;
+
   // Add to all players in host memory
   Object.values(gameState.players).forEach(p => {
     if (!p.clues) p.clues = [];
@@ -10193,6 +10255,138 @@ function adminBroadcastClue(clueId) {
     clueName: clue.name,
     playerName: 'ผู้ดูแลศาล (DM)'
   });
+}
+
+function adminDistributeRoleClues() {
+  const players = Object.values(gameState.players);
+  if (players.length === 0) {
+    alert('ยังไม่มีผู้เล่นเชื่อมต่อในระบบ');
+    return;
+  }
+  if (!confirm(`ยืนยันการมอบหลักฐานตามบทบาทของ PC แต่ละคน (ไม่ซ้ำกัน)?\nผู้เล่นแต่ละคนจะได้รับหลักฐานเฉพาะตัวตามบทบาทและที่ตั้งสืบสวน โดยไม่ได้รับข้อมูลซ้ำซ้อนกัน`)) return;
+
+  let totalGranted = 0;
+  players.forEach(p => {
+    let slot = parseInt(p.pcSlot, 10);
+    if (!slot || isNaN(slot)) {
+      if (p.role) {
+        if (/PC\s*1|นาเอกิ/i.test(p.role)) slot = 1;
+        else if (/PC\s*2|เคียวโกะ/i.test(p.role)) slot = 2;
+        else if (/PC\s*3|เบียคุยะ/i.test(p.role)) slot = 3;
+        else if (/PC\s*4|อาโออิ/i.test(p.role)) slot = 4;
+        else if (/PC\s*5|ฮิฟุมิ/i.test(p.role)) slot = 5;
+      }
+    }
+    if (!slot || !PC_INVESTIGATION_CLUES[slot]) return;
+
+    const roleClues = PC_INVESTIGATION_CLUES[slot];
+    const pKey = p.userHash || p.id || p.name;
+    if (!p.clues) p.clues = [];
+
+    roleClues.forEach(cid => {
+      if (!p.clues.includes(cid)) {
+        p.clues.push(cid);
+        totalGranted++;
+        const cObj = ALL_CLUES_DATA.find(c => c.id === cid);
+        broadcast({
+          type: 'admin_grant_clue',
+          targetKey: pKey,
+          clueId: cid,
+          clueName: cObj ? cObj.name : cid
+        });
+      }
+    });
+  });
+
+  renderAdminEvidenceTracker();
+  playSfx('correct');
+  logCourt(`🎯 [DM มอบหลักฐานตามบทบาท]: แจกหลักฐานเฉพาะตัวให้ PC 1-5 สำเร็จ รวม ${totalGranted} รายการ (ไม่ซ้ำ)`);
+  showToast(`🎯 มอบหลักฐานตามบทบาทสำเร็จ (${totalGranted} รายการ)`);
+}
+
+function adminDistributeMissingCoreFairly() {
+  const players = Object.values(gameState.players);
+  if (players.length === 0) {
+    alert('ยังไม่มีผู้เล่นเชื่อมต่อในระบบ');
+    return;
+  }
+  const coreClues = ALL_CLUES_DATA.filter(c => c.importance === 'MUST' || c.secretType === 'CORE');
+  const courtHeldMap = {};
+  players.forEach(p => {
+    (p.clues || []).forEach(cid => {
+      courtHeldMap[cid] = true;
+    });
+  });
+  const missing = coreClues.filter(c => !courtHeldMap[c.id]);
+  if (missing.length === 0) {
+    alert('🎉 ศาลครอบครองหลักฐานสำคัญระดับ Core ครบทุกชิ้นแล้ว!');
+    return;
+  }
+
+  if (!confirm(`พบหลักฐาน Core ที่ยังไม่มีใครพบ ${missing.length} ชิ้น\nต้องการเฉลี่ยแจกให้ผู้เล่นแต่ละคนแบบไม่ซ้ำกันใช่หรือไม่?`)) return;
+
+  let playerIndex = 0;
+  let grantedCount = 0;
+  missing.forEach(clue => {
+    // Pick next player
+    const p = players[playerIndex % players.length];
+    playerIndex++;
+    const pKey = p.userHash || p.id || p.name;
+    if (!p.clues) p.clues = [];
+    if (!p.clues.includes(clue.id)) {
+      p.clues.push(clue.id);
+      grantedCount++;
+      broadcast({
+        type: 'admin_grant_clue',
+        targetKey: pKey,
+        clueId: clue.id,
+        clueName: clue.name
+      });
+    }
+  });
+
+  renderAdminEvidenceTracker();
+  playSfx('correct');
+  logCourt(`✨ [DM เฉลี่ยหลักฐาน Core]: แจกจ่าย Core ที่ขาด ${grantedCount} ชิ้น ให้ผู้เล่นในศาลแบบไม่ซ้ำกัน`);
+  showToast(`✨ เฉลี่ยหลักฐาน Core ให้ผู้เล่นครบถ้วนแล้ว (${grantedCount} ชิ้น)`);
+}
+
+function adminGrantRoleCluesToPlayer(pKey) {
+  const p = Object.values(gameState.players).find(x => (x.userHash && x.userHash === pKey) || (x.id && x.id === pKey) || x.name === pKey);
+  if (!p) return;
+  let slot = parseInt(p.pcSlot, 10);
+  if (!slot || isNaN(slot)) {
+    if (p.role) {
+      if (/PC\s*1|นาเอกิ/i.test(p.role)) slot = 1;
+      else if (/PC\s*2|เคียวโกะ/i.test(p.role)) slot = 2;
+      else if (/PC\s*3|เบียคุยะ/i.test(p.role)) slot = 3;
+      else if (/PC\s*4|อาโออิ/i.test(p.role)) slot = 4;
+      else if (/PC\s*5|ฮิฟุมิ/i.test(p.role)) slot = 5;
+    }
+  }
+  if (!slot || !PC_INVESTIGATION_CLUES[slot]) {
+    alert(`ผู้เล่น "${p.name}" ยังไม่ได้เลือกบทบาท PC 1-5`);
+    return;
+  }
+  const roleClues = PC_INVESTIGATION_CLUES[slot];
+  if (!p.clues) p.clues = [];
+  let added = 0;
+  roleClues.forEach(cid => {
+    if (!p.clues.includes(cid)) {
+      p.clues.push(cid);
+      added++;
+      const cObj = ALL_CLUES_DATA.find(c => c.id === cid);
+      broadcast({
+        type: 'admin_grant_clue',
+        targetKey: pKey,
+        clueId: cid,
+        clueName: cObj ? cObj.name : cid
+      });
+    }
+  });
+  renderAdminEvidenceTracker();
+  playSfx('correct');
+  showToast(`🎯 มอบชุดหลักฐานบทบาท PC ${slot} ให้ ${p.name} เรียบร้อย (${added} รายการใหม่)`);
 }
 
 function updatePlayerDisplays() {
@@ -10282,20 +10476,50 @@ function adminChangeRoomCode() {
 // ==========================================================
 // SESSION MANAGEMENT (RESET & KICK)
 // ==========================================================
-function adminKickPlayer(peerId) {
-  if (!peerId) return;
-  const target = gameState.players[peerId];
-  const name = target ? target.name : peerId;
+function adminKickPlayer(peerId, explicitName) {
+  if (!peerId && !explicitName) return;
+  let targetKey = null;
+  let target = null;
+  if (peerId && gameState.players[peerId]) {
+    targetKey = peerId;
+    target = gameState.players[peerId];
+  } else {
+    for (const [k, p] of Object.entries(gameState.players)) {
+      if (k === peerId || (p && (p.id === peerId || p.userHash === peerId || (explicitName && p.name === explicitName)))) {
+        targetKey = k;
+        target = p;
+        break;
+      }
+    }
+  }
+  const name = explicitName || (target ? target.name : peerId);
   const role = target ? target.role : null;
+  const userHash = target ? target.userHash : (String(peerId).startsWith('user_') ? peerId : null);
+  const playerId = target ? target.id : peerId;
+
   if (!confirm(`คุณต้องการเตะผู้เล่น "${name}" ออกจากห้องใช่หรือไม่?`)) return;
 
-  delete gameState.players[peerId];
+  if (targetKey) {
+    delete gameState.players[targetKey];
+  }
   updatePlayerDisplays();
-  broadcast({ type: 'kick_player', playerId: peerId });
+  if (typeof updateAdminDisplay === 'function') updateAdminDisplay();
+  if (typeof renderAdminEvidenceTracker === 'function') renderAdminEvidenceTracker();
+
+  broadcast({
+    type: 'kick_player',
+    targetKey: targetKey || peerId,
+    playerId: playerId,
+    userHash: userHash,
+    playerName: name,
+    role: role
+  });
+
   if (role) {
     broadcast({ type: 'character_freed', role: role });
   }
   logCourt(`🚫 [KICK]: ผู้ดูแลระบบได้เตะ "${name}" ออกจากห้องแล้ว`);
+  showToast(`🚫 เตะ "${name}" ออกจากห้องเรียบร้อย`);
 }
 
 function adminResetSession() {

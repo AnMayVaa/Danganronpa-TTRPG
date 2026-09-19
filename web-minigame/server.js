@@ -140,12 +140,22 @@ function requestHandler(req, res) {
       });
     }
 
+    // Keep-alive heartbeat every 15s to prevent proxies/browsers dropping idle connection
+    const keepAlive = setInterval(() => {
+      try {
+        res.write(': keepalive\n\n');
+      } catch (e) {
+        clearInterval(keepAlive);
+      }
+    }, 15000);
+
     // Keep active room timestamp fresh
     if (activeRooms.has(code)) {
       activeRooms.get(code).lastHeartbeat = Date.now();
     }
 
     req.on('close', () => {
+      clearInterval(keepAlive);
       subs.delete(res);
       if (subs.size === 0) {
         roomSubscribers.delete(code);
@@ -176,7 +186,7 @@ function requestHandler(req, res) {
       msg._room = code;
 
       // Buffer recent messages (exclude transient real-time events that shouldn't replay on reconnect)
-      const transientTypes = ['closing_bonus_time', 'trigger_fx', 'play_sfx', 'sabotage'];
+      const transientTypes = ['closing_bonus_time', 'trigger_fx', 'play_sfx', 'sabotage', 'timer_tick', 'ping', 'sync_player_clues'];
       if (!transientTypes.includes(msg.type)) {
         if (!roomMessageBuffers.has(code)) {
           roomMessageBuffers.set(code, []);
@@ -184,6 +194,23 @@ function requestHandler(req, res) {
         const buf = roomMessageBuffers.get(code);
         buf.push(msg);
         if (buf.length > 50) buf.shift();
+      }
+
+      // Handle player removal in room state on kick_player
+      if (msg.type === 'kick_player' && activeRooms.has(code)) {
+        const r = activeRooms.get(code);
+        if (r && r.state && r.state.players) {
+          const kickId = msg.playerId || msg.targetKey;
+          const kickHash = msg.userHash || msg.targetKey;
+          const kickName = msg.playerName;
+          Object.keys(r.state.players).forEach(k => {
+            const pl = r.state.players[k];
+            if (k === kickId || k === kickHash || (pl && (pl.id === kickId || pl.userHash === kickHash || (kickName && pl.name === kickName)))) {
+              delete r.state.players[k];
+            }
+          });
+          r.playersCount = Object.keys(r.state.players).length;
+        }
       }
 
       // Update room heartbeat & stage
