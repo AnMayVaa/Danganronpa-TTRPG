@@ -3157,11 +3157,11 @@ const ALL_CLUES_DATA = [
 ];
 
 const PC_INVESTIGATION_CLUES = {
-  1: ['EVD-07', 'EVD-20', 'EVD-06', 'EVD-12', 'EVD-24', 'EVD-04'],
-  2: ['EVD-07', 'EVD-03', 'EVD-19', 'EVD-15', 'EVD-01', 'EVD-17'],
-  3: ['EVD-07', 'EVD-27', 'EVD-05', 'EVD-10', 'EVD-18', 'EVD-13'],
-  4: ['EVD-07', 'EVD-30', 'EVD-02', 'EVD-28', 'EVD-29', 'EVD-31'],
-  5: ['EVD-07', 'EVD-16', 'EVD-09', 'EVD-14', 'EVD-21', 'EVD-23', 'EVD-25', 'EVD-26']
+  1: ['EVD-07', 'EVD-20'],
+  2: ['EVD-07', 'EVD-03'],
+  3: ['EVD-07', 'EVD-27'],
+  4: ['EVD-07', 'EVD-30'],
+  5: ['EVD-07', 'EVD-16']
 };
 
 function resolvePlayerSlot(p, defaultIndex = 1) {

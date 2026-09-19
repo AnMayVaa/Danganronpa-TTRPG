@@ -4142,32 +4142,41 @@ body.dangan-body {
   }
 
   .print-clues-sheet {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 4mm !important;
+    display: block !important;
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
     page-break-inside: auto !important;
+    break-inside: auto !important;
   }
 
   .print-clue-card,
   .printable-clue-card {
+    display: inline-block !important;
+    vertical-align: top !important;
+    width: 48.5% !important;
+    margin-right: 2% !important;
+    margin-bottom: 4mm !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+    -webkit-column-break-inside: avoid !important;
     background: #fff !important;
     color: #000 !important;
     border: 1.5pt solid #111 !important;
     border-radius: 4px !important;
-    padding: 3mm 3.5mm !important;
+    padding: 2.5mm 3mm !important;
     box-shadow: none !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    min-height: 50mm !important;
+    min-height: 48mm !important;
     box-sizing: border-box !important;
-    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-left: 0 !important;
     transform: none !important;
+  }
+
+  .printable-clue-card:nth-child(2n) {
+    margin-right: 0 !important;
   }
 
   .print-clue-card *,
