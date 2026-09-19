@@ -12618,6 +12618,13 @@ function renderPrintableClues() {
     return true;
   });
 
+  // Sort numerically by ID (EVD-01 to EVD-31) so cards print in clean sequential order
+  filtered.sort((a, b) => {
+    const numA = parseInt((a.id || '').replace(/\D/g, ''), 10) || 0;
+    const numB = parseInt((b.id || '').replace(/\D/g, ''), 10) || 0;
+    return numA - numB;
+  });
+
   filtered.forEach(c => {
     const cluePin = c.pin || '000000';
     const origin = (window.location.origin && !window.location.origin.includes('localhost')) ? window.location.origin : 'https://danganronpa-ttrpg.vercel.app';
@@ -13879,6 +13886,14 @@ function printCleanBlueprint() {
   const btns = printSection.querySelectorAll('button, .blueprint-action-btn');
   btns.forEach(b => b.remove());
 
+  let styleEl = document.getElementById('blueprintPrintPageStyle');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'blueprintPrintPageStyle';
+    styleEl.innerHTML = '@page { size: A4 landscape; margin: 3mm; }';
+    document.head.appendChild(styleEl);
+  }
+
   document.body.classList.add('printing-blueprint');
   
   setTimeout(() => {
@@ -13890,6 +13905,8 @@ window.addEventListener('afterprint', () => {
   document.body.classList.remove('printing-blueprint');
   const printSection = document.getElementById('blueprintPrintSection');
   if (printSection) printSection.innerHTML = '';
+  const styleEl = document.getElementById('blueprintPrintPageStyle');
+  if (styleEl) styleEl.remove();
 });
 
 function selectMapRoom(roomId) {

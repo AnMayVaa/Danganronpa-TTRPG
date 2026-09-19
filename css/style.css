@@ -4178,21 +4178,23 @@ body.dangan-body {
     vertical-align: top !important;
     width: 48.5% !important;
     margin-right: 2% !important;
-    margin-bottom: 4mm !important;
+    margin-bottom: 2.5mm !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
     -webkit-column-break-inside: avoid !important;
     background: #fff !important;
     color: #000 !important;
-    border: 1.5pt solid #111 !important;
+    border: 1.2pt solid #111 !important;
     border-radius: 4px !important;
-    padding: 2.5mm 3mm !important;
+    padding: 1.8mm 2.2mm !important;
     box-shadow: none !important;
-    min-height: 48mm !important;
+    min-height: 56mm !important;
+    max-height: 66mm !important;
     box-sizing: border-box !important;
     margin-top: 0 !important;
     margin-left: 0 !important;
     transform: none !important;
+    overflow: hidden !important;
   }
 
   .printable-clue-card:nth-child(2n) {
@@ -4211,17 +4213,17 @@ body.dangan-body {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    margin-bottom: 1.5mm !important;
+    margin-bottom: 0.8mm !important;
   }
 
   .p-card-top-left {
     display: flex !important;
     align-items: center !important;
-    gap: 2mm !important;
+    gap: 1.5mm !important;
   }
 
   .p-card-id {
-    font-size: 9.5pt !important;
+    font-size: 8.8pt !important;
     font-weight: 900 !important;
     color: #000 !important;
     font-family: monospace !important;
@@ -4229,29 +4231,29 @@ body.dangan-body {
 
   .p-card-category {
     display: inline-block !important;
-    font-size: 7.5pt !important;
+    font-size: 6.8pt !important;
     font-weight: 800 !important;
     color: #000 !important;
     border: 1pt solid #222 !important;
     border-radius: 2px !important;
-    padding: 0.5pt 3pt !important;
+    padding: 0.5pt 2.5pt !important;
   }
 
   .p-card-title {
-    font-size: 9.5pt !important;
+    font-size: 8.5pt !important;
     font-weight: 900 !important;
     color: #000 !important;
-    margin: 1mm 0 !important;
-    line-height: 1.3 !important;
+    margin: 0.5mm 0 !important;
+    line-height: 1.25 !important;
     word-break: break-word !important;
     overflow-wrap: break-word !important;
   }
 
   .p-card-loc {
-    font-size: 7.8pt !important;
+    font-size: 7pt !important;
     color: #222 !important;
-    margin-bottom: 1.5mm !important;
-    line-height: 1.25 !important;
+    margin-bottom: 0.8mm !important;
+    line-height: 1.2 !important;
   }
 
   .p-loc-lbl {
@@ -4263,17 +4265,17 @@ body.dangan-body {
     display: flex !important;
     flex-direction: row !important;
     align-items: stretch !important;
-    gap: 3mm !important;
+    gap: 2mm !important;
     background: transparent !important;
     border: 0.5pt solid #ddd !important;
     border-radius: 3px !important;
-    padding: 1.5mm 2mm !important;
-    margin: 1mm 0 !important;
+    padding: 1mm 1.5mm !important;
+    margin: 0.5mm 0 !important;
   }
 
   .p-card-qr-col {
-    flex: 0 0 30mm !important;
-    width: 30mm !important;
+    flex: 0 0 24mm !important;
+    width: 24mm !important;
     text-align: center !important;
     display: flex !important;
     flex-direction: column !important;
@@ -4288,22 +4290,22 @@ body.dangan-body {
   }
 
   .p-card-qr-img {
-    width: 28mm !important;
-    height: 28mm !important;
-    border: 1.2pt solid #000 !important;
+    width: 22mm !important;
+    height: 22mm !important;
+    border: 1pt solid #000 !important;
     padding: 1px !important;
     display: block !important;
     margin: 0 auto !important;
   }
 
   .p-card-code-pill {
-    font-size: 7.5pt !important;
+    font-size: 6.8pt !important;
     font-weight: 900 !important;
     color: #000 !important;
     border: 0.8pt solid #333 !important;
     border-radius: 2px !important;
-    padding: 0.5pt 2pt !important;
-    margin-top: 1mm !important;
+    padding: 0.5pt 1.5pt !important;
+    margin-top: 0.8mm !important;
     background: #f0f0f0 !important;
     display: block !important;
     width: 100% !important;
@@ -4318,8 +4320,8 @@ body.dangan-body {
   }
 
   .p-card-desc {
-    font-size: 8pt !important;
-    line-height: 1.35 !important;
+    font-size: 7.2pt !important;
+    line-height: 1.25 !important;
     color: #000 !important;
     text-align: left !important;
     word-break: break-word !important;
@@ -4330,11 +4332,11 @@ body.dangan-body {
   .p-card-footer {
     display: flex !important;
     justify-content: space-between !important;
-    font-size: 6pt !important;
+    font-size: 5.5pt !important;
     color: #444 !important;
     border-top: 0.5pt solid #aaa !important;
-    margin-top: 1.5mm !important;
-    padding-top: 0.8mm !important;
+    margin-top: 0.8mm !important;
+    padding-top: 0.4mm !important;
     font-family: monospace !important;
   }
 }
@@ -7203,13 +7205,9 @@ body.view-simulation .execution-cutscene-overlay {
   display: none;
 }
 
-@page {
-  size: A4 landscape;
-  margin: 3mm;
-}
-
 @media print {
-  html, body {
+  html:has(body.printing-blueprint),
+  body.printing-blueprint {
     width: 100% !important;
     height: 100% !important;
     max-height: 100% !important;
