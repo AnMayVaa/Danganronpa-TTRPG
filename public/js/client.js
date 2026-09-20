@@ -1381,18 +1381,11 @@ function initRealtime() {
       }
     }
     if (!roomCode) {
-      fetch('/api/rooms').then(r => r.json()).then(data => {
-        if (data && data.rooms && data.rooms.length > 0) {
-          const latest = data.rooms[data.rooms.length - 1];
-          if (latest && latest.roomCode && !roomCode) {
-            roomCode = latest.roomCode.toUpperCase();
-            const dRoom = document.getElementById('displayRoomCode');
-            if (dRoom) dRoom.innerText = roomCode;
-            connectToHostPeer('dr-court-host-' + roomCode);
-          }
-        }
-      }).catch(() => {});
+      const disp = document.getElementById('displayRoomCode');
+      roomCode = (disp && disp.innerText && disp.innerText !== '------' ? disp.innerText.trim() : 'DESPAIR').toUpperCase();
     }
+    setupServerStream(roomCode);
+    connectToHostPeer(`dangan-court-${roomCode.toLowerCase()}`);
   } else if (currentView === 'player') {
     const savedPlayerRoom = localStorage.getItem('dangan_current_room');
     if (savedPlayerRoom) {
@@ -1644,18 +1637,18 @@ function connectToHostPeer(hostId, onConnected) {
 }
 
 // ==========================================================
-// REAL-TIME RELAY ENGINE (SSE + HTTP POLLING HYBRID)
-// Primary: Server-Sent Events (SSE) for same-origin/Node server
-// Fallback: HTTP Polling every 2.5s for Vercel/static deployments
+// UNIVERSAL REAL-TIME RELAY ENGINE (HIGH-SPEED CLOUD RELAY)
+// 100% Free, Zero-Config, Cross-Device (PC <-> Mobile 4G/5G/Wi-Fi)
+// Auto Reconnect & Offline Catch-Up on Mobile Screen Wakeup (?since=10m)
 // ==========================================================
-let _pollingInterval = null;
-let _pollingLastServerTime = 0;
-let _pollingActive = false;
-let _sseFailedAt = 0; // timestamp of last SSE failure
+let ntfyEventSource = null;
+let ntfyConnectedRoom = null;
 
-function _processServerMessage(msg) {
+function _processRelayMessage(msg) {
   if (!msg || !msg.type) return;
+  // Anti-Echo: Drop self-originated packets
   if (msg._sender === myClientId) return;
+  // Deduplication
   if (msg._id) {
     if (processedMessageIds.has(msg._id)) return;
     processedMessageIds.add(msg._id);
@@ -1667,144 +1660,123 @@ function _processServerMessage(msg) {
   handleIncomingMessage(msg, null);
 }
 
-function _startPolling(code) {
-  if (_pollingActive && _pollingInterval) return; // Already running
-  _pollingActive = true;
-  console.log('[POLL] Starting state polling for room:', code);
-
-  if (_pollingInterval) { clearInterval(_pollingInterval); _pollingInterval = null; }
-
-  let _lastPolledStage = (typeof gameState !== 'undefined' && gameState) ? gameState.stage : null;
-  let _lastPolledHash = '';
-
-  _pollingInterval = setInterval(async () => {
-    const targetRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
-    if (!targetRoom) return;
-    // Skip if we are the host (court) — no need to poll our own state
-    if (isHost) return;
-
-    try {
-      const stateUrl = '/api/rooms/' + encodeURIComponent(targetRoom) + '/state';
-      const resp = await fetch(stateUrl, { cache: 'no-store' });
-      if (!resp.ok) return;
-      const data = await resp.json();
-      if (!data || !data.success || !data.state) return;
-
-      const st = data.state;
-      // Simple hash to detect changes: stage + influence + timer
-      const newHash = (st.stage || '') + '|' + (st.influence || 0) + '|' + JSON.stringify(Object.keys(st.players || {}).sort());
-      if (newHash !== _lastPolledHash) {
-        _lastPolledHash = newHash;
-        console.log('[POLL] State changed, applying:', st.stage);
-        applyState(st);
-      }
-    } catch(e) {
-      // Silent — network blip, will retry
-    }
-  }, 3000);
-}
-
-function _stopPolling() {
-  if (_pollingInterval) { clearInterval(_pollingInterval); _pollingInterval = null; }
-  _pollingActive = false;
+function fetchCatchupMessages(code) {
+  if (!code) return;
+  const ntfyTopic = 'dangan_trpg_' + code.toLowerCase();
+  fetch('https://ntfy.sh/' + encodeURIComponent(ntfyTopic) + '/json?poll=1&since=10m', { cache: 'no-store' })
+    .then(r => r.ok ? r.text() : '')
+    .then(text => {
+      if (!text) return;
+      const lines = text.trim().split('\n');
+      lines.forEach(line => {
+        try {
+          const item = JSON.parse(line);
+          if (item && item.event === 'message' && item.message) {
+            const msg = JSON.parse(item.message);
+            _processRelayMessage(msg);
+          }
+        } catch(e) {}
+      });
+    })
+    .catch(() => {});
 }
 
 function setupServerStream(code) {
   if (!code) return;
   code = code.trim().toUpperCase();
 
-  // Always bind in-browser BroadcastChannel for zero-latency local/inter-frame sync
+  // 1. Always bind local BroadcastChannel for zero-latency in-browser/iframe sync
   setupLocalChannel(code);
 
-  if (serverStreamSource && activeServerRoomCode === code && serverStreamSource.readyState !== 2) return;
-
-  if (serverStreamSource) {
-    try { serverStreamSource.close(); } catch(e) {}
-    serverStreamSource = null;
-  }
-  activeServerRoomCode = code;
-
-  if (typeof EventSource === 'undefined') {
-    console.warn('[SSE] EventSource not available. Falling back to HTTP polling.');
-    _startPolling(code);
+  if (ntfyEventSource && ntfyConnectedRoom === code && ntfyEventSource.readyState !== 2) {
     return;
   }
 
-  // Start polling immediately as safety net — SSE success will not disable polling,
-  // since polling uses /state (cheap GET) while SSE handles real-time events
-  _startPolling(code);
+  if (ntfyEventSource) {
+    try { ntfyEventSource.close(); } catch(e) {}
+    ntfyEventSource = null;
+  }
+  ntfyConnectedRoom = code;
 
-  const sseUrl = '/api/rooms/' + encodeURIComponent(code) + '/stream';
-  console.log('[SSE] Connecting to real-time message stream:', sseUrl);
+  // 2. Immediate catch-up from the last 10 minutes (guarantees player catches up on stage if screen was locked)
+  fetchCatchupMessages(code);
 
-  let sseWorking = false;
-  const sseTimeout = setTimeout(() => {
-    // If SSE didn't fire onopen within 5 seconds, assume Vercel static — keep polling only
-    if (!sseWorking) {
-      console.warn('[SSE] No response after 5s — relying on HTTP polling.');
-      try { if (serverStreamSource) serverStreamSource.close(); } catch(e) {}
-      serverStreamSource = null;
-    }
-  }, 5000);
+  const ntfyTopic = 'dangan_trpg_' + code.toLowerCase();
+  const sseUrl = 'https://ntfy.sh/' + encodeURIComponent(ntfyTopic) + '/sse';
+  console.log('[REALTIME] Connecting to Cloud Relay:', sseUrl);
 
   try {
-    serverStreamSource = new EventSource(sseUrl);
+    ntfyEventSource = new EventSource(sseUrl);
 
-    serverStreamSource.onopen = () => {
-      sseWorking = true;
-      clearTimeout(sseTimeout);
-      _stopPolling(); // SSE working — stop polling
-      console.log('[SSE] Real-time stream active for room:', code);
+    ntfyEventSource.onopen = () => {
+      console.log('[REALTIME] Cloud Relay active for room:', code);
     };
 
-    serverStreamSource.onmessage = (event) => {
+    ntfyEventSource.onmessage = (event) => {
       if (!event.data) return;
-      if (event.data.startsWith(':')) return; // ignore SSE comments (keepalive pings)
       try {
-        const msg = JSON.parse(event.data);
-        _processServerMessage(msg);
+        const item = JSON.parse(event.data);
+        if (item.event === 'message' && item.message) {
+          const msg = JSON.parse(item.message);
+          _processRelayMessage(msg);
+        }
       } catch (err) {
-        console.error('[SSE] JSON parse error:', err, event.data);
+        console.warn('[REALTIME] Parse error:', err);
       }
     };
 
-    serverStreamSource.onerror = (err) => {
-      clearTimeout(sseTimeout);
-      console.warn('[SSE] Stream error/closed:', err);
-      if (serverStreamSource && serverStreamSource.readyState === 2) {
-        try { serverStreamSource.close(); } catch(e) {}
-        serverStreamSource = null;
-        _sseFailedAt = Date.now();
-        // If SSE has failed recently, switch to polling immediately
-        _startPolling(code);
-        // Also attempt SSE reconnect after 15s in case server recovers
+    ntfyEventSource.onerror = (err) => {
+      console.warn('[REALTIME] Cloud Relay stream notice/reconnecting:', err);
+      if (ntfyEventSource && ntfyEventSource.readyState === 2) {
+        try { ntfyEventSource.close(); } catch(e) {}
+        ntfyEventSource = null;
         setTimeout(() => {
-          if (activeServerRoomCode === code && !sseWorking) {
-            _stopPolling();
+          if (ntfyConnectedRoom === code) {
             setupServerStream(code);
           }
-        }, 15000);
+        }, 2000);
       }
     };
   } catch (err) {
-    clearTimeout(sseTimeout);
-    console.error('[SSE] Failed to initialize EventSource — switching to polling:', err);
-    _startPolling(code);
+    console.error('[REALTIME] Failed to initialize EventSource:', err);
   }
 
-  // Periodic watchdog to ensure connection stays alive
-  if (typeof window !== 'undefined' && !window._sseWatchdogStarted) {
-    window._sseWatchdogStarted = true;
+  // Periodic watchdog to keep Cloud Relay stream connected across mobile sleeps
+  if (typeof window !== 'undefined' && !window._ntfyWatchdogStarted) {
+    window._ntfyWatchdogStarted = true;
     setInterval(() => {
       const targetRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
       if (!targetRoom) return;
-      // If neither SSE nor polling is running, restart
-      if ((!serverStreamSource || serverStreamSource.readyState === 2) && !_pollingActive) {
-        console.log('[Watchdog] No active connection. Restarting for room:', targetRoom);
+      if (!ntfyEventSource || ntfyEventSource.readyState === 2) {
+        console.log('[REALTIME Watchdog] Stream closed. Reconnecting for room:', targetRoom);
         setupServerStream(targetRoom);
       }
-    }, 5000);
+    }, 4000);
   }
+}
+
+// Mobile Screen Wakeup & Network Reconnect Handler
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const activeCode = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
+      if (activeCode) {
+        console.log('[PAGE WAKEUP]: Screen active, syncing room:', activeCode);
+        setupServerStream(activeCode);
+        fetchCatchupMessages(activeCode);
+        if (currentView === 'player') {
+          broadcast({ type: 'request_sync_state' });
+        }
+      }
+    }
+  });
+  window.addEventListener('online', () => {
+    const activeCode = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
+    if (activeCode) {
+      setupServerStream(activeCode);
+      fetchCatchupMessages(activeCode);
+    }
+  });
 }
 
 function broadcast(msg) {
@@ -1826,9 +1798,9 @@ function broadcast(msg) {
     processedMessageIds.delete(oldest);
   }
 
-  const activeRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase();
+  const activeRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
 
-  // 2. LAYER 1: Native In-Browser BroadcastChannel (0ms speed, works on static hosts without server)
+  // 2. LAYER 1: Native In-Browser BroadcastChannel (0ms speed, works on static hosts / tabs)
   if (localRoomChannel) {
     try { localRoomChannel.postMessage(msg); } catch(e) {}
   } else {
@@ -1850,16 +1822,17 @@ function broadcast(msg) {
     } catch(e) {}
   }
 
-  // 3. LAYER 2: Server-Sent Events / HTTP Relay (for multi-device cross-network)
+  // 3. LAYER 2: High-Speed Universal Cloud Relay (ntfy.sh) - Realtime Cross-Device Sync
   if (activeRoom) {
+    const ntfyTopic = 'dangan_trpg_' + activeRoom.toLowerCase();
     try {
-      fetch('/api/rooms/' + encodeURIComponent(activeRoom) + '/broadcast', {
+      fetch('https://ntfy.sh/' + encodeURIComponent(ntfyTopic), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(msg),
         keepalive: true
       }).catch(err => {
-        // Silently handled by local channel if server returns 405 or static host
+        console.warn('[REALTIME POST notice]:', err);
       });
     } catch(e) {}
   }
@@ -1892,22 +1865,6 @@ function broadcast(msg) {
   if (socket && socket.connected) {
     try { socket.emit('client_broadcast', msg); } catch(e) {}
   }
-
-  // 7. State Persistence: save full gameState to server on key events
-  // Allows any Vercel instance (stateless) to serve current state to polling players
-  if ((msg.type === 'sync_state' || msg.type === 'set_stage') && activeRoom && typeof gameState !== 'undefined') {
-    try {
-      const stateToSave = msg.type === 'sync_state' ? (msg.state || gameState) : gameState;
-      if (stateToSave && stateToSave.stage) {
-        fetch('/api/rooms/' + encodeURIComponent(activeRoom) + '/state', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ state: stateToSave }),
-          keepalive: true
-        }).catch(() => {});
-      }
-    } catch(e) {}
-  }
 }
 
 function handleIncomingMessage(msg, senderConn) {
@@ -1916,7 +1873,7 @@ function handleIncomingMessage(msg, senderConn) {
   if (msg.type === 'sync_state') {
     applyState(msg.state);
   } else if (msg.type === 'request_claim_character') {
-    if (!isHost) return;
+    if (!isHost && currentView !== 'admin') return;
     let reqRole = msg.role;
     const reqName = msg.playerName;
     const senderId = senderConn ? senderConn.peer : (msg.userHash || currentUserHash || ('p_' + Math.random().toString(36).substr(2, 6)));
@@ -2001,7 +1958,7 @@ function handleIncomingMessage(msg, senderConn) {
       peerId: senderId
     });
 
-    if (isHost) {
+    if (isHost || currentView === 'admin') {
       broadcast({ type: 'sync_state', state: gameState });
     }
 
@@ -2157,7 +2114,7 @@ function handleIncomingMessage(msg, senderConn) {
       if (isHost) broadcast({ type: 'sync_state', state: gameState });
     }
   } else if (msg.type === 'request_sync_state') {
-    if (isHost) {
+    if (isHost || currentView === 'admin') {
       if (senderConn && senderConn.open) {
         try { senderConn.send({ type: 'sync_state', state: gameState }); } catch(e) {}
       }
@@ -10631,6 +10588,7 @@ function adminSetGame(stage, config) {
   }
   setStage(stage, config);
   broadcast({ type: 'set_stage', stage: stage, config: config });
+  broadcast({ type: 'sync_state', state: gameState });
   updateAdminActiveStageButtons(stage);
 }
 
