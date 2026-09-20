@@ -1741,6 +1741,24 @@ function setupServerStream(code) {
     console.error('[REALTIME] Failed to initialize EventSource:', err);
   }
 
+  // 3. Parallel Node.js server stream (for Render.com / Node servers)
+  if (!serverStreamSource || serverStreamSource.readyState === 2) {
+    try {
+      const nodeSseUrl = '/api/rooms/' + encodeURIComponent(code) + '/stream';
+      serverStreamSource = new EventSource(nodeSseUrl);
+      serverStreamSource.onmessage = (event) => {
+        if (!event.data || event.data.startsWith(':')) return;
+        try {
+          const msg = JSON.parse(event.data);
+          _processRelayMessage(msg);
+        } catch(e) {}
+      };
+      serverStreamSource.onerror = () => {
+        try { serverStreamSource.close(); } catch(e) {}
+      };
+    } catch(e) {}
+  }
+
   // Periodic watchdog to keep Cloud Relay stream connected across mobile sleeps
   if (typeof window !== 'undefined' && !window._ntfyWatchdogStarted) {
     window._ntfyWatchdogStarted = true;
@@ -1834,6 +1852,16 @@ function broadcast(msg) {
       }).catch(err => {
         console.warn('[REALTIME POST notice]:', err);
       });
+    } catch(e) {}
+
+    // Parallel dispatch to native Node server (works on Render.com / Node)
+    try {
+      fetch('/api/rooms/' + encodeURIComponent(activeRoom) + '/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msg),
+        keepalive: true
+      }).catch(() => {});
     } catch(e) {}
   }
 

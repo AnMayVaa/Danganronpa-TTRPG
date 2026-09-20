@@ -481,8 +481,9 @@ const server = http.createServer(requestHandler);
 
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`LAN (Wi-Fi) URL: http://192.168.1.187:${PORT}`);
   });
 }
 
