@@ -714,13 +714,14 @@ function setupLocalChannel(code) {
         if (msg._sender === myClientId) return;
 
         // Deduplication
-        if (msg._id) {
-          if (processedMessageIds.has(msg._id)) return;
-          processedMessageIds.add(msg._id);
-          if (processedMessageIds.size > 500) {
-            const oldest = processedMessageIds.values().next().value;
-            processedMessageIds.delete(oldest);
-          }
+        if (!msg._id) {
+          msg._id = 'bc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+        }
+        if (processedMessageIds.has(msg._id)) return;
+        processedMessageIds.add(msg._id);
+        if (processedMessageIds.size > 1000) {
+          const oldest = processedMessageIds.values().next().value;
+          processedMessageIds.delete(oldest);
         }
 
         // Live Simulation Monitor log
@@ -729,7 +730,8 @@ function setupLocalChannel(code) {
         }
 
         // STAR-RELAY: Forward message from local BroadcastChannel to connected WebRTC players
-        if (isHost && peerConnections && peerConnections.length > 0) {
+        // Guard: NEVER forward messages that originated from WebRTC back into WebRTC (prevents echo loop!)
+        if (isHost && msg._origin !== 'webrtc' && peerConnections && peerConnections.length > 0) {
           peerConnections.forEach(c => {
             if (c && c.open) {
               try { c.send(msg); } catch(e) {}
@@ -1407,8 +1409,6 @@ function initRealtime() {
       const disp = document.getElementById('displayRoomCode');
       roomCode = (disp && disp.innerText && disp.innerText !== '------' ? disp.innerText.trim() : 'DESPAIR').toUpperCase();
     }
-    setupServerStream(roomCode);
-    connectToHostPeer(`dangan-court-${roomCode.toLowerCase()}`);
   } else if (currentView === 'player') {
     const savedPlayerRoom = localStorage.getItem('dangan_current_room');
     if (savedPlayerRoom) {
@@ -1432,13 +1432,21 @@ function initRealtime() {
     qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(directJoin);
   }
 
-  // If court, register room and start heartbeat
+  // If court, register room and track local running status
   if (currentView === 'court' && roomCode) {
     registerActiveRoom(roomCode);
+    try {
+      localStorage.setItem('dangan_court_running_' + roomCode, String(Date.now()));
+    } catch(e) {}
     if (!courtHeartbeatInterval) {
       courtHeartbeatInterval = setInterval(() => {
-        if (currentView === 'court' && roomCode) registerActiveRoom(roomCode);
-      }, 18000);
+        if (currentView === 'court' && roomCode) {
+          registerActiveRoom(roomCode);
+          try {
+            localStorage.setItem('dangan_court_running_' + roomCode, String(Date.now()));
+          } catch(e) {}
+        }
+      }, 10000);
     }
   }
 
@@ -1483,20 +1491,26 @@ function setupHostPeerListeners(peerInstance) {
     conn.on('data', (data) => {
       if (!data || typeof data !== 'object') return;
       if (data._sender === myClientId) return;
-      if (data._id) {
-        if (processedMessageIds.has(data._id)) return;
-        processedMessageIds.add(data._id);
-        if (processedMessageIds.size > 500) {
-          const oldest = processedMessageIds.values().next().value;
-          processedMessageIds.delete(oldest);
-        }
+
+      if (!data._id) {
+        data._id = 'rtc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
       }
+      if (processedMessageIds.has(data._id)) return;
+      processedMessageIds.add(data._id);
+      if (processedMessageIds.size > 1000) {
+        const oldest = processedMessageIds.values().next().value;
+        processedMessageIds.delete(oldest);
+      }
+
+      // Mark origin so setupLocalChannel knows it came from WebRTC
+      data._origin = 'webrtc';
+
       handleIncomingMessage(data, conn);
 
-      // Star-Relay: Forward player messages to all other connected peers
+      // Star-Relay: Forward player messages to all other connected peers (never back to sender!)
       if (isHost && data.type !== 'request_claim_character' && data.type !== 'request_sync_state') {
         peerConnections.forEach(c => {
-          if (c !== conn && c.open) {
+          if (c !== conn && c && c.open) {
             try { c.send(data); } catch(e) {}
           }
         });
@@ -1519,15 +1533,24 @@ function setupHostPeerListeners(peerInstance) {
 
     // Send latest state & claimed characters to newly connected peer
     setTimeout(() => {
-      if (conn.open) {
-        conn.send({ type: 'sync_state', state: gameState });
+      if (conn && conn.open) {
+        conn.send({
+          type: 'sync_state',
+          state: gameState,
+          _sender: myClientId,
+          _id: 'sync_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+          _origin: 'host'
+        });
         if (gameState && gameState.players) {
           Object.values(gameState.players).forEach(p => {
             conn.send({
               type: 'character_claimed',
               role: p.role,
               playerName: p.name,
-              peerId: p.id
+              peerId: p.id,
+              _sender: myClientId,
+              _id: 'claim_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+              _origin: 'host'
             });
           });
         }
@@ -1551,6 +1574,9 @@ function setupPeerJS() {
 
   if (currentView === 'court') {
     isHost = true;
+    try {
+      localStorage.setItem('dangan_court_running_' + roomCode, String(Date.now()));
+    } catch(e) {}
     if (myPeer && !myPeer.destroyed) return;
 
     try {
@@ -1580,7 +1606,20 @@ function setupPeerJS() {
     } catch(e) {
       console.error('[WEBRTC] Failed to create Host Peer:', e);
     }
-  } else if (currentView === 'admin' || currentView === 'player') {
+  } else if (currentView === 'admin') {
+    // If Court is running locally on the same browser / PC, Admin communicates via BroadcastChannel only!
+    // No WebRTC connection needed, which prevents double-connects and infinite echo loops.
+    const courtRunningTime = Number(localStorage.getItem('dangan_court_running_' + roomCode) || 0);
+    const isCourtLocal = courtRunningTime > 0 && (Date.now() - courtRunningTime) < 25000;
+    if (isCourtLocal) {
+      console.log('[WEBRTC Admin] Court is running locally on this device. Using BroadcastChannel for zero-latency local communication.');
+      isHost = false;
+      return;
+    }
+    // Remote Admin (e.g. tablet or separate PC from Court projector)
+    isHost = false;
+    connectToHostPeer(hostPeerId);
+  } else if (currentView === 'player') {
     isHost = false;
     connectToHostPeer(hostPeerId);
   }
@@ -1606,7 +1645,15 @@ function connectToHostPeer(hostId, onConnected) {
     try {
       console.log('[WEBRTC] Connecting to Host Peer:', hostId);
       if (hostPeer) {
-        try { hostPeer.close(); } catch(e) {}
+        try {
+          if (typeof hostPeer.off === 'function') {
+            hostPeer.off('close');
+            hostPeer.off('error');
+            hostPeer.off('data');
+            hostPeer.off('open');
+          }
+          hostPeer.close();
+        } catch(e) {}
         hostPeer = null;
       }
       hostPeer = myPeer.connect(hostId, { reliable: true });
@@ -1618,19 +1665,24 @@ function connectToHostPeer(hostId, onConnected) {
           hostReconnectTimeout = null;
         }
         if (onConnected) onConnected();
-        hostPeer.send({ type: 'request_sync_state' });
+        hostPeer.send({
+          type: 'request_sync_state',
+          _sender: myClientId,
+          _id: 'req_sync_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7)
+        });
       });
 
       hostPeer.on('data', (data) => {
         if (!data || typeof data !== 'object') return;
         if (data._sender === myClientId) return;
-        if (data._id) {
-          if (processedMessageIds.has(data._id)) return;
-          processedMessageIds.add(data._id);
-          if (processedMessageIds.size > 500) {
-            const oldest = processedMessageIds.values().next().value;
-            processedMessageIds.delete(oldest);
-          }
+        if (!data._id) {
+          data._id = 'rtc_in_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+        }
+        if (processedMessageIds.has(data._id)) return;
+        processedMessageIds.add(data._id);
+        if (processedMessageIds.size > 1000) {
+          const oldest = processedMessageIds.values().next().value;
+          processedMessageIds.delete(oldest);
         }
         handleIncomingMessage(data, hostPeer);
       });
@@ -1665,24 +1717,35 @@ function connectToHostPeer(hostId, onConnected) {
       myPeer.on('error', (err) => {
         console.warn('[WEBRTC Client Peer Error]:', err);
         if (err.type === 'peer-unavailable') {
-          // If in Admin view and no Court host is found, Admin can claim Host role!
+          // If in Admin view on a separate device and no Court host is found, Admin can claim Host role
           if (currentView === 'admin' && !isHost) {
-            console.log('[WEBRTC Admin]: No Court host detected. Claiming Host role for Admin...');
-            try { myPeer.destroy(); } catch(e) {}
-            myPeer = new Peer(hostId, PEER_CONFIG);
-            setupHostPeerListeners(myPeer);
-            myPeer.on('open', (claimedId) => {
-              console.log('[WEBRTC Admin Host Active]:', claimedId);
-              isHost = true;
-            });
-            myPeer.on('error', (hErr) => {
-              console.warn('[WEBRTC Admin Host Error]:', hErr);
-            });
-            return;
+            const courtRunningTime = Number(localStorage.getItem('dangan_court_running_' + roomCode) || 0);
+            const isCourtLocal = courtRunningTime > 0 && (Date.now() - courtRunningTime) < 25000;
+            if (!isCourtLocal) {
+              console.log('[WEBRTC Admin]: No Court host detected on network. Claiming Host role for Admin...');
+              try { myPeer.destroy(); } catch(e) {}
+              myPeer = new Peer(hostId, PEER_CONFIG);
+              setupHostPeerListeners(myPeer);
+              myPeer.on('open', (claimedId) => {
+                console.log('[WEBRTC Admin Host Active]:', claimedId);
+                isHost = true;
+              });
+              myPeer.on('error', (hErr) => {
+                console.warn('[WEBRTC Admin Host Error]:', hErr);
+              });
+              return;
+            }
           }
 
-          if (currentView === 'player' && typeof resetJoinButton === 'function') {
-            resetJoinButton(`❌ ยังไม่พบห้อง [${roomCode}]\nให้ผู้ดำเนินเกม (DM) เปิดหน้าจอหลัก (/court หรือ /admin) ก่อน`);
+          // Player: Do NOT trigger alert or disable buttons. Silently retry connecting.
+          if (currentView === 'player') {
+            console.log('[WEBRTC Player] Host peer unavailable yet, retrying in 3s...');
+            if (!hostReconnectTimeout) {
+              hostReconnectTimeout = setTimeout(() => {
+                hostReconnectTimeout = null;
+                attemptConnect();
+              }, 3000);
+            }
           }
         }
       });
@@ -1772,9 +1835,12 @@ if (typeof document !== 'undefined') {
 function broadcast(msg) {
   if (!msg || !msg.type) return;
 
-  // 1. Assign unique message ID and sender ID for cross-transport deduplication
+  // 1. Assign unique message ID, sender ID, and origin for cross-transport deduplication
   if (!msg._sender) {
     msg._sender = myClientId;
+  }
+  if (!msg._origin) {
+    msg._origin = isHost ? 'host' : 'local';
   }
   if (!msg._id) {
     const senderTag = (myPlayer && myPlayer.id) ? myPlayer.id : (currentUserHash || (isHost ? 'court_host' : 'anon'));
@@ -1783,7 +1849,7 @@ function broadcast(msg) {
 
   // Record our own ID so we don't duplicate on loopback
   processedMessageIds.add(msg._id);
-  if (processedMessageIds.size > 500) {
+  if (processedMessageIds.size > 1000) {
     const oldest = processedMessageIds.values().next().value;
     processedMessageIds.delete(oldest);
   }
@@ -1924,16 +1990,16 @@ function handleIncomingMessage(msg, senderConn) {
     gameState.players[canonicalKey] = playerObj;
     updatePlayerDisplays();
 
-    // Send approval back to player via both direct and broadcast channels
+    // Send approval back to player via broadcast channel (which sends to WebRTC + BroadcastChannel)
     const approvePacket = {
       type: 'claim_approved',
       targetHash: msg.userHash || senderId,
       player: playerObj,
-      state: gameState
+      state: gameState,
+      _sender: myClientId,
+      _id: 'appr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      _origin: 'host'
     };
-    if (senderConn && senderConn.open) {
-      try { senderConn.send(approvePacket); } catch(e) {}
-    }
     broadcast(approvePacket);
 
     // Broadcast to all other clients so they disable this role card
@@ -2029,7 +2095,7 @@ function handleIncomingMessage(msg, senderConn) {
       btnJoin.disabled = false;
       btnJoin.innerText = 'เข้าสู่ศาลชั้นเรียน';
     }
-    alert(msg.reason);
+    showToast(msg.reason || 'บทนี้ถูกเลือกแล้ว โปรดลองอีกครั้ง');
     const opt = document.getElementById('optRole_' + msg.role);
     if (opt) {
       opt.disabled = true;
@@ -3668,6 +3734,7 @@ function unlockClue(rawCode) {
   return true;
 }
 
+let toastTimeout = null;
 function showToast(text) {
   let t = document.getElementById('danganToast');
   if (!t) {
@@ -3687,15 +3754,19 @@ function showToast(text) {
     t.style.boxShadow = '4px 4px 0px #000';
     t.style.zIndex = '999999';
     t.style.transition = 'opacity 0.3s ease';
+    t.style.whiteSpace = 'pre-line';
+    t.style.textAlign = 'center';
+    t.style.maxWidth = '90vw';
     document.body.appendChild(t);
   }
   t.innerText = text;
   t.style.opacity = '1';
   t.style.display = 'block';
-  setTimeout(() => {
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
     t.style.opacity = '0';
     setTimeout(() => { t.style.display = 'none'; }, 300);
-  }, 3200);
+  }, 3500);
 }
 
 function escapeHtml(str) {
@@ -8354,7 +8425,7 @@ function resetJoinButton(errMsg) {
     btnJoin.disabled = false;
     btnJoin.innerText = 'เข้าสู่ศาลชั้นเรียน';
   }
-  if (errMsg) alert(errMsg);
+  if (errMsg) showToast(errMsg);
 }
 
 function playerJoin() {
@@ -8362,8 +8433,8 @@ function playerJoin() {
   const name = (document.getElementById('mobileNameInput').value || '').trim();
   const room = (document.getElementById('mobileRoomInput').value || '').trim().toUpperCase();
 
-  if (!room) { alert('กรุณากรอกรหัสห้อง 6 หลัก'); return; }
-  if (!name) { alert('กรุณากรอกชื่อของคุณ'); return; }
+  if (!room) { showToast('กรุณากรอกรหัสห้อง 6 หลัก'); return; }
+  if (!name) { showToast('กรุณากรอกชื่อของคุณ'); return; }
 
   const roleInput = document.getElementById('mobileRoleInput');
   const role = (roleInput ? roleInput.value.trim() : '') || (new URLSearchParams(window.location.search).get('role') || '');
@@ -8413,11 +8484,6 @@ function playerJoin() {
   };
 
   const sendClaim = () => {
-    try {
-      if (hostPeer && hostPeer.open) {
-        hostPeer.send(claimPacket);
-      }
-    } catch(e) {}
     broadcast(claimPacket);
   };
 
