@@ -1670,28 +1670,38 @@ function _processServerMessage(msg) {
 function _startPolling(code) {
   if (_pollingActive && _pollingInterval) return; // Already running
   _pollingActive = true;
-  _pollingLastServerTime = Date.now() - 5000; // Look back 5s on first poll
-  console.log('[POLL] Starting HTTP polling for room:', code);
+  console.log('[POLL] Starting state polling for room:', code);
 
   if (_pollingInterval) { clearInterval(_pollingInterval); _pollingInterval = null; }
+
+  let _lastPolledStage = (typeof gameState !== 'undefined' && gameState) ? gameState.stage : null;
+  let _lastPolledHash = '';
 
   _pollingInterval = setInterval(async () => {
     const targetRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
     if (!targetRoom) return;
+    // Skip if we are the host (court) — no need to poll our own state
+    if (isHost) return;
 
     try {
-      const pollUrl = '/api/rooms/' + encodeURIComponent(targetRoom) + '/poll?since=' + _pollingLastServerTime;
-      const resp = await fetch(pollUrl, { cache: 'no-store' });
+      const stateUrl = '/api/rooms/' + encodeURIComponent(targetRoom) + '/state';
+      const resp = await fetch(stateUrl, { cache: 'no-store' });
       if (!resp.ok) return;
       const data = await resp.json();
-      if (data.serverTime) _pollingLastServerTime = data.serverTime;
-      if (data.messages && data.messages.length > 0) {
-        data.messages.forEach(msg => _processServerMessage(msg));
+      if (!data || !data.success || !data.state) return;
+
+      const st = data.state;
+      // Simple hash to detect changes: stage + influence + timer
+      const newHash = (st.stage || '') + '|' + (st.influence || 0) + '|' + JSON.stringify(Object.keys(st.players || {}).sort());
+      if (newHash !== _lastPolledHash) {
+        _lastPolledHash = newHash;
+        console.log('[POLL] State changed, applying:', st.stage);
+        applyState(st);
       }
     } catch(e) {
       // Silent — network blip, will retry
     }
-  }, 2500);
+  }, 3000);
 }
 
 function _stopPolling() {
@@ -1720,19 +1730,22 @@ function setupServerStream(code) {
     return;
   }
 
+  // Start polling immediately as safety net — SSE success will not disable polling,
+  // since polling uses /state (cheap GET) while SSE handles real-time events
+  _startPolling(code);
+
   const sseUrl = '/api/rooms/' + encodeURIComponent(code) + '/stream';
   console.log('[SSE] Connecting to real-time message stream:', sseUrl);
 
   let sseWorking = false;
   const sseTimeout = setTimeout(() => {
-    // If SSE didn't fire onopen within 8 seconds, assume Vercel timeout — switch to polling
+    // If SSE didn't fire onopen within 5 seconds, assume Vercel static — keep polling only
     if (!sseWorking) {
-      console.warn('[SSE] No response after 8s — switching to HTTP polling.');
+      console.warn('[SSE] No response after 5s — relying on HTTP polling.');
       try { if (serverStreamSource) serverStreamSource.close(); } catch(e) {}
       serverStreamSource = null;
-      _startPolling(code);
     }
-  }, 8000);
+  }, 5000);
 
   try {
     serverStreamSource = new EventSource(sseUrl);
@@ -1878,6 +1891,22 @@ function broadcast(msg) {
   // 6. Socket.io if available
   if (socket && socket.connected) {
     try { socket.emit('client_broadcast', msg); } catch(e) {}
+  }
+
+  // 7. State Persistence: save full gameState to server on key events
+  // Allows any Vercel instance (stateless) to serve current state to polling players
+  if ((msg.type === 'sync_state' || msg.type === 'set_stage') && activeRoom && typeof gameState !== 'undefined') {
+    try {
+      const stateToSave = msg.type === 'sync_state' ? (msg.state || gameState) : gameState;
+      if (stateToSave && stateToSave.stage) {
+        fetch('/api/rooms/' + encodeURIComponent(activeRoom) + '/state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: stateToSave }),
+          keepalive: true
+        }).catch(() => {});
+      }
+    } catch(e) {}
   }
 }
 
@@ -2891,6 +2920,25 @@ function initPlayerSession(hash) {
         statusEl.style.display = 'none';
       }
       updateSaboteurPanelVisibility();
+
+      // ✅ Auto-sync: fetch current game state from server so player sees correct phase
+      setTimeout(() => {
+        // 1. Try fetching state directly from server (works even after page reload)
+        const syncRoom = roomCode || localStorage.getItem('dangan_current_room') || '';
+        if (syncRoom) {
+          fetch('/api/rooms/' + encodeURIComponent(syncRoom.toUpperCase()) + '/state', { cache: 'no-store' })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+              if (data && data.success && data.state && data.state.stage) {
+                applyState(data.state);
+              }
+            })
+            .catch(() => {});
+        }
+        // 2. Also broadcast request_sync_state via polling relay
+        broadcast({ type: 'request_sync_state' });
+      }, 800);
+
       return;
     } catch(e) {
       clearPlayerLocalData();
