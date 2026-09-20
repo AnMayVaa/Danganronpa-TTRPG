@@ -2878,23 +2878,14 @@ function initPlayerSession(hash) {
       }
       updateSaboteurPanelVisibility();
 
-      // ✅ Auto-sync: fetch current game state from server so player sees correct phase
+      // ✅ Auto-sync: fetch current game state from Cloud Relay so player sees correct phase
       setTimeout(() => {
-        // 1. Try fetching state directly from server (works even after page reload)
         const syncRoom = roomCode || localStorage.getItem('dangan_current_room') || '';
         if (syncRoom) {
-          fetch('/api/rooms/' + encodeURIComponent(syncRoom.toUpperCase()) + '/state', { cache: 'no-store' })
-            .then(r => r.ok ? r.json() : null)
-            .then(data => {
-              if (data && data.success && data.state && data.state.stage) {
-                applyState(data.state);
-              }
-            })
-            .catch(() => {});
+          fetchCatchupMessages(syncRoom);
         }
-        // 2. Also broadcast request_sync_state via polling relay
         broadcast({ type: 'request_sync_state' });
-      }, 800);
+      }, 500);
 
       return;
     } catch(e) {
