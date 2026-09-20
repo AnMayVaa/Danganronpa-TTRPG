@@ -728,6 +728,15 @@ function setupLocalChannel(code) {
           logSimEvent(msg);
         }
 
+        // STAR-RELAY: Forward message from local BroadcastChannel to connected WebRTC players
+        if (isHost && peerConnections && peerConnections.length > 0) {
+          peerConnections.forEach(c => {
+            if (c && c.open) {
+              try { c.send(msg); } catch(e) {}
+            }
+          });
+        }
+
         // Process message through game engine dispatcher
         handleIncomingMessage(msg, null);
       };
@@ -764,19 +773,29 @@ let myPlayer = null;
 let hubRoomsPollingInterval = null;
 let courtHeartbeatInterval = null;
 
+// Check if running on Vercel deployment (serverless static CDN)
+function isVercelHost() {
+  return typeof window !== 'undefined' && (
+    window.location.hostname.endsWith('.vercel.app') ||
+    window.location.hostname === 'danganronpa-ttrpg.vercel.app'
+  );
+}
+
 // ==========================================================
 // ACTIVE ROOM REGISTRY (API & LOCAL FALLBACK)
 // ==========================================================
 async function registerActiveRoom(code) {
   if (!code) return;
   const count = gameState && gameState.players ? Object.keys(gameState.players).length : 0;
-  try {
-    await fetch('/api/rooms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roomCode: code, playersCount: count, stage: gameState ? gameState.stage : 'lobby' })
-    });
-  } catch(e) {}
+  if (!isVercelHost()) {
+    try {
+      await fetch('/api/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomCode: code, playersCount: count, stage: gameState ? gameState.stage : 'lobby' })
+      });
+    } catch(e) {}
+  }
   try {
     localStorage.setItem('dangan_local_active_room', JSON.stringify({ roomCode: code, updatedAt: Date.now(), playersCount: count }));
   } catch(e) {}
@@ -784,13 +803,15 @@ async function registerActiveRoom(code) {
 
 async function deleteActiveRoom(code) {
   if (!code) return;
-  try {
-    await fetch('/api/rooms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roomCode: code, action: 'delete' })
-    });
-  } catch(e) {}
+  if (!isVercelHost()) {
+    try {
+      await fetch('/api/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomCode: code, action: 'delete' })
+      });
+    } catch(e) {}
+  }
   try {
     localStorage.removeItem('dangan_local_active_room');
   } catch(e) {}
@@ -814,13 +835,15 @@ async function fetchActiveRooms() {
   } catch(e) {}
 
   let rooms = [];
-  try {
-    const res = await fetch('/api/rooms');
-    if (res.ok) {
-      const data = await res.json();
-      rooms = data.rooms || [];
-    }
-  } catch(e) {}
+  if (!isVercelHost()) {
+    try {
+      const res = await fetch('/api/rooms');
+      if (res.ok) {
+        const data = await res.json();
+        rooms = data.rooms || [];
+      }
+    } catch(e) {}
+  }
 
   // Local device fallback
   try {
@@ -1436,111 +1459,134 @@ function initRealtime() {
   setupPeerJS();
 }
 
+const PEER_CONFIG = {
+  debug: 1,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' }
+    ],
+    iceCandidatePoolSize: 10
+  }
+};
+
+function setupHostPeerListeners(peerInstance) {
+  isHost = true;
+  peerInstance.on('connection', (conn) => {
+    peerConnections = peerConnections.filter(c => c && c.peer !== conn.peer);
+    peerConnections.push(conn);
+    console.log('[WEBRTC] Client connected to Host:', conn.peer);
+
+    conn.on('data', (data) => {
+      if (!data || typeof data !== 'object') return;
+      if (data._sender === myClientId) return;
+      if (data._id) {
+        if (processedMessageIds.has(data._id)) return;
+        processedMessageIds.add(data._id);
+        if (processedMessageIds.size > 500) {
+          const oldest = processedMessageIds.values().next().value;
+          processedMessageIds.delete(oldest);
+        }
+      }
+      handleIncomingMessage(data, conn);
+
+      // Star-Relay: Forward player messages to all other connected peers
+      if (isHost && data.type !== 'request_claim_character' && data.type !== 'request_sync_state') {
+        peerConnections.forEach(c => {
+          if (c !== conn && c.open) {
+            try { c.send(data); } catch(e) {}
+          }
+        });
+      }
+
+      // Also forward to local BroadcastChannel (for local Admin tabs on same PC)
+      if (localRoomChannel) {
+        try { localRoomChannel.postMessage(data); } catch(e) {}
+      }
+    });
+
+    conn.on('close', () => {
+      peerConnections = peerConnections.filter(c => c !== conn);
+    });
+
+    conn.on('error', (err) => {
+      console.warn('[WEBRTC] Host peer connection error:', err);
+      peerConnections = peerConnections.filter(c => c !== conn);
+    });
+
+    // Send latest state & claimed characters to newly connected peer
+    setTimeout(() => {
+      if (conn.open) {
+        conn.send({ type: 'sync_state', state: gameState });
+        if (gameState && gameState.players) {
+          Object.values(gameState.players).forEach(p => {
+            conn.send({
+              type: 'character_claimed',
+              role: p.role,
+              playerName: p.name,
+              peerId: p.id
+            });
+          });
+        }
+      }
+    }, 250);
+  });
+}
+
 function setupPeerJS() {
   if (currentView === 'hub') return;
   if (!roomCode) return;
 
-  // Always connect to high-speed SSE real-time relay bus
   setupServerStream(roomCode);
 
   if (typeof Peer === 'undefined') {
-    console.warn('[WEBRTC] PeerJS not loaded; using server relay.');
+    console.warn('[WEBRTC] PeerJS not loaded; using BroadcastChannel / Local Relay.');
     return;
   }
 
   const hostPeerId = `dangan-court-${roomCode.toLowerCase()}`;
 
-  // ONLY Courtroom main projector screen is Host!
   if (currentView === 'court') {
     isHost = true;
     if (myPeer && !myPeer.destroyed) return;
 
-    myPeer = new Peer(hostPeerId, { debug: 1 });
+    try {
+      myPeer = new Peer(hostPeerId, PEER_CONFIG);
+      setupHostPeerListeners(myPeer);
 
-    myPeer.on('open', (id) => {
-      console.log('[WEBRTC HOST ACTIVE]:', id);
-      logCourt(`[WEBRTC]: ห้อง ${roomCode} ออนไลน์ พร้อมรับการเชื่อมต่อจากผู้เล่นทุกอุปกรณ์!`);
-    });
+      myPeer.on('open', (id) => {
+        console.log('[WEBRTC HOST ACTIVE]:', id);
+        logCourt(`[WEBRTC]: ห้อง ${roomCode} ออนไลน์ พร้อมรับการเชื่อมต่อจากผู้เล่นทุกอุปกรณ์!`);
+      });
 
-    myPeer.on('connection', (conn) => {
-      peerConnections.push(conn);
-      console.log('[WEBRTC] Client connected to Host:', conn.peer);
-      
-      conn.on('data', (data) => {
-        if (!data || typeof data !== 'object') return;
-        // Anti-Echo: Ignore messages originating from ourselves
-        if (data._sender === myClientId) return;
-        // Deduplication: Drop duplicate packet if already received via BroadcastChannel or SSE
-        if (data._id) {
-          if (processedMessageIds.has(data._id)) return;
-          processedMessageIds.add(data._id);
-          if (processedMessageIds.size > 500) {
-            const oldest = processedMessageIds.values().next().value;
-            processedMessageIds.delete(oldest);
-          }
-        }
-        handleIncomingMessage(data, conn);
-        // STAR-RELAY: Forward message to all other connected peers immediately!
-        if (isHost && data.type !== 'request_claim_character' && data.type !== 'request_sync_state') {
-          peerConnections.forEach(c => {
-            if (c !== conn && c.open) {
-              try { c.send(data); } catch(e) {}
+      myPeer.on('error', (err) => {
+        console.warn('[WEBRTC Host Error]:', err);
+        if (err.type === 'unavailable-id') {
+          console.warn('[WEBRTC] Host Peer ID temporarily busy, retrying in 2.5s...');
+          setTimeout(() => {
+            if (currentView === 'court' && (!myPeer || myPeer.destroyed || !myPeer.open)) {
+              if (myPeer && !myPeer.destroyed) {
+                try { myPeer.destroy(); } catch(e) {}
+                myPeer = null;
+              }
+              setupPeerJS();
             }
-          });
+          }, 2500);
         }
       });
-
-      conn.on('close', () => {
-        peerConnections = peerConnections.filter(c => c !== conn);
-      });
-
-      // Send initial state & claimed roles to newly joined peer
-      setTimeout(() => {
-        if (conn.open) {
-          conn.send({ type: 'sync_state', state: gameState });
-          if (gameState && gameState.players) {
-            Object.values(gameState.players).forEach(p => {
-              conn.send({
-                type: 'character_claimed',
-                role: p.role,
-                playerName: p.name,
-                peerId: p.id
-              });
-            });
-          }
-        }
-      }, 350);
-    });
-
-    myPeer.on('error', (err) => {
-      console.warn('[WEBRTC Host Error]:', err);
-      if (err.type === 'unavailable-id') {
-        console.warn('[WEBRTC] Host Peer ID unavailable/busy. Re-creating with fresh 6-digit room code...');
-        roomCode = generate6DigitRoomCode();
-        sessionStorage.setItem('dangan_court_room_code', roomCode);
-        const courtRoom = document.getElementById('courtLobbyRoomCode');
-        if (courtRoom) courtRoom.innerText = roomCode;
-        const directJoin = window.location.origin + '/play?room=' + roomCode;
-        const joinUrl = document.getElementById('courtJoinUrl');
-        if (joinUrl) joinUrl.innerText = directJoin;
-        const qrImg = document.getElementById('courtQrImg');
-        if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(directJoin);
-        registerActiveRoom(roomCode);
-        setTimeout(() => {
-          if (myPeer && !myPeer.destroyed) {
-            try { myPeer.destroy(); } catch(e) {}
-            myPeer = null;
-          }
-          setupPeerJS();
-        }, 500);
-      }
-    });
+    } catch(e) {
+      console.error('[WEBRTC] Failed to create Host Peer:', e);
+    }
   } else if (currentView === 'admin' || currentView === 'player') {
-    // Admin DM panel and Player mobile connect to Host
     isHost = false;
     connectToHostPeer(hostPeerId);
   }
 }
+
+let hostReconnectTimeout = null;
 
 function connectToHostPeer(hostId, onConnected) {
   isHost = false;
@@ -1550,20 +1596,8 @@ function connectToHostPeer(hostId, onConnected) {
     return;
   }
 
-  // 1. If already connected and open, invoke callback immediately
   if (hostPeer && hostPeer.open) {
     if (onConnected) onConnected();
-    return;
-  }
-
-  // 2. If already in the process of connecting, attach callback to existing connection
-  if (hostPeer && !hostPeer.open && myPeer && myPeer.open) {
-    if (onConnected) {
-      hostPeer.once('open', () => {
-        console.log('[WEBRTC] Hooked into opened Host connection:', hostId);
-        onConnected();
-      });
-    }
     return;
   }
 
@@ -1571,20 +1605,25 @@ function connectToHostPeer(hostId, onConnected) {
     if (!myPeer || myPeer.destroyed) return;
     try {
       console.log('[WEBRTC] Connecting to Host Peer:', hostId);
+      if (hostPeer) {
+        try { hostPeer.close(); } catch(e) {}
+        hostPeer = null;
+      }
       hostPeer = myPeer.connect(hostId, { reliable: true });
 
       hostPeer.on('open', () => {
         console.log('[WEBRTC] Successfully connected to Host:', hostId);
+        if (hostReconnectTimeout) {
+          clearTimeout(hostReconnectTimeout);
+          hostReconnectTimeout = null;
+        }
         if (onConnected) onConnected();
-        // Request latest sync state from Host
         hostPeer.send({ type: 'request_sync_state' });
       });
 
       hostPeer.on('data', (data) => {
         if (!data || typeof data !== 'object') return;
-        // Anti-Echo: Ignore messages originating from ourselves
         if (data._sender === myClientId) return;
-        // Deduplication: Drop duplicate packet if already received via BroadcastChannel or SSE
         if (data._id) {
           if (processedMessageIds.has(data._id)) return;
           processedMessageIds.add(data._id);
@@ -1597,12 +1636,15 @@ function connectToHostPeer(hostId, onConnected) {
       });
 
       hostPeer.on('close', () => {
-        console.warn('[WEBRTC] Host connection closed. Reconnecting in 3s...');
-        setTimeout(() => {
-          if (currentView !== 'hub' && (!hostPeer || !hostPeer.open)) {
-            attemptConnect();
-          }
-        }, 3000);
+        console.warn('[WEBRTC] Host connection closed. Reconnecting in 2.5s...');
+        if (!hostReconnectTimeout) {
+          hostReconnectTimeout = setTimeout(() => {
+            hostReconnectTimeout = null;
+            if (currentView !== 'hub' && (!hostPeer || !hostPeer.open)) {
+              attemptConnect();
+            }
+          }, 2500);
+        }
       });
 
       hostPeer.on('error', (err) => {
@@ -1614,19 +1656,39 @@ function connectToHostPeer(hostId, onConnected) {
   };
 
   if (!myPeer || myPeer.destroyed) {
-    myPeer = new Peer(null, { debug: 1 });
-    myPeer.on('open', (id) => {
-      console.log('[WEBRTC Client Peer Open]:', id);
-      attemptConnect();
-    });
-    myPeer.on('error', (err) => {
-      console.warn('[WEBRTC Client Peer Error]:', err);
-      if (err.type === 'peer-unavailable') {
-        if (typeof resetJoinButton === 'function') {
-          resetJoinButton(`❌ ไม่พบห้องศาล [${roomCode}]\nกรุณาเปิดหน้าจอหลักศาลชั้นเรียน (/court) ก่อน หรือตรวจสอบรหัสห้องให้ถูกต้อง`);
+    try {
+      myPeer = new Peer(null, PEER_CONFIG);
+      myPeer.on('open', (id) => {
+        console.log('[WEBRTC Client Peer Open]:', id);
+        attemptConnect();
+      });
+      myPeer.on('error', (err) => {
+        console.warn('[WEBRTC Client Peer Error]:', err);
+        if (err.type === 'peer-unavailable') {
+          // If in Admin view and no Court host is found, Admin can claim Host role!
+          if (currentView === 'admin' && !isHost) {
+            console.log('[WEBRTC Admin]: No Court host detected. Claiming Host role for Admin...');
+            try { myPeer.destroy(); } catch(e) {}
+            myPeer = new Peer(hostId, PEER_CONFIG);
+            setupHostPeerListeners(myPeer);
+            myPeer.on('open', (claimedId) => {
+              console.log('[WEBRTC Admin Host Active]:', claimedId);
+              isHost = true;
+            });
+            myPeer.on('error', (hErr) => {
+              console.warn('[WEBRTC Admin Host Error]:', hErr);
+            });
+            return;
+          }
+
+          if (currentView === 'player' && typeof resetJoinButton === 'function') {
+            resetJoinButton(`❌ ยังไม่พบห้อง [${roomCode}]\nให้ผู้ดำเนินเกม (DM) เปิดหน้าจอหลัก (/court หรือ /admin) ก่อน`);
+          }
         }
-      }
-    });
+      });
+    } catch(e) {
+      console.error('[WEBRTC] Failed to create Client Peer:', e);
+    }
   } else if (myPeer.open) {
     attemptConnect();
   } else {
@@ -1636,113 +1698,15 @@ function connectToHostPeer(hostId, onConnected) {
   }
 }
 
-// ==========================================================
-// UNIVERSAL REAL-TIME RELAY ENGINE (HIGH-SPEED CLOUD RELAY)
-// 100% Free, Zero-Config, Cross-Device (PC <-> Mobile 4G/5G/Wi-Fi)
-// Auto Reconnect & Offline Catch-Up on Mobile Screen Wakeup (?since=10m)
-// ==========================================================
-let ntfyEventSource = null;
-let ntfyConnectedRoom = null;
-
-function _processRelayMessage(msg) {
-  if (!msg || !msg.type) return;
-  // Anti-Echo: Drop self-originated packets
-  if (msg._sender === myClientId) return;
-  // Deduplication
-  if (msg._id) {
-    if (processedMessageIds.has(msg._id)) return;
-    processedMessageIds.add(msg._id);
-    if (processedMessageIds.size > 500) {
-      const oldest = processedMessageIds.values().next().value;
-      processedMessageIds.delete(oldest);
-    }
-  }
-  handleIncomingMessage(msg, null);
-}
-
-function fetchCatchupMessages(code) {
-  if (!code) return;
-  const ntfyTopic = 'dangan_trpg_' + code.toLowerCase();
-  fetch('https://ntfy.sh/' + encodeURIComponent(ntfyTopic) + '/json?poll=1&since=10m', { cache: 'no-store' })
-    .then(r => r.ok ? r.text() : '')
-    .then(text => {
-      if (!text) return;
-      const lines = text.trim().split('\n');
-      lines.forEach(line => {
-        try {
-          const item = JSON.parse(line);
-          if (item && item.event === 'message' && item.message) {
-            const msg = JSON.parse(item.message);
-            _processRelayMessage(msg);
-          }
-        } catch(e) {}
-      });
-    })
-    .catch(() => {});
-}
-
 function setupServerStream(code) {
   if (!code) return;
   code = code.trim().toUpperCase();
 
-  // 1. Always bind local BroadcastChannel for zero-latency in-browser/iframe sync
+  // 1. Always bind local BroadcastChannel for zero-latency local tab/iframe sync
   setupLocalChannel(code);
 
-  if (ntfyEventSource && ntfyConnectedRoom === code && ntfyEventSource.readyState !== 2) {
-    return;
-  }
-
-  if (ntfyEventSource) {
-    try { ntfyEventSource.close(); } catch(e) {}
-    ntfyEventSource = null;
-  }
-  ntfyConnectedRoom = code;
-
-  // 2. Immediate catch-up from the last 10 minutes (guarantees player catches up on stage if screen was locked)
-  fetchCatchupMessages(code);
-
-  const ntfyTopic = 'dangan_trpg_' + code.toLowerCase();
-  const sseUrl = 'https://ntfy.sh/' + encodeURIComponent(ntfyTopic) + '/sse';
-  console.log('[REALTIME] Connecting to Cloud Relay:', sseUrl);
-
-  try {
-    ntfyEventSource = new EventSource(sseUrl);
-
-    ntfyEventSource.onopen = () => {
-      console.log('[REALTIME] Cloud Relay active for room:', code);
-    };
-
-    ntfyEventSource.onmessage = (event) => {
-      if (!event.data) return;
-      try {
-        const item = JSON.parse(event.data);
-        if (item.event === 'message' && item.message) {
-          const msg = JSON.parse(item.message);
-          _processRelayMessage(msg);
-        }
-      } catch (err) {
-        console.warn('[REALTIME] Parse error:', err);
-      }
-    };
-
-    ntfyEventSource.onerror = (err) => {
-      console.warn('[REALTIME] Cloud Relay stream notice/reconnecting:', err);
-      if (ntfyEventSource && ntfyEventSource.readyState === 2) {
-        try { ntfyEventSource.close(); } catch(e) {}
-        ntfyEventSource = null;
-        setTimeout(() => {
-          if (ntfyConnectedRoom === code) {
-            setupServerStream(code);
-          }
-        }, 2000);
-      }
-    };
-  } catch (err) {
-    console.error('[REALTIME] Failed to initialize EventSource:', err);
-  }
-
-  // 3. Parallel Node.js server stream (for Render.com / Node servers)
-  if (!serverStreamSource || serverStreamSource.readyState === 2) {
+  // 2. Only connect to Node.js server stream if running on a real Node server (not on Vercel)
+  if (!isVercelHost() && (!serverStreamSource || serverStreamSource.readyState === 2)) {
     try {
       const nodeSseUrl = '/api/rooms/' + encodeURIComponent(code) + '/stream';
       serverStreamSource = new EventSource(nodeSseUrl);
@@ -1750,26 +1714,19 @@ function setupServerStream(code) {
         if (!event.data || event.data.startsWith(':')) return;
         try {
           const msg = JSON.parse(event.data);
-          _processRelayMessage(msg);
+          if (msg && msg.type && msg._sender !== myClientId) {
+            if (msg._id) {
+              if (processedMessageIds.has(msg._id)) return;
+              processedMessageIds.add(msg._id);
+            }
+            handleIncomingMessage(msg, null);
+          }
         } catch(e) {}
       };
       serverStreamSource.onerror = () => {
         try { serverStreamSource.close(); } catch(e) {}
       };
     } catch(e) {}
-  }
-
-  // Periodic watchdog to keep Cloud Relay stream connected across mobile sleeps
-  if (typeof window !== 'undefined' && !window._ntfyWatchdogStarted) {
-    window._ntfyWatchdogStarted = true;
-    setInterval(() => {
-      const targetRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
-      if (!targetRoom) return;
-      if (!ntfyEventSource || ntfyEventSource.readyState === 2) {
-        console.log('[REALTIME Watchdog] Stream closed. Reconnecting for room:', targetRoom);
-        setupServerStream(targetRoom);
-      }
-    }, 4000);
   }
 }
 
@@ -1779,20 +1736,35 @@ if (typeof document !== 'undefined') {
     if (document.visibilityState === 'visible') {
       const activeCode = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
       if (activeCode) {
-        console.log('[PAGE WAKEUP]: Screen active, syncing room:', activeCode);
-        setupServerStream(activeCode);
-        fetchCatchupMessages(activeCode);
-        if (currentView === 'player') {
-          broadcast({ type: 'request_sync_state' });
+        console.log('[PAGE WAKEUP]: Screen active, checking sync for room:', activeCode);
+        if (currentView === 'player' || currentView === 'admin') {
+          const hostPeerId = `dangan-court-${activeCode.toLowerCase()}`;
+          if (!hostPeer || !hostPeer.open) {
+            console.log('[PAGE WAKEUP]: WebRTC disconnected, reconnecting...');
+            connectToHostPeer(hostPeerId, () => {
+              if (hostPeer && hostPeer.open) {
+                hostPeer.send({ type: 'request_sync_state' });
+              }
+            });
+          } else {
+            try { hostPeer.send({ type: 'request_sync_state' }); } catch(e) {}
+          }
+        } else if (isHost) {
+          broadcast({ type: 'sync_state', state: gameState });
         }
       }
     }
   });
   window.addEventListener('online', () => {
     const activeCode = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
-    if (activeCode) {
-      setupServerStream(activeCode);
-      fetchCatchupMessages(activeCode);
+    if (activeCode && (currentView === 'player' || currentView === 'admin')) {
+      const hostPeerId = `dangan-court-${activeCode.toLowerCase()}`;
+      connectToHostPeer(hostPeerId);
+    }
+  });
+  window.addEventListener('beforeunload', () => {
+    if (myPeer && !myPeer.destroyed) {
+      try { myPeer.destroy(); } catch(e) {}
     }
   });
 }
@@ -1818,11 +1790,10 @@ function broadcast(msg) {
 
   const activeRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
 
-  // 2. LAYER 1: Native In-Browser BroadcastChannel (0ms speed, works on static hosts / tabs)
+  // 2. LAYER 1: Native In-Browser BroadcastChannel (0ms speed, works across local tabs/iframes)
   if (localRoomChannel) {
     try { localRoomChannel.postMessage(msg); } catch(e) {}
   } else {
-    // Fallback only if BroadcastChannel is not available
     try {
       if (window.parent && window.parent !== window) {
         window.parent.postMessage(msg, '*');
@@ -1840,32 +1811,7 @@ function broadcast(msg) {
     } catch(e) {}
   }
 
-  // 3. LAYER 2: High-Speed Universal Cloud Relay (ntfy.sh) - Realtime Cross-Device Sync
-  if (activeRoom) {
-    const ntfyTopic = 'dangan_trpg_' + activeRoom.toLowerCase();
-    try {
-      fetch('https://ntfy.sh/' + encodeURIComponent(ntfyTopic), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(msg),
-        keepalive: true
-      }).catch(err => {
-        console.warn('[REALTIME POST notice]:', err);
-      });
-    } catch(e) {}
-
-    // Parallel dispatch to native Node server (works on Render.com / Node)
-    try {
-      fetch('/api/rooms/' + encodeURIComponent(activeRoom) + '/broadcast', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(msg),
-        keepalive: true
-      }).catch(() => {});
-    } catch(e) {}
-  }
-
-  // 4. LAYER 3: WebRTC DataChannel (Parallel direct peer-to-peer fast path)
+  // 3. LAYER 2: WebRTC DataChannel (Direct P2P cross-device fast path)
   if (isHost) {
     peerConnections.forEach(conn => {
       if (conn && conn.open) {
@@ -1874,6 +1820,18 @@ function broadcast(msg) {
     });
   } else if (hostPeer && hostPeer.open) {
     try { hostPeer.send(msg); } catch(e) {}
+  }
+
+  // 4. LAYER 3: Native Node server broadcast (only if NOT on Vercel serverless)
+  if (!isVercelHost() && activeRoom) {
+    try {
+      fetch('/api/rooms/' + encodeURIComponent(activeRoom) + '/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msg),
+        keepalive: true
+      }).catch(() => {});
+    } catch(e) {}
   }
 
   // 5. Local execution filter: Do NOT re-handle locally if already executed by the calling function!
@@ -2685,7 +2643,9 @@ function switchView(v) {
 function updateHubDisplay() {
   fetchActiveRooms();
   if (hubRoomsPollingInterval) clearInterval(hubRoomsPollingInterval);
-  hubRoomsPollingInterval = setInterval(fetchActiveRooms, 5000);
+  if (!isVercelHost()) {
+    hubRoomsPollingInterval = setInterval(fetchActiveRooms, 8000);
+  }
 }
 
 function clearPlayerLocalData(keepClues = true) {
