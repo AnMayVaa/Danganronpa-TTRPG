@@ -1644,8 +1644,61 @@ function connectToHostPeer(hostId, onConnected) {
 }
 
 // ==========================================================
-// SERVER-SENT EVENTS (SSE) REAL-TIME RELAY ENGINE
+// REAL-TIME RELAY ENGINE (SSE + HTTP POLLING HYBRID)
+// Primary: Server-Sent Events (SSE) for same-origin/Node server
+// Fallback: HTTP Polling every 2.5s for Vercel/static deployments
 // ==========================================================
+let _pollingInterval = null;
+let _pollingLastServerTime = 0;
+let _pollingActive = false;
+let _sseFailedAt = 0; // timestamp of last SSE failure
+
+function _processServerMessage(msg) {
+  if (!msg || !msg.type) return;
+  if (msg._sender === myClientId) return;
+  if (msg._id) {
+    if (processedMessageIds.has(msg._id)) return;
+    processedMessageIds.add(msg._id);
+    if (processedMessageIds.size > 500) {
+      const oldest = processedMessageIds.values().next().value;
+      processedMessageIds.delete(oldest);
+    }
+  }
+  handleIncomingMessage(msg, null);
+}
+
+function _startPolling(code) {
+  if (_pollingActive && _pollingInterval) return; // Already running
+  _pollingActive = true;
+  _pollingLastServerTime = Date.now() - 5000; // Look back 5s on first poll
+  console.log('[POLL] Starting HTTP polling for room:', code);
+
+  if (_pollingInterval) { clearInterval(_pollingInterval); _pollingInterval = null; }
+
+  _pollingInterval = setInterval(async () => {
+    const targetRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
+    if (!targetRoom) return;
+
+    try {
+      const pollUrl = '/api/rooms/' + encodeURIComponent(targetRoom) + '/poll?since=' + _pollingLastServerTime;
+      const resp = await fetch(pollUrl, { cache: 'no-store' });
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (data.serverTime) _pollingLastServerTime = data.serverTime;
+      if (data.messages && data.messages.length > 0) {
+        data.messages.forEach(msg => _processServerMessage(msg));
+      }
+    } catch(e) {
+      // Silent — network blip, will retry
+    }
+  }, 2500);
+}
+
+function _stopPolling() {
+  if (_pollingInterval) { clearInterval(_pollingInterval); _pollingInterval = null; }
+  _pollingActive = false;
+}
+
 function setupServerStream(code) {
   if (!code) return;
   code = code.trim().toUpperCase();
@@ -1662,72 +1715,82 @@ function setupServerStream(code) {
   activeServerRoomCode = code;
 
   if (typeof EventSource === 'undefined') {
-    console.warn('[SSE] EventSource not available.');
+    console.warn('[SSE] EventSource not available. Falling back to HTTP polling.');
+    _startPolling(code);
     return;
   }
 
   const sseUrl = '/api/rooms/' + encodeURIComponent(code) + '/stream';
   console.log('[SSE] Connecting to real-time message stream:', sseUrl);
 
+  let sseWorking = false;
+  const sseTimeout = setTimeout(() => {
+    // If SSE didn't fire onopen within 8 seconds, assume Vercel timeout — switch to polling
+    if (!sseWorking) {
+      console.warn('[SSE] No response after 8s — switching to HTTP polling.');
+      try { if (serverStreamSource) serverStreamSource.close(); } catch(e) {}
+      serverStreamSource = null;
+      _startPolling(code);
+    }
+  }, 8000);
+
   try {
     serverStreamSource = new EventSource(sseUrl);
 
     serverStreamSource.onopen = () => {
+      sseWorking = true;
+      clearTimeout(sseTimeout);
+      _stopPolling(); // SSE working — stop polling
       console.log('[SSE] Real-time stream active for room:', code);
     };
 
     serverStreamSource.onmessage = (event) => {
       if (!event.data) return;
+      if (event.data.startsWith(':')) return; // ignore SSE comments (keepalive pings)
       try {
         const msg = JSON.parse(event.data);
-        if (!msg || !msg.type) return;
-
-        // Anti-Echo & Deduplication
-        if (msg._sender === myClientId) return;
-        if (msg._id) {
-          if (processedMessageIds.has(msg._id)) return;
-          processedMessageIds.add(msg._id);
-          if (processedMessageIds.size > 500) {
-            const oldest = processedMessageIds.values().next().value;
-            processedMessageIds.delete(oldest);
-          }
-        }
-
-        // Process message through universal dispatcher
-        handleIncomingMessage(msg, null);
+        _processServerMessage(msg);
       } catch (err) {
         console.error('[SSE] JSON parse error:', err, event.data);
       }
     };
 
     serverStreamSource.onerror = (err) => {
-      console.warn('[SSE] Stream notice/reconnecting:', err);
+      clearTimeout(sseTimeout);
+      console.warn('[SSE] Stream error/closed:', err);
       if (serverStreamSource && serverStreamSource.readyState === 2) {
         try { serverStreamSource.close(); } catch(e) {}
         serverStreamSource = null;
+        _sseFailedAt = Date.now();
+        // If SSE has failed recently, switch to polling immediately
+        _startPolling(code);
+        // Also attempt SSE reconnect after 15s in case server recovers
         setTimeout(() => {
-          if (activeServerRoomCode === code) {
+          if (activeServerRoomCode === code && !sseWorking) {
+            _stopPolling();
             setupServerStream(code);
           }
-        }, 1500);
+        }, 15000);
       }
     };
   } catch (err) {
-    console.error('[SSE] Failed to initialize EventSource:', err);
+    clearTimeout(sseTimeout);
+    console.error('[SSE] Failed to initialize EventSource — switching to polling:', err);
+    _startPolling(code);
   }
 
-  // Periodic watchdog to ensure SSE connection stays alive
+  // Periodic watchdog to ensure connection stays alive
   if (typeof window !== 'undefined' && !window._sseWatchdogStarted) {
     window._sseWatchdogStarted = true;
     setInterval(() => {
       const targetRoom = (roomCode || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dangan_court_room_code')) || (typeof localStorage !== 'undefined' && localStorage.getItem('dangan_current_room')) || '').toUpperCase().trim();
-      if (targetRoom) {
-        if (!serverStreamSource || serverStreamSource.readyState === 2) {
-          console.log('[SSE Watchdog] Stream closed or missing. Reconnecting to room:', targetRoom);
-          setupServerStream(targetRoom);
-        }
+      if (!targetRoom) return;
+      // If neither SSE nor polling is running, restart
+      if ((!serverStreamSource || serverStreamSource.readyState === 2) && !_pollingActive) {
+        console.log('[Watchdog] No active connection. Restarting for room:', targetRoom);
+        setupServerStream(targetRoom);
       }
-    }, 4000);
+    }, 5000);
   }
 }
 
