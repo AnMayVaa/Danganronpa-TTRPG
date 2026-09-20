@@ -729,6 +729,10 @@ function setupLocalChannel(code) {
           logSimEvent(msg);
         }
 
+        // Parent simulation dashboard should NEVER execute game engine logic locally!
+        // All game state logic is executed inside the respective child iframes (Court, Admin, Players).
+        if (currentView === 'simulation') return;
+
         // STAR-RELAY: Forward message from local BroadcastChannel to connected WebRTC players
         // Guard: NEVER forward messages that originated from WebRTC back into WebRTC (prevents echo loop!)
         if (isHost && msg._origin !== 'webrtc' && peerConnections && peerConnections.length > 0) {
@@ -753,17 +757,19 @@ window.addEventListener('message', (evt) => {
   if (!evt.data || typeof evt.data !== 'object' || !evt.data.type) return;
   const msg = evt.data;
   if (msg._sender === myClientId) return;
-  if (msg._id) {
-    if (processedMessageIds.has(msg._id)) return;
-    processedMessageIds.add(msg._id);
-    if (processedMessageIds.size > 500) {
-      const oldest = processedMessageIds.values().next().value;
-      processedMessageIds.delete(oldest);
-    }
+  if (!msg._id) {
+    msg._id = 'postm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+  }
+  if (processedMessageIds.has(msg._id)) return;
+  processedMessageIds.add(msg._id);
+  if (processedMessageIds.size > 1000) {
+    const oldest = processedMessageIds.values().next().value;
+    processedMessageIds.delete(oldest);
   }
   if (typeof logSimEvent === 'function' && currentView === 'simulation') {
     logSimEvent(msg);
   }
+  if (currentView === 'simulation') return;
   handleIncomingMessage(msg, null);
 });
 
@@ -1414,6 +1420,8 @@ function initRealtime() {
     if (savedPlayerRoom) {
       roomCode = savedPlayerRoom;
     }
+  } else if (currentView === 'simulation') {
+    roomCode = (typeof simRoomCode !== 'undefined' && simRoomCode) ? simRoomCode : 'SIM888';
   }
 
   const dispRoom = document.getElementById('displayRoomCode');
@@ -1560,10 +1568,23 @@ function setupHostPeerListeners(peerInstance) {
 }
 
 function setupPeerJS() {
-  if (currentView === 'hub') return;
+  if (currentView === 'hub' || currentView === 'simulation') return;
   if (!roomCode) return;
 
   setupServerStream(roomCode);
+
+  // Simulation Lab Guard: All simulation iframes and parent window run on the same device.
+  // They communicate 100% via in-browser BroadcastChannel (0 ms latency).
+  // Connecting to WebRTC in simulation causes global Peer ID clashes (dangan-court-sim888) and dual-channel loops.
+  const isSimEnv = (roomCode && roomCode.toUpperCase().startsWith('SIM')) ||
+                   (typeof window !== 'undefined' && window.self !== window.top && (
+                     window.location.search.includes('room=SIM') ||
+                     window.location.search.includes('muted=1')
+                   ));
+  if (isSimEnv) {
+    console.log('[WEBRTC] Simulation environment detected (room ' + roomCode + '). Using BroadcastChannel only, skipping PeerJS.');
+    return;
+  }
 
   if (typeof Peer === 'undefined') {
     console.warn('[WEBRTC] PeerJS not loaded; using BroadcastChannel / Local Relay.');
@@ -2150,8 +2171,11 @@ function handleIncomingMessage(msg, senderConn) {
     }
   } else if (msg.type === 'session_terminated') {
     clearPlayerLocalData();
-    alert('🚪 เซสชันศาลชั้นเรียนนี้ถูกรีเซ็ตเรียบร้อยแล้ว ทุกคนจะถูกนำกลับสู่หน้าหลักเพื่อเริ่มรอบใหม่เหมือน Kahoot!');
-    window.location.href = '/';
+    const isSimEnv = (typeof roomCode === 'string' && roomCode.toUpperCase().startsWith('SIM')) || (window.self !== window.top);
+    if (!isSimEnv) {
+      showToast('🚪 เซสชันศาลชั้นเรียนนี้ถูกรีเซ็ตเรียบร้อยแล้ว ทุกคนจะถูกนำกลับสู่หน้าหลักเพื่อเริ่มรอบใหม่');
+      setTimeout(() => { window.location.href = '/'; }, 1000);
+    }
   } else if (msg.type === 'player_joined') {
     if (msg.player && msg.player.name) {
       Object.keys(gameState.players).forEach(key => {
@@ -4367,11 +4391,19 @@ function handleResetSession() {
   gameState.discoveredCluesCount = 0;
 
   if (currentView === 'player') {
-    alert('🔄 ผู้ดูแลศาล (DM) ได้ทำการรีเซ็ตห้องเพื่อเริ่มรอบใหม่');
+    showToast('🔄 ผู้ดูแลศาล (DM) ได้ทำการรีเซ็ตห้องเพื่อเริ่มรอบใหม่');
     sessionStorage.removeItem('dangan_user_hash');
     currentUserHash = '';
     myPlayer = null;
-    navigate('/play?room=' + roomCode);
+    const isSimPlayer = (typeof roomCode === 'string' && roomCode.toUpperCase().startsWith('SIM')) || (window.self !== window.top);
+    if (!isSimPlayer) {
+      navigate('/play?room=' + roomCode);
+    } else {
+      const joinScr = document.getElementById('mobileJoinScreen');
+      if (joinScr) joinScr.classList.remove('hidden');
+      const gameScr = document.getElementById('mobileGameScreen');
+      if (gameScr) gameScr.classList.add('hidden');
+    }
   } else {
     updatePlayerDisplays();
     renderStage('lobby');
@@ -4402,12 +4434,14 @@ function handleKickPlayer(msgOrId) {
       localStorage.removeItem('dangan_current_room');
       localStorage.removeItem('dangan_my_player');
     } catch(e) {}
-    alert('⚠️ คุณถูกนำออกจากห้องโดยผู้ดูแลศาล (DM)');
-    if (typeof navigate === 'function') {
-      navigate('/');
-    } else {
-      window.location.href = '/';
-    }
+    showToast('⚠️ คุณถูกนำออกจากห้องโดยผู้ดูแลศาล (DM)');
+    setTimeout(() => {
+      if (typeof navigate === 'function') {
+        navigate('/');
+      } else {
+        window.location.href = '/';
+      }
+    }, 1000);
     return;
   }
 
@@ -11474,8 +11508,8 @@ function adminResetSession() {
     try { myPeer.destroy(); } catch(e) {}
   }
 
-  alert('🔄 ทำการล้างห้องศาลเรียบร้อยแล้ว ทุกคนรวมถึง Admin ถูกนำกลับสู่หน้าหลักเพื่อเริ่มรอบใหม่');
-  window.location.href = '/';
+  showToast('🔄 ทำการล้างห้องศาลเรียบร้อยแล้ว ทุกคนรวมถึง Admin ถูกนำกลับสู่หน้าหลักเพื่อเริ่มรอบใหม่');
+  setTimeout(() => { window.location.href = '/'; }, 1000);
 }
 
 function playerLeaveGame() {
@@ -13096,30 +13130,32 @@ function initSimulationLab() {
   // 1. Setup local BroadcastChannel for guaranteed 0ms in-browser communication
   setupLocalChannel(simRoomCode);
 
-  // 2. Connect Simulation Monitor to server SSE stream if available
+  // 2. Connect Simulation Monitor to server SSE stream if available (Node.js server only, never on Vercel)
   if (simEventSource) {
     try { simEventSource.close(); } catch(e) {}
     simEventSource = null;
   }
 
-  const sseUrl = '/api/rooms/' + encodeURIComponent(simRoomCode) + '/stream';
-  try {
-    simEventSource = new EventSource(sseUrl);
-    simEventSource.onopen = () => {
-      logSimEvent({ type: 'sim_info', text: '🟢 เชื่อมต่อ SSE Stream ห้อง [' + simRoomCode + '] สำเร็จ พร้อมดักจับแพ็กเก็ต Real-Time' });
-      simProbePing();
-    };
-    simEventSource.onmessage = (event) => {
-      if (!event.data) return;
-      try {
-        const msg = JSON.parse(event.data);
-        logSimEvent(msg);
-      } catch (err) {}
-    };
-    simEventSource.onerror = (err) => {
-      // If server SSE fails or returns 405 (static host/Vercel static), local BroadcastChannel handles 100% of actions!
-    };
-  } catch (e) {}
+  if (!isVercelHost()) {
+    const sseUrl = '/api/rooms/' + encodeURIComponent(simRoomCode) + '/stream';
+    try {
+      simEventSource = new EventSource(sseUrl);
+      simEventSource.onopen = () => {
+        logSimEvent({ type: 'sim_info', text: '🟢 เชื่อมต่อ SSE Stream ห้อง [' + simRoomCode + '] สำเร็จ พร้อมดักจับแพ็กเก็ต Real-Time' });
+        simProbePing();
+      };
+      simEventSource.onmessage = (event) => {
+        if (!event.data) return;
+        try {
+          const msg = JSON.parse(event.data);
+          logSimEvent(msg);
+        } catch (err) {}
+      };
+      simEventSource.onerror = (err) => {
+        // If server SSE fails or returns 405 (static host/Vercel static), local BroadcastChannel handles 100% of actions!
+      };
+    } catch (e) {}
+  }
 
   // 3. Load the 6 isolated viewports with universal ?view= URLs that work on ANY web host
   const fCourt = document.getElementById('simFrameCourt');
@@ -13245,6 +13281,7 @@ function clearSimLogs() {
 
 async function simPost(msg) {
   if (!msg._sender) msg._sender = 'sim_monitor';
+  if (!msg._origin) msg._origin = 'local';
   if (!msg._id) {
     msg._id = 'sim_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
   }
@@ -13273,14 +13310,16 @@ async function simPost(msg) {
   // Log in Simulation Monitor
   logSimEvent(msg);
 
-  // 3. Dispatch to server HTTP relay if running on Node server (silently fallback if on static host)
-  try {
-    fetch('/api/rooms/' + encodeURIComponent(simRoomCode) + '/broadcast', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(msg)
-    }).catch(() => {});
-  } catch (e) {}
+  // 3. Dispatch to server HTTP relay only if running on real Node server (never on Vercel)
+  if (!isVercelHost()) {
+    try {
+      fetch('/api/rooms/' + encodeURIComponent(simRoomCode) + '/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msg)
+      }).catch(() => {});
+    } catch (e) {}
+  }
 }
 
 async function simProbePing() {
@@ -13316,6 +13355,7 @@ async function simProbePing() {
 }
 
 let isSimActionRunning = false;
+let simActionTimeout = null;
 
 async function runSimGuarded(actionName, actionFn) {
   if (isSimActionRunning) {
@@ -13328,12 +13368,25 @@ async function runSimGuarded(actionName, actionFn) {
     if (!b.classList.contains('reset')) b.disabled = true;
   });
 
+  if (simActionTimeout) clearTimeout(simActionTimeout);
+  simActionTimeout = setTimeout(() => {
+    if (isSimActionRunning) {
+      console.warn('[SIM] Guard timeout reached, resetting state');
+      isSimActionRunning = false;
+      buttons.forEach(b => b.disabled = false);
+    }
+  }, 20000);
+
   try {
     await actionFn();
   } catch (err) {
     console.error('Simulation step error:', err);
     logSimEvent({ type: 'sim_info', text: `❌ [ERROR]: การจำลองเกิดข้อผิดพลาด: ${err.message}` });
   } finally {
+    if (simActionTimeout) {
+      clearTimeout(simActionTimeout);
+      simActionTimeout = null;
+    }
     isSimActionRunning = false;
     buttons.forEach(b => b.disabled = false);
   }
